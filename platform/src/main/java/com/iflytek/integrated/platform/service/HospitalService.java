@@ -111,15 +111,35 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
     }
 
     @Transactional(rollbackFor = Exception.class)
-    @ApiOperation(value = "医院管理新增")
-    @PostMapping("/{version}/pb/hospitalManage/insertHospital")
-    public ResultDto insertHospital(String areaId, String hospitalName, String hospitalCode){
+    @ApiOperation(value = "医院管理新增/编辑")
+    @PostMapping("/{version}/pb/hospitalManage/saveAndUpdateHospital")
+    public ResultDto saveAndUpdateHospital(String id, String areaId, String hospitalName, String hospitalCode){
+        //校验参数是否完整
         if(StringUtils.isEmpty(areaId) || StringUtils.isEmpty(hospitalCode) || StringUtils.isEmpty(hospitalName)){
             return new ResultDto(Boolean.TRUE, "", "创建医院参数不能缺失");
         }
-        if(isExistence("",hospitalName,hospitalCode)){
+        if(isExistence(id,hospitalName,hospitalCode)){
             return new ResultDto(Boolean.TRUE, "", "医院名称或编码已存在");
         }
+        if(StringUtils.isEmpty(id)){
+            //没有id，新增医院
+            return insertHospital(areaId,hospitalName,hospitalCode);
+        }
+        else {
+            //存在id时，编辑医院
+            return updateHospital(id,areaId,hospitalName,hospitalCode);
+        }
+    }
+
+
+    /**
+     * 新增医院
+     * @param areaId
+     * @param hospitalName
+     * @param hospitalCode
+     * @return
+     */
+    private ResultDto insertHospital(String areaId, String hospitalName, String hospitalCode){
         Long lon = sqlQueryFactory.insert(qTHospital)
                 .set(qTHospital.id, JSONObject.toJSONString(uidService.getUID()))
                 .set(qTHospital.areaId,areaId)
@@ -134,19 +154,15 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         }
     }
 
-    @Transactional(rollbackFor = Exception.class)
-    @ApiOperation(value = "医院管理编辑")
-    @PostMapping("/{version}/pb/hospitalManage/updateHospital")
-    public ResultDto updateHospital(String id, String areaId, String hospitalName, String hospitalCode){
-        if(StringUtils.isEmpty(id)){
-            return new ResultDto(Boolean.TRUE, "", "医院主键不能为空");
-        }
-        if(StringUtils.isEmpty(areaId) || StringUtils.isEmpty(hospitalCode) || StringUtils.isEmpty(hospitalName)){
-            return new ResultDto(Boolean.TRUE, "", "创建医院参数不能缺失");
-        }
-        if(isExistence(id,hospitalName,hospitalCode)){
-            return new ResultDto(Boolean.TRUE, "", "医院名称或编码已存在");
-        }
+    /**
+     * 编辑医院
+     * @param id
+     * @param areaId
+     * @param hospitalName
+     * @param hospitalCode
+     * @return
+     */
+    private ResultDto updateHospital(String id, String areaId, String hospitalName, String hospitalCode){
         Long lon = sqlQueryFactory.update(qTHospital)
                 .set(qTHospital.areaId,areaId)
                 .set(qTHospital.hospitalCode,hospitalCode)
