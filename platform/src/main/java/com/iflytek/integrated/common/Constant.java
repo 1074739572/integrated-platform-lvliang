@@ -6,6 +6,10 @@ package com.iflytek.integrated.common;
  */
 public class Constant {
 
+    public static final String YES = "1";
+
+    public static final String NO = "0";
+
     /**
      * 00
      */
