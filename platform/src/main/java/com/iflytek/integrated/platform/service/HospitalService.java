@@ -1,8 +1,10 @@
 package com.iflytek.integrated.platform.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.*;
 import com.iflytek.integrated.platform.entity.THospital;
 import com.iflytek.medicalboot.core.dto.PageRequest;
+import com.iflytek.medicalboot.core.id.UidService;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
@@ -12,15 +14,18 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
@@ -38,6 +43,8 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
     }
     private static final Logger logger = LoggerFactory.getLogger(HospitalService.class);
 
+    @Autowired
+    private UidService uidService;
 
     @ApiOperation(value = "获取医院管理列表")
     @GetMapping("/{version}/pb/hospitalManage/getHospitalList")
@@ -103,4 +110,77 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         }
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    @ApiOperation(value = "医院管理新增")
+    @PostMapping("/{version}/pb/hospitalManage/insertHospital")
+    public ResultDto insertHospital(String areaId, String hospitalName, String hospitalCode){
+        if(StringUtils.isEmpty(areaId) || StringUtils.isEmpty(hospitalCode) || StringUtils.isEmpty(hospitalName)){
+            return new ResultDto(Boolean.TRUE, "", "创建医院参数不能缺失");
+        }
+        if(isExistence("",hospitalName,hospitalCode)){
+            return new ResultDto(Boolean.TRUE, "", "医院名称或编码已存在");
+        }
+        Long lon = sqlQueryFactory.insert(qTHospital)
+                .set(qTHospital.id, JSONObject.toJSONString(uidService.getUID()))
+                .set(qTHospital.areaId,areaId)
+                .set(qTHospital.status,Constant.YES)
+                .set(qTHospital.hospitalCode,hospitalCode)
+                .set(qTHospital.hospitalName,hospitalName)
+                .set(qTHospital.createdTime,new Date()).execute();
+        if(lon > 0){
+            return new ResultDto(Boolean.TRUE, "", "医院管理新增成功");
+        }else {
+            return new ResultDto(Boolean.TRUE, "", "医院管理新增失败");
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @ApiOperation(value = "医院管理编辑")
+    @PostMapping("/{version}/pb/hospitalManage/updateHospital")
+    public ResultDto updateHospital(String id, String areaId, String hospitalName, String hospitalCode){
+        if(StringUtils.isEmpty(id)){
+            return new ResultDto(Boolean.TRUE, "", "医院主键不能为空");
+        }
+        if(StringUtils.isEmpty(areaId) || StringUtils.isEmpty(hospitalCode) || StringUtils.isEmpty(hospitalName)){
+            return new ResultDto(Boolean.TRUE, "", "创建医院参数不能缺失");
+        }
+        if(isExistence(id,hospitalName,hospitalCode)){
+            return new ResultDto(Boolean.TRUE, "", "医院名称或编码已存在");
+        }
+        Long lon = sqlQueryFactory.update(qTHospital)
+                .set(qTHospital.areaId,areaId)
+                .set(qTHospital.hospitalCode,hospitalCode)
+                .set(qTHospital.hospitalName,hospitalName)
+                .set(qTHospital.updatedTime,new Date())
+                .where(qTHospital.id.eq(id)).execute();
+        if(lon > 0){
+            return new ResultDto(Boolean.TRUE, "", "医院管理编辑成功");
+        }else {
+            return new ResultDto(Boolean.TRUE, "", "医院管理编辑失败");
+        }
+    }
+
+    /**
+     * 校验是否存在重复的医院
+     * @param id
+     * @param hospitalName
+     * @param hospitalCode
+     * @return
+     */
+    private boolean isExistence(String id,String hospitalName, String hospitalCode){
+        //校验是否存在重复医院
+        ArrayList<Predicate> list = new ArrayList<>();
+        list.add(qTHospital.status.equalsIgnoreCase(Constant.YES));
+        list.add(qTHospital.hospitalCode.eq(hospitalCode)
+                .or(qTHospital.hospitalName.eq(hospitalName)));
+        if(!StringUtils.isEmpty(id)){
+            list.add(qTHospital.id.notEqualsIgnoreCase(id));
+        }
+        List<String> hospitals = sqlQueryFactory.select(qTHospital.id).from(qTHospital)
+                .where(list.toArray(new Predicate[list.size()])).fetch();
+        if(hospitals == null || hospitals.size() == 0){
+            return false;
+        }
+        return true;
+    }
 }
