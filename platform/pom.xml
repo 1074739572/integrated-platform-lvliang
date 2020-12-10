@@ -32,17 +32,63 @@
                     <groupId>com.alibaba.cloud</groupId>
                     <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
                 </exclusion>
+                <!-- 使用queryDSL-->
+                <exclusion>
+                    <groupId>com.baomidou</groupId>
+                    <artifactId>mybatis-plus-boot-starter</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <!-- 本项目特有依赖库 -->
+        <dependency>
+            <groupId>com.querydsl</groupId>
+            <artifactId>querydsl-sql-spring</artifactId>
+            <version>4.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
 
     </dependencies>
 
     <build>
         <plugins>
+            <!--生成Entity和QueryDSL-->
             <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
+                <groupId>com.querydsl</groupId>
+                <artifactId>querydsl-maven-plugin</artifactId>
+                <version>4.2.2</version>
+                <configuration>
+                    <jdbcDriver>com.mysql.jdbc.Driver</jdbcDriver>
+                    <jdbcUrl>jdbc:mysql://172.31.184.170:4001/esb-plus</jdbcUrl>
+                    <jdbcUser>root</jdbcUser>
+                    <jdbcPassword>sM_xXZHPQAF1</jdbcPassword>
+                    <!-- 创建实体，不写则创建全部 -->
+                    <!-- <tableNamePattern>t_function</tableNamePattern>-->
+                    <customTypes>
+                        com.querydsl.sql.types.UtilDateType
+                    </customTypes>
+                    <packageName>com.iflytek.integrated.platform.entity</packageName>
+                    <exportBeans>true</exportBeans>
+                    <beanInterfaces>java.io.Serializable</beanInterfaces>
+                    <serializerClass>com.iflytek.medicalboot.core.querydsl.CoreMetaDataSerializer</serializerClass>
+                    <beanSerializerClass>com.iflytek.medicalboot.core.querydsl.CoreBeanSerializer</beanSerializerClass>
+                    <targetFolder>src/main/java</targetFolder>
+                    <sourceFolder>src/main/java</sourceFolder>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.iflytek.medicalboot</groupId>
+                        <artifactId>core</artifactId>
+                        <version>${medicalboot.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>mysql</groupId>
+                        <artifactId>mysql-connector-java</artifactId>
+                        <version>5.1.45</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
     </build>
