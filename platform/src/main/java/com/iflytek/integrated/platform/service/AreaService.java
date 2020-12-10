@@ -34,7 +34,6 @@ public class AreaService extends QuerydslService<TArea, String, TArea, StringPat
     @GetMapping("/{version}/pb/test/{Id}")
     public ResultDto test(HttpServletRequest request,@PathVariable("Id") String Id) {
         try {
-            System.out.println("======test");
             // 只查部分字段
             List<TArea> result = sqlQueryFactory.select(ignore(qTArea.id)).from(qTArea)
                     .where(qTArea.id.equalsIgnoreCase(Id)).fetch();
