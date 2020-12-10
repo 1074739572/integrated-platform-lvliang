@@ -1,7 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
-import com.iflytek.sec.uap.rest.dto.ResultDto;
-import com.iflytek.sec.uap.util.ExceptionUtil;
+import com.iflytek.integrated.common.ExceptionUtil;
+import com.iflytek.integrated.common.ResultDto;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
@@ -24,7 +24,7 @@ public class TestService {
     @RequestMapping(value = "/test", method = RequestMethod.GET)
     public ResultDto test(@RequestParam("test") String test) {
         try {
-            return new ResultDto(Boolean.TRUE, "1111", null);
+            return new ResultDto(Boolean.TRUE, "111", null);
         } catch (Exception e) {
             logger.error("根据用户id查询当前所属应用集合失败!", e);
             return new ResultDto(Boolean.FALSE, ExceptionUtil.dealException(e), null);

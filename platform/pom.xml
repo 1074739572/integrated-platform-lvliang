@@ -21,13 +21,21 @@
         <dependency>
             <groupId>com.iflytek.medicalboot</groupId>
             <artifactId>starter</artifactId>
+            <version>2.0.1-SNAPSHOT</version>
+            <exclusions>
+                <!-- 排除nacos -->
+                <exclusion>
+                    <groupId>com.alibaba.cloud</groupId>
+                    <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.alibaba.cloud</groupId>
+                    <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- 本项目特有依赖库 -->
-        <dependency>
-            <groupId>com.iflytek.sec</groupId>
-            <artifactId>uap-service</artifactId>
-            <version>V1.1.1_RM1.13.1-SNAPSHOT</version>
-        </dependency>
+
     </dependencies>
 
     <build>
