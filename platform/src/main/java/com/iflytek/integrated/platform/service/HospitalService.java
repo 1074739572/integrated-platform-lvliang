@@ -48,10 +48,9 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
 
     @ApiOperation(value = "获取医院管理列表")
     @GetMapping("/{version}/pb/hospitalManage/getHospitalList")
-    public ResultDto getHospitalListPage(HttpServletRequest request,
-                                         String hospitalName,String areaCode,Integer pageNo,Integer pageSize){
+    public ResultDto getHospitalListPage(String hospitalName,String areaCode,Integer pageNo,Integer pageSize){
         try {
-            //评价查询条件
+            //查询条件
             ArrayList<Predicate> list = new ArrayList<>();
             list.add(qTHospital.status.equalsIgnoreCase(Constant.YES));
             //如果区域id不为空，关联区域表查询所属区域下的医院
