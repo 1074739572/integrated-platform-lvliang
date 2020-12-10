@@ -42,15 +42,15 @@ public class Utils {
         }
         //校验是否符合区域编码格式
         if(AREA_CODE.matcher(areaCode).matches()){
-            String three = areaCode.substring(4);
+            String three = areaCode.substring(4,6);
             if(Constant.NN_CODE.equals(three)){
                 //如果区县没有选
-                String two = areaCode.substring(2,3);
+                String two = areaCode.substring(2,4);
                 if(Constant.NN_CODE.equals(two)){
                     //如果没有选市
-                    return areaCode.substring(0,1);
+                    return areaCode.substring(0,2);
                 }
-                return areaCode.substring(0,3);
+                return areaCode.substring(0,4);
             }
             return areaCode;
         }else {
