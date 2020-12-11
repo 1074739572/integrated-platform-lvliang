@@ -104,10 +104,10 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         //逻辑删除
         Long lon = sqlQueryFactory.update(qTHospital).set(qTHospital.status, Constant.Status.NO)
                 .where(qTHospital.id.eq(id)).execute();
-        if(lon > 0){
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "医院管理删除成功");
+        if(lon <= 0){
+            throw new RuntimeException("医院管理删除失败");
         }
-        throw new RuntimeException("医院管理删除失败");
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "医院管理删除成功");
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -148,10 +148,10 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
                 .set(qTHospital.hospitalName,hospitalName)
                 .set(qTHospital.createdBy,"")
                 .set(qTHospital.createdTime,new Date()).execute();
-        if(lon > 0){
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "医院管理新增成功");
+        if(lon <= 0){
+            throw new RuntimeException("医院管理新增失败");
         }
-        throw new RuntimeException("医院管理新增失败");
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "医院管理新增成功");
     }
 
     /**
@@ -170,10 +170,10 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
                 .set(qTHospital.updatedBy,"")
                 .set(qTHospital.updatedTime,new Date())
                 .where(qTHospital.id.eq(id)).execute();
-        if(lon > 0){
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "医院管理编辑成功");
+        if(lon <= 0){
+            throw new RuntimeException("医院管理编辑失败");
         }
-        throw new RuntimeException("医院管理编辑失败");
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "医院管理编辑成功");
     }
 
     @ApiOperation(value = "医院配置")

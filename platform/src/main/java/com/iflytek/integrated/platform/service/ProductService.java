@@ -108,8 +108,11 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "没有找到该产品功能，删除失败");
         }
         //删除产品：删除产品和功能的关联关系
-        sqlQueryFactory.delete(qTProductFunctionLink)
+        Long lon = sqlQueryFactory.delete(qTProductFunctionLink)
                 .where(qTProductFunctionLink.id.eq(functionLink.getId())).execute();
+        if(lon <= 0){
+            throw new RuntimeException("产品功能删除失败");
+        }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "产品功能删除成功");
     }
 

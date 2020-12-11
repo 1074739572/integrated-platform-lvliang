@@ -16,7 +16,9 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -89,4 +91,23 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
         }
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    @ApiOperation(value = "插件管理删除")
+    @DeleteMapping("/{version}/pb/pluginManage/delPluginById")
+    public ResultDto delPluginById(String id){
+        if(StringUtils.isEmpty(id)){
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "id不能为空");
+        }
+        //查看插件是否存在
+        TPlugin plugin = sqlQueryFactory.select(qTPlugin).from(qTPlugin).fetchOne();
+        if(plugin == null || StringUtils.isEmpty(plugin.getId())){
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "没有找到该产品功能，删除失败");
+        }
+        //删除插件
+        Long lon = sqlQueryFactory.delete(qTPlugin).where(qTPlugin.id.eq(plugin.getId())).execute();
+        if(lon <= 0){
+            throw new RuntimeException("插件管理删除失败");
+        }
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "插件管理删除成功");
+    }
 }
