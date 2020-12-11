@@ -90,7 +90,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
     @DeleteMapping("/{version}/pb/hospitalManage/delHospitalById")
     public ResultDto delHospitalById(String id){
         if(StringUtils.isEmpty(id)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "医院id为空", null);
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "医院id为空");
         }
         //判断是否存在医院
         List<String> hospitals = sqlQueryFactory.select(qTHospital.id).from(qTHospital)
@@ -169,6 +169,19 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "医院管理编辑成功");
         }
         throw new RuntimeException("医院管理编辑失败");
+    }
+
+    @ApiOperation(value = "医院配置")
+    @GetMapping("/{version}/pb/hospitalManage/getAllHospital")
+    public ResultDto getAllHospital(){
+        List<THospital> hospitals = sqlQueryFactory.select(
+                Projections.bean(
+                        THospital.class,
+                        qTHospital.hospitalName,
+                        qTHospital.hospitalCode
+                )
+            ).from(qTHospital).orderBy(qTHospital.updatedTime.desc()).fetch();
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"",hospitals);
     }
 
     /**

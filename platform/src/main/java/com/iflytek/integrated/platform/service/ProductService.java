@@ -96,7 +96,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     @DeleteMapping("/{version}/pb/productManage/delProductById")
     public ResultDto delProductById(String id){
         if(StringUtils.isEmpty(id)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "id不能为空", null);
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "id不能为空");
         }
         //查看产品是否存在
         TProductFunctionLink functionLink = sqlQueryFactory.select(qTProductFunctionLink).from(qTProductFunctionLink)
@@ -148,7 +148,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"","新增/编辑产品功能关系成功");
     }
 
-    @ApiOperation(value = "选择产品下拉")
+    @ApiOperation(value = "选择产品下拉及其功能")
     @GetMapping("/{version}/pb/productManage/getDisProduct")
     public ResultDto getDisProduct(){
         List<TProduct> products = sqlQueryFactory.select(
@@ -161,11 +161,11 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"",products);
     }
 
-    @ApiOperation(value = "选择产品下拉")
+    @ApiOperation(value = "根据产品获取功能")
     @GetMapping("/{version}/pb/productManage/getFuncByPro")
     public ResultDto getFuncByPro(String productId){
         if(StringUtils.isEmpty(productId)){
-            throw new RuntimeException("产品id不能为空");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "","产品id不能为空");
         }
         List<TFunction> functions = sqlQueryFactory.select(
                 Projections.bean(
