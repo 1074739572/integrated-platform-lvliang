@@ -75,5 +75,10 @@ public class Constant {
          * 产品管理
          */
         public static final String PRODUCT = "PR_";
+
+        /**
+         * 功能管理
+         */
+        public static final String FUNCTION = "FU_";
     }
 }

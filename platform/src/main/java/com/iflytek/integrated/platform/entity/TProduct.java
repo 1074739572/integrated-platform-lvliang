@@ -23,6 +23,11 @@ public class TProduct implements Serializable {
 
     private java.util.Date updatedTime;
 
+    //查询字段
+    private String functionName;
+
+    private String funLinkId;
+
     public String getId() {
         return id;
     }
@@ -87,5 +92,20 @@ public class TProduct implements Serializable {
         this.updatedTime = updatedTime;
     }
 
+    public String getFunctionName() {
+        return functionName;
+    }
+
+    public void setFunctionName(String functionName) {
+        this.functionName = functionName;
+    }
+
+    public String getFunLinkId() {
+        return funLinkId;
+    }
+
+    public void setFunLinkId(String funLinkId) {
+        this.funLinkId = funLinkId;
+    }
 }
 

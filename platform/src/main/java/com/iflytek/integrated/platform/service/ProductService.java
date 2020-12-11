@@ -10,7 +10,7 @@ import com.iflytek.integrated.platform.entity.TProductFunctionLink;
 import com.iflytek.integrated.platform.validator.ValidationResult;
 import com.iflytek.integrated.platform.validator.ValidatorHelper;
 import com.iflytek.medicalboot.core.dto.PageRequest;
-import com.iflytek.medicalboot.core.id.UidService;
+import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -47,7 +48,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
 
     @Autowired
-    private UidService uidService;
+    private BatchUidService batchUidService;
     @Autowired
     private ValidatorHelper validatorHelper;
 
@@ -75,7 +76,8 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
                             qTProduct.id,
                             qTProduct.productName,
                             qTFunction.functionName,
-                            qTProduct.updatedTime
+                            qTProduct.updatedTime,
+                            qTProductFunctionLink.id.as("funLinkId")
                     )).from(qTProduct)
                     .where(list.toArray(new Predicate[list.size()]))
                     .leftJoin(qTProductFunctionLink).on(qTProductFunctionLink.productId.eq(qTProduct.id))
@@ -127,10 +129,12 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         }
         //获取产品id，功能id关系
         TProductFunctionLink link = addOrGetLink(dto.getProductName(),dto.getFunctionName());
+        //校验是否存在产品和功能关系
+        isExistence(dto.getId(),link.getProductId(),link.getFunctionId());
         if(StringUtils.isEmpty(dto.getId())){
             //新增产品关系
             Long lon = sqlQueryFactory.insert(qTProductFunctionLink)
-                    .set(qTProductFunctionLink.id,uidService.getUID()+"")
+                    .set(qTProductFunctionLink.id,batchUidService.getUid(qTProductFunctionLink.getTableName())+"")
                     .set(qTProductFunctionLink.productId,link.getProductId())
                     .set(qTProductFunctionLink.functionId,link.getFunctionId())
                     .set(qTProductFunctionLink.createdBy,"")
@@ -151,7 +155,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
                 throw new RuntimeException("产品管理编辑失败");
             }
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"","新增/编辑产品功能关系成功");
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"","新增或编辑产品功能关系成功");
     }
 
     @ApiOperation(value = "选择产品下拉及其功能")
@@ -199,7 +203,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
                 .from(qTProduct).where(qTProduct.productName.eq(productName)).fetchOne());
         if(StringUtils.isEmpty(functionLink.getProductId())){
             //如果是新的产品名称，新建一个产品
-            functionLink.setProductId(uidService.getUID() + "");
+            functionLink.setProductId(batchUidService.getUid(qTProduct.getTableName()) + "");
             Long lon = sqlQueryFactory.insert(qTProduct)
                     .set(qTProduct.id,functionLink.getProductId())
                     .set(qTProduct.productName,productName)
@@ -216,10 +220,11 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
                 .from(qTFunction).where(qTFunction.functionName.eq(functionName)).fetchOne());
         if(StringUtils.isEmpty(functionLink.getFunctionId())){
             //如果是新的产品名称，新建一个功能
-            functionLink.setFunctionId(uidService.getUID() + "");
+            functionLink.setFunctionId(batchUidService.getUid(qTFunction.getTableName()) + "");
             Long lon = sqlQueryFactory.insert(qTFunction)
+                    .set(qTFunction.id,functionLink.getFunctionId())
                     .set(qTFunction.functionName,functionName)
-                    .set(qTFunction.functionCode,functionLink.getFunctionId())
+                    .set(qTFunction.functionCode,Utils.generateCode(Constant.AppCode.FUNCTION))
                     .set(qTFunction.createdBy,"")
                     .set(qTFunction.createdTime,new Date()).execute();
             if(lon <= 0){
@@ -227,5 +232,26 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             }
         }
         return functionLink;
+    }
+
+    /**
+     * 校验是否已经存在
+     * @param linkId
+     * @param productId
+     * @param functionId
+     */
+    private void isExistence(String linkId, String productId, String functionId){
+        //校验是否存在重复产品和功能关系
+        ArrayList<Predicate> list = new ArrayList<>();
+        list.add(qTProductFunctionLink.functionId.eq(functionId));
+        list.add(qTProductFunctionLink.productId.eq(productId));
+        if(!StringUtils.isEmpty(linkId)){
+            list.add(qTProductFunctionLink.id.notEqualsIgnoreCase(linkId));
+        }
+        List<String> links = sqlQueryFactory.select(qTProductFunctionLink.id).from(qTProductFunctionLink)
+                .where(list.toArray(new Predicate[list.size()])).fetch();
+        if(!CollectionUtils.isEmpty(links)){
+            throw new RuntimeException("产品和功能关系已存在");
+        }
     }
 }

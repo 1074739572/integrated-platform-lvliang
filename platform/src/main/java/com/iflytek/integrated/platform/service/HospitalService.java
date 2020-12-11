@@ -7,7 +7,7 @@ import com.iflytek.integrated.platform.entity.THospital;
 import com.iflytek.integrated.platform.validator.ValidationResult;
 import com.iflytek.integrated.platform.validator.ValidatorHelper;
 import com.iflytek.medicalboot.core.dto.PageRequest;
-import com.iflytek.medicalboot.core.id.UidService;
+import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,7 +43,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
     private static final Logger logger = LoggerFactory.getLogger(HospitalService.class);
 
     @Autowired
-    private UidService uidService;
+    private BatchUidService batchUidService;
     @Autowired
     private ValidatorHelper validatorHelper;
 
@@ -119,61 +120,36 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         if (validationResult.isHasErrors()) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "", validationResult.getErrorMsg());
         }
-        if(isExistence(hospital.getId(),hospital.getHospitalName(),hospital.getHospitalCode())){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "医院名称或编码已存在");
-        }
+        //校验是否有重复医院
+        isExistence(hospital.getId(),hospital.getHospitalName(),hospital.getHospitalCode());
         if(StringUtils.isEmpty(hospital.getId())){
             //没有id，新增医院
-            return insertHospital(hospital.getAreaId(),hospital.getHospitalName(),hospital.getHospitalCode());
+            Long lon = sqlQueryFactory.insert(qTHospital)
+                    .set(qTHospital.id, batchUidService.getUid(qTHospital.getTableName())+"")
+                    .set(qTHospital.areaId,hospital.getAreaId())
+                    .set(qTHospital.status,Constant.Status.YES)
+                    .set(qTHospital.hospitalCode,hospital.getHospitalName())
+                    .set(qTHospital.hospitalName,hospital.getHospitalCode())
+                    .set(qTHospital.createdBy,"")
+                    .set(qTHospital.createdTime,new Date()).execute();
+            if(lon <= 0){
+                throw new RuntimeException("医院管理新增失败");
+            }
         }
         else {
             //存在id时，编辑医院
-            return updateHospital(hospital.getId(),hospital.getAreaId(),hospital.getHospitalName(),hospital.getHospitalCode());
+            Long lon = sqlQueryFactory.update(qTHospital)
+                    .set(qTHospital.areaId,hospital.getAreaId())
+                    .set(qTHospital.hospitalCode,hospital.getHospitalCode())
+                    .set(qTHospital.hospitalName,hospital.getHospitalName())
+                    .set(qTHospital.updatedBy,"")
+                    .set(qTHospital.updatedTime,new Date())
+                    .where(qTHospital.id.eq(hospital.getId())).execute();
+            if(lon <= 0){
+                throw new RuntimeException("医院管理编辑失败");
+            }
         }
-    }
-
-    /**
-     * 新增医院
-     * @param areaId
-     * @param hospitalName
-     * @param hospitalCode
-     * @return
-     */
-    private ResultDto insertHospital(String areaId, String hospitalName, String hospitalCode){
-        Long lon = sqlQueryFactory.insert(qTHospital)
-                .set(qTHospital.id, uidService.getUID()+"")
-                .set(qTHospital.areaId,areaId)
-                .set(qTHospital.status,Constant.Status.YES)
-                .set(qTHospital.hospitalCode,hospitalCode)
-                .set(qTHospital.hospitalName,hospitalName)
-                .set(qTHospital.createdBy,"")
-                .set(qTHospital.createdTime,new Date()).execute();
-        if(lon <= 0){
-            throw new RuntimeException("医院管理新增失败");
-        }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "医院管理新增成功");
-    }
-
-    /**
-     * 编辑医院
-     * @param id
-     * @param areaId
-     * @param hospitalName
-     * @param hospitalCode
-     * @return
-     */
-    private ResultDto updateHospital(String id, String areaId, String hospitalName, String hospitalCode){
-        Long lon = sqlQueryFactory.update(qTHospital)
-                .set(qTHospital.areaId,areaId)
-                .set(qTHospital.hospitalCode,hospitalCode)
-                .set(qTHospital.hospitalName,hospitalName)
-                .set(qTHospital.updatedBy,"")
-                .set(qTHospital.updatedTime,new Date())
-                .where(qTHospital.id.eq(id)).execute();
-        if(lon <= 0){
-            throw new RuntimeException("医院管理编辑失败");
-        }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "医院管理编辑成功");
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "医院管理新增或编辑成功");
     }
 
     @ApiOperation(value = "医院配置")
@@ -196,7 +172,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
      * @param hospitalCode
      * @return
      */
-    private boolean isExistence(String id,String hospitalName, String hospitalCode){
+    private void isExistence(String id,String hospitalName, String hospitalCode){
         //校验是否存在重复医院
         ArrayList<Predicate> list = new ArrayList<>();
         list.add(qTHospital.status.eq(Constant.Status.YES));
@@ -207,9 +183,8 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         }
         List<String> hospitals = sqlQueryFactory.select(qTHospital.id).from(qTHospital)
                 .where(list.toArray(new Predicate[list.size()])).fetch();
-        if(hospitals == null || hospitals.size() == 0){
-            return false;
+        if(!CollectionUtils.isEmpty(hospitals)){
+            throw new RuntimeException("医院名称或编码已存在");
         }
-        return true;
     }
 }

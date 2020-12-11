@@ -6,7 +6,11 @@ import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.common.utils.Utils;
 import com.iflytek.integrated.platform.entity.TPlugin;
+import com.iflytek.integrated.platform.validator.ValidationResult;
+import com.iflytek.integrated.platform.validator.ValidatorHelper;
 import com.iflytek.medicalboot.core.dto.PageRequest;
+import com.iflytek.medicalboot.core.id.BatchUidService;
+import com.iflytek.medicalboot.core.id.UidService;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
@@ -16,14 +20,14 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static com.iflytek.integrated.platform.entity.QTPlugin.qTPlugin;
@@ -40,6 +44,11 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
     }
 
     private static final Logger logger = LoggerFactory.getLogger(PluginService.class);
+
+    @Autowired
+    private BatchUidService batchUidService;
+    @Autowired
+    private ValidatorHelper validatorHelper;
 
     @ApiOperation(value = "选择插件下拉")
     @GetMapping("/{version}/pb/pluginManage/getDisPlugin")
@@ -99,7 +108,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "id不能为空");
         }
         //查看插件是否存在
-        TPlugin plugin = sqlQueryFactory.select(qTPlugin).from(qTPlugin).fetchOne();
+        TPlugin plugin = sqlQueryFactory.select(qTPlugin).from(qTPlugin).where(qTPlugin.id.eq(id)).fetchOne();
         if(plugin == null || StringUtils.isEmpty(plugin.getId())){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "没有找到该产品功能，删除失败");
         }
@@ -110,4 +119,68 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
         }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "插件管理删除成功");
     }
+
+    @Transactional(rollbackFor = Exception.class)
+    @ApiOperation(value = "插件新增/编辑")
+    @PostMapping("/{version}/pb/pluginManage/saveAndUpdatePlugin")
+    public ResultDto saveAndUpdateProduct(@RequestBody TPlugin plugin){
+        //校验参数是否完整
+        ValidationResult validationResult = validatorHelper.validate(plugin);
+        if (validationResult.isHasErrors()) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", validationResult.getErrorMsg());
+        }
+        //校验是否存在重复插件
+        isExistence(plugin.getId(),plugin.getPluginName(),plugin.getPluginCode());
+        if(StringUtils.isEmpty(plugin.getId())){
+            //新增插件
+            Long lon = sqlQueryFactory.insert(qTPlugin)
+                    .set(qTPlugin.id,batchUidService.getUid(qTPlugin.getTableName())+"")
+                    .set(qTPlugin.pluginName,plugin.getPluginName())
+                    .set(qTPlugin.pluginCode,plugin.getPluginCode())
+                    .set(qTPlugin.pluginInstruction,plugin.getPluginInstruction())
+                    .set(qTPlugin.pluginContent,plugin.getPluginContent())
+                    .set(qTPlugin.createdBy,"")
+                    .set(qTPlugin.createdTime,new Date()).execute();
+            if(lon <= 0){
+                throw new RuntimeException("新增插件失败");
+            }
+        }
+        else{
+            //编辑插件
+            Long lon = sqlQueryFactory.update(qTPlugin)
+                    .set(qTPlugin.pluginName,plugin.getPluginName())
+                    .set(qTPlugin.pluginCode,plugin.getPluginCode())
+                    .set(qTPlugin.pluginInstruction,plugin.getPluginInstruction())
+                    .set(qTPlugin.pluginContent,plugin.getPluginContent())
+                    .set(qTPlugin.updatedBy,"")
+                    .set(qTPlugin.updatedTime,new Date())
+                    .where(qTPlugin.id.eq(plugin.getId())).execute();
+            if(lon <= 0){
+                throw new RuntimeException("编辑插件失败");
+            }
+        }
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"","插件新增或编辑成功");
+    }
+
+    /**
+     * 校验是否有重复插件
+     * @param id
+     * @param pluginName
+     * @param pluginCode
+     */
+    private void isExistence(String id, String pluginName, String pluginCode){
+        //校验是否存在重复插件
+        ArrayList<Predicate> list = new ArrayList<>();
+        list.add(qTPlugin.pluginName.eq(pluginName)
+                .or(qTPlugin.pluginCode.eq(pluginCode)));
+        if(!StringUtils.isEmpty(id)){
+            list.add(qTPlugin.id.notEqualsIgnoreCase(id));
+        }
+        List<String> plugins = sqlQueryFactory.select(qTPlugin.id).from(qTPlugin)
+                .where(list.toArray(new Predicate[list.size()])).fetch();
+        if(!CollectionUtils.isEmpty(plugins)){
+            throw new RuntimeException("插件名称或编码已存在");
+        }
+    }
+
 }
