@@ -1,5 +1,6 @@
 package com.iflytek.integrated.platform.service;
 
+import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ExceptionUtil;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.platform.entity.TArea;
@@ -38,10 +39,10 @@ public class AreaService extends QuerydslService<TArea, String, TArea, StringPat
             List<TArea> result = sqlQueryFactory.select(ignore(qTArea.id)).from(qTArea)
                     .where(qTArea.id.equalsIgnoreCase(Id)).fetch();
             // 类型转换
-            return new ResultDto(Boolean.TRUE, "111", result );
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "数据获取成功", result);
         } catch (Exception e) {
             logger.error("根据用户id查询当前所属应用集合失败!", e);
-            return new ResultDto(Boolean.FALSE, ExceptionUtil.dealException(e), null);
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, ExceptionUtil.dealException(e), null);
         }
     }
 }

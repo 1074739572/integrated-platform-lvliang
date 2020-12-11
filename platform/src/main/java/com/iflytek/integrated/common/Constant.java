@@ -24,4 +24,22 @@ public class Constant {
      * 右模糊查询
      */
     public static final String RIGHT_FUZZY_SEARCH = "%s%%";
+
+
+    /**
+     * 接口返回状态Code
+     */
+    public interface ResultCode {
+        /**
+         * 返回成功
+         */
+        public static final Integer SUCCESS_CODE = 200;
+        /**
+         * 返回失败
+         */
+        public static final Integer ERROR_CODE = 500;
+
+    }
+
+
 }
