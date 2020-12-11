@@ -42,4 +42,14 @@ public class Constant {
     }
 
 
+    /**
+     * 有效
+     */
+    public static final String IS_VALID_ON = "1";
+
+    /**
+     * 无效
+     */
+    public static final String IS_VALID_OFF = "2";
+
 }

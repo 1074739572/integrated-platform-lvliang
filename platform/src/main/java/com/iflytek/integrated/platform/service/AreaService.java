@@ -37,7 +37,7 @@ public class AreaService extends QuerydslService<TArea, String, TArea, StringPat
         try {
             // 只查部分字段
             List<TArea> result = sqlQueryFactory.select(ignore(qTArea.id)).from(qTArea)
-                    .where(qTArea.id.equalsIgnoreCase(Id)).fetch();
+                    .where(qTArea.id.eq(Id)).fetch();
             // 类型转换
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "数据获取成功", result);
         } catch (Exception e) {
