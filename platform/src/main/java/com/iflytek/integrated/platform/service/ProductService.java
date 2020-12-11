@@ -1,6 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
 import com.iflytek.integrated.common.*;
+import com.iflytek.integrated.common.utils.Utils;
 import com.iflytek.integrated.platform.dto.ProductFunctionDto;
 import com.iflytek.integrated.platform.entity.TProduct;
 import com.iflytek.integrated.platform.entity.TProductFunctionLink;
@@ -18,11 +19,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 import static com.iflytek.integrated.platform.entity.QTProduct.qTProduct;
 import static com.iflytek.integrated.platform.entity.QTFunction.qTFunction;
@@ -79,12 +82,11 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
                     .fetchResults();
             //分页
             TableData<TProduct> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取产品管理列表成功", tableData);
-
+            return new ResultDto(HttpStatus.OK.value(), "", tableData);
         }
         catch (Exception e) {
             logger.error("获取产品管理列表失败!", e);
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "获取产品管理列表失败", ExceptionUtil.dealException(e));
+            return new ResultDto(HttpStatus.INTERNAL_SERVER_ERROR.value(), "", e.getMessage());
         }
     }
 
@@ -92,16 +94,19 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     @ApiOperation(value = "产品管理删除")
     @DeleteMapping("/{version}/pb/productManage/delProductById")
     public ResultDto delProductById(String id){
+        if(StringUtils.isEmpty(id)){
+            return new ResultDto(HttpStatus.INTERNAL_SERVER_ERROR.value(), "id不能为空", null);
+        }
         //查看产品是否存在
         TProductFunctionLink functionLink = sqlQueryFactory.select(qTProductFunctionLink).from(qTProductFunctionLink)
                 .where(qTProductFunctionLink.id.eq(id)).fetchOne();
         if(functionLink == null || StringUtils.isEmpty(functionLink.getId())){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "没有找到该产品功能，删除失败");
+            return new ResultDto(HttpStatus.INTERNAL_SERVER_ERROR.value(), "", "没有找到该产品功能，删除失败");
         }
         //删除产品：删除产品和功能的关联关系
         sqlQueryFactory.delete(qTProductFunctionLink)
                 .where(qTProductFunctionLink.id.eq(functionLink.getId())).execute();
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "产品功能删除成功");
+        return new ResultDto(HttpStatus.OK.value(), "", "产品功能删除成功");
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -111,21 +116,77 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(dto);
         if (validationResult.isHasErrors()) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", validationResult.getErrorMsg());
+            return new ResultDto(HttpStatus.INTERNAL_SERVER_ERROR.value(), "", validationResult.getErrorMsg());
         }
-
+        //获取产品id，功能id关系
+        TProductFunctionLink link = addOrGetLink(dto.getProductName(),dto.getFunctionName());
         if(StringUtils.isEmpty(dto.getId())){
             //新增产品关系
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"新增产品功能关系成功",null);
+            Long lon = sqlQueryFactory.insert(qTProductFunctionLink)
+                    .set(qTProductFunctionLink.id,uidService.getUID()+"")
+                    .set(qTProductFunctionLink.productId,link.getProductId())
+                    .set(qTProductFunctionLink.functionId,link.getFunctionId())
+                    .set(qTProductFunctionLink.createdBy,"")
+                    .set(qTProductFunctionLink.createdTime,new Date()).execute();
+            if(lon <= 0){
+                throw new RuntimeException("产品管理新增失败");
+            }
         }
         else {
             //编辑产品关系
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"编辑产品功能关系成功",null);
+            Long lon = sqlQueryFactory.update(qTProductFunctionLink)
+                    .set(qTProductFunctionLink.productId,link.getProductId())
+                    .set(qTProductFunctionLink.functionId,link.getFunctionId())
+                    .set(qTProductFunctionLink.updatedBy,"")
+                    .set(qTProductFunctionLink.updatedTime,new Date())
+                    .where(qTProductFunctionLink.id.eq(dto.getId())).execute();
+            if(lon <= 0){
+                throw new RuntimeException("产品管理编辑失败");
+            }
         }
+        return new ResultDto(HttpStatus.OK.value(),"","新增/编辑产品功能关系成功");
     }
 
-    private TProductFunctionLink addOrGetLink(){
+    /**
+     * 获取或新增产品，功能，并保存关系
+     * @param productName
+     * @param functionName
+     * @return
+     */
+    private TProductFunctionLink addOrGetLink(String productName, String functionName){
         TProductFunctionLink functionLink = new TProductFunctionLink();
+        //查询是否已经存在产品Id
+        functionLink.setProductId(sqlQueryFactory.select(qTProduct.id)
+                .from(qTProduct).where(qTProduct.productName.eq(productName)).fetchOne());
+        if(StringUtils.isEmpty(functionLink.getProductId())){
+            //如果是新的产品名称，新建一个产品
+            functionLink.setProductId(uidService.getUID() + "");
+            Long lon = sqlQueryFactory.insert(qTProduct)
+                    .set(qTProduct.id,functionLink.getProductId())
+                    .set(qTProduct.productName,productName)
+                    .set(qTProduct.productCode,"")
+                    .set(qTProduct.isValid,Constant.IS_VALID_ON)
+                    .set(qTProduct.createdBy,"")
+                    .set(qTProduct.createdTime,new Date()).execute();
+            if(lon <= 0){
+                throw new RuntimeException("创建产品失败");
+            }
+        }
+        //查询是否存在功能
+        functionLink.setFunctionId(sqlQueryFactory.select(qTFunction.id)
+                .from(qTFunction).where(qTFunction.functionName.eq(functionName)).fetchOne());
+        if(StringUtils.isEmpty(functionLink.getFunctionId())){
+            //如果是新的产品名称，新建一个功能
+            functionLink.setFunctionId(uidService.getUID() + "");
+            Long lon = sqlQueryFactory.insert(qTFunction)
+                    .set(qTFunction.functionName,functionName)
+                    .set(qTFunction.functionCode,functionLink.getFunctionId())
+                    .set(qTFunction.createdBy,"")
+                    .set(qTFunction.createdTime,new Date()).execute();
+            if(lon <= 0){
+                throw new RuntimeException("创建功能失败");
+            }
+        }
         return functionLink;
     }
 }

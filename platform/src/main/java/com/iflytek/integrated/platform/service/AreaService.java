@@ -1,7 +1,6 @@
 package com.iflytek.integrated.platform.service;
 
 import com.iflytek.integrated.common.Constant;
-import com.iflytek.integrated.common.ExceptionUtil;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.platform.entity.TArea;
 import com.iflytek.medicalboot.core.dto.PageRequest;
@@ -32,17 +31,8 @@ public class AreaService extends QuerydslService<TArea, String, TArea, StringPat
 
     private static final Logger logger = LoggerFactory.getLogger(AreaService.class);
 
-    @GetMapping("/{version}/pb/test/{Id}")
-    public ResultDto test(HttpServletRequest request,@PathVariable("Id") String Id) {
-        try {
-            // 只查部分字段
-            List<TArea> result = sqlQueryFactory.select(ignore(qTArea.id)).from(qTArea)
-                    .where(qTArea.id.eq(Id)).fetch();
-            // 类型转换
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "数据获取成功", result);
-        } catch (Exception e) {
-            logger.error("根据用户id查询当前所属应用集合失败!", e);
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, ExceptionUtil.dealException(e), null);
-        }
+    @GetMapping("/test")
+    public ResultDto test() {
+        throw new RuntimeException("测试失败");
     }
 }

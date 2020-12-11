@@ -2,15 +2,18 @@ package com.iflytek.integrated.common;
 
 import io.swagger.annotations.ApiModelProperty;
 
+/**
+ * @author czzhan
+ */
 public class ResultDto {
     @ApiModelProperty(
-            value = "200或500",
-            name = "返回结果编码"
+            value = "tHttpStatus",
+            name = "操作结果"
     )
-    private Integer code;
+    private int flag;
     @ApiModelProperty(
-            value = "返回信息",
-            name = "返回信息"
+            value = "错误提示",
+            name = "提示信息"
     )
     private String message;
     @ApiModelProperty(
@@ -22,23 +25,23 @@ public class ResultDto {
     public ResultDto() {
     }
 
-    public ResultDto(Integer code, String message, Object data) {
-        this.code = code;
+    public ResultDto(int flag, String message, Object data) {
+        this.flag = flag;
         this.message = message;
         this.data = data;
     }
 
-    public ResultDto(Integer code, String message) {
-        this.code = 200;
-        this.message = "操作成功";
+    public ResultDto(int flag, String message) {
+        this.flag = flag;
+        this.message = message;
     }
 
-    public Integer getCode() {
-        return this.code;
+    public int isFlag() {
+        return this.flag;
     }
 
-    public void setCode(Integer code) {
-        this.code = code;
+    public void setFlag(int flag) {
+        this.flag = flag;
     }
 
     public String getMessage() {

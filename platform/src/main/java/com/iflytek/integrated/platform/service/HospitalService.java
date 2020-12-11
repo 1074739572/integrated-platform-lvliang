@@ -1,10 +1,10 @@
 package com.iflytek.integrated.platform.service;
 
-import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.*;
-import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.common.utils.Utils;
 import com.iflytek.integrated.platform.entity.THospital;
+import com.iflytek.integrated.platform.validator.ValidationResult;
+import com.iflytek.integrated.platform.validator.ValidatorHelper;
 import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.id.UidService;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
@@ -17,11 +17,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletRequest;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -44,18 +43,16 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
 
     @Autowired
     private UidService uidService;
+    @Autowired
+    private ValidatorHelper validatorHelper;
 
     @ApiOperation(value = "获取医院管理列表")
     @GetMapping("/{version}/pb/hospitalManage/getHospitalList")
-    public ResultDto getHospitalListPage(HttpServletRequest request,
-            @RequestParam(value = "hospitalName", required = false) String hospitalName,
-            @RequestParam(value = "areaCode", required = false) String areaCode,
-            @RequestParam(value = "pageNo", required = false, defaultValue = "1") Integer pageNo,
-            @RequestParam(value = "pageSize", required = false, defaultValue = "10") Integer pageSize){
+    public ResultDto getHospitalListPage(String hospitalName,String areaCode,Integer pageNo,Integer pageSize){
         try {
-            //评价查询条件
+            //查询条件
             ArrayList<Predicate> list = new ArrayList<>();
-            list.add(qTHospital.status.equalsIgnoreCase(Constant.YES));
+            list.add(qTHospital.status.eq(Constant.YES));
             //如果区域id不为空，关联区域表查询所属区域下的医院
             String supCode = Utils.subAreaCode(areaCode);
             if(!StringUtils.isEmpty(supCode)){
@@ -82,54 +79,56 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
                     .fetchResults();
             //分页
             TableData<THospital> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "数据获取成功", tableData);
+            return new ResultDto(HttpStatus.OK.value(), "", tableData);
         }catch (Exception e){
             logger.error("获取医院管理列表失败!", e);
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, ExceptionUtil.dealException(e), null);
+            return new ResultDto(HttpStatus.INTERNAL_SERVER_ERROR.value(), "", e.getMessage());
         }
     }
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "医院管理删除")
     @DeleteMapping("/{version}/pb/hospitalManage/delHospitalById")
-    public ResultDto delHospitalById(@RequestParam(value = "id", required = true) String id){
+    public ResultDto delHospitalById(String id){
+        if(StringUtils.isEmpty(id)){
+            return new ResultDto(HttpStatus.INTERNAL_SERVER_ERROR.value(), "医院id为空", null);
+        }
         //判断是否存在医院
         List<String> hospitals = sqlQueryFactory.select(qTHospital.id).from(qTHospital)
                 .where(qTHospital.id.eq(id).and(qTHospital.status.eq(Constant.YES))).fetch();
         if(hospitals == null || hospitals.size() == 0){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "不存在该医院", null);
+            return new ResultDto(HttpStatus.INTERNAL_SERVER_ERROR.value(), "", "不存在该医院");
         }
         //逻辑删除
         Long lon = sqlQueryFactory.update(qTHospital).set(qTHospital.status, Constant.NO)
                 .where(qTHospital.id.eq(id)).execute();
         if(lon > 0){
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "医院管理删除成功", null);
-        }else {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "医院管理删除失败", null);
+            return new ResultDto(HttpStatus.OK.value(), "", "医院管理删除成功");
         }
+        throw new RuntimeException("医院管理删除失败");
     }
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "医院管理新增/编辑")
     @PostMapping("/{version}/pb/hospitalManage/saveAndUpdateHospital")
-    public ResultDto saveAndUpdateHospital(
-            @RequestParam(value = "id", required = false) String id,
-            @RequestParam(value = "areaId", required = true) String areaId,
-            @RequestParam(value = "hospitalName", required = true) String hospitalName,
-            @RequestParam(value = "hospitalCode", required = true) String hospitalCode){
-        if(isExistence(id,hospitalName,hospitalCode)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "医院名称或编码已存在", null);
+    public ResultDto saveAndUpdateHospital(@RequestBody THospital hospital){
+        //校验参数是否完整
+        ValidationResult validationResult = validatorHelper.validate(hospital);
+        if (validationResult.isHasErrors()) {
+            return new ResultDto(HttpStatus.INTERNAL_SERVER_ERROR.value(), "", validationResult.getErrorMsg());
         }
-        if(StringUtils.isEmpty(id)){
+        if(isExistence(hospital.getId(),hospital.getHospitalName(),hospital.getHospitalCode())){
+            return new ResultDto(HttpStatus.INTERNAL_SERVER_ERROR.value(), "", "医院名称或编码已存在");
+        }
+        if(StringUtils.isEmpty(hospital.getId())){
             //没有id，新增医院
-            return insertHospital(areaId,hospitalName,hospitalCode);
+            return insertHospital(hospital.getAreaId(),hospital.getHospitalName(),hospital.getHospitalCode());
         }
         else {
             //存在id时，编辑医院
-            return updateHospital(id,areaId,hospitalName,hospitalCode);
+            return updateHospital(hospital.getId(),hospital.getAreaId(),hospital.getHospitalName(),hospital.getHospitalCode());
         }
     }
-
 
     /**
      * 新增医院
@@ -138,22 +137,18 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
      * @param hospitalCode
      * @return
      */
-    private ResultDto insertHospital(
-            @RequestParam(value = "areaId", required = true) String areaId,
-            @RequestParam(value = "hospitalName", required = true) String hospitalName,
-            @RequestParam(value = "hospitalCode", required = true) String hospitalCode){
+    private ResultDto insertHospital(String areaId, String hospitalName, String hospitalCode){
         Long lon = sqlQueryFactory.insert(qTHospital)
-                .set(qTHospital.id, JSONObject.toJSONString(uidService.getUID()))
+                .set(qTHospital.id, uidService.getUID()+"")
                 .set(qTHospital.areaId,areaId)
                 .set(qTHospital.status,Constant.YES)
                 .set(qTHospital.hospitalCode,hospitalCode)
                 .set(qTHospital.hospitalName,hospitalName)
                 .set(qTHospital.createdTime,new Date()).execute();
         if(lon > 0){
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "医院管理新增成功", null);
-        }else {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "医院管理新增失败", null);
+            return new ResultDto(HttpStatus.OK.value(), "", "医院管理新增成功");
         }
+        throw new RuntimeException("医院管理新增失败");
     }
 
     /**
@@ -164,11 +159,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
      * @param hospitalCode
      * @return
      */
-    private ResultDto updateHospital(
-            @RequestParam(value = "id", required = true) String id,
-            @RequestParam(value = "areaId", required = true) String areaId,
-            @RequestParam(value = "hospitalName", required = true) String hospitalName,
-            @RequestParam(value = "hospitalCode", required = true) String hospitalCode){
+    private ResultDto updateHospital(String id, String areaId, String hospitalName, String hospitalCode){
         Long lon = sqlQueryFactory.update(qTHospital)
                 .set(qTHospital.areaId,areaId)
                 .set(qTHospital.hospitalCode,hospitalCode)
@@ -176,10 +167,9 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
                 .set(qTHospital.updatedTime,new Date())
                 .where(qTHospital.id.eq(id)).execute();
         if(lon > 0){
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "医院管理编辑成功", null);
-        }else {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "医院管理编辑失败", null);
+            return new ResultDto(HttpStatus.OK.value(), "", "医院管理编辑成功");
         }
+        throw new RuntimeException("医院管理编辑失败");
     }
 
     /**
@@ -192,7 +182,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
     private boolean isExistence(String id,String hospitalName, String hospitalCode){
         //校验是否存在重复医院
         ArrayList<Predicate> list = new ArrayList<>();
-        list.add(qTHospital.status.equalsIgnoreCase(Constant.YES));
+        list.add(qTHospital.status.eq(Constant.YES));
         list.add(qTHospital.hospitalCode.eq(hospitalCode)
                 .or(qTHospital.hospitalName.eq(hospitalName)));
         if(!StringUtils.isEmpty(id)){
@@ -205,5 +195,4 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         }
         return true;
     }
-
 }
