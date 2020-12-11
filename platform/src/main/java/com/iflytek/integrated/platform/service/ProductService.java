@@ -53,7 +53,9 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
 
     @ApiOperation(value = "产品管理列表")
     @GetMapping("/{version}/pb/productManage/getProductList")
-    public ResultDto getProductList(String productCode, String productName, Integer pageNo, Integer pageSize) {
+    public ResultDto getProductList(String productCode, String productName,
+                            @RequestParam(defaultValue = "1")Integer pageNo,
+                            @RequestParam(defaultValue = "10")Integer pageSize){
         try {
             //查询条件
             ArrayList<Predicate> list = new ArrayList<>();

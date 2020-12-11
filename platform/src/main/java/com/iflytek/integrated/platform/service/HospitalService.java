@@ -48,7 +48,9 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
 
     @ApiOperation(value = "获取医院管理列表")
     @GetMapping("/{version}/pb/hospitalManage/getHospitalList")
-    public ResultDto getHospitalListPage(String hospitalName,String areaCode,Integer pageNo,Integer pageSize){
+    public ResultDto getHospitalListPage(String hospitalName,String areaCode,
+                             @RequestParam(defaultValue = "1")Integer pageNo,
+                             @RequestParam(defaultValue = "10")Integer pageSize){
         try {
             //查询条件
             ArrayList<Predicate> list = new ArrayList<>();
