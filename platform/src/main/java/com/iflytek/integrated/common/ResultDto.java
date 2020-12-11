@@ -7,7 +7,7 @@ import io.swagger.annotations.ApiModelProperty;
  */
 public class ResultDto {
     @ApiModelProperty(
-            value = "tHttpStatus",
+            value = "HttpStatus",
             name = "操作结果"
     )
     private int flag;

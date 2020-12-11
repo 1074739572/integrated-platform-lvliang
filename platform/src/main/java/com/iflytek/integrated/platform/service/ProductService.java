@@ -3,6 +3,7 @@ package com.iflytek.integrated.platform.service;
 import com.iflytek.integrated.common.*;
 import com.iflytek.integrated.common.utils.Utils;
 import com.iflytek.integrated.platform.dto.ProductFunctionDto;
+import com.iflytek.integrated.platform.entity.TFunction;
 import com.iflytek.integrated.platform.entity.TProduct;
 import com.iflytek.integrated.platform.entity.TProductFunctionLink;
 import com.iflytek.integrated.platform.validator.ValidationResult;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static com.iflytek.integrated.platform.entity.QTProduct.qTProduct;
 import static com.iflytek.integrated.platform.entity.QTFunction.qTFunction;
@@ -145,6 +147,38 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             }
         }
         return new ResultDto(HttpStatus.OK.value(),"","新增/编辑产品功能关系成功");
+    }
+
+    @ApiOperation(value = "选择产品下拉")
+    @GetMapping("/{version}/pb/productManage/getDisProduct")
+    public ResultDto getDisProduct(){
+        List<TProduct> products = sqlQueryFactory.select(
+                Projections.bean(
+                        TProduct.class,
+                        qTProduct.productName,
+                        qTProduct.productCode
+                )
+            ).from(qTProduct).orderBy(qTProduct.updatedTime.desc()).fetch();
+        return new ResultDto(HttpStatus.OK.value(),"",products);
+    }
+
+    @ApiOperation(value = "选择产品下拉")
+    @GetMapping("/{version}/pb/productManage/getFuncByPro")
+    public ResultDto getFuncByPro(String productId){
+        if(StringUtils.isEmpty(productId)){
+            throw new RuntimeException("产品id不能为空");
+        }
+        List<TFunction> functions = sqlQueryFactory.select(
+                Projections.bean(
+                        TFunction.class,
+                        qTFunction.id,
+                        qTFunction.functionName,
+                        qTFunction.functionCode
+                )
+            ).from(qTFunction)
+                .leftJoin(qTProductFunctionLink).on(qTProductFunctionLink.functionId.eq(qTFunction.id))
+                .where(qTProductFunctionLink.productId.eq(productId)).fetch();
+        return new ResultDto(HttpStatus.OK.value(),"",functions);
     }
 
     /**
