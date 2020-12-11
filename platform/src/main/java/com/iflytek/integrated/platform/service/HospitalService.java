@@ -1,6 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
 import com.iflytek.integrated.common.*;
+import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.common.utils.Utils;
 import com.iflytek.integrated.platform.entity.THospital;
 import com.iflytek.integrated.platform.validator.ValidationResult;
@@ -80,8 +81,8 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
             TableData<THospital> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", tableData);
         }catch (Exception e){
-            logger.error("获取医院管理列表失败!", e);
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", e.getMessage());
+            logger.error("获取医院管理列表失败!", ExceptionUtil.dealException(e));
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", ExceptionUtil.dealException(e));
         }
     }
 

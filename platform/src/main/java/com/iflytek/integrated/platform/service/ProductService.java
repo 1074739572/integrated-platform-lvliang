@@ -1,6 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
 import com.iflytek.integrated.common.*;
+import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.common.utils.Utils;
 import com.iflytek.integrated.platform.dto.ProductFunctionDto;
 import com.iflytek.integrated.platform.entity.TFunction;
@@ -86,8 +87,8 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", tableData);
         }
         catch (Exception e) {
-            logger.error("获取产品管理列表失败!", e);
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", e.getMessage());
+            logger.error("获取产品管理列表失败!", ExceptionUtil.dealException(e));
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", ExceptionUtil.dealException(e));
         }
     }
 
