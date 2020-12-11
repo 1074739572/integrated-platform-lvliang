@@ -51,7 +51,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         try {
             //查询条件
             ArrayList<Predicate> list = new ArrayList<>();
-            list.add(qTHospital.status.equalsIgnoreCase(Constant.YES));
+            list.add(qTHospital.status.eq(Constant.YES));
             //如果区域id不为空，关联区域表查询所属区域下的医院
             String supCode = Utils.subAreaCode(areaCode);
             if(!StringUtils.isEmpty(supCode)){
@@ -81,7 +81,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
             return new ResultDto(Boolean.TRUE, "", tableData);
         }catch (Exception e){
             logger.error("获取医院管理列表失败!", e);
-            return new ResultDto(Boolean.FALSE, ExceptionUtil.dealException(e), null);
+            return new ResultDto(Boolean.FALSE, "", ExceptionUtil.dealException(e));
         }
     }
 
@@ -185,7 +185,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
     private boolean isExistence(String id,String hospitalName, String hospitalCode){
         //校验是否存在重复医院
         ArrayList<Predicate> list = new ArrayList<>();
-        list.add(qTHospital.status.equalsIgnoreCase(Constant.YES));
+        list.add(qTHospital.status.eq(Constant.YES));
         list.add(qTHospital.hospitalCode.eq(hospitalCode)
                 .or(qTHospital.hospitalName.eq(hospitalName)));
         if(!StringUtils.isEmpty(id)){

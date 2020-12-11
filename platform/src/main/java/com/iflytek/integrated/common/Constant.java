@@ -24,4 +24,14 @@ public class Constant {
      * 右模糊查询
      */
     public static final String RIGHT_FUZZY_SEARCH = "%s%%";
+
+    /**
+     * 有效
+     */
+    public static final String IS_VALID_ON = "1";
+
+    /**
+     * 无效
+     */
+    public static final String IS_VALID_OFF = "2";
 }
