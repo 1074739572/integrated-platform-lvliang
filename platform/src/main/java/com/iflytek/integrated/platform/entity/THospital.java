@@ -1,5 +1,8 @@
 package com.iflytek.integrated.platform.entity;
 
+import org.hibernate.validator.constraints.Length;
+
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 
 /**
@@ -9,12 +12,17 @@ public class THospital implements Serializable {
 
     private String id;
 
+    @NotBlank(message = "医院名称不能为空")
+    @Length(max = 100, message = "医院名称不能超过100")
     private String hospitalName;
 
+    @NotBlank(message = "医院编码不能为空")
+    @Length(max = 100, message = "医院名编码不能超过100")
     private String hospitalCode;
 
     private String status;
 
+    @NotBlank(message = "区县选择不能为空")
     private String areaId;
 
     private String createdBy;

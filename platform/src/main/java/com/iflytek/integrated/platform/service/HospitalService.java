@@ -3,6 +3,8 @@ package com.iflytek.integrated.platform.service;
 import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.*;
 import com.iflytek.integrated.platform.entity.THospital;
+import com.iflytek.integrated.platform.validator.ValidationResult;
+import com.iflytek.integrated.platform.validator.ValidatorHelper;
 import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.id.UidService;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
@@ -17,12 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import javax.servlet.http.HttpServletRequest;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -45,6 +42,8 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
 
     @Autowired
     private UidService uidService;
+    @Autowired
+    private ValidatorHelper validatorHelper;
 
     @ApiOperation(value = "获取医院管理列表")
     @GetMapping("/{version}/pb/hospitalManage/getHospitalList")
@@ -97,7 +96,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         List<String> hospitals = sqlQueryFactory.select(qTHospital.id).from(qTHospital)
                 .where(qTHospital.id.eq(id).and(qTHospital.status.eq(Constant.YES))).fetch();
         if(hospitals == null || hospitals.size() == 0){
-            return new ResultDto(Boolean.TRUE, "", "不存在该医院");
+            return new ResultDto(Boolean.FALSE, "", "不存在该医院");
         }
         //逻辑删除
         Long lon = sqlQueryFactory.update(qTHospital).set(qTHospital.status, Constant.NO)
@@ -105,28 +104,29 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         if(lon > 0){
             return new ResultDto(Boolean.TRUE, "", "医院管理删除成功");
         }else {
-            return new ResultDto(Boolean.TRUE, "", "医院管理删除失败");
+            return new ResultDto(Boolean.FALSE, "", "医院管理删除失败");
         }
     }
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "医院管理新增/编辑")
     @PostMapping("/{version}/pb/hospitalManage/saveAndUpdateHospital")
-    public ResultDto saveAndUpdateHospital(String id, String areaId, String hospitalName, String hospitalCode){
+    public ResultDto saveAndUpdateHospital(@RequestBody THospital hospital){
         //校验参数是否完整
-        if(StringUtils.isEmpty(areaId) || StringUtils.isEmpty(hospitalCode) || StringUtils.isEmpty(hospitalName)){
-            return new ResultDto(Boolean.TRUE, "", "创建医院参数不能缺失");
+        ValidationResult validationResult = validatorHelper.validate(hospital);
+        if (validationResult.isHasErrors()) {
+            return new ResultDto(Boolean.FALSE, "", validationResult.getErrorMsg());
         }
-        if(isExistence(id,hospitalName,hospitalCode)){
-            return new ResultDto(Boolean.TRUE, "", "医院名称或编码已存在");
+        if(isExistence(hospital.getId(),hospital.getHospitalName(),hospital.getHospitalCode())){
+            return new ResultDto(Boolean.FALSE, "", "医院名称或编码已存在");
         }
-        if(StringUtils.isEmpty(id)){
+        if(StringUtils.isEmpty(hospital.getId())){
             //没有id，新增医院
-            return insertHospital(areaId,hospitalName,hospitalCode);
+            return insertHospital(hospital.getAreaId(),hospital.getHospitalName(),hospital.getHospitalCode());
         }
         else {
             //存在id时，编辑医院
-            return updateHospital(id,areaId,hospitalName,hospitalCode);
+            return updateHospital(hospital.getId(),hospital.getAreaId(),hospital.getHospitalName(),hospital.getHospitalCode());
         }
     }
 
@@ -149,7 +149,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         if(lon > 0){
             return new ResultDto(Boolean.TRUE, "", "医院管理新增成功");
         }else {
-            return new ResultDto(Boolean.TRUE, "", "医院管理新增失败");
+            return new ResultDto(Boolean.FALSE, "", "医院管理新增失败");
         }
     }
 
@@ -171,7 +171,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         if(lon > 0){
             return new ResultDto(Boolean.TRUE, "", "医院管理编辑成功");
         }else {
-            return new ResultDto(Boolean.TRUE, "", "医院管理编辑失败");
+            return new ResultDto(Boolean.FALSE, "", "医院管理编辑失败");
         }
     }
 
