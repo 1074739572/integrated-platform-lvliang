@@ -10,7 +10,7 @@ import javax.validation.constraints.NotBlank;
  * 产品功能
  */
 @Data
-public class ProductInterfaceDto {
+public class ProductFunctionDto {
 
     /**
      * 关联关系id
