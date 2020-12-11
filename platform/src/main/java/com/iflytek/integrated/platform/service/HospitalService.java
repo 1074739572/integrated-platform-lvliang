@@ -2,6 +2,8 @@ package com.iflytek.integrated.platform.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.*;
+import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.common.utils.Utils;
 import com.iflytek.integrated.platform.entity.THospital;
 import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.id.UidService;
