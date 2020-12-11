@@ -53,8 +53,6 @@ public class GlobalExceptionHandler {
     @ResponseBody
     @ExceptionHandler(value = {Exception.class})
     public ResponseEntity<Object> exceptionHandler(Exception e) {
-        logger.error("GlobalExceptionHandler ", e);
-
         Response<Object> resp = null;
         HttpStatus status = HttpStatus.BAD_REQUEST;
         if (e instanceof MedicalBusinessException) {
