@@ -17,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -79,10 +78,10 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
                     .fetchResults();
             //分页
             TableData<THospital> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-            return new ResultDto(HttpStatus.OK.value(), "", tableData);
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", tableData);
         }catch (Exception e){
             logger.error("获取医院管理列表失败!", e);
-            return new ResultDto(HttpStatus.INTERNAL_SERVER_ERROR.value(), "", e.getMessage());
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", e.getMessage());
         }
     }
 
@@ -91,19 +90,19 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
     @DeleteMapping("/{version}/pb/hospitalManage/delHospitalById")
     public ResultDto delHospitalById(String id){
         if(StringUtils.isEmpty(id)){
-            return new ResultDto(HttpStatus.INTERNAL_SERVER_ERROR.value(), "医院id为空", null);
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "医院id为空", null);
         }
         //判断是否存在医院
         List<String> hospitals = sqlQueryFactory.select(qTHospital.id).from(qTHospital)
                 .where(qTHospital.id.eq(id).and(qTHospital.status.eq(Constant.YES))).fetch();
         if(hospitals == null || hospitals.size() == 0){
-            return new ResultDto(HttpStatus.INTERNAL_SERVER_ERROR.value(), "", "不存在该医院");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "不存在该医院");
         }
         //逻辑删除
         Long lon = sqlQueryFactory.update(qTHospital).set(qTHospital.status, Constant.NO)
                 .where(qTHospital.id.eq(id)).execute();
         if(lon > 0){
-            return new ResultDto(HttpStatus.OK.value(), "", "医院管理删除成功");
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "医院管理删除成功");
         }
         throw new RuntimeException("医院管理删除失败");
     }
@@ -115,10 +114,10 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(hospital);
         if (validationResult.isHasErrors()) {
-            return new ResultDto(HttpStatus.INTERNAL_SERVER_ERROR.value(), "", validationResult.getErrorMsg());
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", validationResult.getErrorMsg());
         }
         if(isExistence(hospital.getId(),hospital.getHospitalName(),hospital.getHospitalCode())){
-            return new ResultDto(HttpStatus.INTERNAL_SERVER_ERROR.value(), "", "医院名称或编码已存在");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "医院名称或编码已存在");
         }
         if(StringUtils.isEmpty(hospital.getId())){
             //没有id，新增医院
@@ -146,7 +145,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
                 .set(qTHospital.hospitalName,hospitalName)
                 .set(qTHospital.createdTime,new Date()).execute();
         if(lon > 0){
-            return new ResultDto(HttpStatus.OK.value(), "", "医院管理新增成功");
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "医院管理新增成功");
         }
         throw new RuntimeException("医院管理新增失败");
     }
@@ -167,7 +166,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
                 .set(qTHospital.updatedTime,new Date())
                 .where(qTHospital.id.eq(id)).execute();
         if(lon > 0){
-            return new ResultDto(HttpStatus.OK.value(), "", "医院管理编辑成功");
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "医院管理编辑成功");
         }
         throw new RuntimeException("医院管理编辑失败");
     }

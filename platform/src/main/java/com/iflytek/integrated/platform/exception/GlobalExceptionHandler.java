@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 
 /**
  * 全局统一异常处理
+ * @author
  */
 @ControllerAdvice
 public class GlobalExceptionHandler {

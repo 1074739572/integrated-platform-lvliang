@@ -20,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -84,11 +83,11 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
                     .fetchResults();
             //分页
             TableData<TProduct> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-            return new ResultDto(HttpStatus.OK.value(), "", tableData);
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", tableData);
         }
         catch (Exception e) {
             logger.error("获取产品管理列表失败!", e);
-            return new ResultDto(HttpStatus.INTERNAL_SERVER_ERROR.value(), "", e.getMessage());
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", e.getMessage());
         }
     }
 
@@ -97,18 +96,18 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     @DeleteMapping("/{version}/pb/productManage/delProductById")
     public ResultDto delProductById(String id){
         if(StringUtils.isEmpty(id)){
-            return new ResultDto(HttpStatus.INTERNAL_SERVER_ERROR.value(), "id不能为空", null);
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "id不能为空", null);
         }
         //查看产品是否存在
         TProductFunctionLink functionLink = sqlQueryFactory.select(qTProductFunctionLink).from(qTProductFunctionLink)
                 .where(qTProductFunctionLink.id.eq(id)).fetchOne();
         if(functionLink == null || StringUtils.isEmpty(functionLink.getId())){
-            return new ResultDto(HttpStatus.INTERNAL_SERVER_ERROR.value(), "", "没有找到该产品功能，删除失败");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "没有找到该产品功能，删除失败");
         }
         //删除产品：删除产品和功能的关联关系
         sqlQueryFactory.delete(qTProductFunctionLink)
                 .where(qTProductFunctionLink.id.eq(functionLink.getId())).execute();
-        return new ResultDto(HttpStatus.OK.value(), "", "产品功能删除成功");
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "产品功能删除成功");
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -118,7 +117,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(dto);
         if (validationResult.isHasErrors()) {
-            return new ResultDto(HttpStatus.INTERNAL_SERVER_ERROR.value(), "", validationResult.getErrorMsg());
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", validationResult.getErrorMsg());
         }
         //获取产品id，功能id关系
         TProductFunctionLink link = addOrGetLink(dto.getProductName(),dto.getFunctionName());
@@ -146,7 +145,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
                 throw new RuntimeException("产品管理编辑失败");
             }
         }
-        return new ResultDto(HttpStatus.OK.value(),"","新增/编辑产品功能关系成功");
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"","新增/编辑产品功能关系成功");
     }
 
     @ApiOperation(value = "选择产品下拉")
@@ -159,7 +158,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
                         qTProduct.productCode
                 )
             ).from(qTProduct).orderBy(qTProduct.updatedTime.desc()).fetch();
-        return new ResultDto(HttpStatus.OK.value(),"",products);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"",products);
     }
 
     @ApiOperation(value = "选择产品下拉")
@@ -178,7 +177,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             ).from(qTFunction)
                 .leftJoin(qTProductFunctionLink).on(qTProductFunctionLink.functionId.eq(qTFunction.id))
                 .where(qTProductFunctionLink.productId.eq(productId)).fetch();
-        return new ResultDto(HttpStatus.OK.value(),"",functions);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"",functions);
     }
 
     /**
