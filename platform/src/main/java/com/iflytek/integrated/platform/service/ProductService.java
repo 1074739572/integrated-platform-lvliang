@@ -197,7 +197,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             Long lon = sqlQueryFactory.insert(qTProduct)
                     .set(qTProduct.id,functionLink.getProductId())
                     .set(qTProduct.productName,productName)
-                    .set(qTProduct.productCode,"")
+                    .set(qTProduct.productCode,Utils.generateCode(Constant.AppCode.PRODUCT))
                     .set(qTProduct.isValid,Constant.IsValid.ON)
                     .set(qTProduct.createdBy,"")
                     .set(qTProduct.createdTime,new Date()).execute();

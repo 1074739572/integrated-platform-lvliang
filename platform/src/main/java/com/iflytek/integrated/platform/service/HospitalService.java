@@ -143,6 +143,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
                 .set(qTHospital.status,Constant.Status.YES)
                 .set(qTHospital.hospitalCode,hospitalCode)
                 .set(qTHospital.hospitalName,hospitalName)
+                .set(qTHospital.createdBy,"")
                 .set(qTHospital.createdTime,new Date()).execute();
         if(lon > 0){
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "医院管理新增成功");
@@ -163,6 +164,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
                 .set(qTHospital.areaId,areaId)
                 .set(qTHospital.hospitalCode,hospitalCode)
                 .set(qTHospital.hospitalName,hospitalName)
+                .set(qTHospital.updatedBy,"")
                 .set(qTHospital.updatedTime,new Date())
                 .where(qTHospital.id.eq(id)).execute();
         if(lon > 0){

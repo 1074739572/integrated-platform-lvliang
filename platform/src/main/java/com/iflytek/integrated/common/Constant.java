@@ -66,4 +66,14 @@ public class Constant {
         public static final String OFF = "2";
     }
 
+    /**
+     * 管理编码
+     */
+    public interface AppCode {
+
+        /**
+         * 产品管理
+         */
+        public static final String PRODUCT = "PR_";
+    }
 }

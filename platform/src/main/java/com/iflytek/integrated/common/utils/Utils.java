@@ -58,4 +58,14 @@ public class Utils {
             return areaCode;
         }
     }
+
+    /**
+     * 根据管理类型，自动生成code
+     * @param appCode
+     * @return
+     */
+    public static String generateCode(String appCode){
+        //todo
+        return appCode;
+    }
 }
