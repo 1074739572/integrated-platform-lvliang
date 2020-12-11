@@ -1,5 +1,6 @@
-package com.iflytek.integrated.common;
+package com.iflytek.integrated.common.utils;
 
+import com.iflytek.integrated.common.Constant;
 import org.bouncycastle.pqc.math.linearalgebra.IntUtils;
 import org.springframework.util.StringUtils;
 

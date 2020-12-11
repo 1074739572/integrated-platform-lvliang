@@ -1,7 +1,8 @@
 package com.iflytek.integrated.platform.service;
 
-import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.*;
+import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.common.utils.Utils;
 import com.iflytek.integrated.platform.entity.THospital;
 import com.iflytek.integrated.platform.validator.ValidationResult;
 import com.iflytek.integrated.platform.validator.ValidatorHelper;
@@ -103,9 +104,8 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
                 .where(qTHospital.id.eq(id)).execute();
         if(lon > 0){
             return new ResultDto(Boolean.TRUE, "", "医院管理删除成功");
-        }else {
-            return new ResultDto(Boolean.FALSE, "", "医院管理删除失败");
         }
+        throw new RuntimeException("医院管理删除失败");
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -130,7 +130,6 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         }
     }
 
-
     /**
      * 新增医院
      * @param areaId
@@ -140,7 +139,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
      */
     private ResultDto insertHospital(String areaId, String hospitalName, String hospitalCode){
         Long lon = sqlQueryFactory.insert(qTHospital)
-                .set(qTHospital.id, JSONObject.toJSONString(uidService.getUID()))
+                .set(qTHospital.id, uidService.getUID()+"")
                 .set(qTHospital.areaId,areaId)
                 .set(qTHospital.status,Constant.YES)
                 .set(qTHospital.hospitalCode,hospitalCode)
@@ -148,9 +147,8 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
                 .set(qTHospital.createdTime,new Date()).execute();
         if(lon > 0){
             return new ResultDto(Boolean.TRUE, "", "医院管理新增成功");
-        }else {
-            return new ResultDto(Boolean.FALSE, "", "医院管理新增失败");
         }
+        throw new RuntimeException("医院管理新增失败");
     }
 
     /**
@@ -170,9 +168,8 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
                 .where(qTHospital.id.eq(id)).execute();
         if(lon > 0){
             return new ResultDto(Boolean.TRUE, "", "医院管理编辑成功");
-        }else {
-            return new ResultDto(Boolean.FALSE, "", "医院管理编辑失败");
         }
+        throw new RuntimeException("医院管理编辑失败");
     }
 
     /**
