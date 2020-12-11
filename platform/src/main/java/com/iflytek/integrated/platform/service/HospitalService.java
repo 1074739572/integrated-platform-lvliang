@@ -51,7 +51,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         try {
             //查询条件
             ArrayList<Predicate> list = new ArrayList<>();
-            list.add(qTHospital.status.eq(Constant.YES));
+            list.add(qTHospital.status.eq(Constant.Status.YES));
             //如果区域id不为空，关联区域表查询所属区域下的医院
             String supCode = Utils.subAreaCode(areaCode);
             if(!StringUtils.isEmpty(supCode)){
@@ -94,12 +94,12 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         }
         //判断是否存在医院
         List<String> hospitals = sqlQueryFactory.select(qTHospital.id).from(qTHospital)
-                .where(qTHospital.id.eq(id).and(qTHospital.status.eq(Constant.YES))).fetch();
+                .where(qTHospital.id.eq(id).and(qTHospital.status.eq(Constant.Status.YES))).fetch();
         if(hospitals == null || hospitals.size() == 0){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "不存在该医院");
         }
         //逻辑删除
-        Long lon = sqlQueryFactory.update(qTHospital).set(qTHospital.status, Constant.NO)
+        Long lon = sqlQueryFactory.update(qTHospital).set(qTHospital.status, Constant.Status.NO)
                 .where(qTHospital.id.eq(id)).execute();
         if(lon > 0){
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "医院管理删除成功");
@@ -140,7 +140,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         Long lon = sqlQueryFactory.insert(qTHospital)
                 .set(qTHospital.id, uidService.getUID()+"")
                 .set(qTHospital.areaId,areaId)
-                .set(qTHospital.status,Constant.YES)
+                .set(qTHospital.status,Constant.Status.YES)
                 .set(qTHospital.hospitalCode,hospitalCode)
                 .set(qTHospital.hospitalName,hospitalName)
                 .set(qTHospital.createdTime,new Date()).execute();
@@ -194,7 +194,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
     private boolean isExistence(String id,String hospitalName, String hospitalCode){
         //校验是否存在重复医院
         ArrayList<Predicate> list = new ArrayList<>();
-        list.add(qTHospital.status.eq(Constant.YES));
+        list.add(qTHospital.status.eq(Constant.Status.YES));
         list.add(qTHospital.hospitalCode.eq(hospitalCode)
                 .or(qTHospital.hospitalName.eq(hospitalName)));
         if(!StringUtils.isEmpty(id)){

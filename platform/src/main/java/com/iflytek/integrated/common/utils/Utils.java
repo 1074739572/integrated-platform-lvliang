@@ -20,7 +20,7 @@ public class Utils {
      * @return
      */
     public static String createFuzzyText(String text) {
-        return String.format(Constant.FUZZY_SEARCH, text.trim());
+        return String.format(Constant.Fuzzy.FUZZY_SEARCH, text.trim());
     }
 
     /**
@@ -29,7 +29,7 @@ public class Utils {
      * @return
      */
     public static String rightCreateFuzzyText(String text) {
-        return String.format(Constant.RIGHT_FUZZY_SEARCH, text.trim());
+        return String.format(Constant.Fuzzy.RIGHT_FUZZY_SEARCH, text.trim());
     }
 
     /**

@@ -6,9 +6,14 @@ package com.iflytek.integrated.common;
  */
 public class Constant {
 
-    public static final String YES = "1";
+    /**
+     * 状态编码
+     */
+    public interface Status {
+        public static final String YES = "1";
 
-    public static final String NO = "0";
+        public static final String NO = "0";
+    }
 
     /**
      * 00
@@ -16,14 +21,19 @@ public class Constant {
     public static final String NN_CODE = "00";
 
     /**
-     * ，模糊查询
+     * 模糊查询
      */
-    public static final String FUZZY_SEARCH = "%%%s%%";
+    public interface Fuzzy {
+        /**
+         * 模糊查询
+         */
+        public static final String FUZZY_SEARCH = "%%%s%%";
 
-    /**
-     * 右模糊查询
-     */
-    public static final String RIGHT_FUZZY_SEARCH = "%s%%";
+        /**
+         * 右模糊查询
+         */
+        public static final String RIGHT_FUZZY_SEARCH = "%s%%";
+    }
 
 
     /**
@@ -41,15 +51,19 @@ public class Constant {
 
     }
 
-
     /**
-     * 有效
+     * 有效状态
      */
-    public static final String IS_VALID_ON = "1";
+    public interface IsValid {
+        /**
+         * 有效
+         */
+        public static final String ON = "1";
 
-    /**
-     * 无效
-     */
-    public static final String IS_VALID_OFF = "2";
+        /**
+         * 无效
+         */
+        public static final String OFF = "2";
+    }
 
 }

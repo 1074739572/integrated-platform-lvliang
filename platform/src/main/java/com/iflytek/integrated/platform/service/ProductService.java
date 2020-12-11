@@ -56,7 +56,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         try {
             //查询条件
             ArrayList<Predicate> list = new ArrayList<>();
-            list.add(qTProduct.isValid.eq(Constant.IS_VALID_ON));
+            list.add(qTProduct.isValid.eq(Constant.IsValid.ON));
             //判断条件是否为空
             if(!StringUtils.isEmpty(productCode)){
                 list.add(qTProduct.productCode.eq(productCode));
@@ -198,7 +198,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
                     .set(qTProduct.id,functionLink.getProductId())
                     .set(qTProduct.productName,productName)
                     .set(qTProduct.productCode,"")
-                    .set(qTProduct.isValid,Constant.IS_VALID_ON)
+                    .set(qTProduct.isValid,Constant.IsValid.ON)
                     .set(qTProduct.createdBy,"")
                     .set(qTProduct.createdTime,new Date()).execute();
             if(lon <= 0){
