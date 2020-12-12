@@ -1,5 +1,8 @@
 package com.iflytek.integrated.platform.entity;
 
+import org.hibernate.validator.constraints.Length;
+
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 
 /**
@@ -9,12 +12,18 @@ public class TDrive implements Serializable {
 
     private String id;
 
+    @NotBlank(message = "驱动名称不能为空")
+    @Length(max = 20, message = "驱动名称不能超过20")
     private String driveName;
 
+    @NotBlank(message = "驱动编码不能为空")
+    @Length(max = 20, message = "驱动编码不能超过20")
     private String driveCode;
 
+    @Length(max = 100, message = "驱动说明不能超过100")
     private String driveInstruction;
 
+    @NotBlank(message = "驱动内容不能为空")
     private String driveContent;
 
     private String createdBy;

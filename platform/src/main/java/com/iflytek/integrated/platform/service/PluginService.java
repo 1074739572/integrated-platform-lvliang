@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -76,7 +76,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
             if(!StringUtils.isEmpty(pluginName)){
                 list.add(qTPlugin.pluginName.like(Utils.createFuzzyText(pluginName)));
             }
-            //根据查询条件获取医院列表
+            //根据查询条件获取插件列表
             QueryResults<TPlugin> queryResults = sqlQueryFactory.select(
                     Projections.bean(
                             TPlugin.class,
@@ -110,14 +110,14 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
         //查看插件是否存在
         TPlugin plugin = sqlQueryFactory.select(qTPlugin).from(qTPlugin).where(qTPlugin.id.eq(id)).fetchOne();
         if(plugin == null || StringUtils.isEmpty(plugin.getId())){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "没有找到该产品功能，删除失败");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "没有找到该插件，删除失败");
         }
         //删除插件
         Long lon = sqlQueryFactory.delete(qTPlugin).where(qTPlugin.id.eq(plugin.getId())).execute();
         if(lon <= 0){
-            throw new RuntimeException("插件管理删除失败");
+            throw new RuntimeException("插件管理,插件删除失败");
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "插件管理删除成功");
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "插件管理，插件删除成功");
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -178,7 +178,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
         }
         List<String> plugins = sqlQueryFactory.select(qTPlugin.id).from(qTPlugin)
                 .where(list.toArray(new Predicate[list.size()])).fetch();
-        if(!CollectionUtils.isEmpty(plugins)){
+        if(CollectionUtils.isNotEmpty(plugins)){
             throw new RuntimeException("插件名称或编码已存在");
         }
     }

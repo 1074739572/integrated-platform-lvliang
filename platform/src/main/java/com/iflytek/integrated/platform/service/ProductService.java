@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -69,7 +69,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
                 list.add(qTProduct.productName.like(Utils.createFuzzyText(productName))
                         .or(qTFunction.functionName.like(Utils.createFuzzyText(productName))));
             }
-            //根据查询条件获取医院列表
+            //根据查询条件获取产品列表
             QueryResults<TProduct> queryResults = sqlQueryFactory.select(
                     Projections.bean(
                             TProduct.class,
@@ -250,7 +250,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         }
         List<String> links = sqlQueryFactory.select(qTProductFunctionLink.id).from(qTProductFunctionLink)
                 .where(list.toArray(new Predicate[list.size()])).fetch();
-        if(!CollectionUtils.isEmpty(links)){
+        if(CollectionUtils.isNotEmpty(links)){
             throw new RuntimeException("产品和功能关系已存在");
         }
     }

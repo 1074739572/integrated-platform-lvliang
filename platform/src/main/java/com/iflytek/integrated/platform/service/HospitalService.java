@@ -19,7 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -183,7 +183,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         }
         List<String> hospitals = sqlQueryFactory.select(qTHospital.id).from(qTHospital)
                 .where(list.toArray(new Predicate[list.size()])).fetch();
-        if(!CollectionUtils.isEmpty(hospitals)){
+        if(CollectionUtils.isNotEmpty(hospitals)){
             throw new RuntimeException("医院名称或编码已存在");
         }
     }
