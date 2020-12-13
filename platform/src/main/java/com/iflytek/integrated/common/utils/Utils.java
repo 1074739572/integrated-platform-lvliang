@@ -76,8 +76,10 @@ public class Utils {
 
     /**
      * 根据管理类型，自动生成code
-     * @param path
-     * @param appCode
+     * @param path      表q类
+     * @param codePath  code的字段
+     * @param appCode   表类型开头
+     * @param name      提交的名称
      * @return
      */
     public String generateCode(RelationalPath<?> path, StringPath codePath, String appCode, String name){
