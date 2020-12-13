@@ -1,6 +1,5 @@
-package com.iflytek.integrated.platform;
+package com.iflytek.integrated;
 
-import com.iflytek.fsp.flylog.sdk.java.core.FlylogTypeFilter;
 import com.querydsl.sql.Configuration;
 import com.querydsl.sql.MySQLTemplates;
 import com.querydsl.sql.SQLQueryFactory;

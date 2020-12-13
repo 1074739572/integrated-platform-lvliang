@@ -2,6 +2,7 @@ package com.iflytek.integrated.platform.service;
 
 import com.iflytek.integrated.common.*;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.common.utils.RedisUtil;
 import com.iflytek.integrated.common.utils.Utils;
 import com.iflytek.integrated.platform.dto.ProductFunctionDto;
 import com.iflytek.integrated.platform.entity.TFunction;
@@ -26,6 +27,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -51,6 +53,8 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     private BatchUidService batchUidService;
     @Autowired
     private ValidatorHelper validatorHelper;
+    @Resource
+    RedisUtil redisUtil;
 
     @ApiOperation(value = "产品管理列表")
     @GetMapping("/{version}/pb/productManage/getProductList")
@@ -207,7 +211,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             Long lon = sqlQueryFactory.insert(qTProduct)
                     .set(qTProduct.id,functionLink.getProductId())
                     .set(qTProduct.productName,productName)
-                    .set(qTProduct.productCode,Utils.generateCode(Constant.AppCode.PRODUCT))
+                    .set(qTProduct.productCode,Utils.generateCode(redisUtil,Constant.AppCode.PRODUCT))
                     .set(qTProduct.isValid,Constant.IsValid.ON)
                     .set(qTProduct.createdBy,"")
                     .set(qTProduct.createdTime,new Date()).execute();
@@ -224,7 +228,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             Long lon = sqlQueryFactory.insert(qTFunction)
                     .set(qTFunction.id,functionLink.getFunctionId())
                     .set(qTFunction.functionName,functionName)
-                    .set(qTFunction.functionCode,Utils.generateCode(Constant.AppCode.FUNCTION))
+                    .set(qTFunction.functionCode,Utils.generateCode(redisUtil,Constant.AppCode.FUNCTION))
                     .set(qTFunction.createdBy,"")
                     .set(qTFunction.createdTime,new Date()).execute();
             if(lon <= 0){

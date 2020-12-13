@@ -1,9 +1,10 @@
 package com.iflytek.integrated.common.utils;
 
 import com.iflytek.integrated.common.Constant;
-import org.bouncycastle.pqc.math.linearalgebra.IntUtils;
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.http.client.utils.DateUtils;
 
+import java.util.Date;
 import java.util.regex.Pattern;
 
 /**
@@ -12,7 +13,16 @@ import java.util.regex.Pattern;
  */
 public class Utils {
 
+    /**
+     * 区域编码长度校验
+     */
     public static final Pattern AREA_CODE = Pattern.compile("\\d{6}");
+
+    /**
+     * 生成的编码流水号长度
+     */
+    public static final int DEFAULT_LENGTH = 3;
+
 
     /**
      * 获取模糊查询
@@ -61,11 +71,35 @@ public class Utils {
 
     /**
      * 根据管理类型，自动生成code
+     * @param redisUtil
      * @param appCode
      * @return
      */
-    public static String generateCode(String appCode){
-        //todo
-        return appCode;
+    public static String generateCode(RedisUtil redisUtil, String appCode){
+        //校验类型是否为空
+        if(StringUtils.isEmpty(appCode)){
+            throw new RuntimeException("类型编码不能为空");
+        }
+        //日期编码
+        String curDate = DateUtils.formatDate(new Date(), "yyyyMMdd");
+        //redis生成编码
+        Long incrementNum = redisUtil.getTodayIncrementNum(appCode);
+        return appCode + curDate + incrementNum;
+    }
+
+
+    private static String getSequence(long seq) {
+        String str = String.valueOf(seq);
+        int len = str.length();
+        if (len >= DEFAULT_LENGTH) {
+            return str;
+        }
+        int rest = DEFAULT_LENGTH - len;
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < rest; i++) {
+            sb.append('0');
+        }
+        sb.append(str);
+        return sb.toString();
     }
 }
