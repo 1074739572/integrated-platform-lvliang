@@ -1,10 +1,13 @@
 package com.iflytek.integrated.common.utils;
 
 import com.iflytek.integrated.common.Constant;
+import com.querydsl.core.types.dsl.StringPath;
+import com.querydsl.sql.RelationalPath;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.client.utils.DateUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.Date;
 import java.util.regex.Pattern;
 
 /**
@@ -12,16 +15,12 @@ import java.util.regex.Pattern;
  * 公用方法
  */
 public class Utils {
+    private static final Logger logger = LoggerFactory.getLogger(Utils.class);
 
     /**
      * 区域编码长度校验
      */
     public static final Pattern AREA_CODE = Pattern.compile("\\d{6}");
-
-    /**
-     * 生成的编码流水号长度
-     */
-    public static final int DEFAULT_LENGTH = 3;
 
 
     /**
@@ -71,35 +70,21 @@ public class Utils {
 
     /**
      * 根据管理类型，自动生成code
-     * @param redisUtil
+     * @param path
      * @param appCode
      * @return
      */
-    public static String generateCode(RedisUtil redisUtil, String appCode){
+    public static String generateCode(RelationalPath<?> path, StringPath codePath, String appCode, String name){
         //校验类型是否为空
         if(StringUtils.isEmpty(appCode)){
             throw new RuntimeException("类型编码不能为空");
         }
-        //日期编码
-        String curDate = DateUtils.formatDate(new Date(), "yyyyMMdd");
-        //redis生成编码
-        Long incrementNum = redisUtil.getTodayIncrementNum(appCode);
-        return appCode + curDate + incrementNum;
+        //名称中中文转拼音首字母小写
+        String nameCode = PinYinUtil.getFirstSpell(name);
+        //查询编码已存在次数，递增
+
+//        String sequence = getSequence(incrementNum);
+        return appCode + nameCode;
     }
 
-
-    private static String getSequence(long seq) {
-        String str = String.valueOf(seq);
-        int len = str.length();
-        if (len >= DEFAULT_LENGTH) {
-            return str;
-        }
-        int rest = DEFAULT_LENGTH - len;
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < rest; i++) {
-            sb.append('0');
-        }
-        sb.append(str);
-        return sb.toString();
-    }
 }

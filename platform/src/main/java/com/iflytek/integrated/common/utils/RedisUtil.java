@@ -164,35 +164,6 @@ public class RedisUtil {
     }
 
     /**
-     * 获取今天自增长数，第二天0点过期
-     *
-     * @param key
-     * @return
-     */
-    public Long getTodayIncrementNum(String key) {
-        RedisConnectionFactory connectionFactory = redisTemplate.getConnectionFactory();
-        if (connectionFactory == null) {
-            long inc = incr(key, 1);
-            if (inc == 1) {
-                long expireSeconds = DateUtils.getTodayDiffSecondsFromNowToEnd();
-                expire(key, expireSeconds);
-            }
-            return inc;
-        }
-        // 不存在准备创建 键值对(可以对数据中的Long类型进行原子性操作的类)
-        RedisAtomicLong entityIdCounter = new RedisAtomicLong(key, connectionFactory);
-        long counter = entityIdCounter.incrementAndGet();
-        if (counter == 1) {
-            // 初始设置过期时间
-            System.out.println("设置过期时间为当天的23:59:59!");
-            long expireSeconds = DateUtils.getTodayDiffSecondsFromNowToEnd();
-            entityIdCounter.expire(expireSeconds, TimeUnit.SECONDS);
-        }
-        return counter;
-    }
-// ================================Map=================================
-
-    /**
      * HashGet
      *
      * @param key  键 不能为null
