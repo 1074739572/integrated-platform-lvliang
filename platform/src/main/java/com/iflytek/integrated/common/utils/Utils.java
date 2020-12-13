@@ -78,19 +78,17 @@ public class Utils {
      * 根据管理类型，自动生成code
      * @param path      表q类
      * @param codePath  code的字段
-     * @param appCode   表类型开头
      * @param name      提交的名称
      * @return
      */
-    public String generateCode(RelationalPath<?> path, StringPath codePath, String appCode, String name){
+    public String generateCode(RelationalPath<?> path, StringPath codePath, String name){
         //校验类型是否为空
-        if(StringUtils.isEmpty(appCode)){
-            throw new RuntimeException("类型编码不能为空");
+        if(StringUtils.isEmpty(name)){
+            throw new RuntimeException("名称不能为空");
         }
         //名称中中文转拼音首字母小写
-        String nameCode = PinYinUtil.getFirstSpell(name);
+        String code = PinYinUtil.getFirstSpell(name);
         //查询编码已存在次数，递增
-        String code = appCode + nameCode;
         Long count = sqlQueryFactory.select(path).from(path).where(codePath.eq(code)).fetchCount();
         if(count > 0){
             code += count;

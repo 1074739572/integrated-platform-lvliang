@@ -210,7 +210,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             Long lon = sqlQueryFactory.insert(qTProduct)
                     .set(qTProduct.id,functionLink.getProductId())
                     .set(qTProduct.productName,productName)
-                    .set(qTProduct.productCode,utils.generateCode(qTProduct,qTProduct.productCode,Constant.AppCode.PRODUCT,productName))
+                    .set(qTProduct.productCode,utils.generateCode(qTProduct,qTProduct.productCode,productName))
                     .set(qTProduct.isValid,Constant.IsValid.ON)
                     .set(qTProduct.createdBy,"")
                     .set(qTProduct.createdTime,new Date()).execute();
@@ -227,7 +227,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             Long lon = sqlQueryFactory.insert(qTFunction)
                     .set(qTFunction.id,functionLink.getFunctionId())
                     .set(qTFunction.functionName,functionName)
-                    .set(qTFunction.functionCode,utils.generateCode(qTFunction,qTFunction.functionCode,Constant.AppCode.FUNCTION,functionName))
+                    .set(qTFunction.functionCode,utils.generateCode(qTFunction,qTFunction.functionCode,functionName))
                     .set(qTFunction.createdBy,"")
                     .set(qTFunction.createdTime,new Date()).execute();
             if(lon <= 0){
