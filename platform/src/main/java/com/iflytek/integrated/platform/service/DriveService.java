@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -72,7 +72,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
             //查询条件
             ArrayList<Predicate> list = new ArrayList<>();
             //判断条件是否为空
-            if(!StringUtils.isEmpty(driveName)){
+            if(StringUtils.isNotEmpty(driveName)){
                 list.add(qTDrive.driveName.like(Utils.createFuzzyText(driveName)));
             }
             //根据查询条件获取驱动列表
@@ -172,7 +172,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
         ArrayList<Predicate> list = new ArrayList<>();
         list.add(qTDrive.driveName.eq(driveName)
                 .or(qTDrive.driveCode.eq(driveCode)));
-        if(!StringUtils.isEmpty(id)){
+        if(StringUtils.isNotEmpty(id)){
             list.add(qTDrive.id.notEqualsIgnoreCase(id));
         }
         List<String> plugins = sqlQueryFactory.select(qTDrive.id).from(qTDrive)

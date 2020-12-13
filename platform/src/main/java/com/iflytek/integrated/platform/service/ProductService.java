@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.collections.CollectionUtils;
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -62,10 +62,10 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             ArrayList<Predicate> list = new ArrayList<>();
             list.add(qTProduct.isValid.eq(Constant.IsValid.ON));
             //判断条件是否为空
-            if(!StringUtils.isEmpty(productCode)){
+            if(StringUtils.isNotEmpty(productCode)){
                 list.add(qTProduct.productCode.eq(productCode));
             }
-            if(!StringUtils.isEmpty(productName)){
+            if(StringUtils.isNotEmpty(productName)){
                 list.add(qTProduct.productName.like(Utils.createFuzzyText(productName))
                         .or(qTFunction.functionName.like(Utils.createFuzzyText(productName))));
             }
@@ -245,7 +245,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         ArrayList<Predicate> list = new ArrayList<>();
         list.add(qTProductFunctionLink.functionId.eq(functionId));
         list.add(qTProductFunctionLink.productId.eq(productId));
-        if(!StringUtils.isEmpty(linkId)){
+        if(StringUtils.isNotEmpty(linkId)){
             list.add(qTProductFunctionLink.id.notEqualsIgnoreCase(linkId));
         }
         List<String> links = sqlQueryFactory.select(qTProductFunctionLink.id).from(qTProductFunctionLink)

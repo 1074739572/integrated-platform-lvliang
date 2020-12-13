@@ -10,7 +10,6 @@ import com.iflytek.integrated.platform.validator.ValidationResult;
 import com.iflytek.integrated.platform.validator.ValidatorHelper;
 import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.id.BatchUidService;
-import com.iflytek.medicalboot.core.id.UidService;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
@@ -23,7 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.collections.CollectionUtils;
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -73,7 +72,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
             //查询条件
             ArrayList<Predicate> list = new ArrayList<>();
             //判断条件是否为空
-            if(!StringUtils.isEmpty(pluginName)){
+            if(StringUtils.isNotEmpty(pluginName)){
                 list.add(qTPlugin.pluginName.like(Utils.createFuzzyText(pluginName)));
             }
             //根据查询条件获取插件列表
@@ -173,7 +172,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
         ArrayList<Predicate> list = new ArrayList<>();
         list.add(qTPlugin.pluginName.eq(pluginName)
                 .or(qTPlugin.pluginCode.eq(pluginCode)));
-        if(!StringUtils.isEmpty(id)){
+        if(StringUtils.isNotEmpty(id)){
             list.add(qTPlugin.id.notEqualsIgnoreCase(id));
         }
         List<String> plugins = sqlQueryFactory.select(qTPlugin.id).from(qTPlugin)

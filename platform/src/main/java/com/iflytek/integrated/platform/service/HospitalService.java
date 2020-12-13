@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.collections.CollectionUtils;
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -58,10 +58,10 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
             list.add(qTHospital.status.eq(Constant.Status.YES));
             //如果区域id不为空，关联区域表查询所属区域下的医院
             String supCode = Utils.subAreaCode(areaCode);
-            if(!StringUtils.isEmpty(supCode)){
+            if(StringUtils.isNotEmpty(supCode)){
                 list.add(qTArea.areaCode.like(Utils.rightCreateFuzzyText(supCode)));
             }
-            if(!StringUtils.isEmpty(hospitalName)){
+            if(StringUtils.isNotEmpty(hospitalName)){
                 list.add(qTHospital.hospitalName.like(Utils.createFuzzyText(hospitalName)));
             }
             //根据查询条件获取医院列表
@@ -178,7 +178,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         list.add(qTHospital.status.eq(Constant.Status.YES));
         list.add(qTHospital.hospitalCode.eq(hospitalCode)
                 .or(qTHospital.hospitalName.eq(hospitalName)));
-        if(!StringUtils.isEmpty(id)){
+        if(StringUtils.isNotEmpty(id)){
             list.add(qTHospital.id.notEqualsIgnoreCase(id));
         }
         List<String> hospitals = sqlQueryFactory.select(qTHospital.id).from(qTHospital)
