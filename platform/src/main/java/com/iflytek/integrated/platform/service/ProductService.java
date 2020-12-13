@@ -27,7 +27,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -53,6 +52,8 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     private BatchUidService batchUidService;
     @Autowired
     private ValidatorHelper validatorHelper;
+    @Autowired
+    private Utils utils;
 
     @ApiOperation(value = "产品管理列表")
     @GetMapping("/{version}/pb/productManage/getProductList")
@@ -209,7 +210,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             Long lon = sqlQueryFactory.insert(qTProduct)
                     .set(qTProduct.id,functionLink.getProductId())
                     .set(qTProduct.productName,productName)
-                    .set(qTProduct.productCode,Utils.generateCode(qTProduct,qTProduct.productCode,Constant.AppCode.PRODUCT,productName))
+                    .set(qTProduct.productCode,utils.generateCode(qTProduct,qTProduct.productCode,Constant.AppCode.PRODUCT,productName))
                     .set(qTProduct.isValid,Constant.IsValid.ON)
                     .set(qTProduct.createdBy,"")
                     .set(qTProduct.createdTime,new Date()).execute();
@@ -226,7 +227,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             Long lon = sqlQueryFactory.insert(qTFunction)
                     .set(qTFunction.id,functionLink.getFunctionId())
                     .set(qTFunction.functionName,functionName)
-                    .set(qTFunction.functionCode,Utils.generateCode(qTFunction,qTFunction.functionCode,Constant.AppCode.FUNCTION,functionName))
+                    .set(qTFunction.functionCode,utils.generateCode(qTFunction,qTFunction.functionCode,Constant.AppCode.FUNCTION,functionName))
                     .set(qTFunction.createdBy,"")
                     .set(qTFunction.createdTime,new Date()).execute();
             if(lon <= 0){
