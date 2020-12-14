@@ -38,6 +38,9 @@ import static com.iflytek.integrated.platform.entity.QTInterfaceParam.qTInterfac
 import static com.iflytek.integrated.platform.entity.QTInterfaceType.qTInterfaceType;
 import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.qTProductFunctionLink;
 import static com.iflytek.integrated.platform.entity.QTProductInterfaceLink.qTProductInterfaceLink;
+import static com.iflytek.integrated.platform.entity.QTProduct.qTProduct;
+import static com.iflytek.integrated.platform.entity.QTFunction.qTFunction;
+import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConfig;
 
 /**
 * 接口管理
@@ -313,6 +316,47 @@ public class InterfaceService  extends QuerydslService<TInterface, String, TInte
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"", tableData);
     }
 
+
+    @ApiOperation(value = "获取接口配置列表")
+    @GetMapping("/getInterfaceConfigureList")
+    public ResultDto getInterfaceConfigureList(String platformStatus, String platformName,
+                           @RequestParam(defaultValue = "1")Integer pageNo,
+                           @RequestParam(defaultValue = "10")Integer pageSize){
+        //查询条件
+        ArrayList<Predicate> list = new ArrayList<>();
+        if(StringUtils.isNotEmpty(platformStatus)){
+
+        }
+        if(StringUtils.isNotEmpty(platformName)){
+
+        }
+        QueryResults<TBusinessInterface> queryResults = sqlQueryFactory.select(
+                Projections.bean(
+                        TBusinessInterface.class,
+                        qTBusinessInterface.id,
+                        qTBusinessInterface.businessInterfaceName,
+                        qTBusinessInterface.status,
+                        qTBusinessInterface.mockStatus,
+                        qTProduct.productName,
+                        qTFunction.functionName,
+                        qTInterface.interfaceName,
+                        qTVendorConfig.versionId
+                )
+            ).from(qTBusinessInterface)
+                .leftJoin(qTProductFunctionLink).on(qTBusinessInterface.productFunctionLinkId.eq(qTProductFunctionLink.id))
+                .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
+                .leftJoin(qTFunction).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
+                .leftJoin(qTInterface).on(qTInterface.id.eq(qTBusinessInterface.interfaceId))
+                .leftJoin(qTVendorConfig).on(qTVendorConfig.id.eq(qTBusinessInterface.vendorConfigId))
+                .where(list.toArray(new Predicate[list.size()]))
+                .limit(pageSize)
+                .offset((pageNo - 1) * pageSize)
+                .orderBy(qTBusinessInterface.updatedTime.desc())
+                .fetchResults();
+        //分页
+        TableData<TBusinessInterface> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"", tableData);
+    }
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增/更新接口配置", notes = "新增/更新接口配置")

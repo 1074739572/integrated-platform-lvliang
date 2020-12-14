@@ -67,6 +67,15 @@ public class TBusinessInterface implements Serializable {
 
     private String functionId;
 
+    /**
+     * 列表接口配置查询出参
+     */
+    private String productName;
+
+    private String functionName;
+
+    private String versionId;
+
     public String getId() {
         return id;
     }
@@ -307,5 +316,28 @@ public class TBusinessInterface implements Serializable {
         this.functionId = functionId;
     }
 
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public String getFunctionName() {
+        return functionName;
+    }
+
+    public void setFunctionName(String functionName) {
+        this.functionName = functionName;
+    }
+
+    public String getVersionId() {
+        return versionId;
+    }
+
+    public void setVersionId(String versionId) {
+        this.versionId = versionId;
+    }
 }
 
