@@ -3,11 +3,15 @@ package com.iflytek.integrated.platform.service;
 import com.iflytek.integrated.platform.entity.TVendorDriveLink;
 import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
+import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
 import static com.iflytek.integrated.platform.entity.QTVendorDriveLink.qTVendorDriveLink;
 /**
 * 厂商与驱动关联
@@ -31,5 +35,16 @@ public class VendorDriveLinkService extends QuerydslService<TVendorDriveLink, St
         sqlQueryFactory.delete(qTVendorDriveLink).where(qTVendorDriveLink.vendorId.eq(id)).execute();
     }
 
+    /**
+     * 根据厂商id获取厂商驱动关联
+     * @param vendorId
+     * @return
+     */
+    public List<TVendorDriveLink> getVendorDriveLinkByVendorId(String vendorId) {
+        return sqlQueryFactory.select(Projections.bean(qTVendorDriveLink,qTDrive.driveName.as("driveName")))
+                .from(qTVendorDriveLink)
+                .leftJoin(qTDrive).on(qTDrive.id.eq(qTVendorDriveLink.driveId))
+                .where(qTVendorDriveLink.vendorId.eq(vendorId)).fetch();
+    }
 
 }

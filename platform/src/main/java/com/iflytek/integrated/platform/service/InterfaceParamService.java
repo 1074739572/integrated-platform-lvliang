@@ -9,7 +9,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import static com.iflytek.integrated.platform.entity.QTInterfaceParam.qTInterfaceParam;
-
+/**
+* 标准接口参数
+* @author weihe9
+* @date 2020/12/14 10:59
+*/
 @Service
 public class InterfaceParamService extends QuerydslService<TInterfaceParam, String, TInterfaceParam, StringPath, PageRequest<TInterfaceParam>> {
 

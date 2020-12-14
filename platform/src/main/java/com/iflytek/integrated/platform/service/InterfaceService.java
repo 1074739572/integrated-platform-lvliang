@@ -26,10 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -39,6 +36,7 @@ import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusin
 import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
 import static com.iflytek.integrated.platform.entity.QTInterfaceParam.qTInterfaceParam;
 import static com.iflytek.integrated.platform.entity.QTInterfaceType.qTInterfaceType;
+import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.qTProductFunctionLink;
 import static com.iflytek.integrated.platform.entity.QTProductInterfaceLink.qTProductInterfaceLink;
 
 /**
@@ -57,7 +55,11 @@ public class InterfaceService  extends QuerydslService<TInterface, String, TInte
     @Autowired
     private ProductInterfaceLinkService productInterfaceLinkService;
     @Autowired
+    private ProductFunctionLinkService productFunctionLinkService;
+    @Autowired
     private InterfaceParamService interfaceParamService;
+    @Autowired
+    private VendorConfigService vendorConfigService;
     @Autowired
     private BatchUidService batchUidService;
 
@@ -310,5 +312,63 @@ public class InterfaceService  extends QuerydslService<TInterface, String, TInte
         TableData<TInterface> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"", tableData);
     }
+
+
+    @Transactional(rollbackFor = Exception.class)
+    @ApiOperation(value = "新增/更新接口配置", notes = "新增/更新接口配置")
+    @GetMapping("/saveAndUpdateInterfaceConfig")
+    public ResultDto saveAndUpdateInterfaceConfig(@RequestBody TBusinessInterface obj) {
+        if (obj == null) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "请求参数有误!", null);
+        }
+        String rtnMsg = (null==obj.getId()?"新增":"修改")+"接口配置";
+        try {
+            //厂商配置
+            TVendorConfig vendorConfig = vendorConfigService.getObjByPlatformAndVendor(obj.getPlatformId(), obj.getVendorId());
+            obj.setVendorConfigId(vendorConfig.getId());//厂商配置id
+            //产品与功能关联
+            TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(obj.getProductId(), obj.getFunctionId());
+            if (tpfl == null) {
+                tpfl = new TProductFunctionLink();
+                tpfl.setId(batchUidService.getUid(qTProductFunctionLink.getTableName())+"");
+                tpfl.setProductId(obj.getProductId());
+                tpfl.setFunctionId(obj.getFunctionId());
+                tpfl.setCreatedTime(new Date());
+                productFunctionLinkService.post(tpfl);
+            }
+            obj.setProductFunctionLinkId(tpfl.getId());//存储产品功能关联id
+
+            if (StringUtils.isBlank(obj.getId())) {
+                //新增接口配置
+                obj.setId(batchUidService.getUid(qTBusinessInterface.getTableName())+"");
+                obj.setStatus(Constant.Status.START);
+                obj.setCreatedTime(new Date());
+                businessInterfaceService.post(obj);
+            }else {
+                obj.setUpdatedTime(new Date());
+                businessInterfaceService.put(obj.getId(), obj);
+            }
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, rtnMsg+"成功", obj);
+        } catch (Exception e) {
+            logger.error(rtnMsg, ExceptionUtil.dealException(e));
+            e.printStackTrace();
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, rtnMsg+"失败", ExceptionUtil.dealException(e));
+        }
+    }
+
+
+    @ApiOperation(value = "获取接口详情", notes = "获取接口详情")
+    @GetMapping("/getInterfaceInfoById")
+    public ResultDto getInterfaceInfoById(@ApiParam(value = "标准接口id") @RequestParam(value = "id", required = true) String id) {
+        try {
+
+        } catch (Exception e) {
+            logger.error("厂商删除失败!", ExceptionUtil.dealException(e));
+            e.printStackTrace();
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "厂商删除失败!", ExceptionUtil.dealException(e));
+        }
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "厂商删除成功!", null);
+    }
+
 
 }

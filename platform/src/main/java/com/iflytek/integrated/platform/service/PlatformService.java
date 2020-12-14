@@ -173,6 +173,26 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
     }
 
 
+    @ApiOperation(value = "更改启停用状态", notes = "更改启停用状态")
+    @GetMapping("/updateStatus")
+    public ResultDto updateStatus(
+            @ApiParam(value = "平台id") @RequestParam(value = "id", required = true) String id,
+            @ApiParam(value = "平台状态 1启用 2停用") @RequestParam(value = "platformStatus", required = true) String platformStatus) {
+        sqlQueryFactory.update(qTPlatform).set(qTPlatform.platformStatus, platformStatus).set(qTPlatform.updatedTime, new Date())
+                .where(qTPlatform.id.eq(id)).execute();
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "平台状态更改成功!", id);
+    }
+
+
+    @ApiOperation(value = "删除平台", notes = "删除平台")
+    @GetMapping("/deletePlatform")
+    public ResultDto deletePlatform(@ApiParam(value = "平台id") @RequestParam(value = "id", required = true) String id) {
+        //删除平台
+        this.delete(id);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "删除平台成功!", id);
+    }
+
+
 }
 
 

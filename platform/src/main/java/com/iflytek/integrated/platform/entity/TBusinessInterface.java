@@ -59,6 +59,14 @@ public class TBusinessInterface implements Serializable {
 
     private String interfaceName;
 
+    private String platformId;
+
+    private String vendorId;
+
+    private String productId;
+
+    private String functionId;
+
     public String getId() {
         return id;
     }
@@ -265,6 +273,38 @@ public class TBusinessInterface implements Serializable {
 
     public void setInterfaceName(String interfaceName) {
         this.interfaceName = interfaceName;
+    }
+
+    public String getPlatformId() {
+        return platformId;
+    }
+
+    public void setPlatformId(String platformId) {
+        this.platformId = platformId;
+    }
+
+    public String getVendorId() {
+        return vendorId;
+    }
+
+    public void setVendorId(String vendorId) {
+        this.vendorId = vendorId;
+    }
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+
+    public String getFunctionId() {
+        return functionId;
+    }
+
+    public void setFunctionId(String functionId) {
+        this.functionId = functionId;
     }
 
 }

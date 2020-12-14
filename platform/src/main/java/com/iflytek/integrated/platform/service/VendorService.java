@@ -1,9 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
-import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
-import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.common.utils.StringUtil;
 import com.iflytek.integrated.common.utils.Utils;
@@ -34,9 +32,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.*;
 
-import static com.iflytek.integrated.platform.entity.QTPlugin.qTPlugin;
-import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
-import static com.iflytek.integrated.platform.entity.QTProjectProductLink.qTProjectProductLink;
 import static com.iflytek.integrated.platform.entity.QTVendor.qTVendor;
 import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConfig;
 import static com.iflytek.integrated.platform.entity.QTVendorDriveLink.qTVendorDriveLink;
@@ -156,7 +151,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "获取厂商管理列表", notes = "获取厂商管理列表")
     @GetMapping("/getVendorList")
-    public ResultDto getVendorList(//???
+    public ResultDto getVendorList(
             @ApiParam(value = "厂商名") @RequestParam(value = "vendorName", required = false) String vendorName,
             @ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
             @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
@@ -164,10 +159,21 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
         if (StringUtils.isNotBlank(vendorName))
             list.add(qTVendor.vendorName.like(Utils.createFuzzyText(vendorName)));
         List<TVendor> rtnList = sqlQueryFactory.select(qTVendor).from(qTVendor)
-                .where(list.toArray(new Predicate[list.size()])).fetch();
+                .where(list.toArray(new Predicate[list.size()]))
+                .limit(pageSize).offset((pageNo - 1) * pageSize)
+                .orderBy(qTVendor.updatedTime.desc())
+                .fetch();
+        //添加厂商驱动
+        for (TVendor tv : rtnList) {
+            List<TVendorDriveLink> tvdList = vendorDriveLinkService.getVendorDriveLinkByVendorId(tv.getId());
+            String driveNameStr = "";
+            for (int i = 0; i < tvdList.size(); i++) {
+                driveNameStr += tvdList.get(i).getDriveName();
+                if (i <tvdList.size()- 1) driveNameStr += " | ";
+            }
+            tv.setDriveName(driveNameStr);
+        }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取厂商管理列表!", rtnList);
-
-//        TableData<TVendor> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
     }
 
 

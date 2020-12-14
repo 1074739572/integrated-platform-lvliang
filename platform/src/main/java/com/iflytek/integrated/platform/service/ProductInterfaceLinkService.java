@@ -9,6 +9,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import static com.iflytek.integrated.platform.entity.QTProductInterfaceLink.qTProductInterfaceLink;
+/**
+* 产品与标准接口关联
+* @author weihe9
+* @date 2020/12/14 11:00
+*/
 @Service
 public class ProductInterfaceLinkService  extends QuerydslService<TProductInterfaceLink, String, TProductInterfaceLink, StringPath, PageRequest<TProductInterfaceLink>> {
 

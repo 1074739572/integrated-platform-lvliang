@@ -21,6 +21,8 @@ public class TVendor implements Serializable {
 
     private java.util.Date updatedTime;
 
+    private String driveName;
+
     public String getId() {
         return id;
     }
@@ -75,6 +77,14 @@ public class TVendor implements Serializable {
 
     public void setUpdatedTime(java.util.Date updatedTime) {
         this.updatedTime = updatedTime;
+    }
+
+    public String getDriveName() {
+        return driveName;
+    }
+
+    public void setDriveName(String driveName) {
+        this.driveName = driveName;
     }
 
 }

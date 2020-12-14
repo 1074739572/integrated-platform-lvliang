@@ -10,7 +10,11 @@ import org.springframework.stereotype.Service;
 
 import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConfig;
 
-
+/**
+* 厂商配置
+* @author weihe9
+* @date 2020/12/14 10:58
+*/
 @Service
 public class VendorConfigService extends QuerydslService<TVendorConfig, String, TVendorConfig, StringPath, PageRequest<TVendorConfig>> {
 
@@ -20,5 +24,15 @@ public class VendorConfigService extends QuerydslService<TVendorConfig, String, 
         super(qTVendorConfig, qTVendorConfig.id);
     }
 
+    /**
+     * 获取平台-厂商配置
+     * @param platformId
+     * @param vendorId
+     * @return
+     */
+    public TVendorConfig getObjByPlatformAndVendor(String platformId, String vendorId) {
+        return sqlQueryFactory.select(qTVendorConfig).from(qTVendorConfig).
+                where(qTVendorConfig.platformId.eq(platformId).and(qTVendorConfig.vendorId.eq(vendorId))).fetchOne();
+    }
 
 }

@@ -32,5 +32,15 @@ public class ProductFunctionLinkService extends QuerydslService<TProductFunction
         sqlQueryFactory.delete(qTProductFunctionLink).where(qTProductFunctionLink.id.eq(id)).execute();
     }
 
+    /**
+     * 获取产品-功能关联对象
+     * @param productId
+     * @param functionId
+     * @return
+     */
+    public TProductFunctionLink getObjByProductAndFunction(String productId, String functionId) {
+        return sqlQueryFactory.select(qTProductFunctionLink).from(qTProductFunctionLink).
+                where(qTProductFunctionLink.productId.eq(productId).and(qTProductFunctionLink.functionId.eq(functionId))).fetchOne();
+    }
 
 }
