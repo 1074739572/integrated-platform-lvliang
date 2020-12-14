@@ -1,4 +1,4 @@
-package com.iflytek.integrated.config.api;
+package com.iflytek.integrated.common.config.api;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
