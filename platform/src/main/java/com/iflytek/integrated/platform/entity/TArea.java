@@ -1,6 +1,7 @@
 package com.iflytek.integrated.platform.entity;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * TArea is a Querydsl bean type
@@ -24,6 +25,11 @@ public class TArea implements Serializable {
     private String updatedBy;
 
     private java.util.Date updatedTime;
+
+    /**
+     * 省市区
+     */
+    private List<TArea> child;
 
     public String getId() {
         return id;
@@ -97,5 +103,12 @@ public class TArea implements Serializable {
         this.updatedTime = updatedTime;
     }
 
+    public List<TArea> getChild() {
+        return child;
+    }
+
+    public void setChild(List<TArea> child) {
+        this.child = child;
+    }
 }
 

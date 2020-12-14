@@ -102,4 +102,24 @@ public class Constant {
         public static final String VENDOR = "V";
 
     }
+
+    /**
+     * 区域层级
+     */
+    public interface Area {
+        /**
+         * 省级
+         */
+        public static final Integer PROVINCE = 1;
+
+        /**
+         * 市级
+         */
+        public static final Integer CITY = 2;
+
+        /**
+         * 区（县）级
+         */
+        public static final Integer COUNTY = 3;
+    }
 }
