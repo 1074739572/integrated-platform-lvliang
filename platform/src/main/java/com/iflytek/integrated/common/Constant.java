@@ -13,6 +13,14 @@ public class Constant {
         public static final String YES = "1";
 
         public static final String NO = "0";
+        /**
+         * 启用
+         */
+        public static final String START = "1";
+        /**
+         * 停用
+         */
+        public static final String STOP = "2";
     }
 
     /**
@@ -67,18 +75,31 @@ public class Constant {
     }
 
     /**
-     * 管理编码
+     * 管理编码前缀
      */
-//    public interface AppCode {
-//
-//        /**
-//         * 产品管理
-//         */
-//        public static final String PRODUCT = "PR_";
-//
-//        /**
-//         * 功能管理
-//         */
-//        public static final String FUNCTION = "FU_";
-//    }
+    public interface AppCode {
+
+        /**
+         * 产品管理
+         */
+        public static final String PRODUCT = "PR_";
+        /**
+         * 功能管理
+         */
+        public static final String FUNCTION = "FU_";
+
+        /**
+         * 项目
+         */
+        public static final String PROJECT = "PJ";
+        /**
+         * 平台
+         */
+        public static final String PLATFORM = "PF";
+        /**
+         * 厂商
+         */
+        public static final String VENDOR = "V";
+
+    }
 }

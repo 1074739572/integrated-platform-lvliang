@@ -10,7 +10,7 @@ public class ResultDto {
             value = "HttpStatus",
             name = "操作结果"
     )
-    private int code;
+    private Integer code;
     @ApiModelProperty(
             value = "错误提示",
             name = "提示信息"
@@ -25,22 +25,22 @@ public class ResultDto {
     public ResultDto() {
     }
 
-    public ResultDto(int code, String message, Object data) {
+    public ResultDto(Integer code, String message, Object data) {
         this.code = code;
         this.message = message;
         this.data = data;
     }
 
-    public ResultDto(int code, String message) {
+    public ResultDto(Integer code, String message) {
         this.code = code;
         this.message = message;
     }
 
-    public int getCode() {
+    public Integer getCode() {
         return this.code;
     }
 
-    public void setCode(int code) {
+    public void setCode(Integer code) {
         this.code = code;
     }
 

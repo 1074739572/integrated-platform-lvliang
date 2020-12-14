@@ -57,6 +57,8 @@ public class TBusinessInterface implements Serializable {
 
     private java.util.Date updatedTime;
 
+    private String interfaceName;
+
     public String getId() {
         return id;
     }
@@ -255,6 +257,14 @@ public class TBusinessInterface implements Serializable {
 
     public void setUpdatedTime(java.util.Date updatedTime) {
         this.updatedTime = updatedTime;
+    }
+
+    public String getInterfaceName() {
+        return interfaceName;
+    }
+
+    public void setInterfaceName(String interfaceName) {
+        this.interfaceName = interfaceName;
     }
 
 }
