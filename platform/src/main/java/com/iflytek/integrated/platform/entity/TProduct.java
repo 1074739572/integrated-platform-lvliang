@@ -1,6 +1,7 @@
 package com.iflytek.integrated.platform.entity;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * TProduct is a Querydsl bean type
@@ -27,6 +28,11 @@ public class TProduct implements Serializable {
     private String functionName;
 
     private String funLinkId;
+
+    /**
+     *
+     */
+    private List<TFunction> functions;
 
     public String getId() {
         return id;
@@ -106,6 +112,14 @@ public class TProduct implements Serializable {
 
     public void setFunLinkId(String funLinkId) {
         this.funLinkId = funLinkId;
+    }
+
+    public List<TFunction> getFunctions() {
+        return functions;
+    }
+
+    public void setFunctions(List<TFunction> functions) {
+        this.functions = functions;
     }
 }
 

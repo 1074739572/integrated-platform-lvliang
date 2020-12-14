@@ -167,10 +167,26 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         List<TProduct> products = sqlQueryFactory.select(
                 Projections.bean(
                         TProduct.class,
+                        qTProduct.id,
                         qTProduct.productName,
                         qTProduct.productCode
                 )
             ).from(qTProduct).orderBy(qTProduct.updatedTime.desc()).fetch();
+        //拼接方法列表
+        for (TProduct product : products){
+            List<TFunction> functions = sqlQueryFactory.select(
+                    Projections.bean(
+                        TFunction.class,
+                        qTFunction.id,
+                        qTFunction.functionCode,
+                        qTFunction.functionName
+                    )
+            ).from(qTFunction)
+            .leftJoin(qTProductFunctionLink).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
+            .where(qTProductFunctionLink.productId.eq(product.getId()))
+            .orderBy(qTFunction.updatedTime.desc()).fetch();
+            product.setFunctions(functions);
+        }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"",products);
     }
 
