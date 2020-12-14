@@ -358,6 +358,42 @@ public class InterfaceService  extends QuerydslService<TInterface, String, TInte
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"", tableData);
     }
 
+
+    @ApiOperation(value = "获取接口配置详情")
+    @GetMapping("/getInterfaceConfigInfoById")
+    public ResultDto getInterfaceConfigInfoById(String id){
+        if(StringUtils.isEmpty(id)){
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "id不能为空");
+        }
+        TBusinessInterface tBusinessInterface = sqlQueryFactory.select(
+                Projections.bean(
+                    TBusinessInterface.class,
+                        qTProductFunctionLink.productId,
+                        qTProductFunctionLink.functionId,
+                        qTBusinessInterface.interfaceId,
+                        qTVendorConfig.vendorId,
+                        qTBusinessInterface.requestType,
+                        qTBusinessInterface.businessInterfaceName,
+                        qTBusinessInterface.frontInterface,
+                        qTBusinessInterface.afterInterface,
+                        qTBusinessInterface.pluginId,
+                        qTBusinessInterface.requestConstant,
+                        qTBusinessInterface.inParamFormat,
+                        qTBusinessInterface.inParamSchema,
+                        qTBusinessInterface.inParamTemplate,
+                        qTBusinessInterface.inParamFormatType,
+                        qTBusinessInterface.outParamFormat,
+                        qTBusinessInterface.outParamSchema,
+                        qTBusinessInterface.outParamTemplate
+                )
+            ).from(qTBusinessInterface)
+                .leftJoin(qTProductFunctionLink).on(qTBusinessInterface.productFunctionLinkId.eq(qTProductFunctionLink.id))
+                .leftJoin(qTVendorConfig).on(qTVendorConfig.id.eq(qTBusinessInterface.vendorConfigId))
+                .where(qTBusinessInterface.id.eq(id))
+                .fetchOne();
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"",tBusinessInterface);
+    }
+
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增/更新接口配置", notes = "新增/更新接口配置")
     @GetMapping("/saveAndUpdateInterfaceConfig")
