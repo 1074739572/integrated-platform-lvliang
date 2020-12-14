@@ -122,4 +122,14 @@ public class Constant {
          */
         public static final Integer COUNTY = 3;
     }
+
+    /**
+     * 出入参：1，入参 2、出参
+     */
+    public interface ParmInOut {
+
+        public static String IN = "1";
+
+        public static String OUT = "2";
+    }
 }

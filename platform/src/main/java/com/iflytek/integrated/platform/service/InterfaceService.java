@@ -5,12 +5,15 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
+import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
-import com.iflytek.integrated.common.utils.StringUtil;
+import com.iflytek.integrated.common.utils.Utils;
 import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
+import com.querydsl.core.QueryResults;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 import io.swagger.annotations.Api;
@@ -28,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -56,8 +60,6 @@ public class InterfaceService  extends QuerydslService<TInterface, String, TInte
     private InterfaceParamService interfaceParamService;
     @Autowired
     private BatchUidService batchUidService;
-    @Autowired
-    private StringUtil stringUtil;
 
     private static final Logger logger = LoggerFactory.getLogger(InterfaceService.class);
 
@@ -269,5 +271,44 @@ public class InterfaceService  extends QuerydslService<TInterface, String, TInte
     }
 
 
+    @ApiOperation(value = "标准接口列表")
+    @GetMapping("/getInterfaceList")
+    public ResultDto getInterfaceList(String interfaceTypeCode, String name,
+                          @RequestParam(defaultValue = "1")Integer pageNo,
+                          @RequestParam(defaultValue = "10")Integer pageSize) {
+        //查询条件
+        ArrayList<Predicate> list = new ArrayList<>();
+        if(StringUtils.isNotEmpty(interfaceTypeCode)){
+            list.add(qTInterfaceType.interfaceTypeCode.eq(interfaceTypeCode));
+        }
+        if(StringUtils.isNotEmpty(name)){
+            list.add(qTInterface.interfaceName.like(Utils.createFuzzyText(name)));
+        }
+        QueryResults<TInterface> queryResults = sqlQueryFactory.select(
+            Projections.bean(
+                    TInterface.class,
+                    qTInterface.id,
+                    qTInterface.interfaceName,
+                    qTInterface.interfaceUrl,
+                    qTInterfaceType.interfaceTypeName,
+                    sqlQueryFactory.select(qTInterfaceParam.id.count()).from(qTInterfaceParam)
+                            .where((qTInterfaceParam.paramInOut.eq(Constant.ParmInOut.IN)).
+                            and(qTInterfaceParam.interfaceId.eq(qTInterface.id))).as("inParamCount"),
+                    sqlQueryFactory.select(qTInterfaceParam.id.count()).from(qTInterfaceParam)
+                            .where((qTInterfaceParam.paramInOut.eq(Constant.ParmInOut.OUT)).
+                            and(qTInterfaceParam.interfaceId.eq(qTInterface.id))).as("outParamCount")
+                )
+            ).from(qTInterface)
+                    .leftJoin(qTInterfaceType).on(qTInterfaceType.id.eq(qTInterface.interfaceTypeId))
+                    .where(list.toArray(new Predicate[list.size()]))
+                    .groupBy(qTInterface.id)
+                    .limit(pageSize)
+                    .offset((pageNo - 1) * pageSize)
+                    .orderBy(qTInterface.updatedTime.desc())
+                    .fetchResults();
+        //分页
+        TableData<TInterface> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"", tableData);
+    }
 
 }

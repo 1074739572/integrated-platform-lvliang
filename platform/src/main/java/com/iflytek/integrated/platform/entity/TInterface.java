@@ -25,6 +25,12 @@ public class TInterface implements Serializable {
 
     private java.util.Date updatedTime;
 
+    private String interfaceTypeName;
+
+    private Long inParamCount;
+
+    private Long outParamCount;
+
     public String getId() {
         return id;
     }
@@ -97,5 +103,28 @@ public class TInterface implements Serializable {
         this.updatedTime = updatedTime;
     }
 
+    public String getInterfaceTypeName() {
+        return interfaceTypeName;
+    }
+
+    public void setInterfaceTypeName(String interfaceTypeName) {
+        this.interfaceTypeName = interfaceTypeName;
+    }
+
+    public Long getInParamCount() {
+        return inParamCount;
+    }
+
+    public void setInParamCount(Long inParamCount) {
+        this.inParamCount = inParamCount;
+    }
+
+    public Long getOutParamCount() {
+        return outParamCount;
+    }
+
+    public void setOutParamCount(Long outParamCount) {
+        this.outParamCount = outParamCount;
+    }
 }
 

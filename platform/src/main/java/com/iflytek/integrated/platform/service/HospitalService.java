@@ -72,7 +72,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
                         qTHospital.hospitalName,
                         qTHospital.hospitalCode,
                         qTHospital.updatedTime
-                        )
+                    )
                 ).from(qTHospital)
                     .leftJoin(qTArea).on(qTArea.id.eq(qTHospital.areaId))
                     .where(list.toArray(new Predicate[list.size()]))
