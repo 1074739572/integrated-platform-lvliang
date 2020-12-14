@@ -15,6 +15,7 @@ import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -36,7 +37,9 @@ import static com.iflytek.integrated.platform.entity.QTPlugin.qTPlugin;
  * @author czzhan
  */
 @Slf4j
+@Api(tags = "插件管理")
 @RestController
+@RequestMapping("/{version}/pb/pluginManage")
 public class PluginService extends QuerydslService<TPlugin, String, TPlugin, StringPath, PageRequest<TPlugin>> {
     public PluginService(){
         super(qTPlugin,qTPlugin.id);
@@ -50,7 +53,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
     private ValidatorHelper validatorHelper;
 
     @ApiOperation(value = "选择插件下拉")
-    @GetMapping("/{version}/pb/pluginManage/getDisPlugin")
+    @GetMapping("/getDisPlugin")
     public ResultDto getDisPlugin() {
         List<TPlugin> plugins = sqlQueryFactory.select(
                 Projections.bean(
@@ -64,7 +67,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
     }
 
     @ApiOperation(value = "插件管理列表")
-    @GetMapping("/{version}/pb/pluginManage/getPluginList")
+    @GetMapping("/getPluginList")
     public ResultDto getPluginList(String pluginName,
                            @RequestParam(defaultValue = "1")Integer pageNo,
                            @RequestParam(defaultValue = "10")Integer pageSize){
@@ -101,7 +104,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "插件管理删除")
-    @DeleteMapping("/{version}/pb/pluginManage/delPluginById")
+    @DeleteMapping("/delPluginById")
     public ResultDto delPluginById(String id){
         if(StringUtils.isEmpty(id)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "id不能为空");
@@ -121,7 +124,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "插件新增/编辑")
-    @PostMapping("/{version}/pb/pluginManage/saveAndUpdatePlugin")
+    @PostMapping("/saveAndUpdatePlugin")
     public ResultDto saveAndUpdateProduct(@RequestBody TPlugin plugin){
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(plugin);

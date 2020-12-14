@@ -13,6 +13,7 @@ import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -35,7 +36,9 @@ import static com.iflytek.integrated.platform.entity.QTArea.qTArea;
  * @author czzhan
  */
 @Slf4j
+@Api(tags = "医院管理")
 @RestController
+@RequestMapping("/{version}/pb/hospitalManage")
 public class HospitalService extends QuerydslService<THospital, String, THospital, StringPath, PageRequest<THospital>> {
     public HospitalService(){
         super(qTHospital,qTHospital.id);
@@ -48,7 +51,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
     private ValidatorHelper validatorHelper;
 
     @ApiOperation(value = "获取医院管理列表")
-    @GetMapping("/{version}/pb/hospitalManage/getHospitalList")
+    @GetMapping("/getHospitalList")
     public ResultDto getHospitalListPage(String hospitalName,String areaCode,
                              @RequestParam(defaultValue = "1")Integer pageNo,
                              @RequestParam(defaultValue = "10")Integer pageSize){
@@ -91,7 +94,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "医院管理删除")
-    @DeleteMapping("/{version}/pb/hospitalManage/delHospitalById")
+    @DeleteMapping("/delHospitalById")
     public ResultDto delHospitalById(String id){
         if(StringUtils.isEmpty(id)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "医院id为空");
@@ -113,7 +116,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "医院管理新增/编辑")
-    @PostMapping("/{version}/pb/hospitalManage/saveAndUpdateHospital")
+    @PostMapping("/saveAndUpdateHospital")
     public ResultDto saveAndUpdateHospital(@RequestBody THospital hospital){
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(hospital);
@@ -153,7 +156,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
     }
 
     @ApiOperation(value = "医院配置")
-    @GetMapping("/{version}/pb/hospitalManage/getAllHospital")
+    @GetMapping("/getAllHospital")
     public ResultDto getAllHospital(){
         List<THospital> hospitals = sqlQueryFactory.select(
                 Projections.bean(

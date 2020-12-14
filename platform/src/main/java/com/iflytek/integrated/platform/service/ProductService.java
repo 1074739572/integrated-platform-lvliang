@@ -17,6 +17,7 @@ import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -36,11 +37,13 @@ import static com.iflytek.integrated.platform.entity.QTFunction.qTFunction;
 import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.qTProductFunctionLink;
 
 /**
- * 医院管理
+ * 产品管理
  * @author czzhan
  */
 @Slf4j
+@Api(tags = "产品管理")
 @RestController
+@RequestMapping("/{version}/pb/productManage")
 public class ProductService extends QuerydslService<TProduct, String, TProduct, StringPath, PageRequest<TProduct>> {
     public ProductService(){
         super(qTProduct,qTProduct.id);
@@ -56,7 +59,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     private Utils utils;
 
     @ApiOperation(value = "产品管理列表")
-    @GetMapping("/{version}/pb/productManage/getProductList")
+    @GetMapping("/getProductList")
     public ResultDto getProductList(String productCode, String productName,
                             @RequestParam(defaultValue = "1")Integer pageNo,
                             @RequestParam(defaultValue = "10")Integer pageSize){
@@ -101,7 +104,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "产品管理删除")
-    @DeleteMapping("/{version}/pb/productManage/delProductById")
+    @DeleteMapping("/delProductById")
     public ResultDto delProductById(String id){
         if(StringUtils.isEmpty(id)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "id不能为空");
@@ -123,7 +126,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "产品管理新增/编辑")
-    @PostMapping("/{version}/pb/productManage/saveAndUpdateProduct")
+    @PostMapping("/saveAndUpdateProduct")
     public ResultDto saveAndUpdateProduct(@RequestBody ProductFunctionDto dto){
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(dto);
@@ -162,7 +165,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     }
 
     @ApiOperation(value = "选择产品下拉及其功能")
-    @GetMapping("/{version}/pb/productManage/getDisProduct")
+    @GetMapping("/getDisProduct")
     public ResultDto getDisProduct(){
         List<TProduct> products = sqlQueryFactory.select(
                 Projections.bean(
@@ -191,7 +194,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     }
 
     @ApiOperation(value = "根据产品获取功能")
-    @GetMapping("/{version}/pb/productManage/getFuncByPro")
+    @GetMapping("/getFuncByPro")
     public ResultDto getFuncByPro(String productId){
         if(StringUtils.isEmpty(productId)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "","产品id不能为空");

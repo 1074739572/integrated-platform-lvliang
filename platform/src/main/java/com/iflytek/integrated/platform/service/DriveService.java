@@ -15,6 +15,7 @@ import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -36,7 +37,9 @@ import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
  * @author czzhan
  */
 @Slf4j
+@Api(tags = "驱动管理")
 @RestController
+@RequestMapping("/{version}/pb/driveManage")
 public class DriveService extends QuerydslService<TDrive, String, TDrive, StringPath, PageRequest<TDrive>> {
     public DriveService(){
         super(qTDrive,qTDrive.id);
@@ -50,7 +53,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
     private ValidatorHelper validatorHelper;
 
     @ApiOperation(value = "获取驱动下拉")
-    @GetMapping("/{version}/pb/driveManage/getAllDrive")
+    @GetMapping("/getAllDrive")
     public ResultDto getAllDrive() {
         List<TDrive> drives = sqlQueryFactory.select(
                 Projections.bean(
@@ -64,7 +67,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
     }
 
     @ApiOperation(value = "驱动管理列表")
-    @GetMapping("/{version}/pb/driveManage/getDriveList")
+    @GetMapping("/getDriveList")
     public ResultDto getDriveList(String driveName,
                           @RequestParam(defaultValue = "1")Integer pageNo,
                           @RequestParam(defaultValue = "10")Integer pageSize) {
@@ -101,7 +104,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "驱动管理删除")
-    @DeleteMapping("/{version}/pb/driveManage/delDriveById")
+    @DeleteMapping("/delDriveById")
     public ResultDto delDriveById(String id){
         if(StringUtils.isEmpty(id)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "id不能为空");
@@ -121,7 +124,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "驱动新增/编辑")
-    @PostMapping("/{version}/pb/driveManage/saveAndUpdateDrive")
+    @PostMapping("/saveAndUpdateDrive")
     public ResultDto saveAndUpdateDrive(@RequestBody TDrive drive){
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(drive);
