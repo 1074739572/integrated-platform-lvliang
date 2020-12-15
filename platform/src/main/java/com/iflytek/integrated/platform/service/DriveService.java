@@ -4,7 +4,7 @@ import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
-import com.iflytek.integrated.common.utils.Utils;
+import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.TDrive;
 import com.iflytek.integrated.platform.validator.ValidationResult;
 import com.iflytek.integrated.platform.validator.ValidatorHelper;

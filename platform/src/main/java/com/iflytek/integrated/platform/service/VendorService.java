@@ -3,7 +3,7 @@ package com.iflytek.integrated.platform.service;
 import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
-import com.iflytek.integrated.common.utils.Utils;
+import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.dto.VendorConfigDto;
 import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.medicalboot.core.dto.PageRequest;

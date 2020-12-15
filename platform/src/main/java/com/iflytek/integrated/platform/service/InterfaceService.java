@@ -7,7 +7,7 @@ import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
-import com.iflytek.integrated.common.utils.Utils;
+import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.dto.InterfaceDto;
 import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.medicalboot.core.dto.PageRequest;
@@ -442,6 +442,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 
             if (StringUtils.isBlank(obj.getId())) {
                 //新增接口配置
+                //todo 出参，入参获取 schema , jolt
                 obj.setId(batchUidService.getUid(qTBusinessInterface.getTableName())+"");
                 obj.setStatus(Constant.Status.START);
                 obj.setCreatedTime(new Date());

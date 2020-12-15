@@ -1,8 +1,9 @@
-package com.iflytek.integrated.common.utils;
+package com.iflytek.integrated.platform.utils;
 
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.Constant;
+import com.iflytek.integrated.common.utils.PinYinUtil;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.RelationalPath;
 import com.querydsl.sql.SQLQueryFactory;

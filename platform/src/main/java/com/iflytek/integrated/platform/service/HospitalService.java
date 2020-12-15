@@ -2,7 +2,7 @@ package com.iflytek.integrated.platform.service;
 
 import com.iflytek.integrated.common.*;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
-import com.iflytek.integrated.common.utils.Utils;
+import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.THospital;
 import com.iflytek.integrated.platform.validator.ValidationResult;
 import com.iflytek.integrated.platform.validator.ValidatorHelper;
