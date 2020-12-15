@@ -1,10 +1,14 @@
 package com.iflytek.integrated.common.utils;
 
+import com.alibaba.fastjson.JSONException;
+import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.Constant;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.RelationalPath;
 import com.querydsl.sql.SQLQueryFactory;
 import org.apache.commons.lang.StringUtils;
+import org.dom4j.DocumentException;
+import org.dom4j.DocumentHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,6 +99,28 @@ public class Utils {
         }
         logger.info("生成编码成功：" + code);
         return code;
+    }
+
+    /**
+     * 校验字符串是否是json或者xml
+     * @param mock
+     */
+    public static void strIsJsonOrXml(String mock){
+        if(StringUtils.isEmpty(mock)){
+            logger.error("不能为空！");
+        }
+        try {
+            //判断是否是json类型
+            JSONObject.parseObject(mock);
+        } catch (JSONException e) {
+            //判断是否是xml结构
+            try {
+                //如果是xml结构
+                DocumentHelper.parseText(mock);
+            } catch (DocumentException i) {
+                logger.error("格式错误，非标准json或者xml格式！");
+            }
+        }
     }
 
 }

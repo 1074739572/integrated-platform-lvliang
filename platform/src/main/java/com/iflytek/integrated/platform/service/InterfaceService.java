@@ -97,6 +97,8 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @GetMapping("/saveMockTemplate")
     public ResultDto saveMockTemplate(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id,
                                      @ApiParam(value = "mock模板") @RequestParam(value = "mockTemplate", required = true) String mockTemplate) {
+        //校验mock模板格式是否正确
+        Utils.strIsJsonOrXml(mockTemplate);
         businessInterfaceService.saveMockTemplate(id, mockTemplate);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "保存mock模板成功!", id);
     }
@@ -176,6 +178,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     /** 新增标准接口 */
     private ResultDto saveInterface(String productIds, String interfaceTypeId, String interfaceName, String interfaceURL, String interfaceFormat, String paramInOut) {
         try {
+            Utils.strIsJsonOrXml(interfaceFormat);
             String interfaceId = batchUidService.getUid(qTInterface.getTableName()) + "";
             //新增标准接口
             TInterface ti = new TInterface();
