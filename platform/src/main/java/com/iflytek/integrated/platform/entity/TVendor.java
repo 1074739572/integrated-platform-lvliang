@@ -87,5 +87,15 @@ public class TVendor implements Serializable {
         this.driveName = driveName;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof TVendor) {
+            if (this.id.equals(((TVendor) obj).id)) {
+                return true;
+            }
+        }
+        return super.equals(obj);
+    }
+
 }
 
