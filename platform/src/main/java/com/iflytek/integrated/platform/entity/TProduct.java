@@ -1,5 +1,7 @@
 package com.iflytek.integrated.platform.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -22,6 +24,7 @@ public class TProduct implements Serializable {
 
     private String updatedBy;
 
+    @JsonFormat(pattern="yyyy/MM/dd HH:mm:ss")
     private java.util.Date updatedTime;
 
     //查询字段

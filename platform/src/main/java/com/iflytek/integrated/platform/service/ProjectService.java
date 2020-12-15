@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
+import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.TProductFunctionLink;
@@ -13,6 +14,7 @@ import com.iflytek.integrated.platform.entity.TProjectProductLink;
 import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
+import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringPath;
 import io.swagger.annotations.Api;
@@ -61,7 +63,6 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
     }
 
 
-    @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "获取项目信息", notes = "获取项目信息")
     @GetMapping("/getProject")
     public ResultDto getProject(
@@ -75,9 +76,10 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
             list.add(qTProject.projectStatus.eq(projectStatus));
         if (StringUtils.isNotBlank(projectName))
             list.add(qTProject.projectName.like(Utils.createFuzzyText(projectName)));
-        List<TProject> rtnList = sqlQueryFactory.select(qTProject).from(qTProject)
-                .where(list.toArray(new Predicate[list.size()])).fetch();
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取项目信息成功!", rtnList);
+        QueryResults<TProject> queryResults = sqlQueryFactory.select(qTProject).from(qTProject)
+                .where(list.toArray(new Predicate[list.size()])).fetchResults();
+        TableData<TProject> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取项目信息成功!", tableData);
     }
 
 
@@ -201,7 +203,6 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
     }
 
 
-    @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "更改项目启用状态", notes = "更改项目启用状态")
     @PostMapping("/updateProjectStatus")
     public ResultDto updateProjectStatus(@ApiParam(value = "项目id") @RequestParam(value = "id", required = true) String id,
