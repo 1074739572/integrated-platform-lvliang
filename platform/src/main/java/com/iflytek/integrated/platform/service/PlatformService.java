@@ -26,12 +26,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Date;
+import java.util.List;
 
 import static com.iflytek.integrated.platform.entity.QTHospitalVendorLink.qTHospitalVendorLink;
 import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
@@ -168,8 +170,58 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
     }
 
     /** 修改平台 */
-    private ResultDto updatePlatform(String id, String platformName, String platformType, String vendorInfo) {
-        return null;
+    private ResultDto updatePlatform(String platformId, String platformName, String platformType, String vendorInfo) {
+        sqlQueryFactory.update(qTPlatform).set(qTPlatform.platformName, platformName)
+                .set(qTPlatform.platformType, platformType)
+                .set(qTPlatform.updatedTime, new Date())
+                .where(qTPlatform.id.eq(platformId)).execute();
+        //删除平台下厂商医院配置信息
+        List<TVendorConfig> tvcList = vendorConfigService.getObjByPlatformId(platformId);
+        if (!CollectionUtils.isEmpty(tvcList)) {
+            for (int i = 0; i < tvcList.size(); i++) {
+                hospitalVendorLinkService.deleteByVendorConfigId(tvcList.get(i).getId());
+            }
+        }
+        //删除平台下厂商配置信息
+        vendorConfigService.delVendorConfigAll(platformId);
+
+        if (StringUtils.isBlank(vendorInfo)) {
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "修改平台成功!", platformId);
+        }
+        JSONArray jsonArr = JSON.parseArray(vendorInfo);
+        for (int i = 0; i < jsonArr.size(); i++) {
+            JSONObject jsonObj = jsonArr.getJSONObject(i);
+            TVendorConfig tvc = new TVendorConfig();
+            String vendorConfigId = batchUidService.getUid(qTVendorConfig.getTableName()) + "";
+            tvc.setId(vendorConfigId);
+            tvc.setPlatformId(platformId);
+            tvc.setVendorId(jsonObj.getString("vendorId"));
+            tvc.setVersionId(jsonObj.getString("versionId"));
+            tvc.setConnectionType(jsonObj.getString("connectionType"));
+            tvc.setAddressUrl(jsonObj.getString("addressUrl"));
+            tvc.setEndpointUrl(jsonObj.getString("endpointUrl"));
+            tvc.setNamespaceUrl(jsonObj.getString("namespaceUrl"));
+            tvc.setDatabaseName(jsonObj.getString("databaseName"));
+            tvc.setDatabaseUrl(jsonObj.getString("databaseUrl"));
+            tvc.setDatabaseDriver(jsonObj.getString("databaseDriver"));
+            tvc.setJsonParams(jsonObj.getString("jsonParams"));
+            tvc.setUserName(jsonObj.getString("username"));
+            tvc.setUserPassword(jsonObj.getString("password"));
+            tvc.setCreatedTime(new Date());
+            vendorConfigService.post(tvc);
+            JSONArray hospitalArr = jsonObj.getJSONArray("hospitalConfig");
+            for (int j = 0; j < hospitalArr.size(); j++) {
+                JSONObject hObj = hospitalArr.getJSONObject(j);
+                THospitalVendorLink hvl = new THospitalVendorLink();
+                hvl.setId(batchUidService.getUid(qTHospitalVendorLink.getTableName()) + "");
+                hvl.setVendorConfigId(vendorConfigId);
+                hvl.setHospitalId(hObj.getString("hospitalId"));
+                hvl.setVendorHospitalId(hObj.getString("vendorHospitalId"));
+                hvl.setCreatedTime(new Date());
+                hospitalVendorLinkService.post(hvl);
+            }
+        }
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "新增平台成功!", platformId);
     }
 
 
@@ -194,5 +246,3 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
 
 
 }
-
-

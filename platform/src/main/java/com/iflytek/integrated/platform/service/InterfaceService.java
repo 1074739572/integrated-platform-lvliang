@@ -8,6 +8,7 @@ import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.common.utils.Utils;
+import com.iflytek.integrated.platform.dto.InterfaceDto;
 import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.id.BatchUidService;
@@ -23,23 +24,23 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
 import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
 import static com.iflytek.integrated.platform.entity.QTInterfaceParam.qTInterfaceParam;
 import static com.iflytek.integrated.platform.entity.QTInterfaceType.qTInterfaceType;
+import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
 import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.qTProductFunctionLink;
 import static com.iflytek.integrated.platform.entity.QTProductInterfaceLink.qTProductInterfaceLink;
 import static com.iflytek.integrated.platform.entity.QTProduct.qTProduct;
 import static com.iflytek.integrated.platform.entity.QTFunction.qTFunction;
+import static com.iflytek.integrated.platform.entity.QTProjectProductLink.qTProjectProductLink;
 import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConfig;
 
 /**
@@ -51,7 +52,7 @@ import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConf
 @Api(tags = "接口管理")
 @RestController
 @RequestMapping("/{version}/pb/interfaceManage")
-public class InterfaceService  extends QuerydslService<TInterface, String, TInterface, StringPath, PageRequest<TInterface>> {
+public class InterfaceService extends QuerydslService<TInterface, String, TInterface, StringPath, PageRequest<TInterface>> {
 
     @Autowired
     private BusinessInterfaceService businessInterfaceService;
@@ -278,9 +279,11 @@ public class InterfaceService  extends QuerydslService<TInterface, String, TInte
 
     @ApiOperation(value = "标准接口列表")
     @GetMapping("/getInterfaceList")
-    public ResultDto getInterfaceList(String interfaceTypeCode, String name,
-                          @RequestParam(defaultValue = "1")Integer pageNo,
-                          @RequestParam(defaultValue = "10")Integer pageSize) {
+    public ResultDto getInterfaceList(
+              @ApiParam(value = "接口分类id") @RequestParam(value = "interfaceTypeCode", required = false) String interfaceTypeCode,
+              @ApiParam(value = "接口名称") @RequestParam(value = "name", required = false) String name,
+              @ApiParam(value = "页码") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
+              @ApiParam(value = "每页大小") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
         //查询条件
         ArrayList<Predicate> list = new ArrayList<>();
         if(StringUtils.isNotEmpty(interfaceTypeCode)){
@@ -313,22 +316,26 @@ public class InterfaceService  extends QuerydslService<TInterface, String, TInte
                     .fetchResults();
         //分页
         TableData<TInterface> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"", tableData);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"标准接口列表获取成功!", tableData);
     }
 
 
     @ApiOperation(value = "获取接口配置列表")
     @GetMapping("/getInterfaceConfigureList")
-    public ResultDto getInterfaceConfigureList(String platformStatus, String platformName,
-                           @RequestParam(defaultValue = "1")Integer pageNo,
-                           @RequestParam(defaultValue = "10")Integer pageSize){
+    public ResultDto getInterfaceConfigureList(
+            @ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId,
+            @ApiParam(value = "平台状态") @RequestParam(value = "platformStatus", required = false) String platformStatus,
+            @ApiParam(value = "平台名称") @RequestParam(value = "platformName", required = false) String platformName,
+            @ApiParam(value = "页码") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
+            @ApiParam(value = "每页大小") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize){
         //查询条件
         ArrayList<Predicate> list = new ArrayList<>();
+        list.add(qTPlatform.id.eq(platformId));
         if(StringUtils.isNotEmpty(platformStatus)){
-
+            list.add(qTPlatform.platformStatus.eq(platformStatus));
         }
         if(StringUtils.isNotEmpty(platformName)){
-
+            list.add(qTProduct.productName.like(Utils.createFuzzyText(platformName)));
         }
         QueryResults<TBusinessInterface> queryResults = sqlQueryFactory.select(
                 Projections.bean(
@@ -348,6 +355,8 @@ public class InterfaceService  extends QuerydslService<TInterface, String, TInte
                 .leftJoin(qTFunction).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
                 .leftJoin(qTInterface).on(qTInterface.id.eq(qTBusinessInterface.interfaceId))
                 .leftJoin(qTVendorConfig).on(qTVendorConfig.id.eq(qTBusinessInterface.vendorConfigId))
+                .leftJoin(qTProjectProductLink).on(qTProjectProductLink.productFunctionLinkId.eq(qTProductFunctionLink.id))
+                .leftJoin(qTPlatform).on(qTPlatform.projectId.eq(qTProjectProductLink.projectId))
                 .where(list.toArray(new Predicate[list.size()]))
                 .limit(pageSize)
                 .offset((pageNo - 1) * pageSize)
@@ -437,17 +446,42 @@ public class InterfaceService  extends QuerydslService<TInterface, String, TInte
     }
 
 
-    @ApiOperation(value = "获取接口详情", notes = "获取接口详情")
+    @ApiOperation(value = "获取标准接口详情", notes = "获取标准接口详情")
     @GetMapping("/getInterfaceInfoById")
     public ResultDto getInterfaceInfoById(@ApiParam(value = "标准接口id") @RequestParam(value = "id", required = true) String id) {
         try {
-
+            TInterface ti = this.getOne(id);
+            InterfaceDto iDto = new InterfaceDto();
+            BeanUtils.copyProperties(ti, iDto);
+            //获取产品id
+            TBusinessInterface tbi = businessInterfaceService.getProductIdByInterfaceId(id);
+            iDto.setProductId(tbi.getProductId());
+            iDto.setOutParamFormat(tbi.getOutParamFormat());
+            //获取接口参数
+            List<TInterfaceParam> paramsList = interfaceParamService.getParamsByInterfaceId(id);
+            List<Map<String, String>> inParamList = new ArrayList<>();//入参
+            List<Map<String, String>> outParamList = new ArrayList<>();//出参
+            Map<String, String> map = null;
+            for (TInterfaceParam obj : paramsList) {
+                map = new HashMap<>();
+                map.put("paramName", obj.getParamName());
+                map.put("paramInstruction", obj.getParamInstruction());
+                map.put("paramType", obj.getParamType());
+                map.put("paramLength", obj.getParamLength()+"");
+                map.put("paramInOut", obj.getParamInOut());
+                if ("1".equals(obj.getParamInOut()))
+                    inParamList.add(map);
+                if ("2".equals(obj.getParamInOut()))
+                    outParamList.add(map);
+            }
+            iDto.setInParamList(inParamList);
+            iDto.setOutParamList(outParamList);
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取标准接口详情成功!", iDto);
         } catch (Exception e) {
-            logger.error("厂商删除失败!", ExceptionUtil.dealException(e));
+            logger.error("获取标准接口详情失败!", ExceptionUtil.dealException(e));
             e.printStackTrace();
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "厂商删除失败!", ExceptionUtil.dealException(e));
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "获取标准接口详情失败!", ExceptionUtil.dealException(e));
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "厂商删除成功!", null);
     }
 
 

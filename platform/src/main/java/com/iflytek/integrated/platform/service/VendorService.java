@@ -10,7 +10,6 @@ import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
-import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
@@ -29,7 +28,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import java.util.*;
 
 import static com.iflytek.integrated.platform.entity.QTVendor.qTVendor;
@@ -51,6 +49,8 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
     private VendorDriveLinkService vendorDriveLinkService;
     @Autowired
     private HospitalVendorLinkService hospitalVendorLinkService;
+    @Autowired
+    private VendorConfigService vendorConfigService;
     @Autowired
     private HospitalService hospitalService;
     @Autowired
@@ -210,6 +210,37 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
             e.printStackTrace();
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "获取厂商信息失败!", ExceptionUtil.dealException(e));
         }
+    }
+
+
+    @ApiOperation(value = "删除平台下厂商配置信息", notes = "删除平台下厂商配置信息")
+    @GetMapping("/delVendorConfig")
+    public ResultDto delVendorConfig(@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId,
+                                     @ApiParam(value = "厂商id") @RequestParam(value = "vendorId", required = true) String vendorId) {
+        TVendorConfig tvc = vendorConfigService.getObjByPlatformAndVendor(platformId, vendorId);
+        if (tvc != null) {
+            //删除厂商配置
+            vendorConfigService.delete(tvc.getId());
+            //删除厂商配置关联的医院
+            hospitalVendorLinkService.deleteByVendorConfigId(tvc.getId());
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "厂商配置删除成功!", null);
+        }
+        return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据平台与厂商id未查到该厂商配置信息!", null);
+    }
+
+
+    @ApiOperation(value = "删除厂商下医院配置信息", notes = "删除厂商下医院配置信息")
+    @GetMapping("/delHospitalVendorByVendorConfig")
+    public ResultDto delHospitalVendorByVendorConfig(
+            @ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId,
+            @ApiParam(value = "厂商id") @RequestParam(value = "vendorId", required = true) String vendorId) {
+        TVendorConfig tvc = vendorConfigService.getObjByPlatformAndVendor(platformId, vendorId);
+        if (tvc != null) {
+            //删除厂商配置关联的医院
+            hospitalVendorLinkService.deleteByVendorConfigId(tvc.getId());
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "厂商下医院配置信息删除成功!", null);
+        }
+        return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据平台与厂商id未查到该厂商配置信息!", null);
     }
 
 

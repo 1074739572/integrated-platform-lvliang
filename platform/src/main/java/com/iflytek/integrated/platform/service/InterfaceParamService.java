@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 import static com.iflytek.integrated.platform.entity.QTInterfaceParam.qTInterfaceParam;
 /**
 * 标准接口参数
@@ -30,6 +32,16 @@ public class InterfaceParamService extends QuerydslService<TInterfaceParam, Stri
      */
     public void deleteProductInterfaceLinkById(String id) {
         sqlQueryFactory.delete(qTInterfaceParam).where(qTInterfaceParam.interfaceId.eq(id)).execute();
+    }
+
+    /**
+     * 获取接口参数
+     * @param interfaceId
+     * @return
+     */
+    public List<TInterfaceParam> getParamsByInterfaceId(String interfaceId) {
+        return sqlQueryFactory.select(qTInterfaceParam).from(qTInterfaceParam)
+                .where(qTInterfaceParam.interfaceId.eq(interfaceId)).fetch();
     }
 
 
