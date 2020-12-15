@@ -3,7 +3,6 @@ package com.iflytek.integrated.platform.utils;
 import com.iflytek.integrated.common.utils.HttpClientUtil;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.querydsl.sql.SQLQueryFactory;
-import com.querydsl.sql.dml.SQLUpdateClause;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
