@@ -3,7 +3,6 @@ package com.iflytek.integrated.platform.service;
 import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
-import com.iflytek.integrated.common.utils.StringUtil;
 import com.iflytek.integrated.common.utils.Utils;
 import com.iflytek.integrated.platform.dto.VendorConfigDto;
 import com.iflytek.integrated.platform.entity.*;
@@ -11,7 +10,6 @@ import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -30,6 +28,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.*;
 
+import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
+import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
 import static com.iflytek.integrated.platform.entity.QTVendor.qTVendor;
 import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConfig;
 import static com.iflytek.integrated.platform.entity.QTVendorDriveLink.qTVendorDriveLink;
@@ -56,7 +56,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
     @Autowired
     private BatchUidService batchUidService;
     @Autowired
-    private StringUtil stringUtil;
+    private Utils utils;
 
     private static final Logger logger = LoggerFactory.getLogger(VendorService.class);
 
@@ -84,7 +84,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
             String vendorId = batchUidService.getUid(qTVendor.getTableName()) + "";
             TVendor tv = new TVendor();
             tv.setId(vendorId);
-            tv.setVendorCode(stringUtil.recountNew(Constant.AppCode.VENDOR, 4));
+            tv.setVendorCode(utils.generateCode(qTVendor, qTVendor.vendorCode, vendorName));
             tv.setVendorName(vendorName);
             tv.setCreatedTime(new Date());
             this.post(tv);
@@ -244,30 +244,32 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
     }
 
 
-    @ApiOperation(value = "选择厂商下拉(可根据当前平台操作选择)")
+    @ApiOperation(value = "选择厂商下拉(可根据当前项目操作选择)")
     @GetMapping("/getDisVendor")
-    public ResultDto getDisVendor(@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = false) String platformId,
+    public ResultDto getDisVendor(@ApiParam(value = "项目id") @RequestParam(value = "projectId", required = false) String projectId,
                 @ApiParam(value = "操作 1获取当前平台下的厂商 2获取非当前平台下的厂商") @RequestParam(defaultValue = "1", value = "status", required = false) String status) {
         List<TVendor> vendors = null;
-        if (StringUtils.isNotBlank(platformId) && "1".equals(status)) {
-            //返回当前平台下的厂商
+        if (StringUtils.isNotBlank(projectId) && "1".equals(status)) {
+            //返回当前项目下的厂商
             vendors = sqlQueryFactory.select(qTVendor).from(qTVendor)
                     .leftJoin(qTVendorConfig).on(qTVendorConfig.vendorId.eq(qTVendor.id))
-                    .where(qTVendorConfig.platformId.eq(platformId))
+                    .leftJoin(qTPlatform).on(qTPlatform.id.eq(qTVendorConfig.platformId))
+                    .where(qTPlatform.projectId.eq(projectId))
                     .orderBy(qTVendor.updatedTime.desc()).fetch();
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", vendors);
         }
         //获取所有厂商
         vendors = sqlQueryFactory.select(qTVendor).from(qTVendor) .orderBy(qTVendor.updatedTime.desc()).fetch();
-        if (StringUtils.isBlank(platformId)) {
+        if (StringUtils.isBlank(projectId)) {
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", vendors);
         }
-        //获取当前平台下的厂商
+        //获取当前项目下的厂商
         List<TVendor> tvList = sqlQueryFactory.select(qTVendor).from(qTVendor)
                             .leftJoin(qTVendorConfig).on(qTVendorConfig.vendorId.eq(qTVendor.id))
-                            .where(qTVendorConfig.platformId.eq(platformId))
+                            .leftJoin(qTPlatform).on(qTPlatform.id.eq(qTVendorConfig.platformId))
+                            .where(qTPlatform.projectId.eq(projectId))
                             .orderBy(qTVendor.updatedTime.desc()).fetch();
-        //去除当前平台下的厂商
+        //去除当前项目下的厂商
         vendors.removeAll(tvList);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", vendors);
     }

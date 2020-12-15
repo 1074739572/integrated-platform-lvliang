@@ -2,7 +2,6 @@ package com.iflytek.integrated.platform.service;
 
 import com.iflytek.integrated.common.*;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
-import com.iflytek.integrated.common.utils.RedisUtil;
 import com.iflytek.integrated.common.utils.Utils;
 import com.iflytek.integrated.platform.dto.ProductFunctionDto;
 import com.iflytek.integrated.platform.entity.TFunction;

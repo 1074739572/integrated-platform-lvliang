@@ -7,7 +7,6 @@ import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
-import com.iflytek.integrated.common.utils.StringUtil;
 import com.iflytek.integrated.common.utils.Utils;
 import com.iflytek.integrated.platform.entity.THospitalVendorLink;
 import com.iflytek.integrated.platform.entity.TPlatform;
@@ -59,8 +58,6 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
     private HospitalVendorLinkService hospitalVendorLinkService;
     @Autowired
     private BatchUidService batchUidService;
-    @Autowired
-    private StringUtil stringUtil;
     @Autowired
     private Utils utils;
 

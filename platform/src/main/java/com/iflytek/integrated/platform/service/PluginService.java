@@ -95,10 +95,10 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
                     .fetchResults();
             //分页
             TableData<TPlugin> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", tableData);
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取插件管理列表成功", tableData);
         }catch (Exception e){
             logger.error("获取插件管理列表失败!", ExceptionUtil.dealException(e));
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", ExceptionUtil.dealException(e));
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "获取插件管理列表失败", ExceptionUtil.dealException(e));
         }
     }
 
@@ -107,19 +107,19 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
     @DeleteMapping("/delPluginById")
     public ResultDto delPluginById(String id){
         if(StringUtils.isEmpty(id)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "id不能为空");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "id不能为空", "id不能为空");
         }
         //查看插件是否存在
         TPlugin plugin = sqlQueryFactory.select(qTPlugin).from(qTPlugin).where(qTPlugin.id.eq(id)).fetchOne();
         if(plugin == null || StringUtils.isEmpty(plugin.getId())){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "没有找到该插件，删除失败");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有找到该插件,删除失败", "没有找到该插件,删除失败");
         }
         //删除插件
         Long lon = sqlQueryFactory.delete(qTPlugin).where(qTPlugin.id.eq(plugin.getId())).execute();
         if(lon <= 0){
             throw new RuntimeException("插件管理,插件删除失败");
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "插件管理，插件删除成功");
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "插件管理,插件删除成功", "插件管理,插件删除成功");
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -129,7 +129,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(plugin);
         if (validationResult.isHasErrors()) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", validationResult.getErrorMsg());
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "参数校验不通过", validationResult.getErrorMsg());
         }
         //校验是否存在重复插件
         isExistence(plugin.getId(),plugin.getPluginName(),plugin.getPluginCode());

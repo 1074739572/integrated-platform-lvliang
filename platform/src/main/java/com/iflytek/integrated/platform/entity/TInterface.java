@@ -126,5 +126,15 @@ public class TInterface implements Serializable {
     public void setOutParamCount(Long outParamCount) {
         this.outParamCount = outParamCount;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof TInterface) {
+            if (this.id.equals(((TInterface) obj).id)){
+                return true;
+            }
+        }
+        return super.equals(obj);
+    }
 }
 

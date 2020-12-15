@@ -6,7 +6,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
-import com.iflytek.integrated.common.utils.StringUtil;
 import com.iflytek.integrated.common.utils.Utils;
 import com.iflytek.integrated.platform.entity.TProductFunctionLink;
 import com.iflytek.integrated.platform.entity.TProject;
@@ -30,7 +29,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import java.util.*;
 
 import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.qTProductFunctionLink;
@@ -55,7 +53,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
     @Autowired
     private BatchUidService batchUidService;
     @Autowired
-    private StringUtil stringUtil;
+    private Utils utils;
 
     private static final Logger logger = LoggerFactory.getLogger(ProjectService.class);
 
@@ -111,10 +109,9 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
             String projectId = batchUidService.getUid(qTProject.getTableName())+"";
             sqlQueryFactory.insert(qTProject).set(qTProject.id, projectId)
                          .set(qTProject.projectName, jsonObj.getString("projectName"))
-                         .set(qTProject.projectCode, stringUtil.recountNew(Constant.AppCode.PROJECT, 4))
+                         .set(qTProject.projectCode, utils.generateCode(qTProject, qTProject.projectCode, jsonObj.getString("projectName")))
                          .set(qTProject.projectStatus, Constant.Status.START)
                          .set(qTProject.projectType, jsonObj.getString("projectType"))
-//                                         .set(qTProject.createdBy, )
                          .set(qTProject.createdTime, new Date()).execute();
             JSONArray productList = jsonObj.getJSONArray("productList");
             for (int i = 0; i < productList.size(); i++) {

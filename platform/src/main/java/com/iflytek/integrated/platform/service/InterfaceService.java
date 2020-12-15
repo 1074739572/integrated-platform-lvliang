@@ -33,6 +33,7 @@ import java.util.*;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
 import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
+import static com.iflytek.integrated.platform.entity.QTInterfaceMonitor.qTInterfaceMonitor;
 import static com.iflytek.integrated.platform.entity.QTInterfaceParam.qTInterfaceParam;
 import static com.iflytek.integrated.platform.entity.QTInterfaceType.qTInterfaceType;
 import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
@@ -375,7 +376,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                 .fetchResults();
         //分页
         TableData<TBusinessInterface> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"", tableData);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"获取接口配置列表获取成功", tableData);
     }
 
 
@@ -383,7 +384,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @GetMapping("/getInterfaceConfigInfoById")
     public ResultDto getInterfaceConfigInfoById(String id){
         if(StringUtils.isEmpty(id)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "id不能为空");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "id不能为空", null);
         }
         TBusinessInterface tBusinessInterface = sqlQueryFactory.select(
                 Projections.bean(
@@ -411,8 +412,9 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                 .leftJoin(qTVendorConfig).on(qTVendorConfig.id.eq(qTBusinessInterface.vendorConfigId))
                 .where(qTBusinessInterface.id.eq(id))
                 .fetchOne();
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"",tBusinessInterface);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"获取接口配置详情成功", tBusinessInterface);
     }
+
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增/更新接口配置", notes = "新增/更新接口配置")
@@ -450,7 +452,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             }
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, rtnMsg+"成功", obj);
         } catch (Exception e) {
-            logger.error(rtnMsg, ExceptionUtil.dealException(e));
+            logger.error(rtnMsg+"失败", ExceptionUtil.dealException(e));
             e.printStackTrace();
             return new ResultDto(Constant.ResultCode.ERROR_CODE, rtnMsg+"失败", ExceptionUtil.dealException(e));
         }
@@ -495,6 +497,35 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             e.printStackTrace();
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "获取标准接口详情失败!", ExceptionUtil.dealException(e));
         }
+    }
+
+
+    @ApiOperation(value = "选择接口下拉(可根据当前项目操作选择)")
+    @GetMapping("/getDisInterface")
+    public ResultDto getDisInterface(@ApiParam(value = "项目id") @RequestParam(value = "projectId", required = false) String projectId,
+                    @ApiParam(value = "操作 1获取当前项目下的接口 2获取非当前项目下的接口") @RequestParam(defaultValue = "1", value = "status", required = false) String status) {
+        List<TInterface> interfaces = null;
+        if (StringUtils.isNotBlank(projectId) && "1".equals(status)) {
+            //返回当前项目下的接口
+            interfaces = sqlQueryFactory.select(qTInterface).from(qTInterface)
+                    .leftJoin(qTInterfaceMonitor).on(qTInterfaceMonitor.interfaceId.eq(qTInterface.id))
+                    .where(qTInterfaceMonitor.projectId.eq(projectId))
+                    .orderBy(qTInterface.updatedTime.desc()).fetch();
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", interfaces);
+        }
+        //获取所有接口
+        interfaces = sqlQueryFactory.select(qTInterface).from(qTInterface) .orderBy(qTInterface.updatedTime.desc()).fetch();
+        if (StringUtils.isBlank(projectId)) {
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", interfaces);
+        }
+        //返回当前项目下的接口
+        List<TInterface> tiList = sqlQueryFactory.select(qTInterface).from(qTInterface)
+                .leftJoin(qTInterfaceMonitor).on(qTInterfaceMonitor.interfaceId.eq(qTInterface.id))
+                .where(qTInterfaceMonitor.projectId.eq(projectId))
+                .orderBy(qTInterface.updatedTime.desc()).fetch();
+        //去除当前项目下的接口
+        interfaces.removeAll(tiList);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", interfaces);
     }
 
 
