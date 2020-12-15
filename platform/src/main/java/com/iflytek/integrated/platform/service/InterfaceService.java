@@ -290,8 +290,8 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     public ResultDto getInterfaceList(
               @ApiParam(value = "接口分类id") @RequestParam(value = "interfaceTypeCode", required = false) String interfaceTypeCode,
               @ApiParam(value = "接口名称") @RequestParam(value = "name", required = false) String name,
-              @ApiParam(value = "页码") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
-              @ApiParam(value = "每页大小") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
+              @ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
+              @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
         //查询条件
         ArrayList<Predicate> list = new ArrayList<>();
         if(StringUtils.isNotEmpty(interfaceTypeCode)){
@@ -332,18 +332,18 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @GetMapping("/getInterfaceConfigureList")
     public ResultDto getInterfaceConfigureList(
             @ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId,
-            @ApiParam(value = "平台状态") @RequestParam(value = "platformStatus", required = false) String platformStatus,
-            @ApiParam(value = "平台名称") @RequestParam(value = "platformName", required = false) String platformName,
-            @ApiParam(value = "页码") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
-            @ApiParam(value = "每页大小") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize){
+            @ApiParam(value = "启停用状态") @RequestParam(value = "status", required = false) String status,
+            @ApiParam(value = "mock状态") @RequestParam(value = "mockStatus", required = false) String mockStatus,
+            @ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
+            @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize){
         //查询条件
         ArrayList<Predicate> list = new ArrayList<>();
         list.add(qTPlatform.id.eq(platformId));
-        if(StringUtils.isNotEmpty(platformStatus)){
-            list.add(qTPlatform.platformStatus.eq(platformStatus));
+        if (StringUtils.isNotBlank(status)) {
+            list.add(qTBusinessInterface.status.eq(status));
         }
-        if(StringUtils.isNotEmpty(platformName)){
-            list.add(qTPlatform.platformName.like(Utils.createFuzzyText(platformName)));
+        if (StringUtils.isNotBlank(mockStatus)) {
+            list.add(qTBusinessInterface.mockStatus.eq(mockStatus));
         }
         QueryResults<TBusinessInterface> queryResults = sqlQueryFactory.select(
                 Projections.bean(
@@ -469,7 +469,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             List<TInterfaceParam> paramsList = interfaceParamService.getParamsByInterfaceId(id);
             List<Map<String, String>> inParamList = new ArrayList<>();//入参
             List<Map<String, String>> outParamList = new ArrayList<>();//出参
-            Map<String, String> map = null;
+            Map<String, String> map;
             for (TInterfaceParam obj : paramsList) {
                 map = new HashMap<>();
                 map.put("paramName", obj.getParamName());
@@ -477,10 +477,12 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                 map.put("paramType", obj.getParamType());
                 map.put("paramLength", obj.getParamLength()+"");
                 map.put("paramInOut", obj.getParamInOut());
-                if ("1".equals(obj.getParamInOut()))
+                if ("1".equals(obj.getParamInOut())) {
                     inParamList.add(map);
-                if ("2".equals(obj.getParamInOut()))
+                }
+                if ("2".equals(obj.getParamInOut())) {
                     outParamList.add(map);
+                }
             }
             iDto.setInParamList(inParamList);
             iDto.setOutParamList(outParamList);

@@ -15,6 +15,7 @@ import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.QueryResults;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 import io.swagger.annotations.Api;
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -69,20 +71,31 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
     @GetMapping("/getPlatformListById")
     public ResultDto getPlatformListById(
             @ApiParam(value = "项目id") @RequestParam(value = "projectId", required = true) String projectId,
+            @ApiParam(value = "平台状态") @RequestParam(value = "platformStatus", required = false) String platformStatus,
+            @ApiParam(value = "平台名称") @RequestParam(value = "platformName", required = false) String platformName,
             @ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
             @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
         try {
+            ArrayList<Predicate> list = new ArrayList<>();
+            list.add(qTPlatform.projectId.eq(projectId));
+            if (StringUtils.isNotBlank(platformStatus)) {
+                list.add(qTPlatform.platformStatus.eq(platformStatus));
+            }
+            if (StringUtils.isNotBlank(platformName)) {
+                list.add(qTPlatform.platformName.eq(platformName));
+            }
             QueryResults<TPlatform> queryResults = sqlQueryFactory.select(
                     Projections.bean(
                         TPlatform.class,
                         qTPlatform.id,
+                        qTPlatform.projectId,
                         qTPlatform.platformCode,
                         qTPlatform.platformName,
                         qTPlatform.platformStatus,
                         qTPlatform.platformType
                     )
             ).from(qTPlatform)
-             .where(qTPlatform.projectId.eq(projectId))
+             .where(list.toArray(new Predicate[list.size()]))
              .limit(pageSize)
              .offset((pageNo - 1) * pageSize)
              .orderBy(qTPlatform.updatedTime.desc())
@@ -115,58 +128,52 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
 
     /** 新增平台 */
     private ResultDto savePlatform(String platformName, String platformType, String vendorInfo) {
-        try {
-            TPlatform tp = new TPlatform();
-            String platformId = batchUidService.getUid(qTPlatform.getTableName()) + "";
-            tp.setId(platformId);
-            tp.setPlatformCode(stringUtil.recountNew(Constant.AppCode.PLATFORM, 4));
-            tp.setPlatformName(platformName);
-            tp.setPlatformType(platformType);
-            tp.setPlatformStatus(Constant.Status.START);
-            tp.setCreatedTime(new Date());
-            this.post(tp);
-            if (StringUtils.isBlank(vendorInfo)) {
-                return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "新增平台成功!", tp);
-            }
-            JSONArray jsonArr = JSON.parseArray(vendorInfo);
-            for (int i = 0; i < jsonArr.size(); i++) {
-                JSONObject jsonObj = jsonArr.getJSONObject(i);
-                TVendorConfig tvc = new TVendorConfig();
-                String vendorConfigId = batchUidService.getUid(qTVendorConfig.getTableName()) + "";
-                tvc.setId(vendorConfigId);
-                tvc.setPlatformId(platformId);
-                tvc.setVendorId(jsonObj.getString("vendorId"));
-                tvc.setVersionId(jsonObj.getString("versionId"));
-                tvc.setConnectionType(jsonObj.getString("connectionType"));
-                tvc.setAddressUrl(jsonObj.getString("addressUrl"));
-                tvc.setEndpointUrl(jsonObj.getString("endpointUrl"));
-                tvc.setNamespaceUrl(jsonObj.getString("namespaceUrl"));
-                tvc.setDatabaseName(jsonObj.getString("databaseName"));
-                tvc.setDatabaseUrl(jsonObj.getString("databaseUrl"));
-                tvc.setDatabaseDriver(jsonObj.getString("databaseDriver"));
-                tvc.setJsonParams(jsonObj.getString("jsonParams"));
-                tvc.setUserName(jsonObj.getString("username"));
-                tvc.setUserPassword(jsonObj.getString("password"));
-                tvc.setCreatedTime(new Date());
-                vendorConfigService.post(tvc);
-                JSONArray hospitalArr = jsonObj.getJSONArray("hospitalConfig");
-                for (int j = 0; j < hospitalArr.size(); j++) {
-                    JSONObject hObj = hospitalArr.getJSONObject(j);
-                    THospitalVendorLink hvl = new THospitalVendorLink();
-                    hvl.setId(batchUidService.getUid(qTHospitalVendorLink.getTableName()) + "");
-                    hvl.setVendorConfigId(vendorConfigId);
-                    hvl.setHospitalId(hObj.getString("hospitalId"));
-                    hvl.setVendorHospitalId(hObj.getString("vendorHospitalId"));
-                    hvl.setCreatedTime(new Date());
-                    hospitalVendorLinkService.post(hvl);
-                }
-            }
+        TPlatform tp = new TPlatform();
+        String platformId = batchUidService.getUid(qTPlatform.getTableName()) + "";
+        tp.setId(platformId);
+        tp.setPlatformCode(stringUtil.recountNew(Constant.AppCode.PLATFORM, 4));
+        tp.setPlatformName(platformName);
+        tp.setPlatformType(platformType);
+        tp.setPlatformStatus(Constant.Status.START);
+        tp.setCreatedTime(new Date());
+        this.post(tp);
+        if (StringUtils.isBlank(vendorInfo)) {
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "新增平台成功!", tp);
-        } catch (Exception e) {
-            logger.error("新增平台失败!", ExceptionUtil.dealException(e));
-            e.printStackTrace();
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "新增平台失败!", ExceptionUtil.dealException(e));
         }
+        JSONArray jsonArr = JSON.parseArray(vendorInfo);
+        for (int i = 0; i < jsonArr.size(); i++) {
+            JSONObject jsonObj = jsonArr.getJSONObject(i);
+            TVendorConfig tvc = new TVendorConfig();
+            String vendorConfigId = batchUidService.getUid(qTVendorConfig.getTableName()) + "";
+            tvc.setId(vendorConfigId);
+            tvc.setPlatformId(platformId);
+            tvc.setVendorId(jsonObj.getString("vendorId"));
+            tvc.setVersionId(jsonObj.getString("versionId"));
+            tvc.setConnectionType(jsonObj.getString("connectionType"));
+            tvc.setAddressUrl(jsonObj.getString("addressUrl"));
+            tvc.setEndpointUrl(jsonObj.getString("endpointUrl"));
+            tvc.setNamespaceUrl(jsonObj.getString("namespaceUrl"));
+            tvc.setDatabaseName(jsonObj.getString("databaseName"));
+            tvc.setDatabaseUrl(jsonObj.getString("databaseUrl"));
+            tvc.setDatabaseDriver(jsonObj.getString("databaseDriver"));
+            tvc.setJsonParams(jsonObj.getString("jsonParams"));
+            tvc.setUserName(jsonObj.getString("username"));
+            tvc.setUserPassword(jsonObj.getString("password"));
+            tvc.setCreatedTime(new Date());
+            vendorConfigService.post(tvc);
+            JSONArray hospitalArr = jsonObj.getJSONArray("hospitalConfig");
+            for (int j = 0; j < hospitalArr.size(); j++) {
+                JSONObject hObj = hospitalArr.getJSONObject(j);
+                THospitalVendorLink hvl = new THospitalVendorLink();
+                hvl.setId(batchUidService.getUid(qTHospitalVendorLink.getTableName()) + "");
+                hvl.setVendorConfigId(vendorConfigId);
+                hvl.setHospitalId(hObj.getString("hospitalId"));
+                hvl.setVendorHospitalId(hObj.getString("vendorHospitalId"));
+                hvl.setCreatedTime(new Date());
+                hospitalVendorLinkService.post(hvl);
+            }
+        }
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "新增平台成功!", tp);
     }
 
     /** 修改平台 */
@@ -221,7 +228,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
                 hospitalVendorLinkService.post(hvl);
             }
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "新增平台成功!", platformId);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "修改平台成功!", platformId);
     }
 
 
