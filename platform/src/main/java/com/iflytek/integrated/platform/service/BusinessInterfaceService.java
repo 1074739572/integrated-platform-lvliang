@@ -3,19 +3,15 @@ package com.iflytek.integrated.platform.service;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
-import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
 import java.util.Date;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
-import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
 import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.qTProductFunctionLink;
-import static com.iflytek.integrated.platform.entity.QTVendorDriveLink.qTVendorDriveLink;
 
 /**
 * 对接接口配置

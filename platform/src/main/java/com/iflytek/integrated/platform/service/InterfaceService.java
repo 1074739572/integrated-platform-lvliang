@@ -52,8 +52,9 @@ import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConf
 */
 @Slf4j
 @Api(tags = "接口管理")
+@CrossOrigin
 @RestController
-@RequestMapping("/{version}/pb/interfaceManage")
+@RequestMapping("/v1/pb/interfaceManage")
 public class InterfaceService extends QuerydslService<TInterface, String, TInterface, StringPath, PageRequest<TInterface>> {
 
     @Autowired
@@ -78,7 +79,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     }
 
     @ApiOperation(value = "更改mock状态", notes = "更改mock状态")
-    @GetMapping("/updateMockStatus")
+    @PostMapping("/updateMockStatus")
     public ResultDto updateMockStatus(@ApiParam(value = "接口配置") @RequestParam(value = "id", required = true) String id,
                                       @ApiParam(value = "更改后的状态") @RequestParam(value = "mockStatus", required = true) String mockStatus) {
         businessInterfaceService.updateMockStatus(id, mockStatus);
@@ -101,7 +102,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     }
 
     @ApiOperation(value = "保存mock模板", notes = "保存mock模板")
-    @GetMapping("/saveMockTemplate")
+    @PostMapping("/saveMockTemplate")
     public ResultDto saveMockTemplate(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id,
                                      @ApiParam(value = "mock模板") @RequestParam(value = "mockTemplate", required = true) String mockTemplate) {
         //校验mock模板格式是否正确
@@ -150,7 +151,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "标准接口删除", notes = "标准接口删除")
-    @GetMapping("/delInterfaceById")
+    @PostMapping("/delInterfaceById")
     public ResultDto delInterfaceById(@ApiParam(value = "标准接口id") @RequestParam(value = "id", required = true) String id) {
         try {
             //删除接口
@@ -168,7 +169,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "标准接口新增/编辑", notes = "标准接口新增/编辑")
-    @GetMapping("/saveAndUpdateInterface")
+    @PostMapping("/saveAndUpdateInterface")
     public ResultDto saveAndUpdateInterface(@ApiParam(value = "标准接口id") @RequestParam(value = "id", required = false) String id,
                                             @ApiParam(value = "产品id 多个以,分隔") @RequestParam(value = "id", required = true) String productIds,
                                             @ApiParam(value = "接口分类id") @RequestParam(value = "id", required = true) String interfaceTypeId,
@@ -421,7 +422,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增/更新接口配置", notes = "新增/更新接口配置")
-    @GetMapping("/saveAndUpdateInterfaceConfig")
+    @PostMapping("/saveAndUpdateInterfaceConfig")
     public ResultDto saveAndUpdateInterfaceConfig(@RequestBody TBusinessInterface obj) {
         if (obj == null) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "请求参数有误!", null);
@@ -466,6 +467,15 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @GetMapping("/generateJoltSchema")
     public ResultDto paramFormatJolt(String paramFormat){
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "成功", toolsGenerate.generateJolt(paramFormat));
+    }
+
+
+    @ApiOperation(value = "接口配置删除", notes = "接口配置删除")
+    @PostMapping("/deleteInterfaceConfigure")
+    public ResultDto deleteInterfaceConfigure(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
+        //删除接口配置
+        businessInterfaceService.delete(id);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "接口配置删除成功!", null);
     }
 
 

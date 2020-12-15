@@ -15,6 +15,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,8 +38,9 @@ import static com.iflytek.integrated.platform.entity.QTArea.qTArea;
  */
 @Slf4j
 @Api(tags = "医院管理")
+@CrossOrigin
 @RestController
-@RequestMapping("/{version}/pb/hospitalManage")
+@RequestMapping("/v1/pb/hospitalManage")
 public class HospitalService extends QuerydslService<THospital, String, THospital, StringPath, PageRequest<THospital>> {
     public HospitalService(){
         super(qTHospital,qTHospital.id);
@@ -74,7 +76,8 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
                         qTHospital.id,
                         qTHospital.hospitalName,
                         qTHospital.hospitalCode,
-                        qTHospital.updatedTime
+                        qTHospital.updatedTime,
+                        qTHospital.areaId
                     )
                 ).from(qTHospital)
                     .leftJoin(qTArea).on(qTArea.id.eq(qTHospital.areaId))
@@ -85,25 +88,22 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
                     .fetchResults();
             //分页
             TableData<THospital> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", tableData);
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取医院管理列表成功", tableData);
         }catch (Exception e){
             logger.error("获取医院管理列表失败!", ExceptionUtil.dealException(e));
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", ExceptionUtil.dealException(e));
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "获取医院管理列表失败", ExceptionUtil.dealException(e));
         }
     }
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "医院管理删除")
-    @DeleteMapping("/delHospitalById")
-    public ResultDto delHospitalById(String id){
-        if(StringUtils.isEmpty(id)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "医院id为空");
-        }
+    @PostMapping("/delHospitalById")
+    public ResultDto delHospitalById(@ApiParam(value = "医院id") @RequestParam(value = "id", required = true) String id){
         //判断是否存在医院
         List<String> hospitals = sqlQueryFactory.select(qTHospital.id).from(qTHospital)
                 .where(qTHospital.id.eq(id).and(qTHospital.status.eq(Constant.Status.YES))).fetch();
         if(hospitals == null || hospitals.size() == 0){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "不存在该医院");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "不存在该医院", "不存在该医院");
         }
         //逻辑删除
         Long lon = sqlQueryFactory.update(qTHospital).set(qTHospital.status, Constant.Status.NO)
@@ -111,7 +111,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         if(lon <= 0){
             throw new RuntimeException("医院管理删除失败");
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "医院管理删除成功");
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "医院管理删除成功", "医院管理删除成功");
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -121,7 +121,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(hospital);
         if (validationResult.isHasErrors()) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", validationResult.getErrorMsg());
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, validationResult.getErrorMsg(), validationResult.getErrorMsg());
         }
         //校验是否有重复医院
         isExistence(hospital.getId(),hospital.getHospitalName(),hospital.getHospitalCode());
@@ -161,11 +161,12 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         List<THospital> hospitals = sqlQueryFactory.select(
                 Projections.bean(
                         THospital.class,
+                        qTHospital.id,
                         qTHospital.hospitalName,
                         qTHospital.hospitalCode
                 )
             ).from(qTHospital).orderBy(qTHospital.updatedTime.desc()).fetch();
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"",hospitals);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"医院配置信息获取成功", hospitals);
     }
 
     /**
@@ -190,4 +191,5 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
             throw new RuntimeException("医院名称或编码已存在");
         }
     }
+
 }

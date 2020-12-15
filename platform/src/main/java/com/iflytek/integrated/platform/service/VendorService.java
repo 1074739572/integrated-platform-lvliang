@@ -22,14 +22,11 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.*;
 
 import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
-import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
 import static com.iflytek.integrated.platform.entity.QTVendor.qTVendor;
 import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConfig;
 import static com.iflytek.integrated.platform.entity.QTVendorDriveLink.qTVendorDriveLink;
@@ -41,8 +38,9 @@ import static com.iflytek.integrated.platform.entity.QTVendorDriveLink.qTVendorD
 */
 @Slf4j
 @Api(tags = "厂商管理")
+@CrossOrigin
 @RestController
-@RequestMapping("/{version}/pb/vendorManage")
+@RequestMapping("/v1/pb/vendorManage")
 public class VendorService extends QuerydslService<TVendor, String, TVendor, StringPath, PageRequest<TVendor>> {
 
     @Autowired
@@ -66,7 +64,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增or修改厂商", notes = "新增or修改厂商")
-    @GetMapping("/saveAndUpdateVendor")
+    @PostMapping("/saveAndUpdateVendor")
     public ResultDto saveAndUpdateVendor(
             @ApiParam(value = "厂商id") @RequestParam(value = "id", required = false) String id,
             @ApiParam(value = "厂商名") @RequestParam(value = "vendorName", required = true) String vendorName,
@@ -133,7 +131,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
 
 
     @ApiOperation(value = "删除厂商", notes = "删除厂商")
-    @GetMapping("/delVendorById")
+    @PostMapping("/delVendorById")
     public ResultDto delVendorById(@ApiParam(value = "厂商id") @RequestParam(value = "id", required = true) String id) {
         try {
             //删除厂商
@@ -214,7 +212,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
 
 
     @ApiOperation(value = "删除平台下厂商配置信息", notes = "删除平台下厂商配置信息")
-    @GetMapping("/delVendorConfig")
+    @PostMapping("/delVendorConfig")
     public ResultDto delVendorConfig(@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId,
                                      @ApiParam(value = "厂商id") @RequestParam(value = "vendorId", required = true) String vendorId) {
         TVendorConfig tvc = vendorConfigService.getObjByPlatformAndVendor(platformId, vendorId);
@@ -230,7 +228,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
 
 
     @ApiOperation(value = "删除厂商下医院配置信息", notes = "删除厂商下医院配置信息")
-    @GetMapping("/delHospitalVendorByVendorConfig")
+    @PostMapping("/delHospitalVendorByVendorConfig")
     public ResultDto delHospitalVendorByVendorConfig(
             @ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId,
             @ApiParam(value = "厂商id") @RequestParam(value = "vendorId", required = true) String vendorId) {

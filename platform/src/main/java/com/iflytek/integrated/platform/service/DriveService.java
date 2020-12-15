@@ -38,8 +38,9 @@ import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
  */
 @Slf4j
 @Api(tags = "驱动管理")
+@CrossOrigin
 @RestController
-@RequestMapping("/{version}/pb/driveManage")
+@RequestMapping("/v1/pb/driveManage")
 public class DriveService extends QuerydslService<TDrive, String, TDrive, StringPath, PageRequest<TDrive>> {
     public DriveService(){
         super(qTDrive,qTDrive.id);
@@ -104,7 +105,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "驱动管理删除")
-    @DeleteMapping("/delDriveById")
+    @PostMapping("/delDriveById")
     public ResultDto delDriveById(String id){
         if(StringUtils.isEmpty(id)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "id不能为空");

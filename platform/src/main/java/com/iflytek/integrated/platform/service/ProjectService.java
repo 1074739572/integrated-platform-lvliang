@@ -6,7 +6,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
-import com.iflytek.integrated.common.utils.StringUtil;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.TProductFunctionLink;
 import com.iflytek.integrated.platform.entity.TProject;
@@ -26,10 +25,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.*;
 
 import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.qTProductFunctionLink;
@@ -43,8 +40,9 @@ import static com.iflytek.integrated.platform.entity.QTProjectProductLink.qTProj
 */
 @Slf4j
 @Api(tags = "项目管理")
+@CrossOrigin
 @RestController
-@RequestMapping("/{version}/pb/projectManage")
+@RequestMapping("/v1/pb/projectManage")
 public class ProjectService extends QuerydslService<TProject, String, TProject, StringPath, PageRequest<TProject>> {
 
     @Autowired
@@ -85,7 +83,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增or修改项目", notes = "新增or修改项目")
-    @GetMapping("/saveAndUpdateProject")
+    @PostMapping("/saveAndUpdateProject")
     public ResultDto saveAndUpdateProject(
             @ApiParam(value = "保存项目-产品-功能信息") @RequestParam(required = true) String param){
         JSONObject jsonObj = JSON.parseObject(param);
@@ -188,7 +186,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "删除项目", notes = "删除项目")
-    @GetMapping("/deleteProject")
+    @PostMapping("/deleteProject")
     public ResultDto deleteProject(@ApiParam(value = "项目id") @RequestParam(value = "id", required = true) String id) {
         try {
             this.deleteProjectById(id);
@@ -205,7 +203,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "更改项目启用状态", notes = "更改项目启用状态")
-    @GetMapping("/updateProjectStatus")
+    @PostMapping("/updateProjectStatus")
     public ResultDto updateProjectStatus(@ApiParam(value = "项目id") @RequestParam(value = "id", required = true) String id,
                                          @ApiParam(value = "项目状态 1启用 2停用") @RequestParam(value = "projectStatus", required = true) String projectStatus) {
         try {

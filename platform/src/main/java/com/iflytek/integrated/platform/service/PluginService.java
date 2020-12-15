@@ -38,8 +38,9 @@ import static com.iflytek.integrated.platform.entity.QTPlugin.qTPlugin;
  */
 @Slf4j
 @Api(tags = "插件管理")
+@CrossOrigin
 @RestController
-@RequestMapping("/{version}/pb/pluginManage")
+@RequestMapping("/v1/pb/pluginManage")
 public class PluginService extends QuerydslService<TPlugin, String, TPlugin, StringPath, PageRequest<TPlugin>> {
     public PluginService(){
         super(qTPlugin,qTPlugin.id);
@@ -104,7 +105,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "插件管理删除")
-    @DeleteMapping("/delPluginById")
+    @PostMapping("/delPluginById")
     public ResultDto delPluginById(String id){
         if(StringUtils.isEmpty(id)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "id不能为空", "id不能为空");

@@ -29,10 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -49,8 +46,9 @@ import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConf
 */
 @Slf4j
 @Api(tags = "平台管理")
+@CrossOrigin
 @RestController
-@RequestMapping("/{version}/pb/platformManage")
+@RequestMapping("/v1/pb/platformManage")
 public class PlatformService extends QuerydslService<TPlatform, String, TPlatform, StringPath, PageRequest<TPlatform>> {
 
     @Autowired
@@ -116,7 +114,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增or修改平台", notes = "新增or修改平台")
-    @GetMapping("/saveAndUpdatePlatform")
+    @PostMapping("/saveAndUpdatePlatform")
     public ResultDto saveAndUpdatePlatform(
             @ApiParam(value = "平台id") @RequestParam(value = "id", required = false) String id,
             @ApiParam(value = "平台名") @RequestParam(value = "vendorName", required = true) String platformName,
@@ -236,7 +234,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
 
 
     @ApiOperation(value = "更改启停用状态", notes = "更改启停用状态")
-    @GetMapping("/updateStatus")
+    @PostMapping("/updateStatus")
     public ResultDto updateStatus(
             @ApiParam(value = "平台id") @RequestParam(value = "id", required = true) String id,
             @ApiParam(value = "平台状态 1启用 2停用") @RequestParam(value = "platformStatus", required = true) String platformStatus) {
@@ -247,7 +245,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
 
 
     @ApiOperation(value = "删除平台", notes = "删除平台")
-    @GetMapping("/deletePlatform")
+    @PostMapping("/deletePlatform")
     public ResultDto deletePlatform(@ApiParam(value = "平台id") @RequestParam(value = "id", required = true) String id) {
         //删除平台
         this.delete(id);

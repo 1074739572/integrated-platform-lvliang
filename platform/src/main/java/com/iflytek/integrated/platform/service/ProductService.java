@@ -41,8 +41,9 @@ import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.qTPro
  */
 @Slf4j
 @Api(tags = "产品管理")
+@CrossOrigin
 @RestController
-@RequestMapping("/{version}/pb/productManage")
+@RequestMapping("/v1/pb/productManage")
 public class ProductService extends QuerydslService<TProduct, String, TProduct, StringPath, PageRequest<TProduct>> {
     public ProductService(){
         super(qTProduct,qTProduct.id);
@@ -103,7 +104,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "产品管理删除")
-    @DeleteMapping("/delProductById")
+    @PostMapping("/delProductById")
     public ResultDto delProductById(String id){
         if(StringUtils.isEmpty(id)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "id不能为空");
