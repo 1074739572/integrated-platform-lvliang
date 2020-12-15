@@ -4,11 +4,12 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 
 /**
- * Created by wangzhiyuan on 2018/9/12
+ * @author
  */
 public class Mock {
 
     public static String mock(String template){
+        new Function();
         JSONObject jsonT = JSON.parseObject(template);
         Object rlt = Handler.gen(jsonT, null, new Context());
         return JSON.toJSONString(rlt);

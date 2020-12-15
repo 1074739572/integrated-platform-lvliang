@@ -8,7 +8,7 @@ import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * Created by wangzhiyuan on 2019/9/26
+ * @author
  */
 public class ArrayHandler implements TypeHandler {
 

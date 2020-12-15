@@ -6,7 +6,7 @@ import org.apache.commons.lang3.RandomUtils;
 import java.math.BigDecimal;
 
 /**
- * Created by wangzhiyuan on 2019/9/26
+ * @author
  */
 public class NumberHandler implements TypeHandler {
 

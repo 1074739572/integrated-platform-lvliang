@@ -9,8 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * https://github.com/nuysoft/Mock/blob/refactoring/src/mock/parser.js
- * Created by wangzhiyuan on 2019/9/26
+ * @author
  */
 public class Parser {
 

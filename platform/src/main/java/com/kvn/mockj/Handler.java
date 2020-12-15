@@ -3,7 +3,7 @@ package com.kvn.mockj;
 import com.kvn.mockj.handler.TypeHandlerFactory;
 
 /**
- * Created by wangzhiyuan on 2019/9/25
+ * @author
  */
 public class Handler {
 

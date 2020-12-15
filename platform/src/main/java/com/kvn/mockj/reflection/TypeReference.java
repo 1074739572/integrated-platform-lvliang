@@ -13,7 +13,6 @@ import java.util.List;
  *  new TypeReference<List<String>>() {} 对应的 type 为 List<String>，rawType 为 List，argTypes 为 String
  * </pre>
  *
- * Created by wangzhiyuan on 2018/9/20
  */
 public class TypeReference<T> {
     // T 带泛型的类型
@@ -47,10 +46,4 @@ public class TypeReference<T> {
 
     public final static Type LIST_STRING = new TypeReference<List<String>>() {}.getType();
 
-    public static void main(String[] args) {
-        TypeReference<List> typeReference = new TypeReference<List>() {
-        };
-        Type type = typeReference.getType();
-        System.out.println(typeReference);
-    }
 }

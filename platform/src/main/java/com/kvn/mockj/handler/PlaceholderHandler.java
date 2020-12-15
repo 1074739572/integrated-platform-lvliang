@@ -1,13 +1,13 @@
 package com.kvn.mockj.handler;
 
-import com.kvn.mockj.$Function;
+import com.kvn.mockj.Function;
 import com.kvn.mockj.Options;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Created by wangzhiyuan on 2019/9/27
+ * @author
  */
 public class PlaceholderHandler {
     private static final Pattern pattern = Pattern.compile("(@\\w+)(\\(.*?\\))?");
@@ -32,7 +32,7 @@ public class PlaceholderHandler {
             }
             try {
                 methodName = "$" + methodName.substring(1);
-                Object invokeRlt = $Function.class.getMethod(methodName, String.class).invoke(null, paramStr);
+                Object invokeRlt = Function.class.getMethod(methodName, String.class).invoke(null, paramStr);
                 matcher.appendReplacement(sbRtn, invokeRlt.toString());
             } catch (NoSuchMethodException e) {
                 throw new RuntimeException("$Function 中不存在方法" + methodName, e);

@@ -4,7 +4,7 @@ import com.kvn.mockj.Options;
 import org.apache.commons.lang3.RandomUtils;
 
 /**
- * Created by wangzhiyuan on 2019/9/26
+ * @author
  */
 public class BooleanHandler implements TypeHandler {
 

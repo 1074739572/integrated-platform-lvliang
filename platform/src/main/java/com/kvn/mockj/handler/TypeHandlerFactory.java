@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by wangzhiyuan on 2019/9/26
+ * @author
  */
 public class TypeHandlerFactory {
     public static Map<Class, TypeHandler> handlerMap = new HashMap<>();

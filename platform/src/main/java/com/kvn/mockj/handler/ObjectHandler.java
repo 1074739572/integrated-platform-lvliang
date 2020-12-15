@@ -8,7 +8,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Created by wangzhiyuan on 2019/9/26
+ * @author
  */
 public class ObjectHandler implements TypeHandler {
 

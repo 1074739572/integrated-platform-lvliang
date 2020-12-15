@@ -3,7 +3,7 @@ package com.kvn.mockj.handler;
 import com.kvn.mockj.Options;
 
 /**
- * Created by wangzhiyuan on 2019/9/26
+ * @author
  */
 public class StringHandler implements TypeHandler {
 

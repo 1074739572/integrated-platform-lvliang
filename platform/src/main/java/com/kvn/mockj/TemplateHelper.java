@@ -9,7 +9,7 @@ import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Created by wangzhiyuan on 2018/9/18
+ * @author
  */
 public class TemplateHelper {
     private JSONObject template;
