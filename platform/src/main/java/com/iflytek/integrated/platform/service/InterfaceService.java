@@ -7,6 +7,7 @@ import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.platform.utils.ToolsGenerate;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.dto.InterfaceDto;
 import com.iflytek.integrated.platform.entity.*;
@@ -67,6 +68,8 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     private VendorConfigService vendorConfigService;
     @Autowired
     private BatchUidService batchUidService;
+    @Autowired
+    private ToolsGenerate toolsGenerate;
 
     private static final Logger logger = LoggerFactory.getLogger(InterfaceService.class);
 
@@ -442,7 +445,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 
             if (StringUtils.isBlank(obj.getId())) {
                 //新增接口配置
-                //todo 出参，入参获取 schema , jolt
+                toolsGenerate.generateSchemaToInterface(obj);
                 obj.setId(batchUidService.getUid(qTBusinessInterface.getTableName())+"");
                 obj.setStatus(Constant.Status.START);
                 obj.setCreatedTime(new Date());
@@ -457,6 +460,12 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             e.printStackTrace();
             return new ResultDto(Constant.ResultCode.ERROR_CODE, rtnMsg+"失败", ExceptionUtil.dealException(e));
         }
+    }
+
+    @ApiOperation(value = "根据参数格式获取jolt", notes = "根据参数格式获取jolt")
+    @GetMapping("/generateJoltSchema")
+    public ResultDto paramFormatJolt(String paramFormat){
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "成功", toolsGenerate.generateJolt(paramFormat));
     }
 
 
@@ -528,6 +537,5 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         interfaces.removeAll(tiList);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", interfaces);
     }
-
 
 }
