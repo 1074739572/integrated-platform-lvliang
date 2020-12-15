@@ -335,7 +335,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             list.add(qTPlatform.platformStatus.eq(platformStatus));
         }
         if(StringUtils.isNotEmpty(platformName)){
-            list.add(qTProduct.productName.like(Utils.createFuzzyText(platformName)));
+            list.add(qTPlatform.platformName.like(Utils.createFuzzyText(platformName)));
         }
         QueryResults<TBusinessInterface> queryResults = sqlQueryFactory.select(
                 Projections.bean(
