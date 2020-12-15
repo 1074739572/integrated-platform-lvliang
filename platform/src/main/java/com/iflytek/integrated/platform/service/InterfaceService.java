@@ -85,6 +85,9 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @GetMapping("/getMockTemplate")
     public ResultDto getMockTemplate(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
         TBusinessInterface obj = businessInterfaceService.getOne(id);
+        if(obj == null || StringUtils.isEmpty(obj.getId())){
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "没有找到接口");
+        }
         String template = obj.getMockTemplate();
         if(StringUtils.isEmpty(template)){
             //如果没有出参模板，获取出参格式

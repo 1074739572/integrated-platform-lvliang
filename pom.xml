@@ -17,6 +17,7 @@
 
     <modules>
         <module>platform</module>
+        <module>mockj</module>
     </modules>
 
     <build>

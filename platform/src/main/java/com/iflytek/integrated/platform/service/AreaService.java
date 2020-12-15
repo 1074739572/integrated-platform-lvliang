@@ -6,11 +6,13 @@ import com.iflytek.integrated.platform.entity.TArea;
 import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.types.dsl.StringPath;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -24,7 +26,9 @@ import static com.iflytek.integrated.platform.entity.QTArea.qTArea;
  * @author czzhan
  */
 @Slf4j
+@Api(tags = "地区数据表")
 @RestController
+@RequestMapping("/{version}/pb/sysManage")
 public class AreaService extends QuerydslService<TArea, String, TArea, StringPath, PageRequest<TArea>> {
     public AreaService(){
             super(qTArea, qTArea.id);
@@ -33,7 +37,7 @@ public class AreaService extends QuerydslService<TArea, String, TArea, StringPat
     private static final Logger logger = LoggerFactory.getLogger(AreaService.class);
 
     @ApiOperation(value = "省市区分层显示")
-    @GetMapping("/{version}/pb/sysManage/getAreaInfo")
+    @GetMapping("/getAreaInfo")
     public ResultDto getAreaInfo() {
         List<TArea> areaList = sqlQueryFactory.select(qTArea).from(qTArea).fetch();
         //省市区转换分层

@@ -40,9 +40,9 @@ public class GlobalExceptionHandler {
     public static final String ERROR_CODE = "500";
     public static final String ERROR_MSG = "系统异常，请联系管理员。";
 
-    @Value("${medical.isPrintStackTrace:false}")
+    @Value("${medical.isPrintStackTrace:true}")
     private boolean isPrintStackTrace;
-    @Value("${medical.isPrintValidationJson:false}")
+    @Value("${medical.isPrintValidationJson:true}")
     private boolean isPrintValidationJson;
     @Value("${medical.isPrintBeanValidation:true}")
     private boolean isPrintBeanValidation;
