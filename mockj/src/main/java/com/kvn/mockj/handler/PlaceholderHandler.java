@@ -44,15 +44,4 @@ public class PlaceholderHandler {
         return hasFind ? sbRtn.toString() : options.getTemplate();
     }
 
-    public static void main(String[] args) {
-        Matcher matcher = pattern.matcher("@EMAIL==@EXX==5@ERR ");
-        StringBuffer sb = new StringBuffer();
-        while (matcher.find()){
-            System.out.println(matcher.group());
-            matcher.appendReplacement(sb, "11");
-        }
-
-        System.out.println(sb.toString());
-    }
-
 }

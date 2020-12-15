@@ -13,11 +13,7 @@
     <artifactId>mockj</artifactId>
     <version>1.0</version>
     <name>mockj</name>
-    <description>Generate mock data tool</description>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+    <description>Demo project for Spring Boot</description>
 
     <dependencies>
         <dependency>
@@ -35,18 +31,7 @@
             <artifactId>commons-lang3</artifactId>
             <version>3.3.2</version>
         </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>23.0</version>
-        </dependency>
 
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
 </project>
