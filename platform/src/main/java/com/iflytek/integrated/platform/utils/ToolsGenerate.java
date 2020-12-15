@@ -1,5 +1,6 @@
 package com.iflytek.integrated.platform.utils;
 
+import com.iflytek.integrated.common.HttpResult;
 import com.iflytek.integrated.common.utils.HttpClientUtil;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.querydsl.sql.SQLQueryFactory;
@@ -64,7 +65,8 @@ public class ToolsGenerate {
      */
     private String generateSchema(String format){
         try {
-            return HttpClientUtil.doPost(schemaUrl,format).getContent();
+            HttpResult result = HttpClientUtil.doPost(schemaUrl,format);
+            return result.getContent();
         }
         catch (Exception e){
             return "";
@@ -78,7 +80,8 @@ public class ToolsGenerate {
      */
     public String generateJolt(String format){
         try {
-            return HttpClientUtil.doPost(joltUrl,format).getContent();
+            HttpResult result = HttpClientUtil.doPost(schemaUrl,format);
+            return result.getContent();
         }
         catch (Exception e){
             return "";
