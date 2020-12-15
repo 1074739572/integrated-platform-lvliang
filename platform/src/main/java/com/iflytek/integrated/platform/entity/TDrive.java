@@ -1,5 +1,6 @@
 package com.iflytek.integrated.platform.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotBlank;
@@ -32,6 +33,7 @@ public class TDrive implements Serializable {
 
     private String updatedBy;
 
+    @JsonFormat(pattern="yyyy/MM/dd HH:mm:ss")
     private java.util.Date updatedTime;
 
     public String getId() {

@@ -2,6 +2,7 @@ package com.iflytek.integrated.platform.service;
 
 import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
+import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.dto.VendorConfigDto;
@@ -9,6 +10,7 @@ import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
+import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringPath;
 import io.swagger.annotations.Api;
@@ -156,12 +158,13 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
         ArrayList<Predicate> list = new ArrayList<>();
         if (StringUtils.isNotBlank(vendorName))
             list.add(qTVendor.vendorName.like(Utils.createFuzzyText(vendorName)));
-        List<TVendor> rtnList = sqlQueryFactory.select(qTVendor).from(qTVendor)
+        QueryResults<TVendor> queryResults = sqlQueryFactory.select(qTVendor).from(qTVendor)
                 .where(list.toArray(new Predicate[list.size()]))
                 .limit(pageSize).offset((pageNo - 1) * pageSize)
                 .orderBy(qTVendor.updatedTime.desc())
-                .fetch();
+                .fetchResults();
         //添加厂商驱动
+        List<TVendor> rtnList = queryResults.getResults();
         for (TVendor tv : rtnList) {
             List<TVendorDriveLink> tvdList = vendorDriveLinkService.getVendorDriveLinkByVendorId(tv.getId());
             String driveNameStr = "";
@@ -171,7 +174,8 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
             }
             tv.setDriveName(driveNameStr);
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取厂商管理列表!", rtnList);
+        TableData<TVendor> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取厂商管理列表!", tableData);
     }
 
 

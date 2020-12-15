@@ -314,6 +314,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                     qTInterface.id,
                     qTInterface.interfaceName,
                     qTInterface.interfaceUrl,
+                    qTInterface.updatedTime,
                     qTInterfaceType.interfaceTypeName,
                     sqlQueryFactory.select(qTInterfaceParam.id.count()).from(qTInterfaceParam)
                             .where((qTInterfaceParam.paramInOut.eq(Constant.ParmInOut.IN)).
