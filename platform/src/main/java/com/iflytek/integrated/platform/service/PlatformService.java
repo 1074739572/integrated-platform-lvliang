@@ -8,6 +8,7 @@ import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.common.utils.StringUtil;
+import com.iflytek.integrated.common.utils.Utils;
 import com.iflytek.integrated.platform.entity.THospitalVendorLink;
 import com.iflytek.integrated.platform.entity.TPlatform;
 import com.iflytek.integrated.platform.entity.TVendorConfig;
@@ -60,6 +61,8 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
     private BatchUidService batchUidService;
     @Autowired
     private StringUtil stringUtil;
+    @Autowired
+    private Utils utils;
 
     private static final Logger logger = LoggerFactory.getLogger(PlatformService.class);
 
@@ -131,7 +134,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
         TPlatform tp = new TPlatform();
         String platformId = batchUidService.getUid(qTPlatform.getTableName()) + "";
         tp.setId(platformId);
-        tp.setPlatformCode(stringUtil.recountNew(Constant.AppCode.PLATFORM, 4));
+        tp.setPlatformCode(utils.generateCode(qTPlatform, qTPlatform.platformCode, platformName));
         tp.setPlatformName(platformName);
         tp.setPlatformType(platformType);
         tp.setPlatformStatus(Constant.Status.START);

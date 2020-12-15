@@ -244,18 +244,33 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
     }
 
 
-    @ApiOperation(value = "选择厂商下拉")
+    @ApiOperation(value = "选择厂商下拉(可根据当前平台操作选择)")
     @GetMapping("/getDisVendor")
-    public ResultDto getDisVendor() {
-        List<TVendor> vendors = sqlQueryFactory.select(
-                Projections.bean(
-                        TVendor.class,
-                        qTVendor.id,
-                        qTVendor.vendorCode,
-                        qTVendor.vendorName
-                )
-        ).from(qTVendor).orderBy(qTVendor.updatedTime.desc()).fetch();
+    public ResultDto getDisVendor(@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = false) String platformId,
+                @ApiParam(value = "操作 1获取当前平台下的厂商 2获取非当前平台下的厂商") @RequestParam(defaultValue = "1", value = "status", required = false) String status) {
+        List<TVendor> vendors = null;
+        if (StringUtils.isNotBlank(platformId) && "1".equals(status)) {
+            //返回当前平台下的厂商
+            vendors = sqlQueryFactory.select(qTVendor).from(qTVendor)
+                    .leftJoin(qTVendorConfig).on(qTVendorConfig.vendorId.eq(qTVendor.id))
+                    .where(qTVendorConfig.platformId.eq(platformId))
+                    .orderBy(qTVendor.updatedTime.desc()).fetch();
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", vendors);
+        }
+        //获取所有厂商
+        vendors = sqlQueryFactory.select(qTVendor).from(qTVendor) .orderBy(qTVendor.updatedTime.desc()).fetch();
+        if (StringUtils.isBlank(platformId)) {
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", vendors);
+        }
+        //获取当前平台下的厂商
+        List<TVendor> tvList = sqlQueryFactory.select(qTVendor).from(qTVendor)
+                            .leftJoin(qTVendorConfig).on(qTVendorConfig.vendorId.eq(qTVendor.id))
+                            .where(qTVendorConfig.platformId.eq(platformId))
+                            .orderBy(qTVendor.updatedTime.desc()).fetch();
+        //去除当前平台下的厂商
+        vendors.removeAll(tvList);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", vendors);
     }
+
 
 }
