@@ -19,6 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 import static com.iflytek.integrated.platform.entity.QTFunction.qTFunction;
+/**
+* 产品功能
+* @author weihe9
+* @date 2020/12/16 14:21
+*/
 @Slf4j
 @Api(tags = "产品功能")
 @CrossOrigin

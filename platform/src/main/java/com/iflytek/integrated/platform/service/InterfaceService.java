@@ -139,7 +139,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                 }
                 jsonObj.put("inParam", arr);
             }
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取接口调试显示数据成功!", id);
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取接口调试显示数据成功!", jsonObj);
         } catch (Exception e) {
             logger.error("获取接口调试显示数据失败!", ExceptionUtil.dealException(e));
             e.printStackTrace();
@@ -454,7 +454,9 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         try {
             //厂商配置
             TVendorConfig vendorConfig = vendorConfigService.getObjByPlatformAndVendor(obj.getPlatformId(), obj.getVendorId());
-            obj.setVendorConfigId(vendorConfig.getId());//厂商配置id
+            if (vendorConfig != null) {
+                obj.setVendorConfigId(vendorConfig.getId());//厂商配置id
+            }
             //产品与功能关联
             TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(obj.getProductId(), obj.getFunctionId());
             if (tpfl == null) {

@@ -18,6 +18,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,12 +46,15 @@ import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.qTPro
 @RestController
 @RequestMapping("/v1/pb/productManage")
 public class ProductService extends QuerydslService<TProduct, String, TProduct, StringPath, PageRequest<TProduct>> {
+
     public ProductService(){
         super(qTProduct,qTProduct.id);
     }
 
     private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
 
+    @Autowired
+    private ProductFunctionLinkService productFunctionLinkService;
     @Autowired
     private BatchUidService batchUidService;
     @Autowired
@@ -60,41 +64,16 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
 
     @ApiOperation(value = "产品管理列表")
     @GetMapping("/getProductList")
-    public ResultDto getProductList(String productCode, String productName,
-                            @RequestParam(defaultValue = "1")Integer pageNo,
-                            @RequestParam(defaultValue = "10")Integer pageSize){
+    public ResultDto getProductList(@ApiParam(value = "产品编码") @RequestParam(value = "productCode", required = false) String productCode,
+                                    @ApiParam(value = "产品名称") @RequestParam(value = "productName", required = false) String productName,
+                                    @ApiParam(value = "页码",example = "1") @RequestParam(defaultValue = "1", required = false)Integer pageNo,
+                                    @ApiParam(value = "每页大小",example = "10") @RequestParam(defaultValue = "10", required = false)Integer pageSize){
         try {
-            //查询条件
-            ArrayList<Predicate> list = new ArrayList<>();
-            list.add(qTProduct.isValid.eq(Constant.IsValid.ON));
-            //判断条件是否为空
-            if(StringUtils.isNotEmpty(productCode)){
-                list.add(qTProduct.productCode.eq(productCode));
-            }
-            if(StringUtils.isNotEmpty(productName)){
-                list.add(qTProduct.productName.like(Utils.createFuzzyText(productName))
-                        .or(qTFunction.functionName.like(Utils.createFuzzyText(productName))));
-            }
-            //根据查询条件获取产品列表
-            QueryResults<TProduct> queryResults = sqlQueryFactory.select(
-                    Projections.bean(
-                            TProduct.class,
-                            qTProduct.id,
-                            qTProduct.productName,
-                            qTFunction.functionName,
-                            qTProduct.updatedTime,
-                            qTProductFunctionLink.id.as("funLinkId")
-                    )).from(qTProduct)
-                    .where(list.toArray(new Predicate[list.size()]))
-                    .leftJoin(qTProductFunctionLink).on(qTProductFunctionLink.productId.eq(qTProduct.id))
-                    .leftJoin(qTFunction).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
-                    .limit(pageSize)
-                    .offset((pageNo - 1) * pageSize)
-                    .orderBy(qTProduct.updatedTime.desc())
-                    .fetchResults();
+            QueryResults<TProductFunctionLink> queryResults = productFunctionLinkService.getTProductFunctionLinkList(
+                    productCode, productName, pageNo, pageSize);
             //分页
-            TableData<TProduct> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", tableData);
+            TableData<TProductFunctionLink> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "产品管理列表获取成功", tableData);
         }
         catch (Exception e) {
             logger.error("获取产品管理列表失败!", ExceptionUtil.dealException(e));
@@ -102,18 +81,19 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         }
     }
 
+
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "产品管理删除")
     @PostMapping("/delProductById")
     public ResultDto delProductById(String id){
         if(StringUtils.isEmpty(id)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "id不能为空");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "id不能为空", "id不能为空");
         }
         //查看产品是否存在
         TProductFunctionLink functionLink = sqlQueryFactory.select(qTProductFunctionLink).from(qTProductFunctionLink)
                 .where(qTProductFunctionLink.id.eq(id)).fetchOne();
         if(functionLink == null || StringUtils.isEmpty(functionLink.getId())){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "没有找到该产品功能，删除失败");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有找到该产品功能，删除失败", "没有找到该产品功能，删除失败");
         }
         //删除产品：删除产品和功能的关联关系
         Long lon = sqlQueryFactory.delete(qTProductFunctionLink)
@@ -121,8 +101,9 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         if(lon <= 0){
             throw new RuntimeException("产品功能删除失败");
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "产品功能删除成功");
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "产品功能删除成功", "产品功能删除成功");
     }
+
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "产品管理新增/编辑")
