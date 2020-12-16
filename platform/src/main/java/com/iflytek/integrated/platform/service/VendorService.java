@@ -199,8 +199,10 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
                     Map<String, String> map = new HashMap<>();
                     map.put("vendorHospitalId", hvlvcList.get(i).getVendorHospitalId());//厂商医院id
                     THospital h = hospitalService.getOne(hvlvcList.get(i).getHospitalId());//医院信息
-                    map.put("hospitalCode", h.getHospitalCode());
-                    map.put("hospitalName", h.getHospitalName());
+                    if (h != null) {
+                        map.put("hospitalCode", h.getHospitalCode());
+                        map.put("hospitalName", h.getHospitalName());
+                    }
                     hospitalConfigList.add(map);
                 }
                 vcd.setHospitalConfig(hospitalConfigList);

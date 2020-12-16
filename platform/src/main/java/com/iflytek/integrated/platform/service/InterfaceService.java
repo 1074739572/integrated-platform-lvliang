@@ -139,7 +139,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                 }
                 jsonObj.put("inParam", arr);
             }
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取接口调试显示数据成功!", id);
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取接口调试显示数据成功!", jsonObj);
         } catch (Exception e) {
             logger.error("获取接口调试显示数据失败!", ExceptionUtil.dealException(e));
             e.printStackTrace();
@@ -454,7 +454,9 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         try {
             //厂商配置
             TVendorConfig vendorConfig = vendorConfigService.getObjByPlatformAndVendor(obj.getPlatformId(), obj.getVendorId());
-            obj.setVendorConfigId(vendorConfig.getId());//厂商配置id
+            if (vendorConfig != null) {
+                obj.setVendorConfigId(vendorConfig.getId());//厂商配置id
+            }
             //产品与功能关联
             TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(obj.getProductId(), obj.getFunctionId());
             if (tpfl == null) {
@@ -506,8 +508,11 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @ApiOperation(value = "获取标准接口详情", notes = "获取标准接口详情")
     @GetMapping("/getInterfaceInfoById")
     public ResultDto getInterfaceInfoById(@ApiParam(value = "标准接口id") @RequestParam(value = "id", required = true) String id) {
+        TInterface ti = this.getOne(id);
+        if (ti == null) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据id未查出该标准接口!", id);
+        }
         try {
-            TInterface ti = this.getOne(id);
             InterfaceDto iDto = new InterfaceDto();
             BeanUtils.copyProperties(ti, iDto);
             //获取产品id

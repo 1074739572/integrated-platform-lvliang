@@ -1,5 +1,7 @@
 package com.iflytek.integrated.platform.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.io.Serializable;
 
 /**
@@ -15,10 +17,12 @@ public class TProductFunctionLink implements Serializable {
 
     private String createdBy;
 
+    @JsonFormat(pattern="yyyy/MM/dd HH:mm:ss")
     private java.util.Date createdTime;
 
     private String updatedBy;
 
+    @JsonFormat(pattern="yyyy/MM/dd HH:mm:ss")
     private java.util.Date updatedTime;
 
     public String getId() {

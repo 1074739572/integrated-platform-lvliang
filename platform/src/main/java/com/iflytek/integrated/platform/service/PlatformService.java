@@ -6,7 +6,6 @@ import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
-import com.iflytek.integrated.common.utils.StringUtil;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.THospitalVendorLink;
 import com.iflytek.integrated.platform.entity.TPlatform;
@@ -90,7 +89,9 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
                         qTPlatform.platformCode,
                         qTPlatform.platformName,
                         qTPlatform.platformStatus,
-                        qTPlatform.platformType
+                        qTPlatform.platformType,
+                        qTPlatform.createdTime,
+                        qTPlatform.updatedTime
                     )
             ).from(qTPlatform)
              .where(list.toArray(new Predicate[list.size()]))
@@ -125,6 +126,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
         String platformId = batchUidService.getUid(qTPlatform.getTableName()) + "";
         tp.setId(platformId);
         tp.setPlatformCode(utils.generateCode(qTPlatform, qTPlatform.platformCode, jsonObj.getString("platformName")));
+        tp.setProjectId(jsonObj.getString("projectId"));
         tp.setPlatformName(jsonObj.getString("platformName"));
         tp.setPlatformType(jsonObj.getString("platformType"));
         tp.setPlatformStatus(Constant.Status.START);
@@ -175,6 +177,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
         String platformId = jsonObj.getString("id");
         sqlQueryFactory.update(qTPlatform).set(qTPlatform.platformName, jsonObj.getString("platformName"))
                 .set(qTPlatform.platformType, jsonObj.getString("platformType"))
+                .set(qTPlatform.projectId, jsonObj.getString("projectId"))
                 .set(qTPlatform.updatedTime, new Date())
                 .where(qTPlatform.id.eq(platformId)).execute();
         //删除平台下厂商医院配置信息
