@@ -121,7 +121,6 @@ public class MockR {
             try {
                 instance = (Collection) targetClass.newInstance();
             } catch (Exception e) {
-                e.printStackTrace();
             }
         }
 
@@ -173,7 +172,6 @@ public class MockR {
         try {
             instance = targetClass.newInstance();
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RuntimeException(e);
         }
 
@@ -224,7 +222,6 @@ public class MockR {
         try {
             getMethod = targetClass.getDeclaredMethod(getMethodName);
         } catch (NoSuchMethodException e) {
-            e.printStackTrace();
             System.out.println("属性[" + targetClass.getSimpleName() + "#" + fieldClass.getName() + "]不存在 getter 方法");
             return null;
         }

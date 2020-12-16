@@ -31,7 +31,6 @@ public class DateUtils {
                 long date = random(start.getTime(), end.getTime());
                 return new Date(date);
             } catch (Exception e) {
-                e.printStackTrace();
             }
             return null;
         }
