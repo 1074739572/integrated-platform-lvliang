@@ -87,8 +87,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
     @ApiOperation(value = "新增or修改项目", notes = "新增or修改项目")
     @PostMapping("/saveAndUpdateProject")
     public ResultDto saveAndUpdateProject(
-            @ApiParam(value = "保存项目-产品-功能信息") @RequestParam(required = true) String param){
-        JSONObject jsonObj = JSON.parseObject(param);
+            @ApiParam(value = "保存项目-产品-功能信息") @RequestBody JSONObject jsonObj){
         String projectName = jsonObj.getString("projectName");
         if (StringUtils.isBlank(projectName)) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "项目名称为空!", null);

@@ -1,6 +1,5 @@
 package com.iflytek.integrated.platform.service;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.Constant;
@@ -58,8 +57,6 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
     @Autowired
     private BatchUidService batchUidService;
     @Autowired
-    private StringUtil stringUtil;
-    @Autowired
     private Utils utils;
 
     private static final Logger logger = LoggerFactory.getLogger(PlatformService.class);
@@ -115,54 +112,50 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增or修改平台", notes = "新增or修改平台")
     @PostMapping("/saveAndUpdatePlatform")
-    public ResultDto saveAndUpdatePlatform(
-            @ApiParam(value = "平台id") @RequestParam(value = "id", required = false) String id,
-            @ApiParam(value = "平台名") @RequestParam(value = "vendorName", required = true) String platformName,
-            @ApiParam(value = "平台类型") @RequestParam(value = "driveIds", required = true) String platformType,
-            @ApiParam(value = "厂商信息") @RequestParam(value = "vendorInfo", required = false) String vendorInfo) {
-        if (StringUtils.isBlank(id)) {
-            return savePlatform(platformName, platformType, vendorInfo);
+    public ResultDto saveAndUpdatePlatform(@RequestBody JSONObject jsonObj) {
+        if (StringUtils.isBlank(jsonObj.getString("id"))) {
+            return savePlatform(jsonObj);
         }
-        return updatePlatform(id, platformName, platformType, vendorInfo);
+        return updatePlatform(jsonObj);
     }
 
-
     /** 新增平台 */
-    private ResultDto savePlatform(String platformName, String platformType, String vendorInfo) {
+    private ResultDto savePlatform(JSONObject jsonObj) {
         TPlatform tp = new TPlatform();
         String platformId = batchUidService.getUid(qTPlatform.getTableName()) + "";
         tp.setId(platformId);
-        tp.setPlatformCode(utils.generateCode(qTPlatform, qTPlatform.platformCode, platformName));
-        tp.setPlatformName(platformName);
-        tp.setPlatformType(platformType);
+        tp.setPlatformCode(utils.generateCode(qTPlatform, qTPlatform.platformCode, jsonObj.getString("platformName")));
+        tp.setPlatformName(jsonObj.getString("platformName"));
+        tp.setPlatformType(jsonObj.getString("platformType"));
         tp.setPlatformStatus(Constant.Status.START);
         tp.setCreatedTime(new Date());
         this.post(tp);
-        if (StringUtils.isBlank(vendorInfo)) {
+        //关联厂商
+        JSONArray jsonArr = jsonObj.getJSONArray("vendorInfo");
+        if (jsonArr.isEmpty()) {
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "新增平台成功!", tp);
         }
-        JSONArray jsonArr = JSON.parseArray(vendorInfo);
         for (int i = 0; i < jsonArr.size(); i++) {
-            JSONObject jsonObj = jsonArr.getJSONObject(i);
+            JSONObject obj = jsonArr.getJSONObject(i);
             TVendorConfig tvc = new TVendorConfig();
             String vendorConfigId = batchUidService.getUid(qTVendorConfig.getTableName()) + "";
             tvc.setId(vendorConfigId);
             tvc.setPlatformId(platformId);
-            tvc.setVendorId(jsonObj.getString("vendorId"));
-            tvc.setVersionId(jsonObj.getString("versionId"));
-            tvc.setConnectionType(jsonObj.getString("connectionType"));
-            tvc.setAddressUrl(jsonObj.getString("addressUrl"));
-            tvc.setEndpointUrl(jsonObj.getString("endpointUrl"));
-            tvc.setNamespaceUrl(jsonObj.getString("namespaceUrl"));
-            tvc.setDatabaseName(jsonObj.getString("databaseName"));
-            tvc.setDatabaseUrl(jsonObj.getString("databaseUrl"));
-            tvc.setDatabaseDriver(jsonObj.getString("databaseDriver"));
-            tvc.setJsonParams(jsonObj.getString("jsonParams"));
-            tvc.setUserName(jsonObj.getString("username"));
-            tvc.setUserPassword(jsonObj.getString("password"));
+            tvc.setVendorId(obj.getString("vendorId"));
+            tvc.setVersionId(obj.getString("versionId"));
+            tvc.setConnectionType(obj.getString("connectionType"));
+            tvc.setAddressUrl(obj.getString("addressUrl"));
+            tvc.setEndpointUrl(obj.getString("endpointUrl"));
+            tvc.setNamespaceUrl(obj.getString("namespaceUrl"));
+            tvc.setDatabaseName(obj.getString("databaseName"));
+            tvc.setDatabaseUrl(obj.getString("databaseUrl"));
+            tvc.setDatabaseDriver(obj.getString("databaseDriver"));
+            tvc.setJsonParams(obj.getString("jsonParams"));
+            tvc.setUserName(obj.getString("username"));
+            tvc.setUserPassword(obj.getString("password"));
             tvc.setCreatedTime(new Date());
             vendorConfigService.post(tvc);
-            JSONArray hospitalArr = jsonObj.getJSONArray("hospitalConfig");
+            JSONArray hospitalArr = obj.getJSONArray("hospitalConfig");
             for (int j = 0; j < hospitalArr.size(); j++) {
                 JSONObject hObj = hospitalArr.getJSONObject(j);
                 THospitalVendorLink hvl = new THospitalVendorLink();
@@ -178,9 +171,10 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
     }
 
     /** 修改平台 */
-    private ResultDto updatePlatform(String platformId, String platformName, String platformType, String vendorInfo) {
-        sqlQueryFactory.update(qTPlatform).set(qTPlatform.platformName, platformName)
-                .set(qTPlatform.platformType, platformType)
+    private ResultDto updatePlatform(JSONObject jsonObj) {
+        String platformId = jsonObj.getString("id");
+        sqlQueryFactory.update(qTPlatform).set(qTPlatform.platformName, jsonObj.getString("platformName"))
+                .set(qTPlatform.platformType, jsonObj.getString("platformType"))
                 .set(qTPlatform.updatedTime, new Date())
                 .where(qTPlatform.id.eq(platformId)).execute();
         //删除平台下厂商医院配置信息
@@ -193,31 +187,31 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
         //删除平台下厂商配置信息
         vendorConfigService.delVendorConfigAll(platformId);
 
-        if (StringUtils.isBlank(vendorInfo)) {
+        JSONArray jsonArr = jsonObj.getJSONArray("vendorInfo");
+        if (jsonArr.isEmpty()) {
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "修改平台成功!", platformId);
         }
-        JSONArray jsonArr = JSON.parseArray(vendorInfo);
         for (int i = 0; i < jsonArr.size(); i++) {
-            JSONObject jsonObj = jsonArr.getJSONObject(i);
+            JSONObject obj = jsonArr.getJSONObject(i);
             TVendorConfig tvc = new TVendorConfig();
             String vendorConfigId = batchUidService.getUid(qTVendorConfig.getTableName()) + "";
             tvc.setId(vendorConfigId);
             tvc.setPlatformId(platformId);
-            tvc.setVendorId(jsonObj.getString("vendorId"));
-            tvc.setVersionId(jsonObj.getString("versionId"));
-            tvc.setConnectionType(jsonObj.getString("connectionType"));
-            tvc.setAddressUrl(jsonObj.getString("addressUrl"));
-            tvc.setEndpointUrl(jsonObj.getString("endpointUrl"));
-            tvc.setNamespaceUrl(jsonObj.getString("namespaceUrl"));
-            tvc.setDatabaseName(jsonObj.getString("databaseName"));
-            tvc.setDatabaseUrl(jsonObj.getString("databaseUrl"));
-            tvc.setDatabaseDriver(jsonObj.getString("databaseDriver"));
-            tvc.setJsonParams(jsonObj.getString("jsonParams"));
-            tvc.setUserName(jsonObj.getString("username"));
-            tvc.setUserPassword(jsonObj.getString("password"));
+            tvc.setVendorId(obj.getString("vendorId"));
+            tvc.setVersionId(obj.getString("versionId"));
+            tvc.setConnectionType(obj.getString("connectionType"));
+            tvc.setAddressUrl(obj.getString("addressUrl"));
+            tvc.setEndpointUrl(obj.getString("endpointUrl"));
+            tvc.setNamespaceUrl(obj.getString("namespaceUrl"));
+            tvc.setDatabaseName(obj.getString("databaseName"));
+            tvc.setDatabaseUrl(obj.getString("databaseUrl"));
+            tvc.setDatabaseDriver(obj.getString("databaseDriver"));
+            tvc.setJsonParams(obj.getString("jsonParams"));
+            tvc.setUserName(obj.getString("username"));
+            tvc.setUserPassword(obj.getString("password"));
             tvc.setCreatedTime(new Date());
             vendorConfigService.post(tvc);
-            JSONArray hospitalArr = jsonObj.getJSONArray("hospitalConfig");
+            JSONArray hospitalArr = obj.getJSONArray("hospitalConfig");
             for (int j = 0; j < hospitalArr.size(); j++) {
                 JSONObject hObj = hospitalArr.getJSONObject(j);
                 THospitalVendorLink hvl = new THospitalVendorLink();
