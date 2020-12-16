@@ -4,31 +4,34 @@ import com.kvn.mockj.utils.DateUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-import java.io.InputStream;
+import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Properties;
 import java.util.Random;
 
 /**
  * 扩展函数
  * @author
  */
+@Component
 public class Function {
     private static final Random RANDOM = new Random();
     private static final String LETTERS = "abcdefghijklmnopqrstuvwxyz";
 
-    public static boolean $boolean(String paramStr){
-        return RANDOM.nextBoolean();
-    }
+    @Value("${mock.string.len}")
+    public String mockStringLen;
 
-    public static Integer $natural(String paramStr){
-        return Math.abs($integer(paramStr));
-    }
+    @Value("${mock.number.min}")
+    public String mockNumberMin;
+
+    @Value("${mock.number.max}")
+    public String mockNumberMax;
 
     public static String stringLen;
 
@@ -36,19 +39,20 @@ public class Function {
 
     public static String numberMax;
 
-    public Function(){
-        try {
-            InputStream ins = getClass().getResourceAsStream("/config.properties");
-            Properties p = new Properties();
-            p.load(ins);
-            stringLen = p.getProperty("mock.string.len");
-            numberMin = p.getProperty("mock.number.min");
-            numberMax = p.getProperty("mock.number.max");
-        }catch (Exception e){
-            stringLen = "5";
-            numberMin = "1";
-            numberMax = "100";
-        }
+    @PostConstruct
+    public void init(){
+        //初始化配置
+        Function.stringLen = mockStringLen;
+        Function.numberMin = mockNumberMin;
+        Function.numberMax = mockNumberMax;
+    }
+
+    public static boolean $boolean(String paramStr){
+        return RANDOM.nextBoolean();
+    }
+
+    public static Integer $natural(String paramStr){
+        return Math.abs($integer(paramStr));
     }
 
     public static char $character(String paramStr){
@@ -65,6 +69,9 @@ public class Function {
         if(StringUtils.isBlank(paramStr)){
             paramStr = stringLen;
         }
+        if (StringUtils.isBlank(paramStr)){
+            return RandomStringUtils.randomAlphanumeric(10);
+        }
         return RandomStringUtils.randomAlphanumeric(Integer.parseInt(paramStr));
     }
 
@@ -74,7 +81,9 @@ public class Function {
      * @return
      */
     public static Integer $integer(String paramStr){
-        if (StringUtils.isBlank(paramStr)) {
+        if (StringUtils.isBlank(paramStr)
+                && StringUtils.isNotBlank(numberMin)
+                    && StringUtils.isNotBlank(numberMax)) {
             return RandomUtils.nextInt(Integer.parseInt(numberMin.trim()),
                     Integer.parseInt(numberMax.trim()) + 1);
         }
@@ -96,7 +105,9 @@ public class Function {
      */
     public static Float $float(String paramStr){
         Float aFloat = RANDOM.nextFloat();
-        if(StringUtils.isBlank(paramStr)){
+        if (StringUtils.isBlank(paramStr)
+                && StringUtils.isNotBlank(numberMin)
+                    && StringUtils.isNotBlank(numberMax)) {
             aFloat = RandomUtils.nextFloat(Integer.parseInt(numberMin.trim()),
                     Integer.parseInt(numberMax.trim()) + 1);
         }else {
@@ -124,7 +135,6 @@ public class Function {
 
     public static String $datetime(String paramStr){
         ZoneId zoneId = ZoneId.systemDefault();
-        Calendar c = Calendar.getInstance();
         Date date = DateUtils.randomDate();
         if (StringUtils.isBlank(paramStr)) {
             return date.toInstant().toString();
