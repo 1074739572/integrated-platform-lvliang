@@ -35,7 +35,8 @@ public class PlaceholderHandler {
                 Object invokeRlt = Function.class.getMethod(methodName, String.class).invoke(null, paramStr);
                 matcher.appendReplacement(sbRtn, invokeRlt.toString());
             } catch (NoSuchMethodException e) {
-                throw new RuntimeException("$Function 中不存在方法" + methodName, e);
+                //如果没有找到@开头的自定义方法，返回方法名
+                matcher.appendReplacement(sbRtn, methodName.substring(1));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
