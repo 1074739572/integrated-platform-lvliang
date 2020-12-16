@@ -43,6 +43,8 @@ public class TBusinessInterface implements Serializable {
 
     private String outParamTemplate;
 
+    private String outParamFormatType;
+
     private String mockTemplate;
 
     private String mockStatus;
@@ -218,6 +220,14 @@ public class TBusinessInterface implements Serializable {
 
     public void setOutParamTemplate(String outParamTemplate) {
         this.outParamTemplate = outParamTemplate;
+    }
+
+    public String getOutParamFormatType() {
+        return outParamFormatType;
+    }
+
+    public void setOutParamFormatType(String outParamFormatType) {
+        this.outParamFormatType = outParamFormatType;
     }
 
     public String getMockTemplate() {

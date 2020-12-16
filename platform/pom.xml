@@ -86,7 +86,7 @@
                     <jdbcUser>root</jdbcUser>
                     <jdbcPassword>sM_xXZHPQAF1</jdbcPassword>
                     <!-- 创建实体，不写则创建全部 -->
-                    <!-- <tableNamePattern>t_function</tableNamePattern>-->
+                    <tableNamePattern>t_business_interface</tableNamePattern>
                     <customTypes>
                         com.querydsl.sql.types.UtilDateType
                     </customTypes>
