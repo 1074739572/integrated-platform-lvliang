@@ -7,6 +7,7 @@ import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 import static com.iflytek.integrated.platform.entity.QTFunction.qTFunction;
 import static com.iflytek.integrated.platform.entity.QTProduct.qTProduct;
@@ -69,15 +71,29 @@ public class ProductFunctionLinkService extends QuerydslService<TProductFunction
         if(StringUtils.isNotEmpty(productName)){
             list.add(qTProduct.productName.like(Utils.createFuzzyText(productName)));
         }
-        QueryResults<TProductFunctionLink> queryResults = sqlQueryFactory.select(qTProductFunctionLink).from(qTProductFunctionLink)
-                        .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
-                        .leftJoin(qTFunction).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
-                        .where(list.toArray(new Predicate[list.size()]))
-                        .orderBy(qTProduct.updatedTime.desc())
-                        .limit(pageSize)
-                        .offset((pageNo - 1) * pageSize)
-                        .fetchResults();
+        QueryResults<TProductFunctionLink> queryResults = sqlQueryFactory.select(Projections.bean(TProductFunctionLink.class,
+                    qTProductFunctionLink, qTProduct.productName.as("productName"), qTFunction.functionName.as("functionName")))
+                    .from(qTProductFunctionLink)
+                    .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
+                    .leftJoin(qTFunction).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
+                    .where(list.toArray(new Predicate[list.size()]))
+                    .orderBy(qTProduct.updatedTime.desc())
+                    .limit(pageSize)
+                    .offset((pageNo - 1) * pageSize)
+                    .fetchResults();
         return queryResults;
     }
+
+    /**
+     * 根据id修改关联产品/功能
+     * @param id
+     * @return
+     */
+    public long updateObjById(String id, String productId, String functionId) {
+        return sqlQueryFactory.update(qTProductFunctionLink).set(qTProductFunctionLink.productId, productId)
+                .set(qTProductFunctionLink.functionId, functionId).set(qTProductFunctionLink.updatedTime, new Date())
+                .where(qTProductFunctionLink.id.eq(id)).execute();
+    }
+
 
 }

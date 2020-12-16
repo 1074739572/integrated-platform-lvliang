@@ -1,6 +1,5 @@
 package com.iflytek.integrated.platform.service;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.Constant;
@@ -86,8 +85,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增or修改项目", notes = "新增or修改项目")
     @PostMapping("/saveAndUpdateProject")
-    public ResultDto saveAndUpdateProject(
-            @ApiParam(value = "保存项目-产品-功能信息") @RequestBody JSONObject jsonObj){
+    public ResultDto saveAndUpdateProject(@ApiParam(value = "保存项目-产品-功能信息") @RequestBody JSONObject jsonObj) {
         String projectName = jsonObj.getString("projectName");
         if (StringUtils.isBlank(projectName)) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "项目名称为空!", null);
@@ -247,11 +245,9 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
             if (map.size() > 0) {
                 for(String key : map.keySet()) {
                     String[] fIdArr = map.get(key).split(",");
-                    JSONArray arr = new JSONArray();
+                    List<String> arr = new ArrayList<>();
                     for(int i = 0; i<fIdArr.length; i++) {
-                        JSONObject jsonObj = new JSONObject();
-                        jsonObj.put("id", fIdArr[i]);
-                        arr.add(jsonObj);
+                        arr.add(fIdArr[i]);
                     }
                     JSONObject obj = new JSONObject();
                     obj.put("id", key);
@@ -282,7 +278,6 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
         }
         List<String> projects = sqlQueryFactory.select(qTProject.id).from(qTProject)
                 .where(list.toArray(new Predicate[list.size()])).fetch();
-
         if (!CollectionUtils.isEmpty(projects)) {
             return true;
         }

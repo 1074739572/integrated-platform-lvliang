@@ -191,8 +191,10 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
                 VendorConfigDto vcd = new VendorConfigDto();
                 BeanUtils.copyProperties(obj, vcd);
                 TVendor tv = this.getOne(vcd.getVendorId());//厂商信息
-                vcd.setVendorCode(tv.getVendorCode());
-                vcd.setVendorName(tv.getVendorName());
+                if (tv != null) {
+                    vcd.setVendorCode(tv.getVendorCode());
+                    vcd.setVendorName(tv.getVendorName());
+                }
                 List<THospitalVendorLink> hvlvcList = hospitalVendorLinkService.getTHospitalVendorLinkByVendorConfigId(obj.getId());
                 List<Map<String, String>> hospitalConfigList = new ArrayList<>();
                 for (int i= 0; i < hvlvcList.size(); i++) {

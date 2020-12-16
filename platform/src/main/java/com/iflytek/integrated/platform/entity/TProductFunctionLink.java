@@ -25,6 +25,11 @@ public class TProductFunctionLink implements Serializable {
     @JsonFormat(pattern="yyyy/MM/dd HH:mm:ss")
     private java.util.Date updatedTime;
 
+    private String productName;
+
+    private String functionName;
+
+
     public String getId() {
         return id;
     }
@@ -79,6 +84,22 @@ public class TProductFunctionLink implements Serializable {
 
     public void setUpdatedTime(java.util.Date updatedTime) {
         this.updatedTime = updatedTime;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public String getFunctionName() {
+        return functionName;
+    }
+
+    public void setFunctionName(String functionName) {
+        this.functionName = functionName;
     }
 
 }
