@@ -30,7 +30,7 @@ public class ToolsGenerate {
     public SQLQueryFactory sqlQueryFactory;
 
     /**
-     * 开启一个新线程，调取对方接口
+     * 调取对方接口，获取并保存schema
      * @param businessInterface
      */
     public void generateSchemaToInterface(TBusinessInterface businessInterface){
@@ -48,13 +48,6 @@ public class ToolsGenerate {
                 throw new RuntimeException("出参schema获取失败");
             }
             businessInterface.setOutParamSchema(schema);
-        }
-        Long lon = sqlQueryFactory.update(qTBusinessInterface)
-                .set(qTBusinessInterface.inParamSchema,businessInterface.getInParamSchema())
-                .set(qTBusinessInterface.outParamSchema,businessInterface.getOutParamSchema())
-                .where(qTBusinessInterface.id.eq(businessInterface.getId())).execute();
-        if(lon <= 0){
-            throw new RuntimeException("保存schema失败");
         }
     }
 

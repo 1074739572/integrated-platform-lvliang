@@ -445,9 +445,10 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             }
             obj.setProductFunctionLinkId(tpfl.getId());//存储产品功能关联id
 
+            //获取schema
+            toolsGenerate.generateSchemaToInterface(obj);
             if (StringUtils.isBlank(obj.getId())) {
                 //新增接口配置
-                toolsGenerate.generateSchemaToInterface(obj);
                 obj.setId(batchUidService.getUid(qTBusinessInterface.getTableName())+"");
                 obj.setStatus(Constant.Status.START);
                 obj.setCreatedTime(new Date());
