@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 import static com.iflytek.integrated.platform.entity.QTProductInterfaceLink.qTProductInterfaceLink;
 /**
 * 产品与标准接口关联
@@ -30,6 +32,16 @@ public class ProductInterfaceLinkService  extends QuerydslService<TProductInterf
      */
     public void deleteProductInterfaceLinkById(String id) {
         sqlQueryFactory.delete(qTProductInterfaceLink).where(qTProductInterfaceLink.interfaceId.eq(id)).execute();
+    }
+
+    /**
+    * 根据接口id获取产品与标准接口关联
+    * @author weihe9
+    * @date 2020/12/16 11:04
+    */
+    public List<TProductInterfaceLink> getObjByInterface(String interfaceId) {
+        return sqlQueryFactory.select(qTProductInterfaceLink).from(qTProductInterfaceLink)
+                .where(qTProductInterfaceLink.interfaceId.eq(interfaceId)).fetch();
     }
 
 

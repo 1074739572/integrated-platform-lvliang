@@ -11,6 +11,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,6 +28,7 @@ import static com.iflytek.integrated.platform.entity.QTArea.qTArea;
  */
 @Slf4j
 @Api(tags = "地区数据表")
+@CrossOrigin
 @RestController
 @RequestMapping("/v1/pb/sysManage")
 public class AreaService extends QuerydslService<TArea, String, TArea, StringPath, PageRequest<TArea>> {
@@ -68,7 +70,7 @@ public class AreaService extends QuerydslService<TArea, String, TArea, StringPat
         for (TArea city : cityList){
             //取出区（县）
             if(countyMap.containsKey(city.getAreaCode())){
-                city.setChild(countyMap.get(city.getAreaCode()));
+                city.setChildren(countyMap.get(city.getAreaCode()));
             }
             //保存市集合
             List<TArea> list = cityMap.containsKey(
@@ -80,7 +82,7 @@ public class AreaService extends QuerydslService<TArea, String, TArea, StringPat
         for (TArea province : provinceList){
             //取出市
             if(cityMap.containsKey(province.getAreaCode())){
-                province.setChild(cityMap.get(province.getAreaCode()));
+                province.setChildren(cityMap.get(province.getAreaCode()));
             }
         }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", provinceList);

@@ -1,6 +1,5 @@
 package com.iflytek.integrated.platform.service;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.Constant;
@@ -170,59 +169,65 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "标准接口新增/编辑", notes = "标准接口新增/编辑")
     @PostMapping("/saveAndUpdateInterface")
-    public ResultDto saveAndUpdateInterface(@ApiParam(value = "标准接口id") @RequestParam(value = "id", required = false) String id,
-                                            @ApiParam(value = "产品id 多个以,分隔") @RequestParam(value = "id", required = true) String productIds,
-                                            @ApiParam(value = "接口分类id") @RequestParam(value = "id", required = true) String interfaceTypeId,
-                                            @ApiParam(value = "接口名") @RequestParam(value = "id", required = true) String interfaceName,
-                                            @ApiParam(value = "接口url") @RequestParam(value = "id", required = true) String interfaceURL,
-                                            @ApiParam(value = "出参格式") @RequestParam(value = "id", required = true) String interfaceFormat,
-                                            @ApiParam(value = "出入参数组") @RequestParam(value = "id", required = false) String paramInOut) {
-        if (StringUtils.isBlank(id)) {
-            return this.saveInterface(productIds, interfaceTypeId, interfaceName, interfaceURL, interfaceFormat, paramInOut);
+    public ResultDto saveAndUpdateInterface(@RequestBody JSONObject jsonObj) {
+        if (StringUtils.isBlank(jsonObj.getString("id"))) {
+            return this.saveInterface(jsonObj);
         }
-        return this.updateInterface(id, productIds, interfaceTypeId, interfaceName, interfaceURL, interfaceFormat, paramInOut);
+        return this.updateInterface(jsonObj);
     }
 
     /** 新增标准接口 */
-    private ResultDto saveInterface(String productIds, String interfaceTypeId, String interfaceName, String interfaceURL, String interfaceFormat, String paramInOut) {
+    private ResultDto saveInterface(JSONObject jsonObj) {
         try {
-            Utils.strIsJsonOrXml(interfaceFormat);
+            Utils.strIsJsonOrXml(jsonObj.getString("outFormat"));
             String interfaceId = batchUidService.getUid(qTInterface.getTableName()) + "";
             //新增标准接口
             TInterface ti = new TInterface();
             ti.setId(interfaceId);
-            ti.setInterfaceName(interfaceName);
-            ti.setInterfaceTypeId(interfaceTypeId);
-            ti.setInterfaceUrl(interfaceURL);
-            ti.setInterfaceFormat(interfaceFormat);
+            ti.setInterfaceName(jsonObj.getString("interfaceName"));
+            ti.setInterfaceTypeId(jsonObj.getString("interfaceTypeId"));
+            ti.setInterfaceUrl(jsonObj.getString("interfaceURL"));
+            ti.setInterfaceFormat(jsonObj.getString("outFormat"));
             ti.setCreatedTime(new Date());
             this.post(ti);
             //新增产品与接口关联
-            String[] productIdArr = productIds.split(",");
-            for (int i = 0; i < productIdArr.length; i++) {
+            JSONArray productIdArr = jsonObj.getJSONArray("productId");
+            for (int i = 0; i < productIdArr.size(); i++) {
                 TProductInterfaceLink tpil = new TProductInterfaceLink();
                 tpil.setId(batchUidService.getUid(qTProductInterfaceLink.getTableName()) + "");
-                tpil.setProductId(productIdArr[i]);
+                tpil.setProductId(productIdArr.getString(i));
                 tpil.setInterfaceId(interfaceId);
                 tpil.setCreatedTime(new Date());
                 productInterfaceLinkService.post(tpil);
             }
             //新增接口参数
-            if (StringUtils.isNotBlank(paramInOut)) {
-                JSONArray jsonArr = JSON.parseArray(paramInOut);
-                for (int j = 0; j < jsonArr.size(); j++) {
-                    JSONObject jsonObj = jsonArr.getJSONObject(j);
-                    TInterfaceParam tip = new TInterfaceParam();
-                    tip.setId(batchUidService.getUid(qTInterfaceParam.getTableName()) + "");
-                    tip.setParamName(jsonObj.getString("name"));
-                    tip.setParamInstruction(jsonObj.getString("instruction"));
-                    tip.setInterfaceId(interfaceId);
-                    tip.setParamType(jsonObj.getString("type"));
-                    tip.setParamLength(jsonObj.getString("name").length());
-                    tip.setParamInOut(jsonObj.getString("inOut"));
-                    tip.setCreatedTime(new Date());
-                    interfaceParamService.post(tip);
-                }
+            JSONArray inParamList = jsonObj.getJSONArray("inParamList");
+            for (int i = 0; i < inParamList.size(); i++) {
+                TInterfaceParam tip = new TInterfaceParam();
+                tip.setId(batchUidService.getUid(qTInterfaceParam.getTableName()) + "");
+                tip.setInterfaceId(interfaceId);
+                JSONObject obj = inParamList.getJSONObject(i);
+                tip.setParamName(obj.getString("paramName"));
+                tip.setParamType(obj.getString("paramType"));
+                tip.setParamInstruction(obj.getString("paramInstruction"));
+                tip.setParamLength(obj.getString("paramName").length());
+                tip.setParamInOut("1");
+                tip.setCreatedTime(new Date());
+                interfaceParamService.post(tip);
+            }
+            JSONArray outParamList = jsonObj.getJSONArray("outParamList");
+            for (int i = 0; i < outParamList.size(); i++) {
+                TInterfaceParam tip = new TInterfaceParam();
+                tip.setId(batchUidService.getUid(qTInterfaceParam.getTableName()) + "");
+                tip.setInterfaceId(interfaceId);
+                JSONObject obj = outParamList.getJSONObject(i);
+                tip.setParamName(obj.getString("paramName"));
+                tip.setParamType(obj.getString("paramType"));
+                tip.setParamInstruction(obj.getString("paramInstruction"));
+                tip.setParamLength(obj.getString("paramName").length());
+                tip.setParamInOut("2");
+                tip.setCreatedTime(new Date());
+                interfaceParamService.post(tip);
             }
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "标准接口新增成功!", interfaceId);
         } catch (Exception e) {
@@ -233,41 +238,58 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     }
 
     /** 新增标准接口 */
-    private ResultDto updateInterface(String id, String productIds, String interfaceTypeId, String interfaceName, String interfaceURL, String interfaceFormat, String paramInOut) {
+    private ResultDto updateInterface(JSONObject jsonObj) {
+        String id = jsonObj.getString("id");
+        String interfaceName = jsonObj.getString("interfaceName");
+        String interfaceTypeId = jsonObj.getString("interfaceTypeId");
+        String interfaceUrl = jsonObj.getString("interfaceUrl");
+        String outFormat = jsonObj.getString("outFormat");
         try {
             //修改标准接口信息
             sqlQueryFactory.update(qTInterface).set(qTInterface.interfaceName, interfaceName)
-                    .set(qTInterface.interfaceTypeId, interfaceTypeId).set(qTInterface.interfaceUrl, interfaceURL)
-                    .set(qTInterface.interfaceFormat, interfaceFormat).set(qTInterface.updatedTime, new Date())
+                    .set(qTInterface.interfaceTypeId, interfaceTypeId).set(qTInterface.interfaceUrl, interfaceUrl)
+                    .set(qTInterface.interfaceFormat, outFormat).set(qTInterface.updatedTime, new Date())
                     .where(qTInterface.id.eq(id)).execute();
             //替换产品与接口关联
             productInterfaceLinkService.deleteProductInterfaceLinkById(id);
-            String[] productIdArr = productIds.split(",");
-            for (int i = 0; i < productIdArr.length; i++) {
+            JSONArray productIdArr = jsonObj.getJSONArray("productId");
+            for (int i = 0; i < productIdArr.size(); i++) {
                 TProductInterfaceLink tpil = new TProductInterfaceLink();
                 tpil.setId(batchUidService.getUid(qTProductInterfaceLink.getTableName()) + "");
-                tpil.setProductId(productIdArr[i]);
+                tpil.setProductId(productIdArr.getString(i));
                 tpil.setInterfaceId(id);
                 tpil.setCreatedTime(new Date());
                 productInterfaceLinkService.post(tpil);
             }
             //替换接口参数
             interfaceParamService.deleteProductInterfaceLinkById(id);
-            if (StringUtils.isNotBlank(paramInOut)) {
-                JSONArray jsonArr = JSON.parseArray(paramInOut);
-                for (int j = 0; j < jsonArr.size(); j++) {
-                    JSONObject jsonObj = jsonArr.getJSONObject(j);
-                    TInterfaceParam tip = new TInterfaceParam();
-                    tip.setId(batchUidService.getUid(qTInterfaceParam.getTableName()) + "");
-                    tip.setParamName(jsonObj.getString("name"));
-                    tip.setParamInstruction(jsonObj.getString("instruction"));
-                    tip.setInterfaceId(id);
-                    tip.setParamType(jsonObj.getString("type"));
-                    tip.setParamLength(jsonObj.getString("name").length());
-                    tip.setParamInOut(jsonObj.getString("inOut"));
-                    tip.setCreatedTime(new Date());
-                    interfaceParamService.post(tip);
-                }
+            JSONArray inParamList = jsonObj.getJSONArray("inParamList");
+            for (int i = 0; i < inParamList.size(); i++) {
+                TInterfaceParam tip = new TInterfaceParam();
+                tip.setId(batchUidService.getUid(qTInterfaceParam.getTableName()) + "");
+                tip.setInterfaceId(id);
+                JSONObject obj = inParamList.getJSONObject(i);
+                tip.setParamName(obj.getString("paramName"));
+                tip.setParamType(obj.getString("paramType"));
+                tip.setParamInstruction(obj.getString("paramInstruction"));
+                tip.setParamLength(obj.getString("paramName").length());
+                tip.setParamInOut("1");
+                tip.setCreatedTime(new Date());
+                interfaceParamService.post(tip);
+            }
+            JSONArray outParamList = jsonObj.getJSONArray("outParamList");
+            for (int i = 0; i < outParamList.size(); i++) {
+                TInterfaceParam tip = new TInterfaceParam();
+                tip.setId(batchUidService.getUid(qTInterfaceParam.getTableName()) + "");
+                tip.setInterfaceId(id);
+                JSONObject obj = outParamList.getJSONObject(i);
+                tip.setParamName(obj.getString("paramName"));
+                tip.setParamType(obj.getString("paramType"));
+                tip.setParamInstruction(obj.getString("paramInstruction"));
+                tip.setParamLength(obj.getString("paramName").length());
+                tip.setParamInOut("2");
+                tip.setCreatedTime(new Date());
+                interfaceParamService.post(tip);
             }
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "标准接口修改成功!", id);
         } catch (Exception e) {
@@ -489,9 +511,15 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             InterfaceDto iDto = new InterfaceDto();
             BeanUtils.copyProperties(ti, iDto);
             //获取产品id
-            TBusinessInterface tbi = businessInterfaceService.getProductIdByInterfaceId(id);
-            iDto.setProductId(tbi.getProductId());
-            iDto.setOutParamFormat(tbi.getOutParamFormat());
+            List<TProductInterfaceLink> list = productInterfaceLinkService.getObjByInterface(id);
+            String productIdStr = "";
+            for (int i = 0; i < list.size(); i++) {
+                productIdStr += list.get(i).getProductId();
+                if (i < list.size() - 1) {
+                    productIdStr += ",";
+                }
+            }
+            iDto.setProductId(productIdStr);
             //获取接口参数
             List<TInterfaceParam> paramsList = interfaceParamService.getParamsByInterfaceId(id);
             List<Map<String, String>> inParamList = new ArrayList<>();//入参

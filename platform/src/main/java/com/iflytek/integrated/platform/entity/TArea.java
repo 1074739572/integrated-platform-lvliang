@@ -29,7 +29,7 @@ public class TArea implements Serializable {
     /**
      * 省市区
      */
-    private List<TArea> child;
+    private List<TArea> children;
 
     public String getId() {
         return id;
@@ -103,12 +103,12 @@ public class TArea implements Serializable {
         this.updatedTime = updatedTime;
     }
 
-    public List<TArea> getChild() {
-        return child;
+    public List<TArea> getChildren() {
+        return children;
     }
 
-    public void setChild(List<TArea> child) {
-        this.child = child;
+    public void setChildren(List<TArea> children) {
+        this.children = children;
     }
 }
 

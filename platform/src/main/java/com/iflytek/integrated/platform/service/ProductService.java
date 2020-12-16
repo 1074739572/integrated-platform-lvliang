@@ -197,7 +197,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     @GetMapping("/getFuncByPro")
     public ResultDto getFuncByPro(String productId){
         if(StringUtils.isEmpty(productId)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "","产品id不能为空");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "产品id不能为空","产品id不能为空");
         }
         List<TFunction> functions = sqlQueryFactory.select(
                 Projections.bean(
@@ -209,7 +209,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             ).from(qTFunction)
                 .leftJoin(qTProductFunctionLink).on(qTProductFunctionLink.functionId.eq(qTFunction.id))
                 .where(qTProductFunctionLink.productId.eq(productId)).fetch();
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"",functions);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"根据产品获取功能成功",functions);
     }
 
     /**

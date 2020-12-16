@@ -126,7 +126,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "插件新增/编辑")
     @PostMapping("/saveAndUpdatePlugin")
-    public ResultDto saveAndUpdateProduct(@RequestBody TPlugin plugin){
+    public ResultDto saveAndUpdatePlugin(@RequestBody TPlugin plugin){
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(plugin);
         if (validationResult.isHasErrors()) {

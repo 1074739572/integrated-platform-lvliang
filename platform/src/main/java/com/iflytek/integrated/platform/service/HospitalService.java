@@ -131,8 +131,8 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
                     .set(qTHospital.id, batchUidService.getUid(qTHospital.getTableName())+"")
                     .set(qTHospital.areaId,hospital.getAreaId())
                     .set(qTHospital.status,Constant.Status.YES)
-                    .set(qTHospital.hospitalCode,hospital.getHospitalName())
-                    .set(qTHospital.hospitalName,hospital.getHospitalCode())
+                    .set(qTHospital.hospitalCode,hospital.getHospitalCode())
+                    .set(qTHospital.hospitalName,hospital.getHospitalName())
                     .set(qTHospital.createdBy,"")
                     .set(qTHospital.createdTime,new Date()).execute();
             if(lon <= 0){
