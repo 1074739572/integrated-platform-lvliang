@@ -1,9 +1,11 @@
 package com.iflytek.integrated.platform.service;
 
 import com.iflytek.integrated.common.Constant;
+import com.iflytek.integrated.common.GroovyValidate;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.platform.utils.ToolsGenerate;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.TDrive;
 import com.iflytek.integrated.platform.validator.ValidationResult;
@@ -52,6 +54,8 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
     private BatchUidService batchUidService;
     @Autowired
     private ValidatorHelper validatorHelper;
+    @Autowired
+    private ToolsGenerate toolsGenerate;
 
     @ApiOperation(value = "获取驱动下拉")
     @GetMapping("/getAllDrive")
@@ -100,6 +104,18 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
         }catch (Exception e){
             logger.error("获取驱动管理列表失败!", ExceptionUtil.dealException(e));
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "", ExceptionUtil.dealException(e));
+        }
+    }
+
+    @ApiOperation(value = "校验groovy脚本格式是否正确")
+    @PostMapping("/groovyValidate")
+    public ResultDto groovyValidate(String content){
+        GroovyValidate result = toolsGenerate.groovyUrl(content);
+        if(GroovyValidate.RESULT.SUCCESS.getType().equals(result.getValidResult())){
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", result);
+        }
+        else {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", result);
         }
     }
 

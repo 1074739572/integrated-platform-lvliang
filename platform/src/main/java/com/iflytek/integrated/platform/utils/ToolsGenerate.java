@@ -1,6 +1,8 @@
 package com.iflytek.integrated.platform.utils;
 
+import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.Constant;
+import com.iflytek.integrated.common.GroovyValidate;
 import com.iflytek.integrated.common.HttpResult;
 import com.iflytek.integrated.common.utils.HttpClientUtil;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
@@ -26,6 +28,12 @@ public class ToolsGenerate {
 
     @Value("${param.jolt.url}")
     private String joltUrl;
+
+    @Value("${param.interface.debug}")
+    private String interfaceDebug;
+
+    @Value("${param.groovy.url}")
+    private String groovyUrl;
 
     @Autowired
     public SQLQueryFactory sqlQueryFactory;
@@ -87,12 +95,8 @@ public class ToolsGenerate {
      * @return
      */
     public String generateJolt(String format, String content){
-        String contentType = Constant.ParamFormatType.getByType(content);
-        if(StringUtils.isBlank(contentType) || Constant.ParamFormatType.NONE.getType().equals(contentType)){
-            throw new RuntimeException("参数类型无效");
-        }
         try {
-            String url = MessageFormat.format(joltUrl,contentType);
+            String url = MessageFormat.format(joltUrl,content);
             HttpResult result = HttpClientUtil.doPost(url,format);
             return result.getContent();
         }
@@ -100,4 +104,35 @@ public class ToolsGenerate {
             return "";
         }
     }
+
+    /**
+     * 校验groovy脚本格式是否正确
+     * @param content
+     * @return
+     */
+    public GroovyValidate groovyUrl(String content){
+        try {
+            HttpResult result = HttpClientUtil.doPost(groovyUrl,content);
+            return JSONObject.parseObject(result.getContent(),GroovyValidate.class);
+        }
+        catch (Exception e){
+            throw new RuntimeException("调取校验groovy接口错误");
+        }
+    }
+
+    /**
+     * 调试接口
+     * @param format
+     * @return
+     */
+    public String interfaceDebug(String format){
+        try {
+            HttpResult result = HttpClientUtil.doPost(interfaceDebug,format);
+            return result.getContent();
+        }
+        catch (Exception e){
+            return "";
+        }
+    }
+
 }

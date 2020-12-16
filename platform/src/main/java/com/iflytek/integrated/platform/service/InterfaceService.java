@@ -147,6 +147,13 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         }
     }
 
+    @PostMapping("/interfaceDebug")
+    @ApiOperation(value = "接口调试", notes = "接口调试")
+    public ResultDto interfaceDebug(String format){
+        String result = toolsGenerate.interfaceDebug(format);
+
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", result);
+    }
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "标准接口删除", notes = "标准接口删除")
@@ -492,7 +499,11 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @ApiOperation(value = "根据参数格式获取jolt", notes = "根据参数格式获取jolt")
     @GetMapping("/paramFormatJolt")
     public ResultDto paramFormatJolt(String paramFormat, String content){
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "成功", toolsGenerate.generateJolt(paramFormat, content));
+        String contentType = Constant.ParamFormatType.getByType(content);
+        if(StringUtils.isBlank(contentType) || Constant.ParamFormatType.NONE.getType().equals(contentType)){
+            throw new RuntimeException("参数类型无效");
+        }
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "成功", toolsGenerate.generateJolt(paramFormat, contentType));
     }
 
 
