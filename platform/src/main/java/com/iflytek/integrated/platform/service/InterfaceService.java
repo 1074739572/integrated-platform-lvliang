@@ -506,8 +506,11 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @ApiOperation(value = "获取标准接口详情", notes = "获取标准接口详情")
     @GetMapping("/getInterfaceInfoById")
     public ResultDto getInterfaceInfoById(@ApiParam(value = "标准接口id") @RequestParam(value = "id", required = true) String id) {
+        TInterface ti = this.getOne(id);
+        if (ti == null) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据id未查出该标准接口!", id);
+        }
         try {
-            TInterface ti = this.getOne(id);
             InterfaceDto iDto = new InterfaceDto();
             BeanUtils.copyProperties(ti, iDto);
             //获取产品id

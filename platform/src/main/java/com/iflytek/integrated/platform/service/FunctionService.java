@@ -36,7 +36,7 @@ public class FunctionService extends QuerydslService<TFunction, String, TFunctio
     @ApiOperation(value = "获取产品功能下拉")
     @GetMapping("/getDisFunction")
     public ResultDto getDisFunction() {
-        List<TFunction> drives = sqlQueryFactory.select(
+        List<TFunction> functions = sqlQueryFactory.select(
                 Projections.bean(
                         TFunction.class,
                         qTFunction.id,
@@ -44,7 +44,7 @@ public class FunctionService extends QuerydslService<TFunction, String, TFunctio
                         qTFunction.functionName
                 )
         ).from(qTFunction).orderBy(qTFunction.updatedTime.desc()).fetch();
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"获取产品功能下拉成功", drives);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"获取产品功能下拉成功", functions);
     }
 
 
