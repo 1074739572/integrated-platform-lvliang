@@ -2,6 +2,7 @@ package com.kvn.mockj.handler;
 
 import com.alibaba.fastjson.JSONArray;
 import com.kvn.mockj.Context;
+import com.kvn.mockj.Function;
 import com.kvn.mockj.Handler;
 import com.kvn.mockj.Options;
 import org.apache.commons.lang3.RandomUtils;
@@ -19,18 +20,16 @@ public class ArrayHandler implements TypeHandler {
 
     @Override
     public Object handle(Options options) {
-        // 'name|1': []
-        // 'name|count': []
-        // 'name|min-max': []
-
-        // 'arr': [{ 'email': '@EMAIL' }, { 'email': '@EMAIL' }]
+        //如果是数组形式，随机返回多条
         if (options.getRule().getParameters() == null || options.getRule().getParameters().isEmpty()) {
             JSONArray jaR = new JSONArray();
 
-            JSONArray templates = (JSONArray) options.getTemplate();
-            for (int i = 0; i < templates.size(); i++) {
-                Context context = new Context();
-                jaR.add(Handler.gen(templates.get(i), i + "", context));
+            for (int size = 0; size < Function.$integer(Function.arraySize);size ++){
+                JSONArray templates = (JSONArray) options.getTemplate();
+                for (int i = 0; i < templates.size(); i++) {
+                    Context context = new Context();
+                    jaR.add(Handler.gen(templates.get(i), i + "", context));
+                }
             }
 
             return jaR;

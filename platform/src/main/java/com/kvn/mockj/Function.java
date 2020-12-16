@@ -11,7 +11,6 @@ import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
 
@@ -33,11 +32,16 @@ public class Function {
     @Value("${mock.number.max}")
     public String mockNumberMax;
 
+    @Value("${mock.array.size}")
+    public String mockArraySize;
+
     public static String stringLen;
 
     public static String numberMin;
 
     public static String numberMax;
+
+    public static String arraySize;
 
     @PostConstruct
     public void init(){
@@ -45,6 +49,7 @@ public class Function {
         Function.stringLen = mockStringLen;
         Function.numberMin = mockNumberMin;
         Function.numberMax = mockNumberMax;
+        Function.arraySize = mockArraySize;
     }
 
     public static boolean $boolean(String paramStr){
