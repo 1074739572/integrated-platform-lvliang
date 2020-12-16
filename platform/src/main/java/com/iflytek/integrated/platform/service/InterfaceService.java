@@ -466,7 +466,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     }
 
     @ApiOperation(value = "根据参数格式获取jolt", notes = "根据参数格式获取jolt")
-    @GetMapping("/generateJoltSchema")
+    @GetMapping("/paramFormatJolt")
     public ResultDto paramFormatJolt(String paramFormat){
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "成功", toolsGenerate.generateJolt(paramFormat));
     }

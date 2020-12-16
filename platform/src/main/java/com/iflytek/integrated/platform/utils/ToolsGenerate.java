@@ -10,8 +10,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
-import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
-
 /**
  * @author czzhan
  * 调取接口生成schema，jolt
@@ -73,7 +71,7 @@ public class ToolsGenerate {
      */
     public String generateJolt(String format){
         try {
-            HttpResult result = HttpClientUtil.doPost(schemaUrl,format);
+            HttpResult result = HttpClientUtil.doPost(joltUrl,format);
             return result.getContent();
         }
         catch (Exception e){
