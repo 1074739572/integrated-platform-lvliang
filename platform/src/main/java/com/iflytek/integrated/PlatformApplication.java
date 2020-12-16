@@ -1,5 +1,6 @@
 package com.iflytek.integrated;
 
+import com.kvn.mockj.Function;
 import com.querydsl.sql.Configuration;
 import com.querydsl.sql.MySQLTemplates;
 import com.querydsl.sql.SQLQueryFactory;
@@ -9,6 +10,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.datasource.DataSourceUtils;
+
 import javax.sql.DataSource;
 
 /**
@@ -29,6 +31,11 @@ public class PlatformApplication {
         return new SQLQueryFactory(
                 configuration,
                 () -> DataSourceUtils.getConnection(dataSource));
+    }
+
+    @Bean
+    public Function Function(){
+        return new Function();
     }
 
     public static void main(String[] args) {

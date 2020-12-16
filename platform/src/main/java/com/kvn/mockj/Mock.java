@@ -9,7 +9,6 @@ import com.alibaba.fastjson.JSONObject;
 public class Mock {
 
     public static String mock(String template){
-        new Function();
         JSONObject jsonT = JSON.parseObject(template);
         Object rlt = Handler.gen(jsonT, null, new Context());
         return JSON.toJSONString(rlt);
