@@ -5,6 +5,7 @@ import com.querydsl.sql.Configuration;
 import com.querydsl.sql.MySQLTemplates;
 import com.querydsl.sql.SQLQueryFactory;
 import com.querydsl.sql.SpringSqlCloseListener;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -18,6 +19,18 @@ import javax.sql.DataSource;
  */
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
 public class PlatformApplication {
+
+    @Value("${mock.string.len}")
+    public String mockStringLen;
+
+    @Value("${mock.number.min}")
+    public String mockNumberMin;
+
+    @Value("${mock.number.max}")
+    public String mockNumberMax;
+
+    @Value("${mock.array.size}")
+    public String mockArraySize;
 
     /**
      * 定义queryFactory配置
@@ -35,7 +48,7 @@ public class PlatformApplication {
 
     @Bean
     public Function Function(){
-        return new Function();
+        return new Function(mockStringLen, mockNumberMin, mockNumberMax, mockArraySize);
     }
 
     public static void main(String[] args) {

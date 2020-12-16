@@ -18,22 +18,9 @@ import java.util.Random;
  * 扩展函数
  * @author
  */
-@Component
 public class Function {
     private static final Random RANDOM = new Random();
     private static final String LETTERS = "abcdefghijklmnopqrstuvwxyz";
-
-    @Value("${mock.string.len}")
-    public String mockStringLen;
-
-    @Value("${mock.number.min}")
-    public String mockNumberMin;
-
-    @Value("${mock.number.max}")
-    public String mockNumberMax;
-
-    @Value("${mock.array.size}")
-    public String mockArraySize;
 
     public static String stringLen;
 
@@ -43,8 +30,7 @@ public class Function {
 
     public static String arraySize;
 
-    @PostConstruct
-    public void init(){
+    public Function(String mockStringLen, String mockNumberMin, String mockNumberMax, String mockArraySize){
         //初始化配置
         Function.stringLen = mockStringLen;
         Function.numberMin = mockNumberMin;
