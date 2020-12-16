@@ -1,6 +1,7 @@
 package com.kvn.mockj;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 
 /**
@@ -9,9 +10,13 @@ import com.alibaba.fastjson.JSONObject;
 public class Mock {
 
     public static String mock(String template){
-        JSONObject jsonT = JSON.parseObject(template);
-        Object rlt = Handler.gen(jsonT, null, new Context());
-        return JSON.toJSONString(rlt);
+        try {
+            JSONObject jsonT = JSON.parseObject(template);
+            Object rlt = Handler.gen(jsonT, null, new Context());
+            return JSON.toJSONString(rlt);
+        }catch (JSONException e){
+            throw new RuntimeException("解析JSON失败，格式有错误");
+        }
     }
 
     public static String mock(String template, Context context){
