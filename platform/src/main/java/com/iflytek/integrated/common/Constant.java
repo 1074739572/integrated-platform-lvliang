@@ -132,4 +132,44 @@ public class Constant {
 
         public static String OUT = "2";
     }
+
+    /**
+     * 参数格式类型枚举
+     */
+    public enum ParamFormatType {
+
+        //无格式
+        NONE("1", "无"),
+
+        //xml格式
+        XML("2","xml"),
+
+        //json格式
+        JSON("3","json");
+
+        private String code;
+        private String type;
+
+        ParamFormatType(String code, String type) {
+            this.code = code;
+            this.type = type;
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public static String getByType(String code) {
+            for(ParamFormatType formatType : values()) {
+                if(formatType.getCode().equals(code)) {
+                    return formatType.getType();
+                }
+            }
+            return null;
+        }
+    }
 }
