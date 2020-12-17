@@ -158,8 +158,9 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
             @ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
             @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
         ArrayList<Predicate> list = new ArrayList<>();
-        if (StringUtils.isNotBlank(vendorName))
+        if (StringUtils.isNotBlank(vendorName)) {
             list.add(qTVendor.vendorName.like(Utils.createFuzzyText(vendorName)));
+        }
         QueryResults<TVendor> queryResults = sqlQueryFactory.select(qTVendor).from(qTVendor)
                 .where(list.toArray(new Predicate[list.size()]))
                 .limit(pageSize).offset((pageNo - 1) * pageSize)
@@ -172,7 +173,9 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
             String driveNameStr = "";
             for (int i = 0; i < tvdList.size(); i++) {
                 driveNameStr += tvdList.get(i).getDriveName();
-                if (i <tvdList.size()- 1) driveNameStr += " | ";
+                if (i <tvdList.size()- 1) {
+                    driveNameStr += " | ";
+                }
             }
             tv.setDriveName(driveNameStr);
         }
@@ -192,7 +195,8 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
             for (TVendorConfig obj : VCList) {
                 VendorConfigDto vcd = new VendorConfigDto();
                 BeanUtils.copyProperties(obj, vcd);
-                TVendor tv = this.getOne(vcd.getVendorId());//厂商信息
+                //厂商信息
+                TVendor tv = this.getOne(vcd.getVendorId());
                 if (tv != null) {
                     vcd.setVendorCode(tv.getVendorCode());
                     vcd.setVendorName(tv.getVendorName());
@@ -201,8 +205,10 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
                 List<Map<String, String>> hospitalConfigList = new ArrayList<>();
                 for (int i= 0; i < hvlvcList.size(); i++) {
                     Map<String, String> map = new HashMap<>();
-                    map.put("vendorHospitalId", hvlvcList.get(i).getVendorHospitalId());//厂商医院id
-                    THospital h = hospitalService.getOne(hvlvcList.get(i).getHospitalId());//医院信息
+                    //厂商医院id
+                    map.put("vendorHospitalId", hvlvcList.get(i).getVendorHospitalId());
+                    //医院信息
+                    THospital h = hospitalService.getOne(hvlvcList.get(i).getHospitalId());
                     if (h != null) {
                         map.put("hospitalCode", h.getHospitalCode());
                         map.put("hospitalName", h.getHospitalName());

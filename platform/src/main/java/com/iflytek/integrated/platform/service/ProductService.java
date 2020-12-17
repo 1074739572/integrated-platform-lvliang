@@ -108,10 +108,17 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     @ApiOperation(value = "产品管理新增/编辑")
     @PostMapping("/saveAndUpdateProduct")
     public ResultDto saveAndUpdateProduct(@RequestBody JSONObject jsonObj) {
-        if (StringUtils.isBlank(jsonObj.getString("id"))) {
-            return saveProduct(jsonObj);
+        String id = jsonObj.getString("id");
+        TProductFunctionLink link = addOrGetLink(jsonObj.getString("productName"), jsonObj.getString("functionName"));
+        boolean existence = isExistence(id, link.getProductId(), link.getFunctionId());
+        if (existence) {
+            throw new RuntimeException("产品和功能关系已存在");
         }else {
-            return updateProduct(jsonObj);
+            if (StringUtils.isBlank(id)) {
+                return saveProduct(jsonObj);
+            }else {
+                return updateProduct(jsonObj);
+            }
         }
     }
 
@@ -159,7 +166,8 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         String productId = jsonObj.getString("productId");
         String productName = jsonObj.getString("productName");
         String functionId = jsonObj.getString("functionId");
-        if (StringUtils.isBlank(productId)) { //新增产品
+        //新增产品
+        if (StringUtils.isBlank(productId)) {
             productId = batchUidService.getUid(qTProduct.getTableName()) + "";
             TProduct tp = new TProduct();
             tp.setId(productId);
@@ -169,7 +177,8 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             tp.setCreatedTime(new Date());
             this.post(tp);
         }
-        if (StringUtils.isBlank(functionId)) { //新增功能
+        //新增功能
+        if (StringUtils.isBlank(functionId)) {
             functionId = batchUidService.getUid(qTFunction.getTableName()) + "";
             String functionName = jsonObj.getString("functionName");
             TFunction tf = new TFunction();
@@ -290,7 +299,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
      * @param productId
      * @param functionId
      */
-    private void isExistence(String linkId, String productId, String functionId){
+    private boolean isExistence(String linkId, String productId, String functionId) {
         //校验是否存在重复产品和功能关系
         ArrayList<Predicate> list = new ArrayList<>();
         list.add(qTProductFunctionLink.functionId.eq(functionId));
@@ -301,8 +310,9 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         List<String> links = sqlQueryFactory.select(qTProductFunctionLink.id).from(qTProductFunctionLink)
                 .where(list.toArray(new Predicate[list.size()])).fetch();
         if(CollectionUtils.isNotEmpty(links)){
-            throw new RuntimeException("产品和功能关系已存在");
+            return true;
         }
+        return false;
     }
 
 }

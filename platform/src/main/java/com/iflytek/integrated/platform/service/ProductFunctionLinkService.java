@@ -35,13 +35,6 @@ public class ProductFunctionLinkService extends QuerydslService<TProductFunction
         super(qTProductFunctionLink, qTProductFunctionLink.id);
     }
 
-    /**
-     * 根据id删除产品与功能关联信息
-     * @param id
-     */
-    public void deleteProductFunctionLinkById(String id) {
-        sqlQueryFactory.delete(qTProductFunctionLink).where(qTProductFunctionLink.id.eq(id)).execute();
-    }
 
     /**
      * 获取产品-功能关联对象
@@ -73,7 +66,7 @@ public class ProductFunctionLinkService extends QuerydslService<TProductFunction
         }
         QueryResults<TProductFunctionLink> queryResults = sqlQueryFactory.select(Projections.bean(TProductFunctionLink.class,
                     qTProductFunctionLink.id, qTProductFunctionLink.productId, qTProductFunctionLink.functionId, qTProductFunctionLink.createdTime,
-                    qTProduct.productName.as("productName"), qTFunction.functionName.as("functionName")))
+                    qTProductFunctionLink.updatedTime,qTProduct.productName.as("productName"), qTFunction.functionName.as("functionName")))
                     .from(qTProductFunctionLink)
                     .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
                     .leftJoin(qTFunction).on(qTFunction.id.eq(qTProductFunctionLink.functionId))

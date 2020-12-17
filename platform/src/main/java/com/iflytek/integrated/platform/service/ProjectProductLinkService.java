@@ -35,12 +35,4 @@ public class ProjectProductLinkService extends QuerydslService<TProjectProductLi
                 .where(qTProjectProductLink.projectId.eq(projectId)).fetch();
     }
 
-    /**
-     * 根据id删除项目与产品关联信息
-     * @param id
-     */
-    public void deleteProjectProductLinkById(String id) {
-        sqlQueryFactory.delete(qTProjectProductLink).where(qTProjectProductLink.id.eq(id)).execute();
-    }
-
 }

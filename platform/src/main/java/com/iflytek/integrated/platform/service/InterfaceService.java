@@ -344,14 +344,15 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                     qTInterface.id,
                     qTInterface.interfaceName,
                     qTInterface.interfaceUrl,
+                    qTInterface.interfaceFormat,
                     qTInterface.updatedTime,
                     qTInterfaceType.interfaceTypeName,
                     sqlQueryFactory.select(qTInterfaceParam.id.count()).from(qTInterfaceParam)
-                            .where((qTInterfaceParam.paramInOut.eq(Constant.ParmInOut.IN)).
-                            and(qTInterfaceParam.interfaceId.eq(qTInterface.id))).as("inParamCount"),
+                            .where((qTInterfaceParam.paramInOut.eq(Constant.ParmInOut.IN))
+                            .and(qTInterfaceParam.interfaceId.eq(qTInterface.id))).as("inParamCount"),
                     sqlQueryFactory.select(qTInterfaceParam.id.count()).from(qTInterfaceParam)
-                            .where((qTInterfaceParam.paramInOut.eq(Constant.ParmInOut.OUT)).
-                            and(qTInterfaceParam.interfaceId.eq(qTInterface.id))).as("outParamCount")
+                            .where((qTInterfaceParam.paramInOut.eq(Constant.ParmInOut.OUT))
+                            .and(qTInterfaceParam.interfaceId.eq(qTInterface.id))).as("outParamCount")
                 )
             ).from(qTInterface)
                     .leftJoin(qTInterfaceType).on(qTInterfaceType.id.eq(qTInterface.interfaceTypeId))
@@ -479,6 +480,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 
             //获取schema
             toolsGenerate.generateSchemaToInterface(obj);
+
             if (StringUtils.isBlank(obj.getId())) {
                 //新增接口配置
                 obj.setId(batchUidService.getUid(qTBusinessInterface.getTableName())+"");

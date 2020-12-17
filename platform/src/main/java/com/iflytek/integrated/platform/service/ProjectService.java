@@ -311,8 +311,8 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
         List<TProjectProductLink> list = projectProductLinkService.findProjectProductLinkByProjectId(projectId);
         for (TProjectProductLink obj : list) {
             String productFunctionLinkId = obj.getProductFunctionLinkId();
-            productFunctionLinkService.deleteProductFunctionLinkById(productFunctionLinkId);
-            projectProductLinkService.deleteProjectProductLinkById(obj.getId());
+            productFunctionLinkService.delete(productFunctionLinkId);
+            projectProductLinkService.delete(obj.getId());
         }
     }
 
