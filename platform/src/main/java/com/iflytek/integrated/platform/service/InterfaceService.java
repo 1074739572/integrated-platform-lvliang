@@ -152,8 +152,10 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @ApiOperation(value = "接口调试", notes = "接口调试")
     public ResultDto interfaceDebug(String format){
         InterfaceDebugDto result = toolsGenerate.interfaceDebug(format);
-
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", result);
+        if(StringUtils.isNotBlank(result.getError())){
+            return new ResultDto(Constant.ResultCode.ERROR_CODE,"接口调试失败",result.getError());
+        }
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", result.getList());
     }
 
     @Transactional(rollbackFor = Exception.class)

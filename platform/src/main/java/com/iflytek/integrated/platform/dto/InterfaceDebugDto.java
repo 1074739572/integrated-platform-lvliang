@@ -13,4 +13,7 @@ public class InterfaceDebugDto {
 
     private String error;
 
+    private String state;
+
+    private String list;
 }
