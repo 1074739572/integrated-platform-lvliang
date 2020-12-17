@@ -20,7 +20,6 @@ import java.text.MessageFormat;
  * 调取接口生成schema，jolt
  */
 @Component
-@PropertySource(value = {"classpath:config.properties"}, encoding = "utf-8")
 public class ToolsGenerate {
 
     @Value("${param.schema.url}")
