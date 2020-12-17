@@ -51,6 +51,8 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
     @Autowired
     private ProductFunctionLinkService productFunctionLinkService;
     @Autowired
+    private ProjectService projectService;
+    @Autowired
     private BatchUidService batchUidService;
     @Autowired
     private Utils utils;
@@ -105,12 +107,22 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
     private ResultDto saveProject(JSONObject jsonObj) {
         try {
             String projectId = batchUidService.getUid(qTProject.getTableName())+"";
-            sqlQueryFactory.insert(qTProject).set(qTProject.id, projectId)
-                         .set(qTProject.projectName, jsonObj.getString("projectName"))
-                         .set(qTProject.projectCode, utils.generateCode(qTProject, qTProject.projectCode, jsonObj.getString("projectName")))
-                         .set(qTProject.projectStatus, Constant.Status.START)
-                         .set(qTProject.projectType, jsonObj.getString("projectType"))
-                         .set(qTProject.createdTime, new Date()).execute();
+
+//            sqlQueryFactory.insert(qTProject).set(qTProject.id, projectId)
+//                         .set(qTProject.projectName, jsonObj.getString("projectName"))
+//                         .set(qTProject.projectCode, utils.generateCode(qTProject, qTProject.projectCode, jsonObj.getString("projectName")))
+//                         .set(qTProject.projectStatus, Constant.Status.START)
+//                         .set(qTProject.projectType, jsonObj.getString("projectType"))
+//                         .set(qTProject.createdTime, new Date()).execute();
+            TProject project = new TProject();
+            project.setId(projectId);
+            project.setProjectName(jsonObj.getString("projectName"));
+            project.setProjectCode(utils.generateCode(qTProject, qTProject.projectCode, jsonObj.getString("projectName")));
+            project.setProjectStatus(Constant.Status.START);
+            project.setProjectType(jsonObj.getString("projectType"));
+            project.setCreatedTime(new Date());
+            projectService.post(project);
+
             JSONArray productList = jsonObj.getJSONArray("productList");
             for (int i = 0; i < productList.size(); i++) {
                 JSONObject pObj = productList.getJSONObject(i);
@@ -147,10 +159,16 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
         try {
             String projectId = jsonObj.getString("id");
             this.deleteProjectById(projectId);
-            sqlQueryFactory.update(qTProject).set(qTProject.projectName, jsonObj.getString("projectName"))
-                    .set(qTProject.projectType, jsonObj.getString("projectType"))
-                    .set(qTProject.updatedTime, new Date())
-                    .where(qTProject.id.eq(projectId)).execute();
+//            sqlQueryFactory.update(qTProject).set(qTProject.projectName, jsonObj.getString("projectName"))
+//                    .set(qTProject.projectType, jsonObj.getString("projectType"))
+//                    .set(qTProject.updatedTime, new Date())
+//                    .where(qTProject.id.eq(projectId)).execute();
+            TProject project = new TProject();
+            project.setProjectName(jsonObj.getString("projectName"));
+            project.setProjectType(jsonObj.getString("projectType"));
+            project.setUpdatedTime(new Date());
+            projectService.put(projectId,project);
+
             JSONArray productList = jsonObj.getJSONArray("productList");
             for (int i = 0; i < productList.size(); i++) {
                 JSONObject pObj = productList.getJSONObject(i);
