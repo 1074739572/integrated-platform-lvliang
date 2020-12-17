@@ -417,10 +417,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 
     @ApiOperation(value = "获取接口配置详情")
     @GetMapping("/getInterfaceConfigInfoById")
-    public ResultDto getInterfaceConfigInfoById(String id){
-        if(StringUtils.isEmpty(id)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "id不能为空", null);
-        }
+    public ResultDto getInterfaceConfigInfoById(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
         TBusinessInterface tBusinessInterface = sqlQueryFactory.select(
                 Projections.bean(
                     TBusinessInterface.class,
@@ -440,7 +437,8 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                         qTBusinessInterface.inParamFormatType,
                         qTBusinessInterface.outParamFormat,
                         qTBusinessInterface.outParamSchema,
-                        qTBusinessInterface.outParamTemplate
+                        qTBusinessInterface.outParamTemplate,
+                        qTBusinessInterface.outParamFormatType
                 )
             ).from(qTBusinessInterface)
                 .leftJoin(qTProductFunctionLink).on(qTBusinessInterface.productFunctionLinkId.eq(qTProductFunctionLink.id))
@@ -454,7 +452,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增/更新接口配置", notes = "新增/更新接口配置")
     @PostMapping("/saveAndUpdateInterfaceConfig")
-    public ResultDto saveAndUpdateInterfaceConfig(@RequestBody TBusinessInterface obj) {
+    public ResultDto saveAndUpdateInterfaceConfig(@RequestBody TBusinessInterface obj) {//???
         if (obj == null) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "请求参数有误!", null);
         }
@@ -463,7 +461,8 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             //厂商配置
             TVendorConfig vendorConfig = vendorConfigService.getObjByPlatformAndVendor(obj.getPlatformId(), obj.getVendorId());
             if (vendorConfig != null) {
-                obj.setVendorConfigId(vendorConfig.getId());//厂商配置id
+                //厂商配置id
+                obj.setVendorConfigId(vendorConfig.getId());
             }
             //产品与功能关联
             TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(obj.getProductId(), obj.getFunctionId());
@@ -475,7 +474,8 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                 tpfl.setCreatedTime(new Date());
                 productFunctionLinkService.post(tpfl);
             }
-            obj.setProductFunctionLinkId(tpfl.getId());//存储产品功能关联id
+            //存储产品功能关联id
+            obj.setProductFunctionLinkId(tpfl.getId());
 
             //获取schema
             toolsGenerate.generateSchemaToInterface(obj);

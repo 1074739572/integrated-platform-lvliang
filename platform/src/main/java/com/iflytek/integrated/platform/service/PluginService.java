@@ -86,6 +86,8 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
                             qTPlugin.id,
                             qTPlugin.pluginName,
                             qTPlugin.pluginCode,
+                            qTPlugin.pluginContent,
+                            qTPlugin.pluginInstruction,
                             qTPlugin.updatedTime
                     ))
                     .from(qTPlugin)
@@ -136,33 +138,15 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
         isExistence(plugin.getId(),plugin.getPluginName(),plugin.getPluginCode());
         if(StringUtils.isEmpty(plugin.getId())){
             //新增插件
-            Long lon = sqlQueryFactory.insert(qTPlugin)
-                    .set(qTPlugin.id,batchUidService.getUid(qTPlugin.getTableName())+"")
-                    .set(qTPlugin.pluginName,plugin.getPluginName())
-                    .set(qTPlugin.pluginCode,plugin.getPluginCode())
-                    .set(qTPlugin.pluginInstruction,plugin.getPluginInstruction())
-                    .set(qTPlugin.pluginContent,plugin.getPluginContent())
-                    .set(qTPlugin.createdBy,"")
-                    .set(qTPlugin.createdTime,new Date()).execute();
-            if(lon <= 0){
-                throw new RuntimeException("新增插件失败");
-            }
+            plugin.setId(batchUidService.getUid(qTPlugin.getTableName())+"");
+            plugin.setCreatedTime(new Date());
+            this.post(plugin);
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"插件新增成功", plugin);
         }
-        else{
-            //编辑插件
-            Long lon = sqlQueryFactory.update(qTPlugin)
-                    .set(qTPlugin.pluginName,plugin.getPluginName())
-                    .set(qTPlugin.pluginCode,plugin.getPluginCode())
-                    .set(qTPlugin.pluginInstruction,plugin.getPluginInstruction())
-                    .set(qTPlugin.pluginContent,plugin.getPluginContent())
-                    .set(qTPlugin.updatedBy,"")
-                    .set(qTPlugin.updatedTime,new Date())
-                    .where(qTPlugin.id.eq(plugin.getId())).execute();
-            if(lon <= 0){
-                throw new RuntimeException("编辑插件失败");
-            }
-        }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"","插件新增或编辑成功");
+        //编辑插件
+        plugin.setUpdatedTime(new Date());
+        this.put(plugin.getId(), plugin);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"","插件编辑成功");
     }
 
     /**

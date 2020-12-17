@@ -90,6 +90,8 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
                             qTDrive.id,
                             qTDrive.driveCode,
                             qTDrive.driveName,
+                            qTDrive.driveContent,
+                            qTDrive.driveInstruction,
                             qTDrive.updatedTime
                     ))
                     .from(qTDrive)
@@ -152,33 +154,15 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
         isExistence(drive.getId(),drive.getDriveName(),drive.getDriveCode());
         if(StringUtils.isEmpty(drive.getId())){
             //新增驱动
-            Long lon = sqlQueryFactory.insert(qTDrive)
-                    .set(qTDrive.id,batchUidService.getUid(qTDrive.getTableName())+"")
-                    .set(qTDrive.driveName,drive.getDriveName())
-                    .set(qTDrive.driveCode,drive.getDriveCode())
-                    .set(qTDrive.driveInstruction,drive.getDriveInstruction())
-                    .set(qTDrive.driveContent,drive.getDriveContent())
-                    .set(qTDrive.createdBy,"")
-                    .set(qTDrive.createdTime,new Date()).execute();
-            if(lon <= 0){
-                throw new RuntimeException("新增驱动失败");
-            }
+            drive.setId(batchUidService.getUid(qTDrive.getTableName())+"");
+            drive.setCreatedTime(new Date());
+            this.post(drive);
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"驱动新增成功", drive);
         }
-        else{
-            //编辑驱动
-            Long lon = sqlQueryFactory.update(qTDrive)
-                    .set(qTDrive.driveName,drive.getDriveName())
-                    .set(qTDrive.driveCode,drive.getDriveCode())
-                    .set(qTDrive.driveInstruction,drive.getDriveInstruction())
-                    .set(qTDrive.driveContent,drive.getDriveContent())
-                    .set(qTDrive.updatedBy,"")
-                    .set(qTDrive.updatedTime,new Date())
-                    .where(qTDrive.id.eq(drive.getId())).execute();
-            if(lon <= 0){
-                throw new RuntimeException("编辑驱动失败");
-            }
-        }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"","驱动新增或编辑成功");
+        //编辑驱动
+        drive.setUpdatedTime(new Date());
+        this.put(drive.getId(), drive);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"驱动编辑成功", drive);
     }
 
     /**

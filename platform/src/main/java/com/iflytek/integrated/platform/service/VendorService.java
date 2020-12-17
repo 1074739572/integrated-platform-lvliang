@@ -255,7 +255,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
     @ApiOperation(value = "选择厂商下拉(可根据当前项目操作选择)")
     @GetMapping("/getDisVendor")
     public ResultDto getDisVendor(@ApiParam(value = "项目id") @RequestParam(value = "projectId", required = false) String projectId,
-                @ApiParam(value = "操作 1获取当前平台下的厂商 2获取非当前平台下的厂商") @RequestParam(defaultValue = "1", value = "status", required = false) String status) {
+                @ApiParam(value = "操作 1获取当前项目下的厂商 2获取非当前项目下的厂商") @RequestParam(defaultValue = "1", value = "status", required = false) String status) {
         List<TVendor> vendors = null;
         if (StringUtils.isNotBlank(projectId) && "1".equals(status)) {
             //返回当前项目下的厂商
