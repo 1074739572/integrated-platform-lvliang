@@ -1,10 +1,10 @@
 package com.iflytek.integrated.platform.dto;
 
 import com.iflytek.integrated.platform.entity.TInterface;
+import com.iflytek.integrated.platform.entity.TInterfaceParam;
 import lombok.Data;
 
 import java.util.List;
-import java.util.Map;
 
 /**
 * 标准接口信息
@@ -16,6 +16,8 @@ public class InterfaceDto extends TInterface {
 
     private String productId;
 
+    private List<String> productIds;
+
     /**
      * 出参格式
      */
@@ -23,11 +25,11 @@ public class InterfaceDto extends TInterface {
     /**
      * 接口入参
      */
-    private List<Map<String, String>> inParamList;
+    private List<TInterfaceParam> inParamList;
     /**
      * 接口出参
      */
-    private List<Map<String, String>> outParamList;
+    private List<TInterfaceParam> outParamList;
 
 
 }

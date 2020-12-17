@@ -134,23 +134,18 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
     }
 
 
+    @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "删除厂商", notes = "删除厂商")
     @PostMapping("/delVendorById")
     public ResultDto delVendorById(@ApiParam(value = "厂商id") @RequestParam(value = "id", required = true) String id) {
-        try {
-            //删除厂商
-            this.delete(id);
-            //删除厂商与驱动关联
-            vendorDriveLinkService.deleteVendorDriveLinkById(id);
-        } catch (Exception e) {
-            logger.error("厂商删除失败!", ExceptionUtil.dealException(e));
-            e.printStackTrace();
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "厂商删除失败!", ExceptionUtil.dealException(e));
-        }
+        //删除厂商
+        this.delete(id);
+        //删除厂商与驱动关联
+        vendorDriveLinkService.deleteVendorDriveLinkById(id);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "厂商删除成功!", null);
     }
 
-    @Transactional(rollbackFor = Exception.class)
+
     @ApiOperation(value = "获取厂商管理列表", notes = "获取厂商管理列表")
     @GetMapping("/getVendorList")
     public ResultDto getVendorList(
