@@ -1,6 +1,5 @@
-package com.kvn.mockj.utils;
+package com.iflytek.integrated.common.utils;
 
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 

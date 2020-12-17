@@ -12,14 +12,24 @@ import java.util.List;
  * 例如：
  *  new TypeReference<List<String>>() {} 对应的 type 为 List<String>，rawType 为 List，argTypes 为 String
  * </pre>
+ * @author
  *
  */
 public class TypeReference<T> {
-    // T 带泛型的类型
+
+    /**
+     * T 带泛型的类型
+     */
     protected final Type type;
-    // T 的原始类型
+
+    /**
+     * T 的原始类型
+     */
     protected Type rawType;
-    // T 的泛型类型
+
+    /**
+     * T 的泛型类型
+     */
     protected Type[] argTypes;
 
     protected TypeReference() {

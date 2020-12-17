@@ -11,18 +11,33 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 public class Rule {
-    // 1 name, 2 inc, 3 range, 4 decimal
+
+    /**
+     * 1 name, 2 inc, 3 range, 4 decimal
+     */
     List<String> parameters;
-    // 1 min, 2 max
+
+    /**
+     * 1 min, 2 max
+     */
     boolean range;
     Integer min;
     Integer max;
-    // min-max
+
+    /**
+     * min-max
+     */
     Integer count;
-    // 是否有 decimal
+
+    /**
+     * 是否有 decimal
+     */
     boolean decimal;
     Integer dmin;
     Integer dmax;
-    // dmin-dimax
+
+    /**
+     * dmin-dimax
+     */
     Integer dcount;
 }
