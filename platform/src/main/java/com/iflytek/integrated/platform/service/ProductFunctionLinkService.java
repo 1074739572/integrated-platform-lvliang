@@ -72,7 +72,8 @@ public class ProductFunctionLinkService extends QuerydslService<TProductFunction
             list.add(qTProduct.productName.like(Utils.createFuzzyText(productName)));
         }
         QueryResults<TProductFunctionLink> queryResults = sqlQueryFactory.select(Projections.bean(TProductFunctionLink.class,
-                    qTProductFunctionLink, qTProduct.productName.as("productName"), qTFunction.functionName.as("functionName")))
+                    qTProductFunctionLink.id, qTProductFunctionLink.productId, qTProductFunctionLink.functionId, qTProductFunctionLink.createdTime,
+                    qTProduct.productName.as("productName"), qTFunction.functionName.as("functionName")))
                     .from(qTProductFunctionLink)
                     .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
                     .leftJoin(qTFunction).on(qTFunction.id.eq(qTProductFunctionLink.functionId))

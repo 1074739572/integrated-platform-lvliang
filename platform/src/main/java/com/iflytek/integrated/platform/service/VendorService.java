@@ -88,14 +88,16 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
             tv.setVendorName(vendorName);
             tv.setCreatedTime(new Date());
             this.post(tv);
-            String[] driveIdArr = driveIds.split(",");
-            for (int i = 0; i < driveIdArr.length; i++) {
-                TVendorDriveLink tvdl = new TVendorDriveLink();
-                tvdl.setId(batchUidService.getUid(qTVendorDriveLink.getTableName())+"");
-                tvdl.setVendorId(vendorId);
-                tvdl.setDriveId(driveIdArr[i]);
-                tvdl.setCreatedTime(new Date());
-                vendorDriveLinkService.post(tvdl);
+            if (StringUtils.isNotBlank(driveIds)) {
+                String[] driveIdArr = driveIds.split(",");
+                for (int i = 0; i < driveIdArr.length; i++) {
+                    TVendorDriveLink tvdl = new TVendorDriveLink();
+                    tvdl.setId(batchUidService.getUid(qTVendorDriveLink.getTableName())+"");
+                    tvdl.setVendorId(vendorId);
+                    tvdl.setDriveId(driveIdArr[i]);
+                    tvdl.setCreatedTime(new Date());
+                    vendorDriveLinkService.post(tvdl);
+                }
             }
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "厂商新增成功!", null);
         } catch (Exception e) {
