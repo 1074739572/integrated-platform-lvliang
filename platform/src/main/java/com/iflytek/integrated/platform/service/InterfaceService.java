@@ -6,6 +6,7 @@ import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.platform.dto.InterfaceDebugDto;
 import com.iflytek.integrated.platform.utils.ToolsGenerate;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.dto.InterfaceDto;
@@ -150,7 +151,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @PostMapping("/interfaceDebug")
     @ApiOperation(value = "接口调试", notes = "接口调试")
     public ResultDto interfaceDebug(String format){
-        String result = toolsGenerate.interfaceDebug(format);
+        InterfaceDebugDto result = toolsGenerate.interfaceDebug(format);
 
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", result);
     }
@@ -497,7 +498,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     }
 
     @ApiOperation(value = "根据参数格式获取jolt", notes = "根据参数格式获取jolt")
-    @GetMapping("/paramFormatJolt")
+    @PostMapping("/paramFormatJolt")
     public ResultDto paramFormatJolt(String paramFormat, String content){
         String contentType = Constant.ParamFormatType.getByType(content);
         if(StringUtils.isBlank(contentType) || Constant.ParamFormatType.NONE.getType().equals(contentType)){

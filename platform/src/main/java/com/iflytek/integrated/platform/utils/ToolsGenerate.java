@@ -5,6 +5,7 @@ import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.common.HttpResult;
 import com.iflytek.integrated.common.utils.HttpClientUtil;
+import com.iflytek.integrated.platform.dto.InterfaceDebugDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.querydsl.sql.SQLQueryFactory;
 import org.apache.commons.lang.StringUtils;
@@ -123,13 +124,13 @@ public class ToolsGenerate {
      * @param format
      * @return
      */
-    public String interfaceDebug(String format){
+    public InterfaceDebugDto interfaceDebug(String format){
         try {
             HttpResult result = HttpClientUtil.doPost(interfaceDebug,format);
-            return result.getContent();
+            return JSONObject.parseObject(result.getContent(), InterfaceDebugDto.class);
         }
         catch (Exception e){
-            return "";
+            throw new RuntimeException("调取校验调试接口错误");
         }
     }
 
