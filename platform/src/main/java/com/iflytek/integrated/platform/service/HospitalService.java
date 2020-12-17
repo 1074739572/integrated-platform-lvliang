@@ -127,27 +127,15 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         isExistence(hospital.getId(),hospital.getHospitalName(),hospital.getHospitalCode());
         if(StringUtils.isEmpty(hospital.getId())){
             //没有id，新增医院
-            Long lon = sqlQueryFactory.insert(qTHospital)
-                    .set(qTHospital.id, batchUidService.getUid(qTHospital.getTableName())+"")
-                    .set(qTHospital.areaId,hospital.getAreaId())
-                    .set(qTHospital.status,Constant.Status.YES)
-                    .set(qTHospital.hospitalCode,hospital.getHospitalCode())
-                    .set(qTHospital.hospitalName,hospital.getHospitalName())
-                    .set(qTHospital.createdBy,"")
-                    .set(qTHospital.createdTime,new Date()).execute();
-            if(lon <= 0){
-                throw new RuntimeException("医院管理新增失败");
-            }
+            hospital.setId("1");
+            hospital.setStatus(Constant.Status.YES);
+            hospital.setCreatedTime(new Date());
+            this.post(hospital);
         }
         else {
             //存在id时，编辑医院
-            Long lon = sqlQueryFactory.update(qTHospital)
-                    .set(qTHospital.areaId,hospital.getAreaId())
-                    .set(qTHospital.hospitalCode,hospital.getHospitalCode())
-                    .set(qTHospital.hospitalName,hospital.getHospitalName())
-                    .set(qTHospital.updatedBy,"")
-                    .set(qTHospital.updatedTime,new Date())
-                    .where(qTHospital.id.eq(hospital.getId())).execute();
+            hospital.setUpdatedTime(new Date());
+            Long lon = this.put(hospital.getId(),hospital);
             if(lon <= 0){
                 throw new RuntimeException("医院管理编辑失败");
             }
