@@ -145,7 +145,10 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
         }
         //编辑插件
         plugin.setUpdatedTime(new Date());
-        this.put(plugin.getId(), plugin);
+        Long lon = this.put(plugin.getId(), plugin);
+        if(lon <= 0){
+            throw new RuntimeException("插件编辑失败");
+        }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"","插件编辑成功");
     }
 

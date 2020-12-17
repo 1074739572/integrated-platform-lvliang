@@ -161,7 +161,10 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
         }
         //编辑驱动
         drive.setUpdatedTime(new Date());
-        this.put(drive.getId(), drive);
+        Long lon = this.put(drive.getId(), drive);
+        if(lon <= 0){
+            throw new RuntimeException("驱动编辑失败");
+        }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"驱动编辑成功", drive);
     }
 
