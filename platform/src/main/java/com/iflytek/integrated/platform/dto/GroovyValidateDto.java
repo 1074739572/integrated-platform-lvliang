@@ -1,9 +1,12 @@
 package com.iflytek.integrated.platform.dto;
 
+import lombok.Data;
+
 /**
  * @author czzhan
  * 校验groovy脚本格式是否正确
  */
+@Data
 public class GroovyValidateDto {
 
     private String validResult;
@@ -39,21 +42,5 @@ public class GroovyValidateDto {
         public void setType(String type) {
             this.type = type;
         }
-    }
-
-    public String getValidResult() {
-        return validResult;
-    }
-
-    public void setValidResult(String validResult) {
-        this.validResult = validResult;
-    }
-
-    public String getValidStatus() {
-        return validStatus;
-    }
-
-    public void setValidStatus(String validStatus) {
-        this.validStatus = validStatus;
     }
 }

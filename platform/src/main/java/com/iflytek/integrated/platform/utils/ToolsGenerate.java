@@ -1,11 +1,13 @@
 package com.iflytek.integrated.platform.utils;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.common.HttpResult;
 import com.iflytek.integrated.common.utils.HttpClientUtil;
 import com.iflytek.integrated.platform.dto.InterfaceDebugDto;
+import com.iflytek.integrated.platform.dto.SchemaDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.querydsl.sql.SQLQueryFactory;
 import org.apache.commons.lang.StringUtils;
@@ -49,7 +51,7 @@ public class ToolsGenerate {
                 throw new RuntimeException("入参参数类型无效");
             }
             //解析入参
-            String schema = generateSchema(businessInterface.getInParamFormat(),type);
+            String schema = generateSchema(businessInterface.getInParamFormat(),type).getSchema();
             if(StringUtils.isEmpty(schema)){
                 throw new RuntimeException("入参schema获取失败");
             }
@@ -62,7 +64,7 @@ public class ToolsGenerate {
                 throw new RuntimeException("出参参数类型无效");
             }
             //解析入参
-            String schema = generateSchema(businessInterface.getOutParamFormat(),type);
+            String schema = generateSchema(businessInterface.getOutParamFormat(),type).getSchema();
             if(StringUtils.isEmpty(schema)){
                 throw new RuntimeException("出参schema获取失败");
             }
@@ -76,14 +78,17 @@ public class ToolsGenerate {
      * @param content
      * @return
      */
-    private String generateSchema(String format, String content){
+    private SchemaDto generateSchema(String format, String content){
         try {
             String url = MessageFormat.format(schemaUrl,content);
             HttpResult result = HttpClientUtil.doPost(url,format);
-            return result.getContent();
+
+            JSONObject jsonT = JSON.parseObject(result.getContent());
+            return new SchemaDto(jsonT);
+
         }
         catch (Exception e){
-            return "";
+            throw new RuntimeException("schema解析失败");
         }
     }
 
