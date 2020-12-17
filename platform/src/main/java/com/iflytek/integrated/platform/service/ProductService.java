@@ -178,6 +178,11 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             tf.setFunctionName(functionName);
             tf.setCreatedTime(new Date());
             functionService.post(tf);
+        }else {
+            TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(productId, functionId);
+            if (tpfl != null) {
+                return new ResultDto(Constant.ResultCode.ERROR_CODE, "该产品与功能已有关联!",tpfl);
+            }
         }
         //更新产品与功能关联
         productFunctionLinkService.updateObjById(id, productId, functionId);
