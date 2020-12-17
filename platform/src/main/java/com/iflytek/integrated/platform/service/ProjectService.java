@@ -93,10 +93,12 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "项目名称为空!", null);
         }
         String projectId = jsonObj.getString("id");
-        if (isExistence(projectName, projectId)) { //检验项目名称是否存在
+        //检验项目名称是否存在
+        if (isExistence(projectName, projectId)) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "项目名称已经存在!", null);
         }
-        if (StringUtils.isBlank(projectId)) { //项目新增
+        //项目新增
+        if (StringUtils.isBlank(projectId)) {
             return saveProject(jsonObj);
         }else { //项目修改
             return updateProject(jsonObj);
@@ -105,97 +107,71 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
 
     /** 新增项目 */
     private ResultDto saveProject(JSONObject jsonObj) {
-        try {
-            String projectId = batchUidService.getUid(qTProject.getTableName())+"";
+        String projectId = batchUidService.getUid(qTProject.getTableName())+"";
 
-//            sqlQueryFactory.insert(qTProject).set(qTProject.id, projectId)
-//                         .set(qTProject.projectName, jsonObj.getString("projectName"))
-//                         .set(qTProject.projectCode, utils.generateCode(qTProject, qTProject.projectCode, jsonObj.getString("projectName")))
-//                         .set(qTProject.projectStatus, Constant.Status.START)
-//                         .set(qTProject.projectType, jsonObj.getString("projectType"))
-//                         .set(qTProject.createdTime, new Date()).execute();
-            TProject project = new TProject();
-            project.setId(projectId);
-            project.setProjectName(jsonObj.getString("projectName"));
-            project.setProjectCode(utils.generateCode(qTProject, qTProject.projectCode, jsonObj.getString("projectName")));
-            project.setProjectStatus(Constant.Status.START);
-            project.setProjectType(jsonObj.getString("projectType"));
-            project.setCreatedTime(new Date());
-            projectService.post(project);
+        TProject project = new TProject();
+        project.setId(projectId);
+        project.setProjectName(jsonObj.getString("projectName"));
+        project.setProjectCode(utils.generateCode(qTProject, qTProject.projectCode, jsonObj.getString("projectName")));
+        project.setProjectStatus(Constant.Status.START);
+        project.setProjectType(jsonObj.getString("projectType"));
+        project.setCreatedTime(new Date());
+        projectService.post(project);
 
-            JSONArray productList = jsonObj.getJSONArray("productList");
-            for (int i = 0; i < productList.size(); i++) {
-                JSONObject pObj = productList.getJSONObject(i);
-                String productId = pObj.getString("productId");
-                JSONArray jsonArr = pObj.getJSONArray("functionList");
-                for (int j = 0; j < jsonArr.size(); j++) {
-                    /**产品与功能关联*/
-                    String productFunLinkId = batchUidService.getUid(qTProductFunctionLink.getTableName()) + "";
-                    TProductFunctionLink tpfl = new TProductFunctionLink();
-                    tpfl.setId(productFunLinkId);
-                    tpfl.setProductId(productId);
-                    tpfl.setFunctionId(jsonArr.getJSONObject(j).getString("functionId"));
-                    tpfl.setCreatedTime(new Date());
-                    productFunctionLinkService.post(tpfl);
-                    /**项目与产品关联*/
+        JSONArray productList = jsonObj.getJSONArray("productList");
+        for (int i = 0; i < productList.size(); i++) {
+            JSONObject pObj = productList.getJSONObject(i);
+            String productId = pObj.getString("productId");
+            JSONArray jsonArr = pObj.getJSONArray("functionList");
+            for (int j = 0; j < jsonArr.size(); j++) {
+                TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(productId, jsonArr.getJSONObject(i).getString("functionId"));
+                /**项目与产品关联*/
+                if (tpfl != null) {
                     TProjectProductLink tppl = new TProjectProductLink();
                     tppl.setId(batchUidService.getUid(qTProjectProductLink.getTableName())+"");
                     tppl.setProjectId(projectId);
-                    tppl.setProductFunctionLinkId(productFunLinkId);
+                    tppl.setProductFunctionLinkId(tpfl.getId());
                     tppl.setCreatedTime(new Date());
                     projectProductLinkService.post(tppl);
                 }
             }
-        } catch (Exception e) {
-            logger.error("新增项目失败!", ExceptionUtil.dealException(e));
-            e.printStackTrace();
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "新增项目失败!", ExceptionUtil.dealException(e));
         }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "新增项目成功!", null);
     }
 
     /** 修改项目 */
     private ResultDto updateProject(JSONObject jsonObj) {
-        try {
-            String projectId = jsonObj.getString("id");
-            this.deleteProjectById(projectId);
-//            sqlQueryFactory.update(qTProject).set(qTProject.projectName, jsonObj.getString("projectName"))
-//                    .set(qTProject.projectType, jsonObj.getString("projectType"))
-//                    .set(qTProject.updatedTime, new Date())
-//                    .where(qTProject.id.eq(projectId)).execute();
-            TProject project = new TProject();
-            project.setProjectName(jsonObj.getString("projectName"));
-            project.setProjectType(jsonObj.getString("projectType"));
-            project.setUpdatedTime(new Date());
-            projectService.put(projectId,project);
+        String projectId = jsonObj.getString("id");
+        this.deleteProjectById(projectId);
 
-            JSONArray productList = jsonObj.getJSONArray("productList");
-            for (int i = 0; i < productList.size(); i++) {
-                JSONObject pObj = productList.getJSONObject(i);
-                String productId = pObj.getString("productId");
-                JSONArray jsonArr = pObj.getJSONArray("functionList");
-                for (int j = 0; j < jsonArr.size(); j++) {
-                    /**产品与功能关联*/
-                    String productFunLinkId = batchUidService.getUid(qTProductFunctionLink.getTableName()) + "";
-                    TProductFunctionLink tpfl = new TProductFunctionLink();
-                    tpfl.setId(productFunLinkId);
-                    tpfl.setProductId(productId);
-                    tpfl.setFunctionId(jsonArr.getJSONObject(j).getString("functionId"));
-                    tpfl.setCreatedTime(new Date());
-                    productFunctionLinkService.post(tpfl);
-                    /**项目与产品关联*/
-                    TProjectProductLink tppl = new TProjectProductLink();
-                    tppl.setId(batchUidService.getUid(qTProjectProductLink.getTableName())+"");
-                    tppl.setProjectId(projectId);
-                    tppl.setProductFunctionLinkId(productFunLinkId);
-                    tppl.setCreatedTime(new Date());
-                    projectProductLinkService.post(tppl);
-                }
+        TProject project = new TProject();
+        project.setProjectName(jsonObj.getString("projectName"));
+        project.setProjectType(jsonObj.getString("projectType"));
+        project.setUpdatedTime(new Date());
+        projectService.put(projectId, project);
+
+        JSONArray productList = jsonObj.getJSONArray("productList");
+        for (int i = 0; i < productList.size(); i++) {
+            JSONObject pObj = productList.getJSONObject(i);
+            String productId = pObj.getString("productId");
+            JSONArray jsonArr = pObj.getJSONArray("functionList");
+            for (int j = 0; j < jsonArr.size(); j++) {
+                /**产品与功能关联*/
+                String productFunLinkId = batchUidService.getUid(qTProductFunctionLink.getTableName()) + "";
+                TProductFunctionLink tpfl = new TProductFunctionLink();
+                tpfl.setId(productFunLinkId);
+                tpfl.setProductId(productId);
+                tpfl.setFunctionId(jsonArr.getJSONObject(j).getString("functionId"));
+                tpfl.setCreatedTime(new Date());
+                productFunctionLinkService.post(tpfl);
+                /**项目与产品关联*/
+                TProjectProductLink tppl = new TProjectProductLink();
+                tppl.setId(batchUidService.getUid(qTProjectProductLink.getTableName())+"");
+                tppl.setProjectId(projectId);
+                tppl.setProductFunctionLinkId(productFunLinkId);
+                tppl.setCreatedTime(new Date());
+                projectProductLinkService.post(tppl);
             }
-        } catch (Exception e) {
-            logger.error("项目修改失败!", ExceptionUtil.dealException(e));
-            e.printStackTrace();
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "项目修改失败!", ExceptionUtil.dealException(e));
         }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "项目修改成功!", null);
     }

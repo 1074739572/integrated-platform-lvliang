@@ -128,15 +128,24 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         if (StringUtils.isBlank(productName)) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "产品名称未填!", jsonObj);
         }
-        String productId = batchUidService.getUid(qTProduct.getTableName()) + "";
-        //新增产品
-        TProduct tp = new TProduct();
-        tp.setId(productId);
-        tp.setProductCode(utils.generateCode(qTProduct, qTProduct.productCode, productName));
-        tp.setProductName(productName);
-        tp.setIsValid(Constant.IsValid.ON);
-        tp.setCreatedTime(new Date());
-        this.post(tp);
+        //判断输入产品是否是新产品
+        TProduct tp = getObjByProductName(productName.trim());
+        String productId;
+        if (tp != null) {
+            productId = tp.getId();
+            tp.setUpdatedTime(new Date());
+            this.put(productId, tp);
+        }else {
+            productId = batchUidService.getUid(qTProduct.getTableName()) + "";
+            //新增产品
+            tp = new TProduct();
+            tp.setId(productId);
+            tp.setProductCode(utils.generateCode(qTProduct, qTProduct.productCode, productName));
+            tp.setProductName(productName);
+            tp.setIsValid(Constant.IsValid.ON);
+            tp.setCreatedTime(new Date());
+            this.post(tp);
+        }
 
         String functionId = jsonObj.getString("functionId");
         //新增功能
@@ -313,6 +322,15 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             return true;
         }
         return false;
+    }
+
+    /**
+     * 根据产品名称获取产品信息
+     * @param productName
+     * @return
+     */
+    public TProduct getObjByProductName(String productName) {
+        return sqlQueryFactory.select(qTProduct).from(qTProduct).where(qTProduct.productName.eq(productName)).fetchOne();
     }
 
 }
