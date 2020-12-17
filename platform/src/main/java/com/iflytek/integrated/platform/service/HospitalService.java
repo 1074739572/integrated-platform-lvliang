@@ -127,7 +127,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         isExistence(hospital.getId(),hospital.getHospitalName(),hospital.getHospitalCode());
         if(StringUtils.isEmpty(hospital.getId())){
             //没有id，新增医院
-            hospital.setId("1");
+            hospital.setId(batchUidService.getUid(qTHospital.getTableName())+"");
             hospital.setStatus(Constant.Status.YES);
             hospital.setCreatedTime(new Date());
             this.post(hospital);
