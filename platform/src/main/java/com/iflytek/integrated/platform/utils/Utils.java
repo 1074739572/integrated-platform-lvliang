@@ -106,20 +106,22 @@ public class Utils {
      * 校验字符串是否是json或者xml
      * @param mock
      */
-    public static void strIsJsonOrXml(String mock){
+    public static String strIsJsonOrXml(String mock){
         if(StringUtils.isEmpty(mock)){
-            logger.error("不能为空！");
+            throw new RuntimeException("不能为空！");
         }
         try {
             //判断是否是json类型
             JSONObject.parseObject(mock);
+            return Constant.ParamFormatType.JSON.getType();
         } catch (JSONException e) {
             //判断是否是xml结构
             try {
                 //如果是xml结构
                 DocumentHelper.parseText(mock);
+                return Constant.ParamFormatType.XML.getType();
             } catch (DocumentException i) {
-                logger.error("格式错误，非标准json或者xml格式！");
+                throw new RuntimeException("格式错误，非标准json或者xml格式！");
             }
         }
     }
