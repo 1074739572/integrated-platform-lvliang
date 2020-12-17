@@ -15,6 +15,7 @@ public class PlaceholderHandler {
 
     public static Object doGenerate(Options options) {
 
+        String template = options.getTemplate().toString();
         String methodName = "";
         String paramStr = "";
         String paramName = "";
@@ -30,13 +31,18 @@ public class PlaceholderHandler {
             } else if (groupCount == 2) {
                 methodName = matcher.group(1);
                 String group2 = matcher.group(2);
+
+                //截取（xxx）之后的内容
                 paramName = StringUtils.isNotBlank(group2)?
-                        options.getTemplate().toString().replace(group2,""):options.getTemplate().toString();
+                        template.substring(template.indexOf(group2)+group2.length()):template;
+
                 paramStr = group2 == null ? null : group2.substring(1, group2.length() - 1);
             }
             try {
-                //如果字段有备注，获取出来
-                paramName = paramName.replace(methodName,"");
+                //如果没有参数，截取@xxx之后的内容
+                if(StringUtils.isEmpty(paramStr)){
+                    paramName = paramName.substring(template.indexOf(methodName) + methodName.length());
+                }
                 Object invokeRlt = Function.class.getMethod("$" + methodName.substring(1), String.class).invoke(null, paramStr);
                 matcher.appendReplacement(sbRtn, invokeRlt.toString() + paramName);
             } catch (NoSuchMethodException e) {
