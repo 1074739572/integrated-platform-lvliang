@@ -103,7 +103,7 @@ public class GlobalExceptionHandler {
             }
         } else if(e instanceof RuntimeException){
             //如果是后端抛出的错误，返回抛出的原因
-            resp = new Response<>(Integer.toString(HttpStatus.EXPECTATION_FAILED.value()), e.getMessage(), null);
+            resp = new Response<>(ERROR_CODE, e.getMessage(), null);
         }
         else {
             resp = new Response<>(ERROR_CODE, ERROR_MSG, getStackTrace(e));
