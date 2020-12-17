@@ -2,7 +2,7 @@ package com.iflytek.integrated.platform.utils;
 
 import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.Constant;
-import com.iflytek.integrated.common.GroovyValidate;
+import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.common.HttpResult;
 import com.iflytek.integrated.common.utils.HttpClientUtil;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
@@ -10,7 +10,6 @@ import com.querydsl.sql.SQLQueryFactory;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 import java.text.MessageFormat;
@@ -109,10 +108,10 @@ public class ToolsGenerate {
      * @param content
      * @return
      */
-    public GroovyValidate groovyUrl(String content){
+    public GroovyValidateDto groovyUrl(String content){
         try {
             HttpResult result = HttpClientUtil.doPost(groovyUrl,content);
-            return JSONObject.parseObject(result.getContent(),GroovyValidate.class);
+            return JSONObject.parseObject(result.getContent(), GroovyValidateDto.class);
         }
         catch (Exception e){
             throw new RuntimeException("调取校验groovy接口错误");

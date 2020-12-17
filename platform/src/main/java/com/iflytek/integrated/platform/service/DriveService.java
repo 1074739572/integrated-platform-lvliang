@@ -1,7 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
 import com.iflytek.integrated.common.Constant;
-import com.iflytek.integrated.common.GroovyValidate;
+import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
@@ -110,8 +110,8 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
     @ApiOperation(value = "校验groovy脚本格式是否正确")
     @PostMapping("/groovyValidate")
     public ResultDto groovyValidate(String content){
-        GroovyValidate result = toolsGenerate.groovyUrl(content);
-        if(GroovyValidate.RESULT.SUCCESS.getType().equals(result.getValidResult())){
+        GroovyValidateDto result = toolsGenerate.groovyUrl(content);
+        if(GroovyValidateDto.RESULT.SUCCESS.getType().equals(result.getValidResult())){
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", result);
         }
         else {
