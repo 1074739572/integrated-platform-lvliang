@@ -63,12 +63,12 @@ public class HttpClientUtil {
     /**
      * JSON格式
      */
-    public static String JSON = "JSON";
+    public static final String JSON = "JSON";
 
     /**
      * 表单格式
      */
-    public static String FORM = "FORM";
+    public static final String FORM = "FORM";
     /**
      * 重试次数
      */

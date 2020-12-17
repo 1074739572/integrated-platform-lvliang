@@ -2,6 +2,7 @@ package com.kvn.mockj.handler;
 
 import com.kvn.mockj.Function;
 import com.kvn.mockj.Options;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -14,8 +15,9 @@ public class PlaceholderHandler {
 
     public static Object doGenerate(Options options) {
 
-        String methodName = null;
-        String paramStr = null;
+        String methodName = "";
+        String paramStr = "";
+        String paramName = "";
 
         Matcher matcher = pattern.matcher(options.getTemplate().toString());
         StringBuffer sbRtn = new StringBuffer();
@@ -28,12 +30,15 @@ public class PlaceholderHandler {
             } else if (groupCount == 2) {
                 methodName = matcher.group(1);
                 String group2 = matcher.group(2);
+                paramName = StringUtils.isNotBlank(group2)?
+                        options.getTemplate().toString().replace(group2,""):options.getTemplate().toString();
                 paramStr = group2 == null ? null : group2.substring(1, group2.length() - 1);
             }
             try {
-                methodName = "$" + methodName.substring(1);
-                Object invokeRlt = Function.class.getMethod(methodName, String.class).invoke(null, paramStr);
-                matcher.appendReplacement(sbRtn, invokeRlt.toString());
+                //如果字段有备注，获取出来
+                paramName = paramName.replace(methodName,"");
+                Object invokeRlt = Function.class.getMethod("$" + methodName.substring(1), String.class).invoke(null, paramStr);
+                matcher.appendReplacement(sbRtn, invokeRlt.toString() + paramName);
             } catch (NoSuchMethodException e) {
                 //如果没有找到@开头的自定义方法，返回方法名
                 matcher.appendReplacement(sbRtn, methodName.substring(1));

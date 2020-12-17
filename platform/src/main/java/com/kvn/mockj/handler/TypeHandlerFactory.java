@@ -28,7 +28,12 @@ public class TypeHandlerFactory {
 
 
     public static TypeHandler getTypeHandler(Class clazz) {
-        return handlerMap.get(clazz);
+        if(handlerMap.containsKey(clazz)){
+            return handlerMap.get(clazz);
+        }
+        else {
+            return handlerMap.get(String.class);
+        }
     }
 
 }
