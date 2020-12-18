@@ -111,8 +111,15 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     @AvoidRepeatCommit
     public ResultDto saveAndUpdateProduct(@RequestBody JSONObject jsonObj) {
         String id = jsonObj.getString("id");
-        TProductFunctionLink link = addOrGetLink(jsonObj.getString("productName"), jsonObj.getString("functionName"));
-        boolean existence = isExistence(id, link.getProductId(), link.getFunctionId());
+//        TProductFunctionLink tpfl = addOrGetLink(jsonObj.getString("productName"), jsonObj.getString("functionName"));
+//        boolean existence = isExistence(id, link.getProductId(), link.getFunctionId());
+
+        TProduct tp = this.getObjByProductName(jsonObj.getString("productName"));
+        TFunction tf = functionService.getObjByName(jsonObj.getString("functionName"));
+        String productId = tp!=null?tp.getId():null;
+        String functionId = tf!=null?tf.getId():null;
+
+        boolean existence = isExistence(id, productId, functionId);
         if (existence) {
             throw new RuntimeException("产品和功能关系已存在");
         }else {
@@ -266,43 +273,48 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
      * @param functionName
      * @return
      */
-    private TProductFunctionLink addOrGetLink(String productName, String functionName){
-        TProductFunctionLink functionLink = new TProductFunctionLink();
-        //查询是否已经存在产品Id
-        functionLink.setProductId(sqlQueryFactory.select(qTProduct.id)
-                .from(qTProduct).where(qTProduct.productName.eq(productName)).fetchOne());
-        if(StringUtils.isEmpty(functionLink.getProductId())){
-            //如果是新的产品名称，新建一个产品
-            functionLink.setProductId(batchUidService.getUid(qTProduct.getTableName()) + "");
-            Long lon = sqlQueryFactory.insert(qTProduct)
-                    .set(qTProduct.id,functionLink.getProductId())
-                    .set(qTProduct.productName,productName)
-                    .set(qTProduct.productCode,utils.generateCode(qTProduct,qTProduct.productCode,productName))
-                    .set(qTProduct.isValid,Constant.IsValid.ON)
-                    .set(qTProduct.createdBy,"")
-                    .set(qTProduct.createdTime,new Date()).execute();
-            if(lon <= 0){
-                throw new RuntimeException("创建产品失败");
-            }
-        }
-        //查询是否存在功能
-        functionLink.setFunctionId(sqlQueryFactory.select(qTFunction.id)
-                .from(qTFunction).where(qTFunction.functionName.eq(functionName)).fetchOne());
-        if(StringUtils.isEmpty(functionLink.getFunctionId())){
-            //如果是新的产品名称，新建一个功能
-            functionLink.setFunctionId(batchUidService.getUid(qTFunction.getTableName()) + "");
-            Long lon = sqlQueryFactory.insert(qTFunction)
-                    .set(qTFunction.id,functionLink.getFunctionId())
-                    .set(qTFunction.functionName,functionName)
-                    .set(qTFunction.functionCode,utils.generateCode(qTFunction,qTFunction.functionCode,functionName))
-                    .set(qTFunction.createdBy,"")
-                    .set(qTFunction.createdTime,new Date()).execute();
-            if(lon <= 0){
-                throw new RuntimeException("创建功能失败");
-            }
-        }
-        return functionLink;
-    }
+//    private TProductFunctionLink addOrGetLink(String productName, String functionName){
+////        return productFunctionLinkService.getObjByPNameAndFName(productName, functionName);
+//
+//        TProductFunctionLink functionLink = new TProductFunctionLink();
+//        //查询是否已经存在产品Id
+//        functionLink.setProductId(sqlQueryFactory.select(qTProduct.id)
+//                .from(qTProduct).where(qTProduct.productName.eq(productName)).fetchOne());
+//
+//        functionLink.setFunctionId(sqlQueryFactory.select(qTFunction.id)
+//                .from(qTFunction).where(qTFunction.functionName.eq(functionName)).fetchOne());
+//
+//        if(StringUtils.isEmpty(functionLink.getProductId())){
+//            //如果是新的产品名称，新建一个产品
+//            functionLink.setProductId(batchUidService.getUid(qTProduct.getTableName()) + "");
+//            Long lon = sqlQueryFactory.insert(qTProduct)
+//                    .set(qTProduct.id,functionLink.getProductId())
+//                    .set(qTProduct.productName,productName)
+//                    .set(qTProduct.productCode,utils.generateCode(qTProduct,qTProduct.productCode,productName))
+//                    .set(qTProduct.isValid,Constant.IsValid.ON)
+//                    .set(qTProduct.createdBy,"")
+//                    .set(qTProduct.createdTime,new Date()).execute();
+//            if(lon <= 0){
+//                throw new RuntimeException("创建产品失败");
+//            }
+//        }
+////        查询是否存在功能
+//
+//        if(StringUtils.isEmpty(functionLink.getFunctionId())){
+//            //如果是新的产品名称，新建一个功能
+//            functionLink.setFunctionId(batchUidService.getUid(qTFunction.getTableName()) + "");
+//            Long lon = sqlQueryFactory.insert(qTFunction)
+//                    .set(qTFunction.id,functionLink.getFunctionId())
+//                    .set(qTFunction.functionName,functionName)
+//                    .set(qTFunction.functionCode,utils.generateCode(qTFunction,qTFunction.functionCode,functionName))
+//                    .set(qTFunction.createdBy,"")
+//                    .set(qTFunction.createdTime,new Date()).execute();
+//            if(lon <= 0){
+//                throw new RuntimeException("创建功能失败");
+//            }
+//        }
+//        return functionLink;
+//    }
 
     /**
      * 校验是否已经存在
@@ -311,6 +323,13 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
      * @param functionId
      */
     private boolean isExistence(String linkId, String productId, String functionId) {
+        if (StringUtils.isBlank(productId)) {
+            return false;
+        }
+        if (StringUtils.isBlank(functionId)) {
+            return false;
+        }
+
         //校验是否存在重复产品和功能关系
         ArrayList<Predicate> list = new ArrayList<>();
         list.add(qTProductFunctionLink.functionId.eq(functionId));
@@ -325,6 +344,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         }
         return false;
     }
+
 
     /**
      * 根据产品名称获取产品信息

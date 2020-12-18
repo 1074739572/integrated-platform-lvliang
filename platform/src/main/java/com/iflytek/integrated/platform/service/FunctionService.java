@@ -52,5 +52,14 @@ public class FunctionService extends QuerydslService<TFunction, String, TFunctio
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"获取产品功能下拉成功", functions);
     }
 
+    /**
+     * 根据功能那个获取功能信息
+     * @param functionName
+     * @return
+     */
+    public TFunction getObjByName(String functionName) {
+        return sqlQueryFactory.select(qTFunction).from(qTFunction).where(qTFunction.functionName.eq(functionName)).fetchOne();
+    }
+
 
 }
