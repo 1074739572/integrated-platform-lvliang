@@ -72,12 +72,15 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
             @ApiParam(value = "项目状态 1启用 2停用") @RequestParam(required = false) String projectStatus,
             @ApiParam(value = "项目名称") @RequestParam(required = false) String projectName) {
         ArrayList<Predicate> list = new ArrayList<>();
-        if (StringUtils.isNotBlank(projectType))
+        if (StringUtils.isNotBlank(projectType)) {
             list.add(qTProject.projectType.eq(projectType));
-        if (StringUtils.isNotBlank(projectStatus))
+        }
+        if (StringUtils.isNotBlank(projectStatus)) {
             list.add(qTProject.projectStatus.eq(projectStatus));
-        if (StringUtils.isNotBlank(projectName))
+        }
+        if (StringUtils.isNotBlank(projectName)) {
             list.add(qTProject.projectName.like(Utils.createFuzzyText(projectName)));
+        }
         QueryResults<TProject> queryResults = sqlQueryFactory.select(qTProject).from(qTProject)
                 .where(list.toArray(new Predicate[list.size()])).fetchResults();
         TableData<TProject> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
@@ -127,8 +130,16 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
             JSONArray jsonArr = pObj.getJSONArray("functionList");
             for (int j = 0; j < jsonArr.size(); j++) {
                 TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(productId, jsonArr.getJSONObject(j).getString("functionId"));
-                /**项目与产品关联*/
-                if (tpfl != null) {
+                if (tpfl == null) {
+                    /**产品与功能关联*/
+                    String productFunLinkId = batchUidService.getUid(qTProductFunctionLink.getTableName()) + "";
+                    tpfl = new TProductFunctionLink();
+                    tpfl.setId(productFunLinkId);
+                    tpfl.setProductId(productId);
+                    tpfl.setFunctionId(jsonArr.getJSONObject(j).getString("functionId"));
+                    tpfl.setCreatedTime(new Date());
+                    productFunctionLinkService.post(tpfl);
+                    /**项目与产品关联*/
                     TProjectProductLink tppl = new TProjectProductLink();
                     tppl.setId(batchUidService.getUid(qTProjectProductLink.getTableName())+"");
                     tppl.setProjectId(projectId);
