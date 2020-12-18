@@ -78,6 +78,10 @@ public class TBusinessInterface implements Serializable {
 
     private String versionId;
 
+    private String projectCode;
+
+    private String productCode;
+
     public String getId() {
         return id;
     }
@@ -348,6 +352,22 @@ public class TBusinessInterface implements Serializable {
 
     public void setVersionId(String versionId) {
         this.versionId = versionId;
+    }
+
+    public String getProjectCode() {
+        return projectCode;
+    }
+
+    public void setProjectCode(String projectCode) {
+        this.projectCode = projectCode;
+    }
+
+    public String getProductCode() {
+        return productCode;
+    }
+
+    public void setProductCode(String productCode) {
+        this.productCode = productCode;
     }
 }
 
