@@ -7,7 +7,6 @@ import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.dto.InDebugResDto;
-import com.iflytek.integrated.platform.dto.InterfaceDebugDto;
 import com.iflytek.integrated.platform.utils.ToolsGenerate;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.dto.InterfaceDto;
@@ -29,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
@@ -170,11 +168,11 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @PostMapping("/interfaceDebug")
     @ApiOperation(value = "接口调试", notes = "接口调试")
     public ResultDto interfaceDebug(String format){
-        InterfaceDebugDto result = toolsGenerate.interfaceDebug(format);
-        if(StringUtils.isNotBlank(result.getError())){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE,"接口调试失败",result.getError());
+        String result = toolsGenerate.interfaceDebug(format);
+        if(StringUtils.isBlank(result)){
+            return new ResultDto(Constant.ResultCode.ERROR_CODE,"接口调试失败");
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", result.getList());
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", result);
     }
 
     @Transactional(rollbackFor = Exception.class)
