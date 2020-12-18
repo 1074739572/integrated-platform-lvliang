@@ -31,7 +31,6 @@ public class ArrayHandler implements TypeHandler {
                     jaR.add(Handler.gen(templates.get(i), i + "", context));
                 }
             }
-
             return jaR;
         }
 

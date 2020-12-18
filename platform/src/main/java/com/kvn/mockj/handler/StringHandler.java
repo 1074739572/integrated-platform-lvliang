@@ -16,18 +16,16 @@ public class StringHandler implements TypeHandler {
     public Object handle(Options options) {
         String sR = "";
 
-        //  'foo': '★'
         if (options.getRule().getCount() == null) {
             sR += options.getTemplate();
         } else {
-            // 'star|1-5': '★',
             for (int i = 0; i < options.getRule().getCount(); i++) {
                 sR += options.getTemplate();
             }
         }
 
-        // 'email|1-10': '@EMAIL ,'
         options.setTemplate(sR);
+        //调取自定义方法
         return PlaceholderHandler.doGenerate(options);
     }
 }
