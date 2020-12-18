@@ -220,18 +220,20 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
             for (TProjectProductLink obj : list) {
                 String productFunctionLinkId = obj.getProductFunctionLinkId();
                 TProductFunctionLink tpfl = productFunctionLinkService.getOne(productFunctionLinkId);
-                String pId = tpfl.getProductId();
-                String fId = tpfl.getFunctionId();
-                boolean isExist = false;
-                for(String key : map.keySet()){
-                    if(key.equals(pId)) {
-                        map.put(pId, map.get(pId)+","+fId);
-                        isExist = true;
-                        break;
+                if (tpfl != null) {
+                    String pId = tpfl.getProductId();
+                    String fId = tpfl.getFunctionId();
+                    boolean isExist = false;
+                    for(String key : map.keySet()) {
+                        if(key.equals(pId)) {
+                            map.put(pId, map.get(pId)+","+fId);
+                            isExist = true;
+                            break;
+                        }
                     }
-                }
-                if (!isExist) {
-                    map.put(pId, fId);
+                    if (!isExist) {
+                        map.put(pId, fId);
+                    }
                 }
             }
             //返回数据

@@ -19,6 +19,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -33,6 +34,7 @@ import java.util.Date;
 import java.util.List;
 
 import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
+import static com.iflytek.integrated.platform.entity.QTVendorDriveLink.qTVendorDriveLink;
 
 /**
  * 驱动管理
@@ -69,6 +71,21 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
                 )
         ).from(qTDrive).orderBy(qTDrive.updatedTime.desc()).fetch();
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"",drives);
+    }
+
+    @ApiOperation(value = "根据厂商获取驱动")
+    @GetMapping("/getAllDriveByVendorId")
+    public ResultDto getAllDriveByVendorId(@ApiParam(value = "厂商id") @RequestParam(value = "vendorId", required = true) String vendorId) {
+        List<TDrive> list = sqlQueryFactory.select(qTDrive).from(qTVendorDriveLink)
+                .leftJoin(qTDrive).on(qTDrive.id.eq(qTVendorDriveLink.driveId))
+                .where(qTVendorDriveLink.vendorId.eq(vendorId)).fetch();
+        List<TDrive> drives = new ArrayList<>();
+        for (TDrive td : list) {
+            if (StringUtils.isNotBlank(td.getId())) {
+                drives.add(td);
+            }
+        }
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"根据厂商获取驱动成功", drives);
     }
 
     @ApiOperation(value = "驱动管理列表")

@@ -19,10 +19,6 @@ public class InterfaceDto extends TInterface {
     private List<String> productIds;
 
     /**
-     * 出参格式
-     */
-    private String outParamFormat;
-    /**
      * 接口入参
      */
     private List<TInterfaceParam> inParamList;

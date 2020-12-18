@@ -284,4 +284,14 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
     }
 
 
+    @ApiOperation(value = "根据平台id获取厂商信息")
+    @GetMapping("/getDisVendorByPlatform")
+    public ResultDto getDisVendorByPlatform(@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId) {
+        List<TVendor> vendors = sqlQueryFactory.select(qTVendor).from(qTVendor)
+                .leftJoin(qTVendorConfig).on(qTVendorConfig.vendorId.eq(qTVendor.id))
+                .where(qTVendorConfig.platformId.eq(platformId)).fetch();
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", vendors);
+    }
+
+
 }
