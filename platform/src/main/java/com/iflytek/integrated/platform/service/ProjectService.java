@@ -130,23 +130,21 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
             JSONArray jsonArr = pObj.getJSONArray("functionList");
             for (int j = 0; j < jsonArr.size(); j++) {
                 TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(productId, jsonArr.getJSONObject(j).getString("functionId"));
-                if (tpfl == null) {
-                    /**产品与功能关联*/
-                    String productFunLinkId = batchUidService.getUid(qTProductFunctionLink.getTableName()) + "";
-                    tpfl = new TProductFunctionLink();
-                    tpfl.setId(productFunLinkId);
-                    tpfl.setProductId(productId);
-                    tpfl.setFunctionId(jsonArr.getJSONObject(j).getString("functionId"));
-                    tpfl.setCreatedTime(new Date());
-                    productFunctionLinkService.post(tpfl);
-                    /**项目与产品关联*/
-                    TProjectProductLink tppl = new TProjectProductLink();
-                    tppl.setId(batchUidService.getUid(qTProjectProductLink.getTableName())+"");
-                    tppl.setProjectId(projectId);
-                    tppl.setProductFunctionLinkId(tpfl.getId());
-                    tppl.setCreatedTime(new Date());
-                    projectProductLinkService.post(tppl);
-                }
+                /**产品与功能关联*/
+//                String productFunLinkId = batchUidService.getUid(qTProductFunctionLink.getTableName()) + "";
+//                tpfl = new TProductFunctionLink();
+//                tpfl.setId(productFunLinkId);
+//                tpfl.setProductId(productId);
+//                tpfl.setFunctionId(jsonArr.getJSONObject(j).getString("functionId"));
+//                tpfl.setCreatedTime(new Date());
+//                productFunctionLinkService.post(tpfl);
+                /**项目与产品关联*/
+                TProjectProductLink tppl = new TProjectProductLink();
+                tppl.setId(batchUidService.getUid(qTProjectProductLink.getTableName())+"");
+                tppl.setProjectId(projectId);
+                tppl.setProductFunctionLinkId(tpfl.getId());
+                tppl.setCreatedTime(new Date());
+                projectProductLinkService.post(tppl);
             }
         }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "新增项目成功!", null);
@@ -170,18 +168,19 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
             JSONArray jsonArr = pObj.getJSONArray("functionList");
             for (int j = 0; j < jsonArr.size(); j++) {
                 /**产品与功能关联*/
-                String productFunLinkId = batchUidService.getUid(qTProductFunctionLink.getTableName()) + "";
-                TProductFunctionLink tpfl = new TProductFunctionLink();
-                tpfl.setId(productFunLinkId);
-                tpfl.setProductId(productId);
-                tpfl.setFunctionId(jsonArr.getJSONObject(j).getString("functionId"));
-                tpfl.setCreatedTime(new Date());
-                productFunctionLinkService.post(tpfl);
+//                String productFunLinkId = batchUidService.getUid(qTProductFunctionLink.getTableName()) + "";
+//                TProductFunctionLink tpfl = new TProductFunctionLink();
+//                tpfl.setId(productFunLinkId);
+//                tpfl.setProductId(productId);
+//                tpfl.setFunctionId(jsonArr.getJSONObject(j).getString("functionId"));
+//                tpfl.setCreatedTime(new Date());
+//                productFunctionLinkService.post(tpfl);
+                TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(productId, jsonArr.getJSONObject(j).getString("functionId"));
                 /**项目与产品关联*/
                 TProjectProductLink tppl = new TProjectProductLink();
                 tppl.setId(batchUidService.getUid(qTProjectProductLink.getTableName())+"");
                 tppl.setProjectId(projectId);
-                tppl.setProductFunctionLinkId(productFunLinkId);
+                tppl.setProductFunctionLinkId(tpfl.getId());
                 tppl.setCreatedTime(new Date());
                 projectProductLinkService.post(tppl);
             }
