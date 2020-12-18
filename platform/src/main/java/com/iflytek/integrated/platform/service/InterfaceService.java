@@ -6,6 +6,7 @@ import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.platform.dto.InDebugResDto;
 import com.iflytek.integrated.platform.dto.InterfaceDebugDto;
 import com.iflytek.integrated.platform.utils.ToolsGenerate;
 import com.iflytek.integrated.platform.utils.Utils;
@@ -33,6 +34,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
+import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
+import static com.iflytek.integrated.platform.entity.QTHospitalVendorLink.qTHospitalVendorLink;
 import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
 import static com.iflytek.integrated.platform.entity.QTInterfaceMonitor.qTInterfaceMonitor;
 import static com.iflytek.integrated.platform.entity.QTInterfaceParam.qTInterfaceParam;
@@ -42,6 +45,7 @@ import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.qTPro
 import static com.iflytek.integrated.platform.entity.QTProductInterfaceLink.qTProductInterfaceLink;
 import static com.iflytek.integrated.platform.entity.QTProduct.qTProduct;
 import static com.iflytek.integrated.platform.entity.QTFunction.qTFunction;
+import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
 import static com.iflytek.integrated.platform.entity.QTProjectProductLink.qTProjectProductLink;
 import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConfig;
 
@@ -115,32 +119,47 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @GetMapping("/getInterfaceDebug")
     public ResultDto getInterfaceDebug(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
         try {
-            List<TBusinessInterface> list = sqlQueryFactory.select(Projections.bean(TBusinessInterface.class,
-                    qTBusinessInterface.id,
-                    qTBusinessInterface.interfaceId,
-                    qTBusinessInterface.businessInterfaceName,
-                    qTInterface.interfaceName.as("interfaceName")))
-                    .from(qTBusinessInterface)
-                    .where(qTBusinessInterface.id.eq(id))
-                    .leftJoin(qTInterface).on(qTBusinessInterface.interfaceId.eq(qTInterface.id)).limit(1).fetch();
-            JSONObject jsonObj = new JSONObject();
-            if (!CollectionUtils.isEmpty(list)) {
-                TBusinessInterface obj = list.get(0);
-                jsonObj.put("id", obj.getId());
-                jsonObj.put("businessInterfaceName", obj.getBusinessInterfaceName());
-                jsonObj.put("interfaceName", obj.getInterfaceName());
-                String interfaceId = obj.getInterfaceId();
-                jsonObj.put("interfaceId", interfaceId);
-                //获取入参
-                List<TInterfaceParam> fetch = sqlQueryFactory.select(qTInterfaceParam).from(qTInterfaceParam)
-                        .where(qTInterfaceParam.interfaceId.eq(interfaceId).and(qTInterfaceParam.paramInOut.eq("1"))).fetch();
-                JSONArray arr = new JSONArray();
-                for (TInterfaceParam tip : fetch) {
-                    arr.add(tip.getParamName());
-                }
-                jsonObj.put("inParam", arr);
+            TBusinessInterface businessInterface = sqlQueryFactory.select(
+                Projections.bean(
+                        TBusinessInterface.class,
+                        qTBusinessInterface.id,
+                        qTBusinessInterface.interfaceId,
+                        qTBusinessInterface.vendorConfigId,
+                        qTProject.projectCode.as("projectCode"),
+                        qTInterface.interfaceName.as("interfaceName"),
+                        qTProduct.productCode.as("productCode")
+                    )
+                ).from(qTBusinessInterface)
+                    .leftJoin(qTInterface).on(qTBusinessInterface.interfaceId.eq(qTInterface.id))
+                    .leftJoin(qTVendorConfig).on(qTVendorConfig.id.eq(qTBusinessInterface.vendorConfigId))
+                    .leftJoin(qTPlatform).on(qTPlatform.id.eq(qTVendorConfig.platformId))
+                    .leftJoin(qTProject).on(qTProject.id.eq(qTPlatform.projectId))
+                    .leftJoin(qTProductFunctionLink).on(qTProductFunctionLink.id.eq(qTBusinessInterface.productFunctionLinkId))
+                    .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
+                    .where(qTBusinessInterface.id.eq(id)).fetchOne();
+            if(businessInterface == null || StringUtils.isEmpty(businessInterface.getId())){
+                return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "没有查询到接口配置信息");
             }
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取接口调试显示数据成功!", jsonObj);
+            //获取入参列表
+            String interfaceId = StringUtils.isNotEmpty(businessInterface.getInterfaceId())?businessInterface.getInterfaceId():"";
+            List<String> paramNames = sqlQueryFactory.select(qTInterfaceParam.paramName).from(qTInterfaceParam)
+                    .where(qTInterfaceParam.interfaceId.eq(interfaceId).and(qTInterfaceParam.paramInOut.eq("1"))).fetch();
+
+            //获取医院名称列表
+            String vendorConfigId = StringUtils.isNotEmpty(businessInterface.getVendorConfigId())?
+                    businessInterface.getVendorConfigId():"";
+            List<String> hospitals = sqlQueryFactory.select(qTHospital.hospitalCode).from(qTHospitalVendorLink)
+                    .leftJoin(qTHospital).on(qTHospital.id.eq(qTHospitalVendorLink.hospitalId))
+                    .where(qTHospitalVendorLink.vendorConfigId.eq(vendorConfigId).and(qTHospital.hospitalCode.isNotEmpty())).fetch();
+
+            //拼接实体
+            InDebugResDto resDto = new InDebugResDto();
+            resDto.setFuncode(businessInterface.getInterfaceName());
+            resDto.setProductcode(businessInterface.getProductCode());
+            resDto.setProjectcode(businessInterface.getProjectCode());
+            resDto.setInParams(paramNames);
+            resDto.setOrgids(hospitals);
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取接口调试显示数据成功!", resDto);
         } catch (Exception e) {
             logger.error("获取接口调试显示数据失败!", ExceptionUtil.dealException(e));
             e.printStackTrace();
