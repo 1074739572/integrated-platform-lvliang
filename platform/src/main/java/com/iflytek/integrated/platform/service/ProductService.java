@@ -3,6 +3,7 @@ package com.iflytek.integrated.platform.service;
 import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.*;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.platform.annotation.AvoidRepeatCommit;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.TFunction;
 import com.iflytek.integrated.platform.entity.TProduct;
@@ -107,6 +108,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "产品管理新增/编辑")
     @PostMapping("/saveAndUpdateProduct")
+    @AvoidRepeatCommit
     public ResultDto saveAndUpdateProduct(@RequestBody JSONObject jsonObj) {
         String id = jsonObj.getString("id");
         TProductFunctionLink link = addOrGetLink(jsonObj.getString("productName"), jsonObj.getString("functionName"));
