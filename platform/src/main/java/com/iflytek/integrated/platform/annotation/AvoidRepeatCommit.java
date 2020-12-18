@@ -17,5 +17,5 @@ public @interface AvoidRepeatCommit {
      *
      * @return long
      */
-    long timeout() default 5000;
+    long timeout() default 3000;
 }

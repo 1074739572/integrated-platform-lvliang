@@ -60,8 +60,6 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     @Autowired
     private BatchUidService batchUidService;
     @Autowired
-    private ValidatorHelper validatorHelper;
-    @Autowired
     private Utils utils;
 
 

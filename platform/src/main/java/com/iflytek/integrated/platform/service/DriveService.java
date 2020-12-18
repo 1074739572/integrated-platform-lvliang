@@ -1,6 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
 import com.iflytek.integrated.common.Constant;
+import com.iflytek.integrated.platform.annotation.AvoidRepeatCommit;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
@@ -161,6 +162,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "驱动新增/编辑")
     @PostMapping("/saveAndUpdateDrive")
+    @AvoidRepeatCommit
     public ResultDto saveAndUpdateDrive(@RequestBody TDrive drive){
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(drive);

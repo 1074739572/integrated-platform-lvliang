@@ -2,6 +2,7 @@ package com.iflytek.integrated.platform.service;
 
 import com.iflytek.integrated.common.*;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.platform.annotation.AvoidRepeatCommit;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.THospital;
 import com.iflytek.integrated.platform.validator.ValidationResult;
@@ -117,6 +118,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "医院管理新增/编辑")
     @PostMapping("/saveAndUpdateHospital")
+    @AvoidRepeatCommit
     public ResultDto saveAndUpdateHospital(@RequestBody THospital hospital){
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(hospital);

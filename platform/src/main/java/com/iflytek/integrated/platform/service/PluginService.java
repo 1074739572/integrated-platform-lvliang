@@ -4,6 +4,7 @@ import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.platform.annotation.AvoidRepeatCommit;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.TPlugin;
 import com.iflytek.integrated.platform.validator.ValidationResult;
@@ -128,6 +129,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "插件新增/编辑")
     @PostMapping("/saveAndUpdatePlugin")
+    @AvoidRepeatCommit
     public ResultDto saveAndUpdatePlugin(@RequestBody TPlugin plugin){
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(plugin);

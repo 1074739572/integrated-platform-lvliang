@@ -4,6 +4,7 @@ import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.platform.annotation.AvoidRepeatCommit;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.dto.VendorConfigDto;
 import com.iflytek.integrated.platform.entity.*;
@@ -67,6 +68,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增or修改厂商", notes = "新增or修改厂商")
     @PostMapping("/saveAndUpdateVendor")
+    @AvoidRepeatCommit
     public ResultDto saveAndUpdateVendor(
             @ApiParam(value = "厂商id") @RequestParam(value = "id", required = false) String id,
             @ApiParam(value = "厂商名") @RequestParam(value = "vendorName", required = true) String vendorName,

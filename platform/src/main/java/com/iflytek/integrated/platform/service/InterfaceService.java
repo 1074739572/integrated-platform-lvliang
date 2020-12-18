@@ -6,6 +6,7 @@ import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.platform.annotation.AvoidRepeatCommit;
 import com.iflytek.integrated.platform.dto.InDebugResDto;
 import com.iflytek.integrated.platform.utils.ToolsGenerate;
 import com.iflytek.integrated.platform.utils.Utils;
@@ -206,6 +207,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "标准接口新增/编辑", notes = "标准接口新增/编辑")
     @PostMapping("/saveAndUpdateInterface")
+    @AvoidRepeatCommit
     public ResultDto saveAndUpdateInterface(@RequestBody JSONObject jsonObj) {
         if (StringUtils.isBlank(jsonObj.getString("id"))) {
             return this.saveInterface(jsonObj);
@@ -511,6 +513,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增/更新接口配置", notes = "新增/更新接口配置")
     @PostMapping("/saveAndUpdateInterfaceConfig")
+    @AvoidRepeatCommit
     public ResultDto saveAndUpdateInterfaceConfig(@RequestBody JSONObject jsonObj) {
         if (jsonObj == null) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "请求参数有误!", null);
