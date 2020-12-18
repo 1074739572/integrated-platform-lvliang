@@ -206,7 +206,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
                     THospital h = hospitalService.getOne(hvlvcList.get(i).getHospitalId());
                     if (h != null) {
                         map.put("hospitalCode", h.getHospitalCode());
-                        map.put("hospitalName", h.getHospitalName());
+                        map.put("hospitalId", h.getId());
                     }
                     hospitalConfigList.add(map);
                 }

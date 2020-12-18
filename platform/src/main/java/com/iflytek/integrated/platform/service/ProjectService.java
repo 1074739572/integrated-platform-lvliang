@@ -124,7 +124,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
             String productId = pObj.getString("productId");
             JSONArray jsonArr = pObj.getJSONArray("functionList");
             for (int j = 0; j < jsonArr.size(); j++) {
-                TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(productId, jsonArr.getJSONObject(i).getString("functionId"));
+                TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(productId, jsonArr.getJSONObject(j).getString("functionId"));
                 /**项目与产品关联*/
                 if (tpfl != null) {
                     TProjectProductLink tppl = new TProjectProductLink();
