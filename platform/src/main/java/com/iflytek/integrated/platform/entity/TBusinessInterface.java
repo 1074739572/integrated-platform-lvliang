@@ -82,6 +82,8 @@ public class TBusinessInterface implements Serializable {
 
     private String productCode;
 
+    private String interfaceUrl;
+
     public String getId() {
         return id;
     }
@@ -368,6 +370,14 @@ public class TBusinessInterface implements Serializable {
 
     public void setProductCode(String productCode) {
         this.productCode = productCode;
+    }
+
+    public String getInterfaceUrl() {
+        return interfaceUrl;
+    }
+
+    public void setInterfaceUrl(String interfaceUrl) {
+        this.interfaceUrl = interfaceUrl;
     }
 }
 

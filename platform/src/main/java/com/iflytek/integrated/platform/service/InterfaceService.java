@@ -135,7 +135,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                         qTBusinessInterface.interfaceId,
                         qTBusinessInterface.vendorConfigId,
                         qTProject.projectCode.as("projectCode"),
-                        qTInterface.interfaceName.as("interfaceName"),
+                        qTInterface.interfaceUrl.as("interfaceUrl"),
                         qTProduct.productCode.as("productCode")
                     )
                 ).from(qTBusinessInterface)
@@ -163,7 +163,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 
             //拼接实体
             InDebugResDto resDto = new InDebugResDto();
-            resDto.setFuncode(businessInterface.getInterfaceName());
+            resDto.setFuncode(businessInterface.getInterfaceUrl());
             resDto.setProductcode(businessInterface.getProductCode());
             resDto.setProjectcode(businessInterface.getProjectCode());
             resDto.setInParams(paramNames);

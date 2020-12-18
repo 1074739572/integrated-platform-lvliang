@@ -13,7 +13,7 @@ import java.util.List;
 public class InDebugResDto {
 
     /**
-     * 标准接口code
+     * 标准接口url
      */
     private String funcode;
 
