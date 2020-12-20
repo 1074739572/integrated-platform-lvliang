@@ -22,23 +22,25 @@ public class QTInterfaceMonitor extends com.querydsl.sql.RelationalPathBase<TInt
 
     public static final QTInterfaceMonitor qTInterfaceMonitor = new QTInterfaceMonitor("t_interface_monitor");
 
+    public final StringPath businessInterfaceId = createString("businessInterfaceId");
+
     public final StringPath createdBy = createString("createdBy");
 
     public final DateTimePath<java.util.Date> createdTime = createDateTime("createdTime", java.util.Date.class);
 
-    public final StringPath functionId = createString("functionId");
-
-    public final StringPath hospitalId = createString("hospitalId");
+    public final NumberPath<Integer> errorCount = createNumber("errorCount", Integer.class);
 
     public final StringPath id = createString("id");
 
-    public final StringPath interfaceId = createString("interfaceId");
+    public final StringPath platformId = createString("platformId");
 
-    public final StringPath productId = createString("productId");
+    public final StringPath productFunctionLinkId = createString("productFunctionLinkId");
 
     public final StringPath projectId = createString("projectId");
 
     public final StringPath status = createString("status");
+
+    public final NumberPath<Integer> successCount = createNumber("successCount", Integer.class);
 
     public final StringPath updatedBy = createString("updatedBy");
 
@@ -70,17 +72,18 @@ public class QTInterfaceMonitor extends com.querydsl.sql.RelationalPathBase<TInt
     }
 
     public void addMetadata() {
-        addMetadata(createdBy, ColumnMetadata.named("CREATED_BY").withIndex(8).ofType(Types.VARCHAR).withSize(32));
-        addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(9).ofType(Types.TIMESTAMP).withSize(19));
-        addMetadata(functionId, ColumnMetadata.named("FUNCTION_ID").withIndex(5).ofType(Types.VARCHAR).withSize(32));
-        addMetadata(hospitalId, ColumnMetadata.named("HOSPITAL_ID").withIndex(6).ofType(Types.VARCHAR).withSize(32));
-        addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.VARCHAR).withSize(32));
-        addMetadata(interfaceId, ColumnMetadata.named("INTERFACE_ID").withIndex(3).ofType(Types.VARCHAR).withSize(32));
-        addMetadata(productId, ColumnMetadata.named("PRODUCT_ID").withIndex(4).ofType(Types.VARCHAR).withSize(32));
-        addMetadata(projectId, ColumnMetadata.named("PROJECT_ID").withIndex(2).ofType(Types.VARCHAR).withSize(32));
-        addMetadata(status, ColumnMetadata.named("STATUS").withIndex(7).ofType(Types.VARCHAR).withSize(1));
-        addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(10).ofType(Types.VARCHAR).withSize(32));
-        addMetadata(updatedTime, ColumnMetadata.named("UPDATED_TIME").withIndex(11).ofType(Types.TIMESTAMP).withSize(19));
+        addMetadata(businessInterfaceId, ColumnMetadata.named("BUSINESS_INTERFACE_ID").withIndex(5).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(createdBy, ColumnMetadata.named("CREATED_BY").withIndex(9).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(10).ofType(Types.TIMESTAMP).withSize(19).notNull());
+        addMetadata(errorCount, ColumnMetadata.named("ERROR_COUNT").withIndex(7).ofType(Types.INTEGER).withSize(10).notNull());
+        addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(platformId, ColumnMetadata.named("PLATFORM_ID").withIndex(3).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(productFunctionLinkId, ColumnMetadata.named("PRODUCT_FUNCTION_LINK_ID").withIndex(4).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(projectId, ColumnMetadata.named("PROJECT_ID").withIndex(2).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(status, ColumnMetadata.named("STATUS").withIndex(8).ofType(Types.VARCHAR).withSize(1).notNull());
+        addMetadata(successCount, ColumnMetadata.named("SUCCESS_COUNT").withIndex(6).ofType(Types.INTEGER).withSize(10).notNull());
+        addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(11).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(updatedTime, ColumnMetadata.named("UPDATED_TIME").withIndex(12).ofType(Types.TIMESTAMP).withSize(19).notNull());
     }
 
 }

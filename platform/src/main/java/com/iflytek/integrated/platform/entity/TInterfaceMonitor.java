@@ -11,13 +11,15 @@ public class TInterfaceMonitor implements Serializable {
 
     private String projectId;
 
-    private String interfaceId;
+    private String platformId;
 
-    private String productId;
+    private String productFunctionLinkId;
 
-    private String functionId;
+    private String businessInterfaceId;
 
-    private String hospitalId;
+    private Integer successCount;
+
+    private Integer errorCount;
 
     private String status;
 
@@ -45,36 +47,44 @@ public class TInterfaceMonitor implements Serializable {
         this.projectId = projectId;
     }
 
-    public String getInterfaceId() {
-        return interfaceId;
+    public String getPlatformId() {
+        return platformId;
     }
 
-    public void setInterfaceId(String interfaceId) {
-        this.interfaceId = interfaceId;
+    public void setPlatformId(String platformId) {
+        this.platformId = platformId;
     }
 
-    public String getProductId() {
-        return productId;
+    public String getProductFunctionLinkId() {
+        return productFunctionLinkId;
     }
 
-    public void setProductId(String productId) {
-        this.productId = productId;
+    public void setProductFunctionLinkId(String productFunctionLinkId) {
+        this.productFunctionLinkId = productFunctionLinkId;
     }
 
-    public String getFunctionId() {
-        return functionId;
+    public String getBusinessInterfaceId() {
+        return businessInterfaceId;
     }
 
-    public void setFunctionId(String functionId) {
-        this.functionId = functionId;
+    public void setBusinessInterfaceId(String businessInterfaceId) {
+        this.businessInterfaceId = businessInterfaceId;
     }
 
-    public String getHospitalId() {
-        return hospitalId;
+    public Integer getSuccessCount() {
+        return successCount;
     }
 
-    public void setHospitalId(String hospitalId) {
-        this.hospitalId = hospitalId;
+    public void setSuccessCount(Integer successCount) {
+        this.successCount = successCount;
+    }
+
+    public Integer getErrorCount() {
+        return errorCount;
+    }
+
+    public void setErrorCount(Integer errorCount) {
+        this.errorCount = errorCount;
     }
 
     public String getStatus() {
