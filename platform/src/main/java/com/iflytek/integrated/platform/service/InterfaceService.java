@@ -36,7 +36,6 @@ import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusin
 import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
 import static com.iflytek.integrated.platform.entity.QTHospitalVendorLink.qTHospitalVendorLink;
 import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
-import static com.iflytek.integrated.platform.entity.QTInterfaceMonitor.qTInterfaceMonitor;
 import static com.iflytek.integrated.platform.entity.QTInterfaceParam.qTInterfaceParam;
 import static com.iflytek.integrated.platform.entity.QTInterfaceType.qTInterfaceType;
 import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
@@ -649,8 +648,9 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         if (StringUtils.isNotBlank(projectId) && "1".equals(status)) {
             //返回当前项目下的接口
             interfaces = sqlQueryFactory.select(qTInterface).from(qTInterface)
-                    .leftJoin(qTInterfaceMonitor).on(qTInterfaceMonitor.interfaceId.eq(qTInterface.id))
-                    .where(qTInterfaceMonitor.projectId.eq(projectId))
+                    .leftJoin(qTBusinessInterface).on(qTBusinessInterface.interfaceId.eq(qTInterface.id))
+                    .leftJoin(qTProjectProductLink).on(qTProjectProductLink.productFunctionLinkId.eq(qTBusinessInterface.productFunctionLinkId))
+                    .where(qTProjectProductLink.projectId.eq(projectId))
                     .orderBy(qTInterface.updatedTime.desc()).fetch();
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", interfaces);
         }
@@ -661,9 +661,10 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         }
         //返回当前项目下的接口
         List<TInterface> tiList = sqlQueryFactory.select(qTInterface).from(qTInterface)
-                .leftJoin(qTInterfaceMonitor).on(qTInterfaceMonitor.interfaceId.eq(qTInterface.id))
-                .where(qTInterfaceMonitor.projectId.eq(projectId))
-                .orderBy(qTInterface.updatedTime.desc()).fetch();
+                    .leftJoin(qTBusinessInterface).on(qTBusinessInterface.interfaceId.eq(qTInterface.id))
+                    .leftJoin(qTProjectProductLink).on(qTProjectProductLink.productFunctionLinkId.eq(qTBusinessInterface.productFunctionLinkId))
+                    .where(qTProjectProductLink.projectId.eq(projectId))
+                    .orderBy(qTInterface.updatedTime.desc()).fetch();
         //去除当前项目下的接口
         interfaces.removeAll(tiList);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", interfaces);
