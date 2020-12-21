@@ -174,8 +174,8 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
         if (validationResult.isHasErrors()) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "", validationResult.getErrorMsg());
         }
-        //校验是否存在重复驱动
-        isExistence(drive.getId(),drive.getDriveName(),drive.getDriveCode());
+        //校验是否存在重复驱动，驱动代码格式是否正确
+        isExistence(drive.getId(),drive.getDriveName(),drive.getDriveCode(),drive.getDriveContent());
         if(StringUtils.isEmpty(drive.getId())){
             //新增驱动
             drive.setId(batchUidService.getUid(qTDrive.getTableName())+"");
@@ -195,12 +195,13 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
     }
 
     /**
-     * 校验是否有重复驱动
+     * 校验是否有重复驱动，代码格式是否正确
      * @param id
      * @param driveName
      * @param driveCode
+     * @param driveContent
      */
-    private void isExistence(String id, String driveName, String driveCode){
+    private void isExistence(String id, String driveName, String driveCode, String driveContent){
         //校验是否存在重复驱动
         ArrayList<Predicate> list = new ArrayList<>();
         list.add(qTDrive.driveName.eq(driveName)
@@ -212,6 +213,10 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
                 .where(list.toArray(new Predicate[list.size()])).fetch();
         if(CollectionUtils.isNotEmpty(plugins)){
             throw new RuntimeException("驱动名称或编码已存在");
+        }
+        GroovyValidateDto result = toolsGenerate.groovyUrl(driveContent);
+        if(!GroovyValidateDto.RESULT.SUCCESS.getType().equals(result.getValidResult())){
+            throw new RuntimeException("驱动内容格式错误");
         }
     }
 

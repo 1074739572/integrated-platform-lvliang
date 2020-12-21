@@ -6,6 +6,8 @@ import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.common.utils.RedisUtil;
 import com.iflytek.integrated.platform.annotation.AvoidRepeatCommit;
+import com.iflytek.integrated.platform.dto.GroovyValidateDto;
+import com.iflytek.integrated.platform.utils.ToolsGenerate;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.TPlugin;
 import com.iflytek.integrated.platform.validator.ValidationResult;
@@ -57,6 +59,8 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
     private ValidatorHelper validatorHelper;
     @Resource
     private RedisUtil redisUtil;
+    @Autowired
+    private ToolsGenerate toolsGenerate;
 
     @ApiOperation(value = "选择插件下拉")
     @GetMapping("/getDisPlugin")
@@ -142,7 +146,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "参数校验不通过", validationResult.getErrorMsg());
         }
         //校验是否存在重复插件
-        isExistence(plugin.getId(),plugin.getPluginName(),plugin.getPluginCode());
+        isExistence(plugin.getId(),plugin.getPluginName(),plugin.getPluginCode(),plugin.getPluginContent());
         if(StringUtils.isEmpty(plugin.getId())){
             //新增插件
             plugin.setId(batchUidService.getUid(qTPlugin.getTableName())+"");
@@ -166,8 +170,9 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
      * @param id
      * @param pluginName
      * @param pluginCode
+     * @param pluginContent
      */
-    private void isExistence(String id, String pluginName, String pluginCode){
+    private void isExistence(String id, String pluginName, String pluginCode, String pluginContent){
         //校验是否存在重复插件
         ArrayList<Predicate> list = new ArrayList<>();
         list.add(qTPlugin.pluginName.eq(pluginName)
@@ -179,6 +184,10 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
                 .where(list.toArray(new Predicate[list.size()])).fetch();
         if(CollectionUtils.isNotEmpty(plugins)){
             throw new RuntimeException("插件名称或编码已存在");
+        }
+        GroovyValidateDto result = toolsGenerate.groovyUrl(pluginContent);
+        if(!GroovyValidateDto.RESULT.SUCCESS.getType().equals(result.getValidResult())){
+            throw new RuntimeException("插件内容格式错误");
         }
     }
 
