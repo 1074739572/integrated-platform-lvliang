@@ -4,6 +4,7 @@ import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.common.utils.RedisUtil;
 import com.iflytek.integrated.platform.annotation.AvoidRepeatCommit;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.TPlugin;
@@ -27,6 +28,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -53,6 +55,8 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
     private BatchUidService batchUidService;
     @Autowired
     private ValidatorHelper validatorHelper;
+    @Resource
+    private RedisUtil redisUtil;
 
     @ApiOperation(value = "选择插件下拉")
     @GetMapping("/getDisPlugin")
@@ -123,6 +127,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
         if(lon <= 0){
             throw new RuntimeException("插件管理,插件删除失败");
         }
+        delRedis(id);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "插件管理,插件删除成功", "插件管理,插件删除成功");
     }
 
@@ -143,6 +148,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
             plugin.setId(batchUidService.getUid(qTPlugin.getTableName())+"");
             plugin.setCreatedTime(new Date());
             this.post(plugin);
+            setRedis(plugin);
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"插件新增成功", plugin);
         }
         //编辑插件
@@ -151,6 +157,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
         if(lon <= 0){
             throw new RuntimeException("插件编辑失败");
         }
+        setRedis(plugin);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"","插件编辑成功");
     }
 
@@ -175,4 +182,25 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
         }
     }
 
+    /**
+     * 更新redis记录
+     * @param plugin
+     */
+    private void setRedis(TPlugin plugin){
+        Boolean flag = redisUtil.hmSet(qTPlugin.getTableName(),plugin.getId(),plugin);
+        if(!flag){
+            throw new RuntimeException("redis新增或更新驱动失败");
+        }
+    }
+
+    /**
+     * 删除redis记录
+     * @param id
+     */
+    private void delRedis(String id){
+        Boolean flag = redisUtil.hmDel(qTPlugin.getTableName(),id);
+        if(!flag){
+            throw new RuntimeException("redis删除驱动失败");
+        }
+    }
 }

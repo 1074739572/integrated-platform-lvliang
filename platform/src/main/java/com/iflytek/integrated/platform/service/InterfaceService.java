@@ -6,6 +6,7 @@ import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.common.utils.RedisUtil;
 import com.iflytek.integrated.platform.annotation.AvoidRepeatCommit;
 import com.iflytek.integrated.platform.dto.InDebugResDto;
 import com.iflytek.integrated.platform.utils.ToolsGenerate;
@@ -30,6 +31,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
 import java.util.*;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
@@ -70,11 +73,11 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @Autowired
     private VendorConfigService vendorConfigService;
     @Autowired
-    private VendorService vendorService;
-    @Autowired
     private BatchUidService batchUidService;
     @Autowired
     private ToolsGenerate toolsGenerate;
+    @Resource
+    private RedisUtil redisUtil;
 
     private static final Logger logger = LoggerFactory.getLogger(InterfaceService.class);
 
@@ -564,6 +567,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             obj.setUpdatedTime(new Date());
             businessInterfaceService.put(obj.getId(), obj);
         }
+        setRedis(obj);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, rtnMsg+"成功", obj);
     }
 
@@ -584,6 +588,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     public ResultDto deleteInterfaceConfigure(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
         //删除接口配置
         businessInterfaceService.delete(id);
+        delRedis(id);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "接口配置删除成功!", null);
     }
 
@@ -673,4 +678,25 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", interfaces);
     }
 
+    /**
+     * 更新redis记录
+     * @param tBusinessInterface
+     */
+    private void setRedis(TBusinessInterface tBusinessInterface){
+        Boolean flag = redisUtil.hmSet(qTBusinessInterface.getTableName(),tBusinessInterface.getId(),tBusinessInterface);
+        if(!flag){
+            throw new RuntimeException("redis新增或更新驱动失败");
+        }
+    }
+
+    /**
+     * 删除redis记录
+     * @param id
+     */
+    private void delRedis(String id){
+        Boolean flag = redisUtil.hmDel(qTBusinessInterface.getTableName(),id);
+        if(!flag){
+            throw new RuntimeException("redis删除驱动失败");
+        }
+    }
 }
