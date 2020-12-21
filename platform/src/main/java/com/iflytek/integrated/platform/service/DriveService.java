@@ -1,6 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
 import com.iflytek.integrated.common.Constant;
+import com.iflytek.integrated.common.utils.RedisUtil;
 import com.iflytek.integrated.platform.annotation.AvoidRepeatCommit;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.common.ResultDto;
@@ -30,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -59,6 +61,8 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
     private ValidatorHelper validatorHelper;
     @Autowired
     private ToolsGenerate toolsGenerate;
+    @Resource
+    private RedisUtil redisUtil;
 
     @ApiOperation(value = "获取驱动下拉")
     @GetMapping("/getAllDrive")
@@ -156,6 +160,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
         if(lon <= 0){
             throw new RuntimeException("驱动管理,驱动删除失败");
         }
+        delRedis(id);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "驱动管理,驱动删除成功");
     }
 
@@ -176,6 +181,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
             drive.setId(batchUidService.getUid(qTDrive.getTableName())+"");
             drive.setCreatedTime(new Date());
             this.post(drive);
+            setRedis(drive);
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"驱动新增成功", drive);
         }
         //编辑驱动
@@ -184,6 +190,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
         if(lon <= 0){
             throw new RuntimeException("驱动编辑失败");
         }
+        setRedis(drive);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"驱动编辑成功", drive);
     }
 
@@ -208,5 +215,25 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
         }
     }
 
+    /**
+     * 更新redis记录
+     * @param drive
+     */
+    private void setRedis(TDrive drive){
+        Boolean flag = redisUtil.hmSet(qTDrive.getTableName(),drive.getId(),drive);
+        if(!flag){
+            throw new RuntimeException("redis新增或更新驱动失败");
+        }
+    }
 
+    /**
+     * 删除redis记录
+     * @param id
+     */
+    private void delRedis(String id){
+        Boolean flag = redisUtil.hmDel(qTDrive.getTableName(),id);
+        if(!flag){
+            throw new RuntimeException("redis删除驱动失败");
+        }
+    }
 }
