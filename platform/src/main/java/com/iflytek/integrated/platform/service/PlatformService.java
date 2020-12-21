@@ -234,6 +234,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
 
     @ApiOperation(value = "更改启停用状态", notes = "更改启停用状态")
     @PostMapping("/updateStatus")
+    @AvoidRepeatCommit
     public ResultDto updateStatus(
             @ApiParam(value = "平台id") @RequestParam(value = "id", required = true) String id,
             @ApiParam(value = "平台状态 1启用 2停用") @RequestParam(value = "platformStatus", required = true) String platformStatus) {

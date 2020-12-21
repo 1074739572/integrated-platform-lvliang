@@ -84,6 +84,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 
     @ApiOperation(value = "更改mock状态", notes = "更改mock状态")
     @PostMapping("/updateMockStatus")
+    @AvoidRepeatCommit
     public ResultDto updateMockStatus(@ApiParam(value = "接口配置") @RequestParam(value = "id", required = true) String id,
                                       @ApiParam(value = "更改后的状态") @RequestParam(value = "mockStatus", required = true) String mockStatus) {
         businessInterfaceService.updateMockStatus(id, mockStatus);
@@ -92,6 +93,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 
     @ApiOperation(value = "更改接口配置状态", notes = "更改接口配置状态")
     @PostMapping("/updateStatus")
+    @AvoidRepeatCommit
     public ResultDto updateStatus(@ApiParam(value = "接口配置") @RequestParam(value = "id", required = true) String id,
                                       @ApiParam(value = "更改后的状态") @RequestParam(value = "status", required = true) String status) {
         businessInterfaceService.updateStatus(id, status);
@@ -176,6 +178,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     }
 
     @PostMapping("/interfaceDebug")
+    @AvoidRepeatCommit
     @ApiOperation(value = "接口调试", notes = "接口调试")
     public ResultDto interfaceDebug(String format){
         String result = toolsGenerate.interfaceDebug(format);

@@ -208,6 +208,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
 
     @ApiOperation(value = "更改项目启用状态", notes = "更改项目启用状态")
     @PostMapping("/updateProjectStatus")
+    @AvoidRepeatCommit
     public ResultDto updateProjectStatus(@ApiParam(value = "项目id") @RequestParam(value = "id", required = true) String id,
                                          @ApiParam(value = "项目状态 1启用 2停用") @RequestParam(value = "projectStatus", required = true) String projectStatus) {
         try {
