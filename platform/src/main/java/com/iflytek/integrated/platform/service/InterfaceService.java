@@ -567,7 +567,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             obj.setUpdatedTime(new Date());
             businessInterfaceService.put(obj.getId(), obj);
         }
-        setRedis(obj);
+        setRedis(obj.getId());
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, rtnMsg+"成功", obj);
     }
 
@@ -680,9 +680,10 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 
     /**
      * 更新redis记录
-     * @param tBusinessInterface
+     * @param id
      */
-    private void setRedis(TBusinessInterface tBusinessInterface){
+    private void setRedis(String id){
+        TBusinessInterface tBusinessInterface = businessInterfaceService.getOne(id);
         Boolean flag = redisUtil.hmSet(qTBusinessInterface.getTableName(),tBusinessInterface.getId(),tBusinessInterface);
         if(!flag){
             throw new RuntimeException("redis新增或更新驱动失败");

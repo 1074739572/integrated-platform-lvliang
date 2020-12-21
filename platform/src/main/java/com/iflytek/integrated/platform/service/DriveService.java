@@ -181,7 +181,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
             drive.setId(batchUidService.getUid(qTDrive.getTableName())+"");
             drive.setCreatedTime(new Date());
             this.post(drive);
-            setRedis(drive);
+            setRedis(drive.getId());
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"驱动新增成功", drive);
         }
         //编辑驱动
@@ -190,7 +190,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
         if(lon <= 0){
             throw new RuntimeException("驱动编辑失败");
         }
-        setRedis(drive);
+        setRedis(drive.getId());
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"驱动编辑成功", drive);
     }
 
@@ -222,9 +222,10 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
 
     /**
      * 更新redis记录
-     * @param drive
+     * @param id
      */
-    private void setRedis(TDrive drive){
+    private void setRedis(String id){
+        TDrive drive = this.getOne(id);
         Boolean flag = redisUtil.hmSet(qTDrive.getTableName(),drive.getId(),drive);
         if(!flag){
             throw new RuntimeException("redis新增或更新驱动失败");

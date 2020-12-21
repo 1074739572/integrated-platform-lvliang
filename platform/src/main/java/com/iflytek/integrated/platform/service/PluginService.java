@@ -152,7 +152,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
             plugin.setId(batchUidService.getUid(qTPlugin.getTableName())+"");
             plugin.setCreatedTime(new Date());
             this.post(plugin);
-            setRedis(plugin);
+            setRedis(plugin.getId());
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"插件新增成功", plugin);
         }
         //编辑插件
@@ -161,7 +161,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
         if(lon <= 0){
             throw new RuntimeException("插件编辑失败");
         }
-        setRedis(plugin);
+        setRedis(plugin.getId());
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"","插件编辑成功");
     }
 
@@ -193,9 +193,10 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
 
     /**
      * 更新redis记录
-     * @param plugin
+     * @param id
      */
-    private void setRedis(TPlugin plugin){
+    private void setRedis(String id){
+        TPlugin plugin = getOne(id);
         Boolean flag = redisUtil.hmSet(qTPlugin.getTableName(),plugin.getId(),plugin);
         if(!flag){
             throw new RuntimeException("redis新增或更新驱动失败");
