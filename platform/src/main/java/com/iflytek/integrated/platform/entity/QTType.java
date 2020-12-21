@@ -28,7 +28,7 @@ public class QTType extends com.querydsl.sql.RelationalPathBase<TType> {
 
     public final StringPath id = createString("id");
 
-    public final BooleanPath type = createBoolean("type");
+    public final NumberPath<Integer> type = createNumber("type", Integer.class);
 
     public final StringPath typeCode = createString("typeCode");
 
@@ -69,7 +69,7 @@ public class QTType extends com.querydsl.sql.RelationalPathBase<TType> {
         addMetadata(createdBy, ColumnMetadata.named("CREATED_BY").withIndex(5).ofType(Types.VARCHAR).withSize(32));
         addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(6).ofType(Types.TIMESTAMP).withSize(19).notNull());
         addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.VARCHAR).withSize(32).notNull());
-        addMetadata(type, ColumnMetadata.named("TYPE").withIndex(4).ofType(Types.BIT).notNull());
+        addMetadata(type, ColumnMetadata.named("TYPE").withIndex(4).ofType(Types.INTEGER).withSize(10).notNull());
         addMetadata(typeCode, ColumnMetadata.named("TYPE_CODE").withIndex(3).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(typeName, ColumnMetadata.named("TYPE_NAME").withIndex(2).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(7).ofType(Types.VARCHAR).withSize(32));

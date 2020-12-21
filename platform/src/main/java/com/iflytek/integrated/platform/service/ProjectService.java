@@ -31,7 +31,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
-import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.qTProductFunctionLink;
 import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
 import static com.iflytek.integrated.platform.entity.QTProjectProductLink.qTProjectProductLink;
 

@@ -82,42 +82,14 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
 
     /** 新增厂商 */
     private ResultDto saveVendor(String vendorName, String driveIds) {
-        try {
-            String vendorId = batchUidService.getUid(qTVendor.getTableName()) + "";
-            TVendor tv = new TVendor();
-            tv.setId(vendorId);
-            tv.setVendorCode(utils.generateCode(qTVendor, qTVendor.vendorCode, vendorName));
-            tv.setVendorName(vendorName);
-            tv.setCreatedTime(new Date());
-            this.post(tv);
-            if (StringUtils.isNotBlank(driveIds)) {
-                String[] driveIdArr = driveIds.split(",");
-                for (int i = 0; i < driveIdArr.length; i++) {
-                    TVendorDriveLink tvdl = new TVendorDriveLink();
-                    tvdl.setId(batchUidService.getUid(qTVendorDriveLink.getTableName())+"");
-                    tvdl.setVendorId(vendorId);
-                    tvdl.setDriveId(driveIdArr[i]);
-                    tvdl.setCreatedTime(new Date());
-                    vendorDriveLinkService.post(tvdl);
-                }
-            }
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "厂商新增成功!", null);
-        } catch (Exception e) {
-            logger.error("厂商新增失败!", ExceptionUtil.dealException(e));
-            e.printStackTrace();
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "厂商新增失败!", ExceptionUtil.dealException(e));
-        }
-    }
-
-    /** 修改厂商 */
-    private ResultDto updateVendor(String vendorId, String vendorName, String driveIds) {
-        try {
-            //更新厂商信息
-            sqlQueryFactory.update(qTVendor).set(qTVendor.vendorName, vendorName).set(qTVendor.updatedTime, new Date())
-                    .where(qTVendor.id.eq(vendorId)).execute();
-            //删除关联
-            vendorDriveLinkService.deleteVendorDriveLinkById(vendorId);
-            //添加新关联
+        String vendorId = batchUidService.getUid(qTVendor.getTableName()) + "";
+        TVendor tv = new TVendor();
+        tv.setId(vendorId);
+        tv.setVendorCode(utils.generateCode(qTVendor, qTVendor.vendorCode, vendorName));
+        tv.setVendorName(vendorName);
+        tv.setCreatedTime(new Date());
+        this.post(tv);
+        if (StringUtils.isNotBlank(driveIds)) {
             String[] driveIdArr = driveIds.split(",");
             for (int i = 0; i < driveIdArr.length; i++) {
                 TVendorDriveLink tvdl = new TVendorDriveLink();
@@ -127,12 +99,28 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
                 tvdl.setCreatedTime(new Date());
                 vendorDriveLinkService.post(tvdl);
             }
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "厂商修改成功!", null);
-        } catch (Exception e) {
-            logger.error("厂商修改失败!", ExceptionUtil.dealException(e));
-            e.printStackTrace();
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "厂商修改失败!", ExceptionUtil.dealException(e));
         }
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "厂商新增成功!", null);
+    }
+
+    /** 修改厂商 */
+    private ResultDto updateVendor(String vendorId, String vendorName, String driveIds) {
+        //更新厂商信息
+        sqlQueryFactory.update(qTVendor).set(qTVendor.vendorName, vendorName).set(qTVendor.updatedTime, new Date())
+                .where(qTVendor.id.eq(vendorId)).execute();
+        //删除关联
+        vendorDriveLinkService.deleteVendorDriveLinkById(vendorId);
+        //添加新关联
+        String[] driveIdArr = driveIds.split(",");
+        for (int i = 0; i < driveIdArr.length; i++) {
+            TVendorDriveLink tvdl = new TVendorDriveLink();
+            tvdl.setId(batchUidService.getUid(qTVendorDriveLink.getTableName())+"");
+            tvdl.setVendorId(vendorId);
+            tvdl.setDriveId(driveIdArr[i]);
+            tvdl.setCreatedTime(new Date());
+            vendorDriveLinkService.post(tvdl);
+        }
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "厂商修改成功!", null);
     }
 
 

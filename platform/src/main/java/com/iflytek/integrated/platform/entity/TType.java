@@ -13,7 +13,7 @@ public class TType implements Serializable {
 
     private String typeCode;
 
-    private Boolean type;
+    private Integer type;
 
     private String createdBy;
 
@@ -47,11 +47,11 @@ public class TType implements Serializable {
         this.typeCode = typeCode;
     }
 
-    public Boolean getType() {
+    public Integer getType() {
         return type;
     }
 
-    public void setType(Boolean type) {
+    public void setType(Integer type) {
         this.type = type;
     }
 

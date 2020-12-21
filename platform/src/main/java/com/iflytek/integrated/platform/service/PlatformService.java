@@ -155,8 +155,8 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
             tvc.setDatabaseUrl(obj.getString("databaseUrl"));
             tvc.setDatabaseDriver(obj.getString("databaseDriver"));
             tvc.setJsonParams(obj.getString("jsonParams"));
-            tvc.setUserName(obj.getString("username"));
-            tvc.setUserPassword(obj.getString("password"));
+            tvc.setUserName(obj.getString("userName"));
+            tvc.setUserPassword(obj.getString("userPassword"));
             tvc.setCreatedTime(new Date());
             vendorConfigService.post(tvc);
             JSONArray hospitalArr = obj.getJSONArray("hospitalConfig");
