@@ -39,13 +39,13 @@ public class GlobalExceptionHandler {
     public static final Integer ERROR_CODE = 500;
     public static final String ERROR_MSG = "系统异常，请联系管理员。";
 
-    @Value("${medical.isPrintStackTrace:true}")
+    @Value("true")
     private boolean isPrintStackTrace;
-    @Value("${medical.isPrintValidationJson:true}")
+    @Value("true")
     private boolean isPrintValidationJson;
-    @Value("${medical.isPrintBeanValidation:true}")
+    @Value("true")
     private boolean isPrintBeanValidation;
-    @Value("${medical.isPrintBindException:${medical.isPrintBeanValidation:true}}")
+    @Value("true")
     private boolean isPrintBindException;
     @Autowired
     private ObjectMapper objectMapper;
