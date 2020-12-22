@@ -589,7 +589,10 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @PostMapping("/deleteInterfaceConfigure")
     public ResultDto deleteInterfaceConfigure(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
         //删除接口配置
-        businessInterfaceService.delete(id);
+        Long lon = businessInterfaceService.delete(id);
+        if(lon <= 0){
+            throw new RuntimeException("删除接口失败");
+        }
         delRedis(id);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "接口配置删除成功!", null);
     }
