@@ -13,7 +13,7 @@ public class TInterface implements Serializable {
 
     private String interfaceName;
 
-    private String interfaceTypeId;
+    private String typeId;
 
     private String interfaceUrl;
 
@@ -21,6 +21,7 @@ public class TInterface implements Serializable {
 
     private String createdBy;
 
+    @JsonFormat(pattern="yyyy/MM/dd HH:mm:ss",timezone="GMT+8")
     private java.util.Date createdTime;
 
     private String updatedBy;
@@ -29,10 +30,6 @@ public class TInterface implements Serializable {
     private java.util.Date updatedTime;
 
     private String interfaceTypeName;
-
-    private Long inParamCount;
-
-    private Long outParamCount;
 
     public String getId() {
         return id;
@@ -50,12 +47,12 @@ public class TInterface implements Serializable {
         this.interfaceName = interfaceName;
     }
 
-    public String getInterfaceTypeId() {
-        return interfaceTypeId;
+    public String getTypeId() {
+        return typeId;
     }
 
-    public void setInterfaceTypeId(String interfaceTypeId) {
-        this.interfaceTypeId = interfaceTypeId;
+    public void setTypeId(String typeId) {
+        this.typeId = typeId;
     }
 
     public String getInterfaceUrl() {
@@ -114,22 +111,6 @@ public class TInterface implements Serializable {
         this.interfaceTypeName = interfaceTypeName;
     }
 
-    public Long getInParamCount() {
-        return inParamCount;
-    }
-
-    public void setInParamCount(Long inParamCount) {
-        this.inParamCount = inParamCount;
-    }
-
-    public Long getOutParamCount() {
-        return outParamCount;
-    }
-
-    public void setOutParamCount(Long outParamCount) {
-        this.outParamCount = outParamCount;
-    }
-
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof TInterface) {
@@ -139,5 +120,6 @@ public class TInterface implements Serializable {
         }
         return super.equals(obj);
     }
+
 }
 

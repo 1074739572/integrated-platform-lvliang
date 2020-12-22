@@ -77,7 +77,7 @@ public class QTDrive extends com.querydsl.sql.RelationalPathBase<TDrive> {
         addMetadata(driveInstruction, ColumnMetadata.named("DRIVE_INSTRUCTION").withIndex(5).ofType(Types.VARCHAR).withSize(255).notNull());
         addMetadata(driveName, ColumnMetadata.named("DRIVE_NAME").withIndex(2).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.VARCHAR).withSize(32).notNull());
-        addMetadata(typeId, ColumnMetadata.named("TYPE_ID").withIndex(4).ofType(Types.CHAR).withSize(1));
+        addMetadata(typeId, ColumnMetadata.named("TYPE_ID").withIndex(4).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(9).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(updatedTime, ColumnMetadata.named("UPDATED_TIME").withIndex(10).ofType(Types.TIMESTAMP).withSize(19).notNull());
     }
