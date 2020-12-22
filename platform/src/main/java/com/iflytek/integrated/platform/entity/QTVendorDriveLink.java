@@ -28,6 +28,8 @@ public class QTVendorDriveLink extends com.querydsl.sql.RelationalPathBase<TVend
 
     public final StringPath driveId = createString("driveId");
 
+    public final NumberPath<Integer> driveOrder = createNumber("driveOrder", Integer.class);
+
     public final StringPath id = createString("id");
 
     public final StringPath updatedBy = createString("updatedBy");
@@ -35,6 +37,8 @@ public class QTVendorDriveLink extends com.querydsl.sql.RelationalPathBase<TVend
     public final DateTimePath<java.util.Date> updatedTime = createDateTime("updatedTime", java.util.Date.class);
 
     public final StringPath vendorId = createString("vendorId");
+
+    public final com.querydsl.sql.PrimaryKey<TVendorDriveLink> primary = createPrimaryKey(id);
 
     public QTVendorDriveLink(String variable) {
         super(TVendorDriveLink.class, forVariable(variable), "null", "t_vendor_drive_link");
@@ -62,13 +66,14 @@ public class QTVendorDriveLink extends com.querydsl.sql.RelationalPathBase<TVend
     }
 
     public void addMetadata() {
-        addMetadata(createdBy, ColumnMetadata.named("CREATED_BY").withIndex(4).ofType(Types.VARCHAR).withSize(32));
-        addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(5).ofType(Types.TIMESTAMP).withSize(19));
-        addMetadata(driveId, ColumnMetadata.named("DRIVE_ID").withIndex(3).ofType(Types.VARCHAR).withSize(32));
-        addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.VARCHAR).withSize(32));
-        addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(6).ofType(Types.VARCHAR).withSize(32));
-        addMetadata(updatedTime, ColumnMetadata.named("UPDATED_TIME").withIndex(7).ofType(Types.TIMESTAMP).withSize(19));
-        addMetadata(vendorId, ColumnMetadata.named("VENDOR_ID").withIndex(2).ofType(Types.VARCHAR).withSize(32));
+        addMetadata(createdBy, ColumnMetadata.named("CREATED_BY").withIndex(5).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(6).ofType(Types.TIMESTAMP).withSize(19).notNull());
+        addMetadata(driveId, ColumnMetadata.named("DRIVE_ID").withIndex(3).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(driveOrder, ColumnMetadata.named("DRIVE_ORDER").withIndex(4).ofType(Types.INTEGER).withSize(10).notNull());
+        addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(7).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(updatedTime, ColumnMetadata.named("UPDATED_TIME").withIndex(8).ofType(Types.TIMESTAMP).withSize(19).notNull());
+        addMetadata(vendorId, ColumnMetadata.named("VENDOR_ID").withIndex(2).ofType(Types.VARCHAR).withSize(32).notNull());
     }
 
 }

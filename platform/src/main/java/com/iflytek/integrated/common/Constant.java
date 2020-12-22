@@ -111,12 +111,10 @@ public class Constant {
          * 省级
          */
         public static final Integer PROVINCE = 1;
-
         /**
          * 市级
          */
         public static final Integer CITY = 2;
-
         /**
          * 区（县）级
          */
@@ -131,6 +129,24 @@ public class Constant {
         public static String IN = "1";
 
         public static String OUT = "2";
+    }
+
+    /**
+     * 分类类型
+     */
+    public interface TypeStatus {
+        /**
+         * 接口分类
+         */
+        public static Integer INTERFACE = 1;
+        /**
+         * 驱动分类
+         */
+        public static Integer DRIVE = 2;
+        /**
+         * 插件分类
+         */
+        public static Integer PLUGIN = 3;
     }
 
     /**

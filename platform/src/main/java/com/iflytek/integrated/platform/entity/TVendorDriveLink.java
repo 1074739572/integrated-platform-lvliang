@@ -13,6 +13,8 @@ public class TVendorDriveLink implements Serializable {
 
     private String driveId;
 
+    private Integer driveOrder;
+
     private String createdBy;
 
     private java.util.Date createdTime;
@@ -45,6 +47,14 @@ public class TVendorDriveLink implements Serializable {
 
     public void setDriveId(String driveId) {
         this.driveId = driveId;
+    }
+
+    public Integer getDriveOrder() {
+        return driveOrder;
+    }
+
+    public void setDriveOrder(Integer driveOrder) {
+        this.driveOrder = driveOrder;
     }
 
     public String getCreatedBy() {

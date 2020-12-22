@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static com.iflytek.integrated.platform.entity.QTType.qTType;
 
@@ -53,13 +54,13 @@ public class TypeService extends QuerydslService<TType, String, TType, StringPat
         if(StringUtils.isNotBlank(typeName)) {
             list.add(qTType.typeName.eq(Utils.rightCreateFuzzyText(typeName)));
         }
-        QueryResults<TType> queryResults = sqlQueryFactory.select(
+        List<TType> typeList = sqlQueryFactory.select(
                 Projections.bean(TType.class, qTType.id, qTType.type, qTType.typeCode, qTType.typeName))
                 .from(qTType)
                 .where(list.toArray(new Predicate[list.size()]))
                 .orderBy(qTType.updatedTime.desc())
-                .fetchResults();
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", queryResults);
+                .fetch();
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", typeList);
     }
 
 }

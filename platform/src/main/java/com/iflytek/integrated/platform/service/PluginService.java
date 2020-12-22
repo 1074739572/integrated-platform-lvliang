@@ -36,6 +36,7 @@ import java.util.Date;
 import java.util.List;
 
 import static com.iflytek.integrated.platform.entity.QTPlugin.qTPlugin;
+import static com.iflytek.integrated.platform.entity.QTType.qTType;
 
 /**
  * 插件管理
@@ -97,9 +98,12 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
                             qTPlugin.pluginCode,
                             qTPlugin.pluginContent,
                             qTPlugin.pluginInstruction,
-                            qTPlugin.updatedTime
+                            qTPlugin.updatedTime,
+                            qTPlugin.typeId,
+                            qTType.typeName.as("pluginTypeName")
                     ))
                     .from(qTPlugin)
+                    .leftJoin(qTType).on(qTType.id.eq(qTPlugin.typeId))
                     .where(list.toArray(new Predicate[list.size()]))
                     .limit(pageSize)
                     .offset((pageNo - 1) * pageSize)
