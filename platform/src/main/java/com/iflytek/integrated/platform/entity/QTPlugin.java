@@ -36,9 +36,13 @@ public class QTPlugin extends com.querydsl.sql.RelationalPathBase<TPlugin> {
 
     public final StringPath pluginName = createString("pluginName");
 
+    public final StringPath typeId = createString("typeId");
+
     public final StringPath updatedBy = createString("updatedBy");
 
     public final DateTimePath<java.util.Date> updatedTime = createDateTime("updatedTime", java.util.Date.class);
+
+    public final com.querydsl.sql.PrimaryKey<TPlugin> primary = createPrimaryKey(id);
 
     public QTPlugin(String variable) {
         super(TPlugin.class, forVariable(variable), "null", "t_plugin");
@@ -66,15 +70,16 @@ public class QTPlugin extends com.querydsl.sql.RelationalPathBase<TPlugin> {
     }
 
     public void addMetadata() {
-        addMetadata(createdBy, ColumnMetadata.named("CREATED_BY").withIndex(6).ofType(Types.VARCHAR).withSize(32));
-        addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(7).ofType(Types.TIMESTAMP).withSize(19));
-        addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.VARCHAR).withSize(32));
-        addMetadata(pluginCode, ColumnMetadata.named("PLUGIN_CODE").withIndex(3).ofType(Types.VARCHAR).withSize(32));
-        addMetadata(pluginContent, ColumnMetadata.named("PLUGIN_CONTENT").withIndex(5).ofType(Types.LONGVARCHAR).withSize(65535));
-        addMetadata(pluginInstruction, ColumnMetadata.named("PLUGIN_INSTRUCTION").withIndex(4).ofType(Types.VARCHAR).withSize(255));
-        addMetadata(pluginName, ColumnMetadata.named("PLUGIN_NAME").withIndex(2).ofType(Types.VARCHAR).withSize(32));
-        addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(8).ofType(Types.VARCHAR).withSize(32));
-        addMetadata(updatedTime, ColumnMetadata.named("UPDATED_TIME").withIndex(9).ofType(Types.TIMESTAMP).withSize(19));
+        addMetadata(createdBy, ColumnMetadata.named("CREATED_BY").withIndex(7).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(8).ofType(Types.TIMESTAMP).withSize(19).notNull());
+        addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(pluginCode, ColumnMetadata.named("PLUGIN_CODE").withIndex(3).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(pluginContent, ColumnMetadata.named("PLUGIN_CONTENT").withIndex(6).ofType(Types.LONGVARCHAR).withSize(65535));
+        addMetadata(pluginInstruction, ColumnMetadata.named("PLUGIN_INSTRUCTION").withIndex(5).ofType(Types.VARCHAR).withSize(255).notNull());
+        addMetadata(pluginName, ColumnMetadata.named("PLUGIN_NAME").withIndex(2).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(typeId, ColumnMetadata.named("TYPE_ID").withIndex(4).ofType(Types.CHAR).withSize(1));
+        addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(9).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(updatedTime, ColumnMetadata.named("UPDATED_TIME").withIndex(10).ofType(Types.TIMESTAMP).withSize(19).notNull());
     }
 
 }

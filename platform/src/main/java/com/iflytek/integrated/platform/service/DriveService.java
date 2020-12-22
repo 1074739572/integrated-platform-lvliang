@@ -1,5 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.utils.RedisUtil;
 import com.iflytek.integrated.platform.annotation.AvoidRepeatCommit;
@@ -7,6 +9,7 @@ import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.platform.entity.TType;
 import com.iflytek.integrated.platform.utils.ToolsGenerate;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.TDrive;
@@ -35,8 +38,10 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
+import static com.iflytek.integrated.platform.entity.QTType.qTType;
 import static com.iflytek.integrated.platform.entity.QTVendorDriveLink.qTVendorDriveLink;
 
 /**
@@ -114,10 +119,13 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
                             qTDrive.driveName,
                             qTDrive.driveContent,
                             qTDrive.driveInstruction,
-                            qTDrive.updatedTime
+                            qTDrive.updatedTime,
+                            qTDrive.typeId,
+                            qTType.typeName.as("driveTypeName")
                     ))
                     .from(qTDrive)
                     .where(list.toArray(new Predicate[list.size()]))
+                    .leftJoin(qTType).on(qTType.id.eq(qTDrive.typeId))
                     .limit(pageSize)
                     .offset((pageNo - 1) * pageSize)
                     .orderBy(qTDrive.updatedTime.desc())
@@ -192,6 +200,29 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
         }
         setRedis(drive.getId());
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"驱动编辑成功", drive);
+    }
+
+    @ApiOperation(value = "新增厂商弹窗展示的驱动选择信息")
+    @GetMapping("/getDriveChoiceList")
+    public ResultDto getDriveChoiceList() {
+        //获取驱动类型list
+        List<TType> typeList = sqlQueryFactory.select(qTType).from(qTType).where(qTType.type.eq(Constant.TypeStatus.DRIVE)).orderBy(qTType.updatedTime.desc()).fetch();
+
+        JSONArray rtnArr = new JSONArray();
+        for (TType tt : typeList) {
+            JSONObject jsonObj = new JSONObject();
+            jsonObj.put("label", tt.getTypeName());
+            List<String> driveList = sqlQueryFactory.select(qTDrive.driveName).from(qTDrive).where(qTDrive.typeId.eq(tt.getId())).orderBy(qTDrive.updatedTime.desc()).fetch();
+            JSONArray arr = new JSONArray();
+            for (String drive : driveList) {
+                JSONObject obj = new JSONObject();
+                obj.put("label", drive);
+                arr.add(obj);
+            }
+            jsonObj.put("children", arr);
+            rtnArr.add(jsonObj);
+        }
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"获取驱动选择信息成功", rtnArr);
     }
 
     /**

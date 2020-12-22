@@ -13,6 +13,8 @@ public class TDrive implements Serializable {
 
     private String id;
 
+    private String typeId;
+
     @NotBlank(message = "驱动名称不能为空")
     @Length(max = 20, message = "驱动名称不能超过20")
     private String driveName;
@@ -36,6 +38,8 @@ public class TDrive implements Serializable {
     @JsonFormat(pattern="yyyy/MM/dd HH:mm:ss")
     private java.util.Date updatedTime;
 
+    private String driveTypeName;
+
     public String getId() {
         return id;
     }
@@ -58,6 +62,14 @@ public class TDrive implements Serializable {
 
     public void setDriveCode(String driveCode) {
         this.driveCode = driveCode;
+    }
+
+    public String getTypeId() {
+        return typeId;
+    }
+
+    public void setTypeId(String typeId) {
+        this.typeId = typeId;
     }
 
     public String getDriveInstruction() {
@@ -106,6 +118,24 @@ public class TDrive implements Serializable {
 
     public void setUpdatedTime(java.util.Date updatedTime) {
         this.updatedTime = updatedTime;
+    }
+
+    public String getDriveTypeName() {
+        return driveTypeName;
+    }
+
+    public void setDriveTypeName(String driveTypeName) {
+        this.driveTypeName = driveTypeName;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof TDrive) {
+            if (this.id.equals(((TDrive) obj).id)) {
+                return true;
+            }
+        }
+        return super.equals(obj);
     }
 
 }

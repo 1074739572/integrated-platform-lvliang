@@ -13,6 +13,8 @@ public class TPlugin implements Serializable {
 
     private String id;
 
+    private String typeId;
+
     @NotBlank(message = "插件名称不能为空")
     @Length(max = 20, message = "插件名称不能超过20")
     private String pluginName;
@@ -36,6 +38,8 @@ public class TPlugin implements Serializable {
     @JsonFormat(pattern="yyyy/MM/dd HH:mm:ss")
     private java.util.Date updatedTime;
 
+    private String pluginTypeName;
+
     public String getId() {
         return id;
     }
@@ -58,6 +62,14 @@ public class TPlugin implements Serializable {
 
     public void setPluginCode(String pluginCode) {
         this.pluginCode = pluginCode;
+    }
+
+    public String getTypeId() {
+        return typeId;
+    }
+
+    public void setTypeId(String typeId) {
+        this.typeId = typeId;
     }
 
     public String getPluginInstruction() {
@@ -108,5 +120,22 @@ public class TPlugin implements Serializable {
         this.updatedTime = updatedTime;
     }
 
+    public String getPluginTypeName() {
+        return pluginTypeName;
+    }
+
+    public void setPluginTypeName(String pluginTypeName) {
+        this.pluginTypeName = pluginTypeName;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof TPlugin) {
+            if (this.id.equals(((TPlugin) obj).id)) {
+                return true;
+            }
+        }
+        return super.equals(obj);
+    }
 }
 
