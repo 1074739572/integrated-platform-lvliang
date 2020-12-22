@@ -33,7 +33,7 @@ public class TProduct implements Serializable {
     private String funLinkId;
 
     /**
-     *
+     * 产品功能list
      */
     private List<TFunction> functions;
 

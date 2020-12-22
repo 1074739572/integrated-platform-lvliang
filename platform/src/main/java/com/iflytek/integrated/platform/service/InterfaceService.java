@@ -215,6 +215,13 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @PostMapping("/saveAndUpdateInterface")
     @AvoidRepeatCommit
     public ResultDto saveAndUpdateInterface(@RequestBody JSONObject jsonObj) {
+        String interfaceName = jsonObj.getString("interfaceName");
+        if (StringUtils.isBlank(interfaceName)) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "接口名为空!", "接口名为空!");
+        }
+        if (null != this.getInterfaceByName(interfaceName)) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该接口名已存在!", "该接口名已存在!");
+        }
         if (StringUtils.isBlank(jsonObj.getString("id"))) {
             return this.saveInterface(jsonObj);
         }
@@ -682,6 +689,19 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         interfaces.removeAll(tiList);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", interfaces);
     }
+
+    /**
+     * 根据接口名获取标准接口
+     * @param interfaceName
+     * @return
+     */
+    private TInterface getInterfaceByName(String interfaceName) {
+        if (StringUtils.isBlank(interfaceName)) {
+            return null;
+        }
+        return sqlQueryFactory.select(qTInterface).from(qTInterface).where(qTInterface.interfaceName.eq(interfaceName)).fetchOne();
+    }
+
 
     /**
      * 更新redis记录

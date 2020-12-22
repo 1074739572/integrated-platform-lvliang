@@ -1,5 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
@@ -7,6 +9,7 @@ import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.common.utils.RedisUtil;
 import com.iflytek.integrated.platform.annotation.AvoidRepeatCommit;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
+import com.iflytek.integrated.platform.entity.TType;
 import com.iflytek.integrated.platform.utils.ToolsGenerate;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.TPlugin;
@@ -48,6 +51,7 @@ import static com.iflytek.integrated.platform.entity.QTType.qTType;
 @RestController
 @RequestMapping("/v1/pb/pluginManage")
 public class PluginService extends QuerydslService<TPlugin, String, TPlugin, StringPath, PageRequest<TPlugin>> {
+
     public PluginService(){
         super(qTPlugin,qTPlugin.id);
     }
@@ -63,18 +67,29 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
     @Autowired
     private ToolsGenerate toolsGenerate;
 
-    @ApiOperation(value = "选择插件下拉")
+    @ApiOperation(value = "接口配置选择插件下拉")
     @GetMapping("/getDisPlugin")
     public ResultDto getDisPlugin() {
-        List<TPlugin> plugins = sqlQueryFactory.select(
-                Projections.bean(
-                        TPlugin.class,
-                        qTPlugin.id,
-                        qTPlugin.pluginCode,
-                        qTPlugin.pluginName
-                )
-        ).from(qTPlugin).orderBy(qTPlugin.updatedTime.desc()).fetch();
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"",plugins);
+        //获取插件类型list
+        List<TType> typeList = sqlQueryFactory.select(qTType).from(qTType).where(qTType.type.eq(Constant.TypeStatus.PLUGIN)).orderBy(qTType.updatedTime.desc()).fetch();
+
+        JSONArray rtnArr = new JSONArray();
+        for (TType tt : typeList) {
+            JSONObject jsonObj = new JSONObject();
+            jsonObj.put("typeId", tt.getId());
+            jsonObj.put("name", tt.getTypeName());
+            List<TPlugin> pluginList = sqlQueryFactory.select(qTPlugin).from(qTPlugin).where(qTPlugin.typeId.eq(tt.getId())).orderBy(qTPlugin.updatedTime.desc()).fetch();
+            JSONArray arr = new JSONArray();
+            for (TPlugin tp : pluginList) {
+                JSONObject obj = new JSONObject();
+                obj.put("pluginId", tp.getId());
+                obj.put("name", tp.getPluginName());
+                arr.add(obj);
+            }
+            jsonObj.put("children", arr);
+            rtnArr.add(jsonObj);
+        }
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"选择插件下拉数据获取成功", rtnArr);
     }
 
     @ApiOperation(value = "插件管理列表")

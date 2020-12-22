@@ -210,12 +210,14 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
         JSONArray rtnArr = new JSONArray();
         for (TType tt : typeList) {
             JSONObject jsonObj = new JSONObject();
-            jsonObj.put("label", tt.getTypeName());
-            List<String> driveList = sqlQueryFactory.select(qTDrive.driveName).from(qTDrive).where(qTDrive.typeId.eq(tt.getId())).orderBy(qTDrive.updatedTime.desc()).fetch();
+            jsonObj.put("id", tt.getId());
+            jsonObj.put("name", tt.getTypeName());
+            List<TDrive> driveList = sqlQueryFactory.select(qTDrive).from(qTDrive).where(qTDrive.typeId.eq(tt.getId())).orderBy(qTDrive.updatedTime.desc()).fetch();
             JSONArray arr = new JSONArray();
-            for (String drive : driveList) {
+            for (TDrive td : driveList) {
                 JSONObject obj = new JSONObject();
-                obj.put("label", drive);
+                obj.put("id", td.getId());
+                obj.put("name", td.getDriveName());
                 arr.add(obj);
             }
             jsonObj.put("children", arr);

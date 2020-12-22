@@ -71,7 +71,7 @@ public class ProductFunctionLinkService extends QuerydslService<TProductFunction
                     .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
                     .leftJoin(qTFunction).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
                     .where(list.toArray(new Predicate[list.size()]))
-                    .orderBy(qTProduct.updatedTime.desc())
+                    .orderBy(qTProduct.updatedTime.desc(),qTProductFunctionLink.updatedTime.desc())
                     .limit(pageSize)
                     .offset((pageNo - 1) * pageSize)
                     .fetchResults();
@@ -88,6 +88,5 @@ public class ProductFunctionLinkService extends QuerydslService<TProductFunction
                 .set(qTProductFunctionLink.functionId, functionId).set(qTProductFunctionLink.updatedTime, new Date())
                 .where(qTProductFunctionLink.id.eq(id)).execute();
     }
-
 
 }
