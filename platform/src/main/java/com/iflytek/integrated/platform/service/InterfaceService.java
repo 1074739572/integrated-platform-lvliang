@@ -48,6 +48,7 @@ import static com.iflytek.integrated.platform.entity.QTProduct.qTProduct;
 import static com.iflytek.integrated.platform.entity.QTFunction.qTFunction;
 import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
 import static com.iflytek.integrated.platform.entity.QTProjectProductLink.qTProjectProductLink;
+import static com.iflytek.integrated.platform.entity.QTType.qTType;
 import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConfig;
 
 /**
@@ -228,7 +229,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         TInterface ti = new TInterface();
         ti.setId(interfaceId);
         ti.setInterfaceName(jsonObj.getString("interfaceName"));
-        ti.setInterfaceTypeId(jsonObj.getString("interfaceTypeId"));
+        ti.setTypeId(jsonObj.getString("typeId"));
         ti.setInterfaceUrl(jsonObj.getString("interfaceUrl"));
         ti.setInterfaceFormat(jsonObj.getString("interfaceFormat"));
         ti.setCreatedTime(new Date());
@@ -279,13 +280,13 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     private ResultDto updateInterface(JSONObject jsonObj) {
         String id = jsonObj.getString("id");
         String interfaceName = jsonObj.getString("interfaceName");
-        String interfaceTypeId = jsonObj.getString("interfaceTypeId");
+        String interfaceTypeId = jsonObj.getString("typeId");
         String interfaceUrl = jsonObj.getString("interfaceUrl");
         String interfaceFormat = jsonObj.getString("interfaceFormat");
 
         //修改标准接口信息
         sqlQueryFactory.update(qTInterface).set(qTInterface.interfaceName, interfaceName)
-                .set(qTInterface.interfaceTypeId, interfaceTypeId).set(qTInterface.interfaceUrl, interfaceUrl)
+                .set(qTInterface.typeId, interfaceTypeId).set(qTInterface.interfaceUrl, interfaceUrl)
                 .set(qTInterface.interfaceFormat, interfaceFormat).set(qTInterface.updatedTime, new Date())
                 .where(qTInterface.id.eq(id)).execute();
         //替换产品与接口关联
@@ -371,7 +372,8 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                     qTInterface.interfaceUrl,
                     qTInterface.interfaceFormat,
                     qTInterface.updatedTime,
-                    qTInterfaceType.interfaceTypeName,
+                    qTInterface.typeId,
+                    qTType.typeName.as("interfaceTypeName"),
                     sqlQueryFactory.select(qTInterfaceParam.id.count()).from(qTInterfaceParam)
                             .where((qTInterfaceParam.paramInOut.eq(Constant.ParmInOut.IN))
                             .and(qTInterfaceParam.interfaceId.eq(qTInterface.id))).as("inParamCount"),
@@ -380,7 +382,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                             .and(qTInterfaceParam.interfaceId.eq(qTInterface.id))).as("outParamCount")
                 )
             ).from(qTInterface)
-                    .leftJoin(qTInterfaceType).on(qTInterfaceType.id.eq(qTInterface.interfaceTypeId))
+                    .leftJoin(qTType).on(qTType.id.eq(qTInterface.typeId))
                     .where(list.toArray(new Predicate[list.size()]))
                     .groupBy(qTInterface.id)
                     .limit(pageSize)

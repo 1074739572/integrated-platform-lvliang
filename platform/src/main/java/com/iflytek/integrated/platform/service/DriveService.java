@@ -38,7 +38,6 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
 import static com.iflytek.integrated.platform.entity.QTType.qTType;

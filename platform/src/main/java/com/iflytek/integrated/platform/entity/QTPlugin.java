@@ -77,7 +77,7 @@ public class QTPlugin extends com.querydsl.sql.RelationalPathBase<TPlugin> {
         addMetadata(pluginContent, ColumnMetadata.named("PLUGIN_CONTENT").withIndex(6).ofType(Types.LONGVARCHAR).withSize(65535));
         addMetadata(pluginInstruction, ColumnMetadata.named("PLUGIN_INSTRUCTION").withIndex(5).ofType(Types.VARCHAR).withSize(255).notNull());
         addMetadata(pluginName, ColumnMetadata.named("PLUGIN_NAME").withIndex(2).ofType(Types.VARCHAR).withSize(32).notNull());
-        addMetadata(typeId, ColumnMetadata.named("TYPE_ID").withIndex(4).ofType(Types.CHAR).withSize(1));
+        addMetadata(typeId, ColumnMetadata.named("TYPE_ID").withIndex(4).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(9).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(updatedTime, ColumnMetadata.named("UPDATED_TIME").withIndex(10).ofType(Types.TIMESTAMP).withSize(19).notNull());
     }
