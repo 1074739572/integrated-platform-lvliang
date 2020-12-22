@@ -688,7 +688,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         TBusinessInterface tBusinessInterface = businessInterfaceService.getOne(id);
         Boolean flag = redisUtil.hmSet(qTBusinessInterface.getTableName(),tBusinessInterface.getId(),tBusinessInterface);
         if(!flag){
-            throw new RuntimeException("redis新增或更新驱动失败");
+            throw new RuntimeException("redis新增或更新接口失败");
         }
     }
 
@@ -699,7 +699,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     private void delRedis(String id){
         Boolean flag = redisUtil.hmDel(qTBusinessInterface.getTableName(),id);
         if(!flag){
-            throw new RuntimeException("redis删除驱动失败");
+            throw new RuntimeException("redis删除接口失败");
         }
     }
 }

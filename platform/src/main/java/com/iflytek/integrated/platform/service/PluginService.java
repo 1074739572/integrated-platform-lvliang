@@ -203,7 +203,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
         TPlugin plugin = getOne(id);
         Boolean flag = redisUtil.hmSet(qTPlugin.getTableName(),plugin.getId(),plugin);
         if(!flag){
-            throw new RuntimeException("redis新增或更新驱动失败");
+            throw new RuntimeException("redis新增或更新插件失败");
         }
     }
 
@@ -214,7 +214,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
     private void delRedis(String id){
         Boolean flag = redisUtil.hmDel(qTPlugin.getTableName(),id);
         if(!flag){
-            throw new RuntimeException("redis删除驱动失败");
+            throw new RuntimeException("redis删除插件失败");
         }
     }
 }

@@ -96,4 +96,33 @@ public class LogService extends QuerydslService<TLog, String, TLog, StringPath, 
         }
     }
 
+    @ApiOperation(value = "查看日志详细列表")
+    @GetMapping("/logInfo")
+    public ResultDto logInfo(String interfaceMonitorId,
+                             @RequestParam(defaultValue = "1")Integer pageNo,
+                             @RequestParam(defaultValue = "10")Integer pageSize){
+        //查询条件
+        ArrayList<Predicate> list = new ArrayList<>();
+        if(StringUtils.isEmpty(interfaceMonitorId)){
+            return new ResultDto(Constant.ResultCode.ERROR_CODE,"","获取日志详细列表，id必传");
+        }
+        list.add(qTInterfaceMonitor.id.eq(interfaceMonitorId));
+
+        QueryResults<TLog> queryResults = sqlQueryFactory.select(
+                qTLog
+//                Projections.bean(TLog.class)
+            ).from(qTLog)
+            .leftJoin(qTInterfaceMonitor).on(qTInterfaceMonitor.projectId.eq(qTLog.projectId)
+                .and(qTInterfaceMonitor.platformId.eq(qTLog.platformId)
+                .and(qTInterfaceMonitor.productFunctionLinkId.eq(qTLog.productFunctionLinkId)
+                .and(qTInterfaceMonitor.businessInterfaceId.eq(qTLog.businessInterfaceId)))))
+            .where(list.toArray(new Predicate[list.size()]))
+            .limit(pageSize)
+            .offset((pageNo - 1) * pageSize)
+            .orderBy(qTLog.updatedTime.desc())
+            .fetchResults();
+        //分页
+        TableData<TLog> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "",tableData);
+    }
 }

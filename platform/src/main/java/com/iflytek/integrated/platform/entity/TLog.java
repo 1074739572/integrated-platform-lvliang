@@ -9,9 +9,31 @@ public class TLog implements Serializable {
 
     private String id;
 
-    private String interfaceMonitorId;
+    private String projectId;
 
-    private String logInfo;
+    private String platformId;
+
+    private String productFunctionLinkId;
+
+    private String businessInterfaceId;
+
+    private String visitAddr;
+
+    private String businessReq;
+
+    private String venderReq;
+
+    private String venderRep;
+
+    private String businessRep;
+
+    private Integer venderRepTime;
+
+    private Integer businessRepTime;
+
+    private String requestIdentifier;
+
+    private String status;
 
     private String createdBy;
 
@@ -29,20 +51,108 @@ public class TLog implements Serializable {
         this.id = id;
     }
 
-    public String getInterfaceMonitorId() {
-        return interfaceMonitorId;
+    public String getProjectId() {
+        return projectId;
     }
 
-    public void setInterfaceMonitorId(String interfaceMonitorId) {
-        this.interfaceMonitorId = interfaceMonitorId;
+    public void setProjectId(String projectId) {
+        this.projectId = projectId;
     }
 
-    public String getLogInfo() {
-        return logInfo;
+    public String getPlatformId() {
+        return platformId;
     }
 
-    public void setLogInfo(String logInfo) {
-        this.logInfo = logInfo;
+    public void setPlatformId(String platformId) {
+        this.platformId = platformId;
+    }
+
+    public String getProductFunctionLinkId() {
+        return productFunctionLinkId;
+    }
+
+    public void setProductFunctionLinkId(String productFunctionLinkId) {
+        this.productFunctionLinkId = productFunctionLinkId;
+    }
+
+    public String getBusinessInterfaceId() {
+        return businessInterfaceId;
+    }
+
+    public void setBusinessInterfaceId(String businessInterfaceId) {
+        this.businessInterfaceId = businessInterfaceId;
+    }
+
+    public String getVisitAddr() {
+        return visitAddr;
+    }
+
+    public void setVisitAddr(String visitAddr) {
+        this.visitAddr = visitAddr;
+    }
+
+    public String getBusinessReq() {
+        return businessReq;
+    }
+
+    public void setBusinessReq(String businessReq) {
+        this.businessReq = businessReq;
+    }
+
+    public String getVenderReq() {
+        return venderReq;
+    }
+
+    public void setVenderReq(String venderReq) {
+        this.venderReq = venderReq;
+    }
+
+    public String getVenderRep() {
+        return venderRep;
+    }
+
+    public void setVenderRep(String venderRep) {
+        this.venderRep = venderRep;
+    }
+
+    public String getBusinessRep() {
+        return businessRep;
+    }
+
+    public void setBusinessRep(String businessRep) {
+        this.businessRep = businessRep;
+    }
+
+    public Integer getVenderRepTime() {
+        return venderRepTime;
+    }
+
+    public void setVenderRepTime(Integer venderRepTime) {
+        this.venderRepTime = venderRepTime;
+    }
+
+    public Integer getBusinessRepTime() {
+        return businessRepTime;
+    }
+
+    public void setBusinessRepTime(Integer businessRepTime) {
+        this.businessRepTime = businessRepTime;
+    }
+
+    public String getRequestIdentifier() {
+        return requestIdentifier;
+    }
+
+    public void setRequestIdentifier(String requestIdentifier) {
+        this.requestIdentifier = requestIdentifier;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public String getCreatedBy() {
