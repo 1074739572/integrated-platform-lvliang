@@ -21,7 +21,7 @@ public class TVendor implements Serializable {
 
     private String updatedBy;
 
-    @JsonFormat(pattern="yyyy/MM/dd HH:mm:ss")
+    @JsonFormat(pattern="yyyy/MM/dd HH:mm:ss",timezone="GMT+8")
     private java.util.Date updatedTime;
 
     private String driveName;
