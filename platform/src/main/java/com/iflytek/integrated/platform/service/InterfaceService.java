@@ -690,6 +690,15 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", interfaces);
     }
 
+    @ApiOperation(value = "根据参数模板（json）获取key-value", notes = "根据参数模板（json）获取key-value")
+    @PostMapping("/jsonFormat")
+    public ResultDto jsonFormat(String paramJson){
+        if(StringUtils.isBlank(paramJson)){
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "参数为空");
+        }
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"", Utils.jsonFormat(paramJson));
+    }
+
     /**
      * 根据接口名获取标准接口
      * @param interfaceName

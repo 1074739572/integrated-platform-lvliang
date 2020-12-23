@@ -1,9 +1,11 @@
 package com.iflytek.integrated.platform.utils;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.utils.PinYinUtil;
+import com.iflytek.integrated.platform.dto.ParamsDto;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.RelationalPath;
 import com.querydsl.sql.SQLQueryFactory;
@@ -15,7 +17,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author czzhan
@@ -126,4 +132,59 @@ public class Utils {
         }
     }
 
+    /**
+     * 解析json获取建值数组
+     * @param paramJson
+     * @return
+     */
+    public static List<ParamsDto> jsonFormat(String paramJson){
+        Object json = null;
+        try{
+            json = JSONObject.parseObject(paramJson);
+        }
+        catch (JSONException e){
+            json = JSONArray.parseArray(paramJson);
+        }
+        List<ParamsDto> dtoList = new ArrayList<>();
+
+        format(json,dtoList);
+        return dtoList;
+    }
+
+    /**
+     * 根据参数模板（json）获取key-value
+     * @param json
+     * @param dtoList
+     */
+    private static void format(Object json, List<ParamsDto> dtoList){
+        //jsonObject类型
+        if(json instanceof JSONObject) {
+            JSONObject object = (JSONObject) json;
+            for (Map.Entry<String, Object> entry: object.entrySet()) {
+                Object o = entry.getValue();
+                if(o instanceof JSONArray) {
+                    //如果是JSONArray继续循环
+                    format(o,dtoList);
+                }
+                else {
+                    //去掉已经存在的key
+                    List<String> keyList = dtoList.stream().map(ParamsDto::getParamKey).collect(Collectors.toList());
+                    if(keyList.contains(entry.getKey()) || StringUtils.isBlank(entry.getKey())){
+                        continue;
+                    }
+                    ParamsDto dto = new ParamsDto();
+                    dto.setParamKey(entry.getKey());
+                    dto.setParamValue(entry.getValue());
+                    dtoList.add(dto);
+                }
+            }
+        }
+        //jsonArray
+        else if(json instanceof JSONArray){
+            JSONArray jsonArray = (JSONArray) json;
+            for(int i = 0; i < jsonArray.size(); i ++) {
+                format(jsonArray.get(i),dtoList);
+            }
+        }
+    }
 }
