@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
+import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.qTProductFunctionLink;
 import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
 import static com.iflytek.integrated.platform.entity.QTProjectProductLink.qTProjectProductLink;
 
@@ -81,7 +82,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
             list.add(qTProject.projectName.like(Utils.createFuzzyText(projectName)));
         }
         QueryResults<TProject> queryResults = sqlQueryFactory.select(qTProject).from(qTProject)
-                .where(list.toArray(new Predicate[list.size()])).fetchResults();
+                .where(list.toArray(new Predicate[list.size()])).orderBy(qTProject.updatedTime.desc()).fetchResults();
         TableData<TProject> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取项目信息成功!", tableData);
     }
@@ -174,12 +175,15 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
 //                tpfl.setFunctionId(jsonArr.getJSONObject(j).getString("functionId"));
 //                tpfl.setCreatedTime(new Date());
 //                productFunctionLinkService.post(tpfl);
-                TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(productId, jsonArr.getJSONObject(j).getString("functionId"));
+                String functionId = jsonArr.getJSONObject(j).getString("functionId");
+                TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(productId, functionId);
                 /**项目与产品关联*/
                 TProjectProductLink tppl = new TProjectProductLink();
                 tppl.setId(batchUidService.getUid(qTProjectProductLink.getTableName())+"");
                 tppl.setProjectId(projectId);
-                tppl.setProductFunctionLinkId(tpfl.getId());
+                if (tpfl != null) {
+                    tppl.setProductFunctionLinkId(tpfl.getId());
+                }
                 tppl.setCreatedTime(new Date());
                 projectProductLinkService.post(tppl);
             }
@@ -192,15 +196,16 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
     @ApiOperation(value = "删除项目", notes = "删除项目")
     @PostMapping("/deleteProject")
     public ResultDto deleteProject(@ApiParam(value = "项目id") @RequestParam(value = "id", required = true) String id) {
-        try {
-            this.deleteProjectById(id);
-            sqlQueryFactory.delete(qTProject).where(qTProject.id.eq(id)).execute();
-        } catch (Exception e) {
-            logger.error("项目删除失败!", ExceptionUtil.dealException(e));
-            e.printStackTrace();
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "项目删除失败!", ExceptionUtil.dealException(e));
-
-        }
+//        try {
+//            this.deleteProjectById(id);
+//            sqlQueryFactory.delete(qTProject).where(qTProject.id.eq(id)).execute();
+//        } catch (Exception e) {
+//            logger.error("项目删除失败!", ExceptionUtil.dealException(e));
+//            e.printStackTrace();
+//            return new ResultDto(Constant.ResultCode.ERROR_CODE, "项目删除失败!", ExceptionUtil.dealException(e));
+//
+//        }
+        this.deleteProjectById(id);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "项目删除成功!", null);
     }
 

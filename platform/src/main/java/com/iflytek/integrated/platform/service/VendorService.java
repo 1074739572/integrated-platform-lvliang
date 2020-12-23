@@ -82,6 +82,10 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
 
     /** 新增厂商 */
     private ResultDto saveVendor(String vendorName, String driveIds) {
+        if (null != this.getTVendorByName(vendorName)) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "厂商名未填写或该厂商名已存在!", "厂商名未填写或该厂商名已存在!");
+        }
+
         String vendorId = batchUidService.getUid(qTVendor.getTableName()) + "";
         TVendor tv = new TVendor();
         tv.setId(vendorId);
@@ -96,6 +100,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
                 tvdl.setId(batchUidService.getUid(qTVendorDriveLink.getTableName())+"");
                 tvdl.setVendorId(vendorId);
                 tvdl.setDriveId(driveIdArr[i]);
+                tvdl.setDriveOrder(i);
                 tvdl.setCreatedTime(new Date());
                 vendorDriveLinkService.post(tvdl);
             }
@@ -283,5 +288,16 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", vendors);
     }
 
+    /**
+     * 根据厂商名称获取厂商信息
+     * @param vendorName
+     * @return
+     */
+    private TVendor getTVendorByName(String vendorName) {
+        if (StringUtils.isBlank(vendorName)) {
+            return null;
+        }
+        return sqlQueryFactory.select(qTVendor).from(qTVendor).where(qTVendor.vendorName.eq(vendorName)).fetchOne();
+    }
 
 }

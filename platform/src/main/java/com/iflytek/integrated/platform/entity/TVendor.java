@@ -92,6 +92,12 @@ public class TVendor implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (this == obj) {
+            return true;
+        }
         if (obj instanceof TVendor) {
             if (this.id.equals(((TVendor) obj).id)) {
                 return true;

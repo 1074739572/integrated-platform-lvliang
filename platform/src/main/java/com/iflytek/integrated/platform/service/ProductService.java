@@ -8,7 +8,6 @@ import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.TFunction;
 import com.iflytek.integrated.platform.entity.TProduct;
 import com.iflytek.integrated.platform.entity.TProductFunctionLink;
-import com.iflytek.integrated.platform.validator.ValidatorHelper;
 import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
@@ -35,6 +34,7 @@ import java.util.List;
 import static com.iflytek.integrated.platform.entity.QTProduct.qTProduct;
 import static com.iflytek.integrated.platform.entity.QTFunction.qTFunction;
 import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.qTProductFunctionLink;
+import static com.iflytek.integrated.platform.entity.QTProjectProductLink.qTProjectProductLink;
 
 /**
  * 产品管理
@@ -119,7 +119,8 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
 
         boolean existence = isExistence(id, productId, functionId);
         if (existence) {
-            throw new RuntimeException("产品和功能关系已存在");
+//            throw new RuntimeException("产品和功能关系已存在");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "产品和功能关系已存在!", null);
         }else {
             if (StringUtils.isBlank(id)) {
                 return saveProduct(jsonObj);
@@ -264,6 +265,37 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"根据产品获取功能成功",functions);
     }
 
+    @ApiOperation(value = "新增接口时选择产品及其功能下拉")
+    @GetMapping("/getDisProductAndFunByProject")
+    public ResultDto getDisProductAndFun(@ApiParam(value = "项目id") @RequestParam(value = "projectId", required = false) String projectId) {
+        //获取指定项目下所有产品
+        List<String> productList = sqlQueryFactory.selectDistinct(qTProduct.id)
+                .from(qTProduct)
+                .leftJoin(qTProductFunctionLink).on(qTProductFunctionLink.productId.eq(qTProduct.id))
+                .leftJoin(qTProjectProductLink).on(qTProjectProductLink.productFunctionLinkId.eq(qTProductFunctionLink.id))
+                .where(qTProjectProductLink.projectId.eq(projectId)).fetch();
+
+        List<TProduct> rtnList = new ArrayList<>();
+        for (String productId : productList) {
+            TProduct tp = this.getOne(productId);
+            //拼接方法列表
+            List<TFunction> functions = sqlQueryFactory.select(
+                    Projections.bean(
+                            TFunction.class,
+                            qTFunction.id,
+                            qTFunction.functionCode,
+                            qTFunction.functionName
+                    )
+            ).from(qTFunction)
+                    .leftJoin(qTProductFunctionLink).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
+                    .where(qTProductFunctionLink.productId.eq(productId))
+                    .orderBy(qTFunction.updatedTime.desc()).fetch();
+            tp.setFunctions(functions);
+            rtnList.add(tp);
+        }
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"选择产品下拉及其功能获取成功!", rtnList);
+    }
+
 
     /**
      * 获取或新增产品，功能，并保存关系
@@ -321,13 +353,9 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
      * @param functionId
      */
     private boolean isExistence(String linkId, String productId, String functionId) {
-        if (StringUtils.isBlank(productId)) {
+        if (StringUtils.isBlank(productId) || StringUtils.isBlank(functionId)) {
             return false;
         }
-        if (StringUtils.isBlank(functionId)) {
-            return false;
-        }
-
         //校验是否存在重复产品和功能关系
         ArrayList<Predicate> list = new ArrayList<>();
         list.add(qTProductFunctionLink.functionId.eq(functionId));
