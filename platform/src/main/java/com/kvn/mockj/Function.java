@@ -112,20 +112,24 @@ public class Function {
 
     public static String $now(String paramStr){
         if (StringUtils.isBlank(paramStr)) {
-            return new Date().toInstant().toString();
+            paramStr = "yyyy:MM:dd HH:mm:ss";
         }
         return LocalDateTime.now().format(DateTimeFormatter.ofPattern(paramStr));
     }
 
-    public static Date $date(String paramStr) {
-        return DateUtils.randomDate();
+    public static String $time(String paramStr){
+        return $datetime(paramStr);
+    }
+
+    public static String $date(String paramStr) {
+        return $datetime(paramStr);
     }
 
     public static String $datetime(String paramStr){
         ZoneId zoneId = ZoneId.systemDefault();
         Date date = DateUtils.randomDate();
         if (StringUtils.isBlank(paramStr)) {
-            return date.toInstant().toString();
+            paramStr = "yyyy:MM:dd HH:mm:ss";
         }
         LocalDateTime time = LocalDateTime.ofInstant(date.toInstant(),zoneId);
         return time.format(DateTimeFormatter.ofPattern(paramStr));

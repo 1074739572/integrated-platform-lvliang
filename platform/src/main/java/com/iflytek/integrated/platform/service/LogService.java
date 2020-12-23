@@ -48,8 +48,8 @@ public class LogService extends QuerydslService<TLog, String, TLog, StringPath, 
     }
 
     @ApiOperation(value = "查看服务监控列表")
-    @GetMapping("/getDriveList")
-    public ResultDto getDriveList(String projectId, String platFormId, String productId, String status,
+    @GetMapping("/getListPage")
+    public ResultDto getListPage(String projectId, String platFormId, String productId, String status,
                                   @RequestParam(defaultValue = "1")Integer pageNo,
                                   @RequestParam(defaultValue = "10")Integer pageSize) {
         try {
