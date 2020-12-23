@@ -6,6 +6,7 @@ import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.dto.InterfaceMonitorDto;
 import com.iflytek.integrated.platform.entity.TLog;
+import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.QueryResults;
@@ -98,7 +99,7 @@ public class LogService extends QuerydslService<TLog, String, TLog, StringPath, 
 
     @ApiOperation(value = "查看日志详细列表")
     @GetMapping("/logInfo")
-    public ResultDto logInfo(String interfaceMonitorId,
+    public ResultDto logInfo(String interfaceMonitorId,String status,String visitAddr,
                              @RequestParam(defaultValue = "1")Integer pageNo,
                              @RequestParam(defaultValue = "10")Integer pageSize){
         //查询条件
@@ -107,10 +108,26 @@ public class LogService extends QuerydslService<TLog, String, TLog, StringPath, 
             return new ResultDto(Constant.ResultCode.ERROR_CODE,"","获取日志详细列表，id必传");
         }
         list.add(qTInterfaceMonitor.id.eq(interfaceMonitorId));
-
+        if(StringUtils.isNotBlank(status)){
+            list.add(qTLog.status.eq(status));
+        }
+        //模糊查询接口地址
+        if(StringUtils.isNotBlank(visitAddr)){
+            list.add(qTLog.visitAddr.like(Utils.createFuzzyText(visitAddr)));
+        }
         QueryResults<TLog> queryResults = sqlQueryFactory.select(
-                qTLog
-//                Projections.bean(TLog.class)
+                Projections.bean(TLog.class,
+                        qTLog.id,
+                        qTLog.createdTime,
+                        qTLog.status,
+                        qTLog.venderRepTime,
+                        qTLog.businessRepTime,
+                        qTLog.visitAddr,
+                        qTLog.businessReq,
+                        qTLog.venderReq,
+                        qTLog.businessRep,
+                        qTLog.venderRep
+                )
             ).from(qTLog)
             .leftJoin(qTInterfaceMonitor).on(qTInterfaceMonitor.projectId.eq(qTLog.projectId)
                 .and(qTInterfaceMonitor.platformId.eq(qTLog.platformId)
