@@ -190,7 +190,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
             }
         }
         //删除平台下厂商配置信息
-        vendorConfigService.delVendorConfigAll(platformId);
+//        vendorConfigService.delVendorConfigAll(platformId);
 
         JSONArray jsonArr = jsonObj.getJSONArray("vendorInfo");
         if (jsonArr.isEmpty()) {

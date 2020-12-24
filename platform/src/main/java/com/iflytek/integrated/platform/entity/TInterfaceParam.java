@@ -21,6 +21,10 @@ public class TInterfaceParam implements Serializable {
 
     private String paramInOut;
 
+    private String paramOutStatus;
+
+    private String paramOutStatusSuccess;
+
     private String createdBy;
 
     private java.util.Date createdTime;
@@ -83,6 +87,22 @@ public class TInterfaceParam implements Serializable {
 
     public void setParamInOut(String paramInOut) {
         this.paramInOut = paramInOut;
+    }
+
+    public String getParamOutStatus() {
+        return paramOutStatus;
+    }
+
+    public void setParamOutStatus(String paramOutStatus) {
+        this.paramOutStatus = paramOutStatus;
+    }
+
+    public String getParamOutStatusSuccess() {
+        return paramOutStatusSuccess;
+    }
+
+    public void setParamOutStatusSuccess(String paramOutStatusSuccess) {
+        this.paramOutStatusSuccess = paramOutStatusSuccess;
     }
 
     public String getCreatedBy() {

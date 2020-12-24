@@ -51,6 +51,10 @@ public class TBusinessInterface implements Serializable {
 
     private String status;
 
+    private String excErrStatus;
+
+    private Integer excErrOrder;
+
     private String createdBy;
 
     private java.util.Date createdTime;
@@ -260,6 +264,22 @@ public class TBusinessInterface implements Serializable {
         this.status = status;
     }
 
+    public String getExcErrStatus() {
+        return excErrStatus;
+    }
+
+    public void setExcErrStatus(String excErrStatus) {
+        this.excErrStatus = excErrStatus;
+    }
+
+    public Integer getExcErrOrder() {
+        return excErrOrder;
+    }
+
+    public void setExcErrOrder(Integer excErrOrder) {
+        this.excErrOrder = excErrOrder;
+    }
+
     public String getCreatedBy() {
         return createdBy;
     }
@@ -379,5 +399,6 @@ public class TBusinessInterface implements Serializable {
     public void setInterfaceUrl(String interfaceUrl) {
         this.interfaceUrl = interfaceUrl;
     }
+
 }
 

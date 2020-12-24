@@ -30,6 +30,10 @@ public class QTBusinessInterface extends com.querydsl.sql.RelationalPathBase<TBu
 
     public final DateTimePath<java.util.Date> createdTime = createDateTime("createdTime", java.util.Date.class);
 
+    public final NumberPath<Integer> excErrOrder = createNumber("excErrOrder", Integer.class);
+
+    public final StringPath excErrStatus = createString("excErrStatus");
+
     public final StringPath frontInterface = createString("frontInterface");
 
     public final StringPath id = createString("id");
@@ -74,6 +78,8 @@ public class QTBusinessInterface extends com.querydsl.sql.RelationalPathBase<TBu
 
     public final StringPath vendorConfigId = createString("vendorConfigId");
 
+    public final com.querydsl.sql.PrimaryKey<TBusinessInterface> primary = createPrimaryKey(id);
+
     public QTBusinessInterface(String variable) {
         super(TBusinessInterface.class, forVariable(variable), "null", "t_business_interface");
         addMetadata();
@@ -102,8 +108,10 @@ public class QTBusinessInterface extends com.querydsl.sql.RelationalPathBase<TBu
     public void addMetadata() {
         addMetadata(afterInterface, ColumnMetadata.named("AFTER_INTERFACE").withIndex(11).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(businessInterfaceName, ColumnMetadata.named("BUSINESS_INTERFACE_NAME").withIndex(5).ofType(Types.VARCHAR).withSize(32).notNull());
-        addMetadata(createdBy, ColumnMetadata.named("CREATED_BY").withIndex(23).ofType(Types.VARCHAR).withSize(32).notNull());
-        addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(24).ofType(Types.TIMESTAMP).withSize(19).notNull());
+        addMetadata(createdBy, ColumnMetadata.named("CREATED_BY").withIndex(25).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(26).ofType(Types.TIMESTAMP).withSize(19).notNull());
+        addMetadata(excErrOrder, ColumnMetadata.named("EXC_ERR_ORDER").withIndex(24).ofType(Types.INTEGER).withSize(10).notNull());
+        addMetadata(excErrStatus, ColumnMetadata.named("EXC_ERR_STATUS").withIndex(23).ofType(Types.VARCHAR).withSize(1).notNull());
         addMetadata(frontInterface, ColumnMetadata.named("FRONT_INTERFACE").withIndex(10).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(inParamFormat, ColumnMetadata.named("IN_PARAM_FORMAT").withIndex(12).ofType(Types.LONGVARCHAR).withSize(65535));
@@ -123,8 +131,8 @@ public class QTBusinessInterface extends com.querydsl.sql.RelationalPathBase<TBu
         addMetadata(requestConstant, ColumnMetadata.named("REQUEST_CONSTANT").withIndex(7).ofType(Types.VARCHAR).withSize(1024).notNull());
         addMetadata(requestType, ColumnMetadata.named("REQUEST_TYPE").withIndex(6).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(status, ColumnMetadata.named("STATUS").withIndex(22).ofType(Types.VARCHAR).withSize(1).notNull());
-        addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(25).ofType(Types.VARCHAR).withSize(32).notNull());
-        addMetadata(updatedTime, ColumnMetadata.named("UPDATED_TIME").withIndex(26).ofType(Types.TIMESTAMP).withSize(19).notNull());
+        addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(27).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(updatedTime, ColumnMetadata.named("UPDATED_TIME").withIndex(28).ofType(Types.TIMESTAMP).withSize(19).notNull());
         addMetadata(vendorConfigId, ColumnMetadata.named("VENDOR_CONFIG_ID").withIndex(4).ofType(Types.VARCHAR).withSize(32).notNull());
     }
 

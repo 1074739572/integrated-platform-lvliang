@@ -43,8 +43,9 @@ public class ProductFunctionLinkService extends QuerydslService<TProductFunction
      * @return
      */
     public TProductFunctionLink getObjByProductAndFunction(String productId, String functionId) {
-        return sqlQueryFactory.select(qTProductFunctionLink).from(qTProductFunctionLink)
+        TProductFunctionLink obj = sqlQueryFactory.select(qTProductFunctionLink).from(qTProductFunctionLink)
                 .where(qTProductFunctionLink.productId.eq(productId).and(qTProductFunctionLink.functionId.eq(functionId))).fetchOne();
+        return obj;
     }
 
     /**
@@ -88,5 +89,17 @@ public class ProductFunctionLinkService extends QuerydslService<TProductFunction
                 .set(qTProductFunctionLink.functionId, functionId).set(qTProductFunctionLink.updatedTime, new Date())
                 .where(qTProductFunctionLink.id.eq(id)).execute();
     }
+
+
+    /**
+     * 根据项目id获取所有产品id
+     * @param projectId
+     */
+//    public List<String> getProductIdByProjectId(String projectId) {
+//         return sqlQueryFactory.selectDistinct(qTProductFunctionLink.productId).from(qTProductFunctionLink)
+//                .leftJoin(qTProjectProductLink).on(qTProjectProductLink.productFunctionLinkId.eq(qTProductFunctionLink.id))
+//                .where(qTProjectProductLink.projectId.eq(projectId))
+//                .fetch();
+//    }
 
 }

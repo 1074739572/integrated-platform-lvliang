@@ -277,13 +277,15 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             tip.setParamInstruction(obj.getString("paramInstruction"));
             tip.setParamLength(obj.getString("paramName").length());
             tip.setParamInOut("2");
+            tip.setParamOutStatus(obj.getString("paramOutStatus"));
+            tip.setParamOutStatusSuccess(obj.getString("paramOutStatusSuccess"));
             tip.setCreatedTime(new Date());
             interfaceParamService.post(tip);
         }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "标准接口新增成功!", interfaceId);
     }
 
-    /** 新增标准接口 */
+    /** 修改标准接口 */
     private ResultDto updateInterface(JSONObject jsonObj) {
         String id = jsonObj.getString("id");
         String interfaceName = jsonObj.getString("interfaceName");
@@ -334,6 +336,8 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             tip.setParamInstruction(obj.getString("paramInstruction"));
             tip.setParamLength(obj.getString("paramName").length());
             tip.setParamInOut("2");
+            tip.setParamOutStatus(obj.getString("paramOutStatus"));
+            tip.setParamOutStatusSuccess(obj.getString("paramOutStatusSuccess"));
             tip.setCreatedTime(new Date());
             interfaceParamService.post(tip);
         }
@@ -697,6 +701,20 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "参数为空");
         }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"", Utils.jsonFormat(paramJson));
+    }
+
+
+    @ApiOperation(value = "根据产品获取标准接口(新增接口)")
+    @GetMapping("/getInterByPro")
+    public ResultDto getInterByPro(@ApiParam(value = "产品id") @RequestParam(value = "productId", required = false) String productId) {
+        ArrayList<Predicate> list = new ArrayList<>();
+        if(StringUtils.isNotEmpty(productId)){
+            list.add(qTProductInterfaceLink.productId.eq(productId));
+        }
+        List<TInterface> interfaces = sqlQueryFactory.select(qTInterface).from(qTInterface)
+                .leftJoin(qTProductInterfaceLink).on(qTProductInterfaceLink.interfaceId.eq(qTInterface.id))
+                .where(list.toArray(new Predicate[list.size()])).fetch();
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"根据产品获取功能成功", interfaces);
     }
 
     /**

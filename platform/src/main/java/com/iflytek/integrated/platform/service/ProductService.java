@@ -27,9 +27,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static com.iflytek.integrated.platform.entity.QTProduct.qTProduct;
 import static com.iflytek.integrated.platform.entity.QTFunction.qTFunction;
@@ -246,12 +244,37 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     }
 
 
+//    @ApiOperation(value = "新增接口-选择产品下拉及其功能")
+//    @GetMapping("/getDisProAndFun")
+//    public ResultDto getDisProAndFun(@ApiParam(value = "项目id") @RequestParam(value = "projectId", required = false) String projectId) {
+//        //获取该项目下所有产品id
+//        List<String> productIdList = productFunctionLinkService.getProductIdByProjectId(projectId);
+//        List<TProduct> productList = new ArrayList<>();
+//        for (String productId : productIdList) {
+//            productList.add(this.getOne(productId));
+//        }
+//        //拼接方法列表
+//        for (TProduct product : productList){
+//            List<TFunction> functions = sqlQueryFactory.select(
+//                    Projections.bean(
+//                            TFunction.class,
+//                            qTFunction.id,
+//                            qTFunction.functionCode,
+//                            qTFunction.functionName
+//                    )
+//            ).from(qTFunction)
+//                    .leftJoin(qTProductFunctionLink).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
+//                    .where(qTProductFunctionLink.productId.eq(product.getId()))
+//                    .orderBy(qTFunction.updatedTime.desc()).fetch();
+//            product.setFunctions(functions);
+//        }
+//        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"选择产品下拉及其功能获取成功!", productList);
+//    }
+
+
     @ApiOperation(value = "根据产品获取功能")
     @GetMapping("/getFuncByPro")
-    public ResultDto getFuncByPro(String productId) {
-        if(StringUtils.isEmpty(productId)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "产品id不能为空","产品id不能为空");
-        }
+    public ResultDto getFuncByPro(@ApiParam(value = "产品id") @RequestParam(value = "productId", required = true) String productId) {
         List<TFunction> functions = sqlQueryFactory.select(
                 Projections.bean(
                         TFunction.class,
@@ -262,18 +285,25 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             ).from(qTFunction)
                 .leftJoin(qTProductFunctionLink).on(qTProductFunctionLink.functionId.eq(qTFunction.id))
                 .where(qTProductFunctionLink.productId.eq(productId)).fetch();
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"根据产品获取功能成功",functions);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"根据产品获取功能成功", functions);
     }
+
 
     @ApiOperation(value = "新增接口时选择产品及其功能下拉")
     @GetMapping("/getDisProductAndFunByProject")
-    public ResultDto getDisProductAndFun(@ApiParam(value = "项目id") @RequestParam(value = "projectId", required = false) String projectId) {
+    public ResultDto getDisProductAndFunByProject(@ApiParam(value = "项目id") @RequestParam(value = "projectId", required = false) String projectId) {
+        ArrayList<Predicate> list = new ArrayList<>();
+        //判断条件是否为空
+        if(StringUtils.isNotBlank(projectId)){
+            list.add(qTProjectProductLink.projectId.eq(projectId));
+        }
         //获取指定项目下所有产品
         List<String> productList = sqlQueryFactory.selectDistinct(qTProduct.id)
                 .from(qTProduct)
                 .leftJoin(qTProductFunctionLink).on(qTProductFunctionLink.productId.eq(qTProduct.id))
                 .leftJoin(qTProjectProductLink).on(qTProjectProductLink.productFunctionLinkId.eq(qTProductFunctionLink.id))
-                .where(qTProjectProductLink.projectId.eq(projectId)).fetch();
+                .where(list.toArray(new Predicate[list.size()]))
+                .fetch();
 
         List<TProduct> rtnList = new ArrayList<>();
         for (String productId : productList) {

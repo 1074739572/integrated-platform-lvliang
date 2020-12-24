@@ -31,7 +31,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
-import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.qTProductFunctionLink;
 import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
 import static com.iflytek.integrated.platform.entity.QTProjectProductLink.qTProjectProductLink;
 
@@ -196,15 +195,9 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
     @ApiOperation(value = "删除项目", notes = "删除项目")
     @PostMapping("/deleteProject")
     public ResultDto deleteProject(@ApiParam(value = "项目id") @RequestParam(value = "id", required = true) String id) {
-//        try {
-//            this.deleteProjectById(id);
-//            sqlQueryFactory.delete(qTProject).where(qTProject.id.eq(id)).execute();
-//        } catch (Exception e) {
-//            logger.error("项目删除失败!", ExceptionUtil.dealException(e));
-//            e.printStackTrace();
-//            return new ResultDto(Constant.ResultCode.ERROR_CODE, "项目删除失败!", ExceptionUtil.dealException(e));
-//
-//        }
+        //删除项目
+        this.delete(id);
+        //删除项目与产品功能关联
         this.deleteProjectById(id);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "项目删除成功!", null);
     }
@@ -305,8 +298,8 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
     private void deleteProjectById(String projectId) {
         List<TProjectProductLink> list = projectProductLinkService.findProjectProductLinkByProjectId(projectId);
         for (TProjectProductLink obj : list) {
-            String productFunctionLinkId = obj.getProductFunctionLinkId();
-            productFunctionLinkService.delete(productFunctionLinkId);
+//            String productFunctionLinkId = obj.getProductFunctionLinkId();
+//            productFunctionLinkService.delete(productFunctionLinkId);
             projectProductLinkService.delete(obj.getId());
         }
     }
