@@ -40,9 +40,8 @@ import static com.iflytek.integrated.platform.entity.QTProjectProductLink.qTProj
  */
 @Slf4j
 @Api(tags = "产品管理")
-@CrossOrigin
 @RestController
-@RequestMapping("/v1/pb/productManage")
+@RequestMapping("/{version}/pt/productManage")
 public class ProductService extends QuerydslService<TProduct, String, TProduct, StringPath, PageRequest<TProduct>> {
 
     public ProductService(){

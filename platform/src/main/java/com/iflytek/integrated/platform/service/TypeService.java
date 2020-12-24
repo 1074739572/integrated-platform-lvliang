@@ -28,9 +28,8 @@ import static com.iflytek.integrated.platform.entity.QTType.qTType;
 */
 @Slf4j
 @Api(tags = "分类")
-@CrossOrigin
 @RestController
-@RequestMapping("/v1/pb/typeManage")
+@RequestMapping("/{version}/pt/typeManage")
 public class TypeService extends QuerydslService<TType, String, TType, StringPath, PageRequest<TType>> {
 
     private static final Logger logger = LoggerFactory.getLogger(TypeService.class);

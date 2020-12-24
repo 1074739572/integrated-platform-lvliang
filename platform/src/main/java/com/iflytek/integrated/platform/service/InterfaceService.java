@@ -58,9 +58,8 @@ import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConf
 */
 @Slf4j
 @Api(tags = "接口管理")
-@CrossOrigin
 @RestController
-@RequestMapping("/v1/pb/interfaceManage")
+@RequestMapping("/{version}/pt/interfaceManage")
 public class InterfaceService extends QuerydslService<TInterface, String, TInterface, StringPath, PageRequest<TInterface>> {
 
     @Autowired

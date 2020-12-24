@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @Api(tags = "匿名访问接口")
 @RestController
-@RequestMapping("/v1/pb/anonymous")
+@RequestMapping("/{version}/pb/anonymous")
 public class AnonymousService {
     private static final Logger logger = LoggerFactory.getLogger(AnonymousService.class);
 

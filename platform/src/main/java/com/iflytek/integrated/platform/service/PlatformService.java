@@ -45,9 +45,8 @@ import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConf
 */
 @Slf4j
 @Api(tags = "平台管理")
-@CrossOrigin
 @RestController
-@RequestMapping("/v1/pb/platformManage")
+@RequestMapping("/{version}/pt/platformManage")
 public class PlatformService extends QuerydslService<TPlatform, String, TPlatform, StringPath, PageRequest<TPlatform>> {
 
     @Autowired

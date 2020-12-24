@@ -26,9 +26,8 @@ import static com.iflytek.integrated.platform.entity.QTFunction.qTFunction;
 */
 @Slf4j
 @Api(tags = "产品功能")
-@CrossOrigin
 @RestController
-@RequestMapping("/v1/pb/functionManage")
+@RequestMapping("/{version}/pt/functionManage")
 public class FunctionService extends QuerydslService<TFunction, String, TFunction, StringPath, PageRequest<TFunction>> {
 
     private static final Logger logger = LoggerFactory.getLogger(FunctionService.class);

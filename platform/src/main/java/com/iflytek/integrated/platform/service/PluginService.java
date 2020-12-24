@@ -47,9 +47,8 @@ import static com.iflytek.integrated.platform.entity.QTType.qTType;
  */
 @Slf4j
 @Api(tags = "插件管理")
-@CrossOrigin
 @RestController
-@RequestMapping("/v1/pb/pluginManage")
+@RequestMapping("/{version}/pt/pluginManage")
 public class PluginService extends QuerydslService<TPlugin, String, TPlugin, StringPath, PageRequest<TPlugin>> {
 
     public PluginService(){

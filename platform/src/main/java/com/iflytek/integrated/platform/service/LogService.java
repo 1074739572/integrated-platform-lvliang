@@ -37,9 +37,8 @@ import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
  */
 @Slf4j
 @Api(tags = "服务监控")
-@CrossOrigin
 @RestController
-@RequestMapping("/v1/pb/interfaceMonitor")
+@RequestMapping("/{version}/pt/interfaceMonitor")
 public class LogService extends QuerydslService<TLog, String, TLog, StringPath, PageRequest<TLog>> {
     private static final Logger logger = LoggerFactory.getLogger(LogService.class);
 

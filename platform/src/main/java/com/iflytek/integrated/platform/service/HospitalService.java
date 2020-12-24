@@ -39,9 +39,8 @@ import static com.iflytek.integrated.platform.entity.QTArea.qTArea;
  */
 @Slf4j
 @Api(tags = "医院管理")
-@CrossOrigin
 @RestController
-@RequestMapping("/v1/pb/hospitalManage")
+@RequestMapping("/{version}/pt/hospitalManage")
 public class HospitalService extends QuerydslService<THospital, String, THospital, StringPath, PageRequest<THospital>> {
     public HospitalService(){
         super(qTHospital,qTHospital.id);

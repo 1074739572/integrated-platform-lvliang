@@ -41,9 +41,8 @@ import static com.iflytek.integrated.platform.entity.QTVendorDriveLink.qTVendorD
 */
 @Slf4j
 @Api(tags = "厂商管理")
-@CrossOrigin
 @RestController
-@RequestMapping("/v1/pb/vendorManage")
+@RequestMapping("/{version}/pt/vendorManage")
 public class VendorService extends QuerydslService<TVendor, String, TVendor, StringPath, PageRequest<TVendor>> {
 
     @Autowired

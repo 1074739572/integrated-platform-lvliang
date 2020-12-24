@@ -28,9 +28,8 @@ import static com.iflytek.integrated.platform.entity.QTArea.qTArea;
  */
 @Slf4j
 @Api(tags = "地区数据表")
-@CrossOrigin
 @RestController
-@RequestMapping("/v1/pb/sysManage")
+@RequestMapping("/{version}/pt/sysManage")
 public class AreaService extends QuerydslService<TArea, String, TArea, StringPath, PageRequest<TArea>> {
     public AreaService(){
             super(qTArea, qTArea.id);

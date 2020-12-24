@@ -49,9 +49,8 @@ import static com.iflytek.integrated.platform.entity.QTVendorDriveLink.qTVendorD
  */
 @Slf4j
 @Api(tags = "驱动管理")
-@CrossOrigin
 @RestController
-@RequestMapping("/v1/pb/driveManage")
+@RequestMapping("/{version}/pt/driveManage")
 public class DriveService extends QuerydslService<TDrive, String, TDrive, StringPath, PageRequest<TDrive>> {
     public DriveService(){
         super(qTDrive,qTDrive.id);
