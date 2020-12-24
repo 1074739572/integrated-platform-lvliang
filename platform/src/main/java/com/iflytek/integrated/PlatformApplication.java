@@ -32,6 +32,9 @@ public class PlatformApplication {
     @Value("${mock.array.size}")
     public String mockArraySize;
 
+    @Value("${mock.date.paramStr}")
+    public String paramStr;
+
     /**
      * 定义queryFactory配置
      * @param dataSource
@@ -48,7 +51,7 @@ public class PlatformApplication {
 
     @Bean
     public Function Function(){
-        return new Function(mockStringLen, mockNumberMin, mockNumberMax, mockArraySize);
+        return new Function(mockStringLen, mockNumberMin, mockNumberMax, mockArraySize, paramStr);
     }
 
     public static void main(String[] args) {

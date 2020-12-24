@@ -5,9 +5,13 @@ import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.annotation.AvoidRepeatCommit;
+import com.iflytek.integrated.platform.dto.JoltDebuggerDto;
+import com.iflytek.integrated.platform.utils.ToolsGenerate;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.dto.VendorConfigDto;
 import com.iflytek.integrated.platform.entity.*;
+import com.iflytek.integrated.platform.validator.ValidationResult;
+import com.iflytek.integrated.platform.validator.ValidatorHelper;
 import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
@@ -29,6 +33,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
+import static com.iflytek.integrated.platform.entity.QTInterfaceParam.qTInterfaceParam;
 import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
 import static com.iflytek.integrated.platform.entity.QTVendor.qTVendor;
 import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConfig;
@@ -57,6 +62,10 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
     private BatchUidService batchUidService;
     @Autowired
     private Utils utils;
+    @Autowired
+    private ValidatorHelper validatorHelper;
+    @Autowired
+    private ToolsGenerate toolsGenerate;
 
     private static final Logger logger = LoggerFactory.getLogger(VendorService.class);
 
@@ -285,6 +294,34 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
                 .leftJoin(qTVendorConfig).on(qTVendorConfig.vendorId.eq(qTVendor.id))
                 .where(qTVendorConfig.platformId.eq(platformId)).fetch();
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", vendors);
+    }
+
+    @ApiOperation(value = "厂商接口调试数据获取")
+    @PostMapping("/getInterfaceDebugger")
+    public ResultDto getInterfaceDebugger(String interfaceId){
+        if(StringUtils.isBlank(interfaceId)){
+            return new ResultDto(Constant.ResultCode.ERROR_CODE,"","标准接口id必传");
+        }
+        try {
+            //获取入参列表
+            List<String> paramNames = sqlQueryFactory.select(qTInterfaceParam.paramName).from(qTInterfaceParam)
+                    .where(qTInterfaceParam.interfaceId.eq(interfaceId).and(qTInterfaceParam.paramInOut.eq(Constant.ParmInOut.IN))).fetch();
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"",paramNames);
+        }
+        catch (Exception e){
+            return new ResultDto(Constant.ResultCode.ERROR_CODE,"","厂商接口调试数据失败");
+        }
+    }
+
+    @ApiOperation(value = "厂商接口调试接口")
+    @PostMapping("/interfaceDebugger")
+    public ResultDto interfaceDebugger(@RequestBody JoltDebuggerDto dto){
+        //校验参数是否完整
+        ValidationResult validationResult = validatorHelper.validate(dto);
+        if (validationResult.isHasErrors()) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", validationResult.getErrorMsg());
+        }
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"", toolsGenerate.joltDebugger(dto));
     }
 
     /**

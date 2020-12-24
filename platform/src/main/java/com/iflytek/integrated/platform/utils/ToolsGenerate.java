@@ -6,6 +6,7 @@ import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.common.HttpResult;
 import com.iflytek.integrated.common.utils.HttpClientUtil;
+import com.iflytek.integrated.platform.dto.JoltDebuggerDto;
 import com.iflytek.integrated.platform.dto.SchemaDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.querydsl.sql.SQLQueryFactory;
@@ -34,6 +35,9 @@ public class ToolsGenerate {
 
     @Value("${param.groovy.url}")
     private String groovyUrl;
+
+    @Value("${param.jolt.debugger}")
+    private String joltDebuggerUrl;
 
     @Autowired
     public SQLQueryFactory sqlQueryFactory;
@@ -72,6 +76,21 @@ public class ToolsGenerate {
     }
 
     /**
+     * 调取jolt调试接口
+     * @param dto
+     * @return
+     */
+    public JSONObject joltDebugger(JoltDebuggerDto dto){
+        try {
+            String param = JSONObject.toJSONString(dto);
+            HttpResult result = HttpClientUtil.doPost(joltDebuggerUrl,param);
+            return JSONObject.parseObject(result.getContent());
+        }catch (Exception e){
+            throw new RuntimeException("jolt调试接口调取失败");
+        }
+    }
+
+    /**
      * 根据format生成schema
      * @param format
      * @param content
@@ -84,7 +103,6 @@ public class ToolsGenerate {
 
             JSONObject jsonT = JSON.parseObject(result.getContent());
             return new SchemaDto(jsonT);
-
         }
         catch (Exception e){
             throw new RuntimeException("schema解析失败");

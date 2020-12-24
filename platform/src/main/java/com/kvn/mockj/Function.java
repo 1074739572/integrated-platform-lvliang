@@ -27,12 +27,15 @@ public class Function {
 
     public static String arraySize;
 
-    public Function(String mockStringLen, String mockNumberMin, String mockNumberMax, String mockArraySize){
+    public static String paramStr;
+
+    public Function(String mockStringLen, String mockNumberMin, String mockNumberMax, String mockArraySize, String paramStr){
         //初始化配置
         Function.stringLen = mockStringLen;
         Function.numberMin = mockNumberMin;
         Function.numberMax = mockNumberMax;
         Function.arraySize = mockArraySize;
+        Function.paramStr = paramStr;
     }
 
     public static boolean $boolean(String paramStr){
@@ -112,7 +115,7 @@ public class Function {
 
     public static String $now(String paramStr){
         if (StringUtils.isBlank(paramStr)) {
-            paramStr = "yyyy:MM:dd HH:mm:ss";
+            paramStr = Function.paramStr;
         }
         return LocalDateTime.now().format(DateTimeFormatter.ofPattern(paramStr));
     }
@@ -129,7 +132,7 @@ public class Function {
         ZoneId zoneId = ZoneId.systemDefault();
         Date date = DateUtils.randomDate();
         if (StringUtils.isBlank(paramStr)) {
-            paramStr = "yyyy:MM:dd HH:mm:ss";
+            paramStr = Function.paramStr;
         }
         LocalDateTime time = LocalDateTime.ofInstant(date.toInstant(),zoneId);
         return time.format(DateTimeFormatter.ofPattern(paramStr));

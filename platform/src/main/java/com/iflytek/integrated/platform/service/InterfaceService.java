@@ -156,7 +156,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             //获取入参列表
             String interfaceId = StringUtils.isNotEmpty(businessInterface.getInterfaceId())?businessInterface.getInterfaceId():"";
             List<String> paramNames = sqlQueryFactory.select(qTInterfaceParam.paramName).from(qTInterfaceParam)
-                    .where(qTInterfaceParam.interfaceId.eq(interfaceId).and(qTInterfaceParam.paramInOut.eq("1"))).fetch();
+                    .where(qTInterfaceParam.interfaceId.eq(interfaceId).and(qTInterfaceParam.paramInOut.eq(Constant.ParmInOut.IN))).fetch();
 
             //获取医院名称列表
             String vendorConfigId = StringUtils.isNotEmpty(businessInterface.getVendorConfigId())?
@@ -261,7 +261,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             tip.setParamType(obj.getString("paramType"));
             tip.setParamInstruction(obj.getString("paramInstruction"));
             tip.setParamLength(obj.getString("paramName").length());
-            tip.setParamInOut("1");
+            tip.setParamInOut(Constant.ParmInOut.IN);
             tip.setCreatedTime(new Date());
             interfaceParamService.post(tip);
         }
@@ -275,7 +275,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             tip.setParamType(obj.getString("paramType"));
             tip.setParamInstruction(obj.getString("paramInstruction"));
             tip.setParamLength(obj.getString("paramName").length());
-            tip.setParamInOut("2");
+            tip.setParamInOut(Constant.ParmInOut.OUT);
             tip.setParamOutStatus(obj.getString("paramOutStatus"));
             tip.setParamOutStatusSuccess(obj.getString("paramOutStatusSuccess"));
             tip.setCreatedTime(new Date());
@@ -320,7 +320,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             tip.setParamType(obj.getString("paramType"));
             tip.setParamInstruction(obj.getString("paramInstruction"));
             tip.setParamLength(obj.getString("paramName").length());
-            tip.setParamInOut("1");
+            tip.setParamInOut(Constant.ParmInOut.IN);
             tip.setCreatedTime(new Date());
             interfaceParamService.post(tip);
         }
@@ -334,7 +334,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             tip.setParamType(obj.getString("paramType"));
             tip.setParamInstruction(obj.getString("paramInstruction"));
             tip.setParamLength(obj.getString("paramName").length());
-            tip.setParamInOut("2");
+            tip.setParamInOut(Constant.ParmInOut.OUT);
             tip.setParamOutStatus(obj.getString("paramOutStatus"));
             tip.setParamOutStatusSuccess(obj.getString("paramOutStatusSuccess"));
             tip.setCreatedTime(new Date());
@@ -645,10 +645,10 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                 tip.setParamInstruction(obj.getParamInstruction());
                 tip.setParamLength(obj.getParamLength());
                 tip.setParamInOut(obj.getParamInOut());
-                if ("1".equals(obj.getParamInOut())) {
+                if (Constant.ParmInOut.IN.equals(obj.getParamInOut())) {
                     inParamList.add(tip);
                 }
-                if ("2".equals(obj.getParamInOut())) {
+                if (Constant.ParmInOut.OUT.equals(obj.getParamInOut())) {
                     outParamList.add(tip);
                 }
             }
