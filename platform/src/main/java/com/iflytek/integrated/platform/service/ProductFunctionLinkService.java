@@ -84,9 +84,12 @@ public class ProductFunctionLinkService extends QuerydslService<TProductFunction
      * @param id
      * @return
      */
-    public long updateObjById(String id, String productId, String functionId) {
-        return sqlQueryFactory.update(qTProductFunctionLink).set(qTProductFunctionLink.productId, productId)
-                .set(qTProductFunctionLink.functionId, functionId).set(qTProductFunctionLink.updatedTime, new Date())
+    public long updateObjById(String id, String productId, String functionId, String loginUserName) {
+        return sqlQueryFactory.update(qTProductFunctionLink)
+                .set(qTProductFunctionLink.productId, productId)
+                .set(qTProductFunctionLink.functionId, functionId)
+                .set(qTProductFunctionLink.updatedTime, new Date())
+                .set(qTProductFunctionLink.updatedBy, loginUserName)
                 .where(qTProductFunctionLink.id.eq(id)).execute();
     }
 

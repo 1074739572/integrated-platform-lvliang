@@ -41,9 +41,12 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
      * @param id
      * @param mockStatus
      */
-    public void updateMockStatus(String id, String mockStatus) {
-        sqlQueryFactory.update(qTBusinessInterface).set(qTBusinessInterface.mockStatus, mockStatus).set(qTBusinessInterface.updatedTime, new Date())
-                .where(qTBusinessInterface.id.eq(id)).execute();
+    public void updateMockStatus(String id, String mockStatus, String loginUserName) {
+        sqlQueryFactory.update(qTBusinessInterface)
+                .set(qTBusinessInterface.mockStatus, mockStatus)
+                .set(qTBusinessInterface.updatedTime, new Date())
+                .set(qTBusinessInterface.updatedBy, loginUserName)
+            .where(qTBusinessInterface.id.eq(id)).execute();
     }
 
     /**
@@ -51,9 +54,12 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
      * @param id
      * @param status
      */
-    public void updateStatus(String id, String status) {
-        sqlQueryFactory.update(qTBusinessInterface).set(qTBusinessInterface.status, status).set(qTBusinessInterface.updatedTime, new Date())
-                .where(qTBusinessInterface.id.eq(id)).execute();
+    public void updateStatus(String id, String status, String loginUserName) {
+        sqlQueryFactory.update(qTBusinessInterface)
+                .set(qTBusinessInterface.status, status)
+                .set(qTBusinessInterface.updatedTime, new Date())
+                .set(qTBusinessInterface.updatedBy, loginUserName)
+            .where(qTBusinessInterface.id.eq(id)).execute();
     }
 
     /**
@@ -61,9 +67,12 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
      * @param id
      * @param mockTemplate
      */
-    public void saveMockTemplate(String id, String mockTemplate) {
-        sqlQueryFactory.update(qTBusinessInterface).set(qTBusinessInterface.mockTemplate, mockTemplate).set(qTBusinessInterface.updatedTime, new Date())
-                .where(qTBusinessInterface.id.eq(id)).execute();
+    public void saveMockTemplate(String id, String mockTemplate, String loginUserName) {
+        sqlQueryFactory.update(qTBusinessInterface)
+                .set(qTBusinessInterface.mockTemplate, mockTemplate)
+                .set(qTBusinessInterface.updatedTime, new Date())
+                .set(qTBusinessInterface.updatedBy, loginUserName)
+            .where(qTBusinessInterface.id.eq(id)).execute();
     }
 
     /**

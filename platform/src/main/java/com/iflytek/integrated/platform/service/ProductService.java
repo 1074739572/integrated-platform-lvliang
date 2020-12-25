@@ -104,7 +104,11 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     @ApiOperation(value = "产品管理新增/编辑")
     @PostMapping("/saveAndUpdateProduct")
     @AvoidRepeatCommit
-    public ResultDto saveAndUpdateProduct(@RequestBody JSONObject jsonObj) {
+    public ResultDto saveAndUpdateProduct(@RequestBody JSONObject jsonObj, @RequestParam String loginUserName) {
+        //校验是否获取到登录用户
+        if(StringUtils.isBlank(loginUserName)){
+            throw new RuntimeException("没有获取到登录用户");
+        }
         String id = jsonObj.getString("id");
 //        TProductFunctionLink tpfl = addOrGetLink(jsonObj.getString("productName"), jsonObj.getString("functionName"));
 //        boolean existence = isExistence(id, link.getProductId(), link.getFunctionId());
@@ -120,15 +124,15 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "产品和功能关系已存在!", null);
         }else {
             if (StringUtils.isBlank(id)) {
-                return saveProduct(jsonObj);
+                return saveProduct(jsonObj,loginUserName);
             }else {
-                return updateProduct(jsonObj);
+                return updateProduct(jsonObj,loginUserName);
             }
         }
     }
 
     /** 新增产品 */
-    private ResultDto saveProduct(JSONObject jsonObj) {
+    private ResultDto saveProduct(JSONObject jsonObj, String loginUserName) {
         String productName = jsonObj.getString("productName");
         if (StringUtils.isBlank(productName)) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "产品名称未填!", jsonObj);
@@ -139,6 +143,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         if (tp != null) {
             productId = tp.getId();
             tp.setUpdatedTime(new Date());
+            tp.setUpdatedBy(loginUserName);
             this.put(productId, tp);
         }else {
             productId = batchUidService.getUid(qTProduct.getTableName()) + "";
@@ -149,6 +154,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             tp.setProductName(productName);
             tp.setIsValid(Constant.IsValid.ON);
             tp.setCreatedTime(new Date());
+            tp.setCreatedBy(loginUserName);
             this.post(tp);
         }
 
@@ -161,6 +167,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             tf.setId(functionId);
             tf.setFunctionCode(utils.generateCode(qTFunction, qTFunction.functionCode, functionName));
             tf.setFunctionName(functionName);
+            tf.setCreatedBy(loginUserName);
             tf.setCreatedTime(new Date());
             functionService.post(tf);
         }
@@ -170,12 +177,13 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         tpfl.setProductId(productId);
         tpfl.setFunctionId(functionId);
         tpfl.setCreatedTime(new Date());
+        tpfl.setCreatedBy(loginUserName);
         productFunctionLinkService.post(tpfl);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"新增产品功能关联成功", tpfl);
     }
 
     /** 编辑产品 */
-    private ResultDto updateProduct(JSONObject jsonObj) {
+    private ResultDto updateProduct(JSONObject jsonObj, String loginUserName) {
         String id = jsonObj.getString("id");
         String productId = jsonObj.getString("productId");
         String productName = jsonObj.getString("productName");
@@ -189,6 +197,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             tp.setProductName(productName);
             tp.setIsValid(Constant.IsValid.ON);
             tp.setCreatedTime(new Date());
+            tp.setCreatedBy(loginUserName);
             this.post(tp);
         }
         //新增功能
@@ -200,6 +209,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             tf.setFunctionCode(utils.generateCode(qTFunction, qTFunction.functionCode, functionName));
             tf.setFunctionName(functionName);
             tf.setCreatedTime(new Date());
+            tf.setCreatedBy(loginUserName);
             functionService.post(tf);
         }else {
             TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(productId, functionId);
@@ -208,7 +218,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             }
         }
         //更新产品与功能关联
-        productFunctionLinkService.updateObjById(id, productId, functionId);
+        productFunctionLinkService.updateObjById(id, productId, functionId,loginUserName);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"编辑产品功能关联成功", id);
     }
 

@@ -118,11 +118,15 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
     @ApiOperation(value = "医院管理新增/编辑")
     @PostMapping("/saveAndUpdateHospital")
     @AvoidRepeatCommit
-    public ResultDto saveAndUpdateHospital(@RequestBody THospital hospital){
+    public ResultDto saveAndUpdateHospital(@RequestBody THospital hospital, @RequestParam String loginUserName){
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(hospital);
         if (validationResult.isHasErrors()) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, validationResult.getErrorMsg(), validationResult.getErrorMsg());
+        }
+        //校验是否获取到登录用户
+        if(StringUtils.isBlank(loginUserName)){
+            throw new RuntimeException("没有获取到登录用户");
         }
         //校验是否有重复医院
         isExistence(hospital.getId(),hospital.getHospitalName(),hospital.getHospitalCode());
@@ -131,11 +135,13 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
             hospital.setId(batchUidService.getUid(qTHospital.getTableName())+"");
             hospital.setStatus(Constant.Status.YES);
             hospital.setCreatedTime(new Date());
+            hospital.setCreatedBy(loginUserName);
             this.post(hospital);
         }
         else {
             //存在id时，编辑医院
             hospital.setUpdatedTime(new Date());
+            hospital.setUpdatedBy(loginUserName);
             Long lon = this.put(hospital.getId(),hospital);
             if(lon <= 0){
                 throw new RuntimeException("医院管理编辑失败");

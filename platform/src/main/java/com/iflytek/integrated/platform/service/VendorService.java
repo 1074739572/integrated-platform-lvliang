@@ -78,28 +78,32 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
     @PostMapping("/saveAndUpdateVendor")
     @AvoidRepeatCommit
     public ResultDto saveAndUpdateVendor(
-            @ApiParam(value = "厂商id") @RequestParam(value = "id", required = false) String id,
+            @ApiParam(value = "厂商id") @RequestParam(value = "id", required = false) String id, @RequestParam String loginUserName,
             @ApiParam(value = "厂商名") @RequestParam(value = "vendorName", required = true) String vendorName,
             @ApiParam(value = "驱动-多个用,分隔") @RequestParam(value = "driveIds", required = true) String driveIds) {
-        if (StringUtils.isBlank(id)) {
-            return saveVendor(vendorName, driveIds);
+        //校验是否获取到登录用户
+        if(StringUtils.isBlank(loginUserName)){
+            throw new RuntimeException("没有获取到登录用户");
         }
-        return updateVendor(id, vendorName, driveIds);
+        if (StringUtils.isBlank(id)) {
+            return saveVendor(vendorName, driveIds, loginUserName);
+        }
+        return updateVendor(id, vendorName, driveIds, loginUserName);
     }
 
 
     /** 新增厂商 */
-    private ResultDto saveVendor(String vendorName, String driveIds) {
+    private ResultDto saveVendor(String vendorName, String driveIds, String loginUserName) {
         if (null != this.getTVendorByName(vendorName)) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "厂商名未填写或该厂商名已存在!", "厂商名未填写或该厂商名已存在!");
         }
-
         String vendorId = batchUidService.getUid(qTVendor.getTableName()) + "";
         TVendor tv = new TVendor();
         tv.setId(vendorId);
         tv.setVendorCode(utils.generateCode(qTVendor, qTVendor.vendorCode, vendorName));
         tv.setVendorName(vendorName);
         tv.setCreatedTime(new Date());
+        tv.setCreatedBy(loginUserName);
         this.post(tv);
         if (StringUtils.isNotBlank(driveIds)) {
             String[] driveIdArr = driveIds.split(",");
@@ -110,6 +114,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
                 tvdl.setDriveId(driveIdArr[i]);
                 tvdl.setDriveOrder(i);
                 tvdl.setCreatedTime(new Date());
+                tvdl.setCreatedBy(loginUserName);
                 vendorDriveLinkService.post(tvdl);
             }
         }
@@ -117,9 +122,12 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
     }
 
     /** 修改厂商 */
-    private ResultDto updateVendor(String vendorId, String vendorName, String driveIds) {
+    private ResultDto updateVendor(String vendorId, String vendorName, String driveIds, String loginUserName) {
         //更新厂商信息
-        sqlQueryFactory.update(qTVendor).set(qTVendor.vendorName, vendorName).set(qTVendor.updatedTime, new Date())
+        sqlQueryFactory.update(qTVendor)
+                .set(qTVendor.vendorName, vendorName)
+                .set(qTVendor.updatedTime, new Date())
+                .set(qTVendor.updatedBy, loginUserName)
                 .where(qTVendor.id.eq(vendorId)).execute();
         //删除关联
         vendorDriveLinkService.deleteVendorDriveLinkById(vendorId);
@@ -131,6 +139,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
             tvdl.setVendorId(vendorId);
             tvdl.setDriveId(driveIdArr[i]);
             tvdl.setCreatedTime(new Date());
+            tvdl.setCreatedBy(loginUserName);
             vendorDriveLinkService.post(tvdl);
         }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "厂商修改成功!", null);

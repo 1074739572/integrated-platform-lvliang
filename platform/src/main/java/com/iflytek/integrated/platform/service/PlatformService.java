@@ -114,15 +114,19 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
     @ApiOperation(value = "新增or修改平台", notes = "新增or修改平台")
     @PostMapping("/saveAndUpdatePlatform")
     @AvoidRepeatCommit
-    public ResultDto saveAndUpdatePlatform(@RequestBody JSONObject jsonObj) {
-        if (StringUtils.isBlank(jsonObj.getString("id"))) {
-            return savePlatform(jsonObj);
+    public ResultDto saveAndUpdatePlatform(@RequestBody JSONObject jsonObj, @RequestParam String loginUserName) {
+        //校验是否获取到登录用户
+        if(StringUtils.isBlank(loginUserName)){
+            throw new RuntimeException("没有获取到登录用户");
         }
-        return updatePlatform(jsonObj);
+        if (StringUtils.isBlank(jsonObj.getString("id"))) {
+            return savePlatform(jsonObj,loginUserName);
+        }
+        return updatePlatform(jsonObj,loginUserName);
     }
 
     /** 新增平台 */
-    private ResultDto savePlatform(JSONObject jsonObj) {
+    private ResultDto savePlatform(JSONObject jsonObj, String loginUserName) {
         TPlatform tp = new TPlatform();
         String platformId = batchUidService.getUid(qTPlatform.getTableName()) + "";
         tp.setId(platformId);
@@ -132,6 +136,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
         tp.setPlatformType(jsonObj.getString("platformType"));
         tp.setPlatformStatus(Constant.Status.START);
         tp.setCreatedTime(new Date());
+        tp.setCreatedBy(loginUserName);
         this.post(tp);
         //关联厂商
         JSONArray jsonArr = jsonObj.getJSONArray("vendorInfo");
@@ -157,6 +162,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
             tvc.setUserName(obj.getString("userName"));
             tvc.setUserPassword(obj.getString("userPassword"));
             tvc.setCreatedTime(new Date());
+            tvc.setCreatedBy(loginUserName);
             vendorConfigService.post(tvc);
             JSONArray hospitalArr = obj.getJSONArray("hospitalConfig");
             for (int j = 0; j < hospitalArr.size(); j++) {
@@ -167,6 +173,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
                 hvl.setHospitalId(hObj.getString("hospitalId"));
                 hvl.setVendorHospitalId(hObj.getString("vendorHospitalId"));
                 hvl.setCreatedTime(new Date());
+                hvl.setCreatedBy(loginUserName);
                 hospitalVendorLinkService.post(hvl);
             }
         }
@@ -174,12 +181,13 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
     }
 
     /** 修改平台 */
-    private ResultDto updatePlatform(JSONObject jsonObj) {
+    private ResultDto updatePlatform(JSONObject jsonObj, String loginUserName) {
         String platformId = jsonObj.getString("id");
         sqlQueryFactory.update(qTPlatform).set(qTPlatform.platformName, jsonObj.getString("platformName"))
                 .set(qTPlatform.platformType, jsonObj.getString("platformType"))
                 .set(qTPlatform.projectId, jsonObj.getString("projectId"))
                 .set(qTPlatform.updatedTime, new Date())
+                .set(qTPlatform.updatedBy, loginUserName)
                 .where(qTPlatform.id.eq(platformId)).execute();
         //删除平台下厂商医院配置信息
         List<TVendorConfig> tvcList = vendorConfigService.getObjByPlatformId(platformId);
@@ -214,6 +222,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
             tvc.setUserName(obj.getString("userName"));
             tvc.setUserPassword(obj.getString("userPassword"));
             tvc.setCreatedTime(new Date());
+            tvc.setCreatedBy(loginUserName);
             vendorConfigService.post(tvc);
             JSONArray hospitalArr = obj.getJSONArray("hospitalConfig");
             for (int j = 0; j < hospitalArr.size(); j++) {
@@ -224,6 +233,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
                 hvl.setHospitalId(hObj.getString("hospitalId"));
                 hvl.setVendorHospitalId(hObj.getString("vendorHospitalId"));
                 hvl.setCreatedTime(new Date());
+                hvl.setCreatedBy(loginUserName);
                 hospitalVendorLinkService.post(hvl);
             }
         }
@@ -235,9 +245,12 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
     @PostMapping("/updateStatus")
     @AvoidRepeatCommit
     public ResultDto updateStatus(
-            @ApiParam(value = "平台id") @RequestParam(value = "id", required = true) String id,
+            @ApiParam(value = "平台id") @RequestParam(value = "id", required = true) String id, @RequestParam String loginUserName,
             @ApiParam(value = "平台状态 1启用 2停用") @RequestParam(value = "platformStatus", required = true) String platformStatus) {
-        sqlQueryFactory.update(qTPlatform).set(qTPlatform.platformStatus, platformStatus).set(qTPlatform.updatedTime, new Date())
+        sqlQueryFactory.update(qTPlatform)
+                .set(qTPlatform.platformStatus, platformStatus)
+                .set(qTPlatform.updatedTime, new Date())
+                .set(qTPlatform.updatedBy, loginUserName)
                 .where(qTPlatform.id.eq(id)).execute();
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "平台状态更改成功!", id);
     }

@@ -174,11 +174,15 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
     @ApiOperation(value = "驱动新增/编辑")
     @PostMapping("/saveAndUpdateDrive")
     @AvoidRepeatCommit
-    public ResultDto saveAndUpdateDrive(@RequestBody TDrive drive){
+    public ResultDto saveAndUpdateDrive(@RequestBody TDrive drive, @RequestParam String loginUserName){
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(drive);
         if (validationResult.isHasErrors()) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "", validationResult.getErrorMsg());
+        }
+        //校验是否获取到登录用户
+        if(StringUtils.isBlank(loginUserName)){
+            throw new RuntimeException("没有获取到登录用户");
         }
         //校验是否存在重复驱动，驱动代码格式是否正确
         isExistence(drive.getId(),drive.getDriveName(),drive.getDriveCode(),drive.getDriveContent());
@@ -186,11 +190,13 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
             //新增驱动
             drive.setId(batchUidService.getUid(qTDrive.getTableName())+"");
             drive.setCreatedTime(new Date());
+            drive.setCreatedBy(loginUserName);
             this.post(drive);
             setRedis(drive.getId());
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"驱动新增成功", drive);
         }
         //编辑驱动
+        drive.setUpdatedBy(loginUserName);
         drive.setUpdatedTime(new Date());
         Long lon = this.put(drive.getId(), drive);
         if(lon <= 0){

@@ -157,11 +157,15 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
     @ApiOperation(value = "插件新增/编辑")
     @PostMapping("/saveAndUpdatePlugin")
     @AvoidRepeatCommit
-    public ResultDto saveAndUpdatePlugin(@RequestBody TPlugin plugin){
+    public ResultDto saveAndUpdatePlugin(@RequestBody TPlugin plugin, @RequestParam String loginUserName){
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(plugin);
         if (validationResult.isHasErrors()) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "参数校验不通过", validationResult.getErrorMsg());
+        }
+        //校验是否获取到登录用户
+        if(StringUtils.isBlank(loginUserName)){
+            throw new RuntimeException("没有获取到登录用户");
         }
         //校验是否存在重复插件
         isExistence(plugin.getId(),plugin.getPluginName(),plugin.getPluginCode(),plugin.getPluginContent());
@@ -169,12 +173,14 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
             //新增插件
             plugin.setId(batchUidService.getUid(qTPlugin.getTableName())+"");
             plugin.setCreatedTime(new Date());
+            plugin.setCreatedBy(loginUserName);
             this.post(plugin);
             setRedis(plugin.getId());
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"插件新增成功", plugin);
         }
         //编辑插件
         plugin.setUpdatedTime(new Date());
+        plugin.setUpdatedBy(loginUserName);
         Long lon = this.put(plugin.getId(), plugin);
         if(lon <= 0){
             throw new RuntimeException("插件编辑失败");

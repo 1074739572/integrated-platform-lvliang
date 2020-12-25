@@ -89,18 +89,26 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @ApiOperation(value = "更改mock状态", notes = "更改mock状态")
     @PostMapping("/updateMockStatus")
     @AvoidRepeatCommit
-    public ResultDto updateMockStatus(@ApiParam(value = "接口配置") @RequestParam(value = "id", required = true) String id,
+    public ResultDto updateMockStatus(@ApiParam(value = "接口配置") @RequestParam(value = "id", required = true) String id, @RequestParam String loginUserName,
                                       @ApiParam(value = "更改后的状态") @RequestParam(value = "mockStatus", required = true) String mockStatus) {
-        businessInterfaceService.updateMockStatus(id, mockStatus);
+        //校验是否获取到登录用户
+        if(StringUtils.isBlank(loginUserName)){
+            throw new RuntimeException("没有获取到登录用户");
+        }
+        businessInterfaceService.updateMockStatus(id, mockStatus, loginUserName);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "更改mock状态成功!", id);
     }
 
     @ApiOperation(value = "更改接口配置状态", notes = "更改接口配置状态")
     @PostMapping("/updateStatus")
     @AvoidRepeatCommit
-    public ResultDto updateStatus(@ApiParam(value = "接口配置") @RequestParam(value = "id", required = true) String id,
+    public ResultDto updateStatus(@ApiParam(value = "接口配置") @RequestParam(value = "id", required = true) String id, @RequestParam String loginUserName,
                                       @ApiParam(value = "更改后的状态") @RequestParam(value = "status", required = true) String status) {
-        businessInterfaceService.updateStatus(id, status);
+        //校验是否获取到登录用户
+        if(StringUtils.isBlank(loginUserName)){
+            throw new RuntimeException("没有获取到登录用户");
+        }
+        businessInterfaceService.updateStatus(id, status, loginUserName);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "更改接口配置状态成功!", id);
     }
 
@@ -121,11 +129,15 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 
     @ApiOperation(value = "保存mock模板", notes = "保存mock模板")
     @PostMapping("/saveMockTemplate")
-    public ResultDto saveMockTemplate(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id,
+    public ResultDto saveMockTemplate(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id, @RequestParam String loginUserName,
                                      @ApiParam(value = "mock模板") @RequestParam(value = "mockTemplate", required = true) String mockTemplate) {
+        //校验是否获取到登录用户
+        if(StringUtils.isBlank(loginUserName)){
+            throw new RuntimeException("没有获取到登录用户");
+        }
         //校验mock模板格式是否正确
         Utils.strIsJsonOrXml(mockTemplate);
-        businessInterfaceService.saveMockTemplate(id, mockTemplate);
+        businessInterfaceService.saveMockTemplate(id, mockTemplate, loginUserName);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "保存mock模板成功!", id);
     }
 
@@ -214,19 +226,23 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @ApiOperation(value = "标准接口新增/编辑", notes = "标准接口新增/编辑")
     @PostMapping("/saveAndUpdateInterface")
     @AvoidRepeatCommit
-    public ResultDto saveAndUpdateInterface(@RequestBody JSONObject jsonObj) {
+    public ResultDto saveAndUpdateInterface(@RequestBody JSONObject jsonObj, @RequestParam String loginUserName) {
+        //校验是否获取到登录用户
+        if(StringUtils.isBlank(loginUserName)){
+            throw new RuntimeException("没有获取到登录用户");
+        }
         String interfaceName = jsonObj.getString("interfaceName");
         if (StringUtils.isBlank(interfaceName)) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "接口名为空!", "接口名为空!");
         }
         if (StringUtils.isBlank(jsonObj.getString("id"))) {
-            return this.saveInterface(jsonObj);
+            return this.saveInterface(jsonObj, loginUserName);
         }
-        return this.updateInterface(jsonObj);
+        return this.updateInterface(jsonObj, loginUserName);
     }
 
     /** 新增标准接口 */
-    private ResultDto saveInterface(JSONObject jsonObj) {
+    private ResultDto saveInterface(JSONObject jsonObj, String loginUserName) {
         String interfaceName = jsonObj.getString("interfaceName");
         if (null != this.getInterfaceByName(interfaceName)) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "该接口名已存在!", "该接口名已存在!");
@@ -241,6 +257,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         ti.setInterfaceUrl(jsonObj.getString("interfaceUrl"));
         ti.setInterfaceFormat(jsonObj.getString("interfaceFormat"));
         ti.setCreatedTime(new Date());
+        ti.setCreatedBy(loginUserName);
         this.post(ti);
         //新增产品与接口关联
         JSONArray productIdArr = jsonObj.getJSONArray("productIds");
@@ -250,6 +267,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             tpil.setProductId(productIdArr.getString(i));
             tpil.setInterfaceId(interfaceId);
             tpil.setCreatedTime(new Date());
+            tpil.setCreatedBy(loginUserName);
             productInterfaceLinkService.post(tpil);
         }
         //新增接口参数
@@ -265,6 +283,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             tip.setParamLength(obj.getString("paramName").length());
             tip.setParamInOut(Constant.ParmInOut.IN);
             tip.setCreatedTime(new Date());
+            tip.setCreatedBy(loginUserName);
             interfaceParamService.post(tip);
         }
         JSONArray outParamList = jsonObj.getJSONArray("outParamList");
@@ -281,13 +300,14 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             tip.setParamOutStatus(obj.getString("paramOutStatus"));
             tip.setParamOutStatusSuccess(obj.getString("paramOutStatusSuccess"));
             tip.setCreatedTime(new Date());
+            tip.setCreatedBy(loginUserName);
             interfaceParamService.post(tip);
         }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "标准接口新增成功!", interfaceId);
     }
 
     /** 修改标准接口 */
-    private ResultDto updateInterface(JSONObject jsonObj) {
+    private ResultDto updateInterface(JSONObject jsonObj, String loginUserName) {
         String id = jsonObj.getString("id");
         String interfaceName = jsonObj.getString("interfaceName");
         String interfaceTypeId = jsonObj.getString("typeId");
@@ -295,9 +315,13 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         String interfaceFormat = jsonObj.getString("interfaceFormat");
 
         //修改标准接口信息
-        sqlQueryFactory.update(qTInterface).set(qTInterface.interfaceName, interfaceName)
-                .set(qTInterface.typeId, interfaceTypeId).set(qTInterface.interfaceUrl, interfaceUrl)
-                .set(qTInterface.interfaceFormat, interfaceFormat).set(qTInterface.updatedTime, new Date())
+        sqlQueryFactory.update(qTInterface)
+                .set(qTInterface.interfaceName, interfaceName)
+                .set(qTInterface.typeId, interfaceTypeId)
+                .set(qTInterface.interfaceUrl, interfaceUrl)
+                .set(qTInterface.interfaceFormat, interfaceFormat)
+                .set(qTInterface.updatedTime, new Date())
+                .set(qTInterface.updatedBy, loginUserName)
                 .where(qTInterface.id.eq(id)).execute();
         //替换产品与接口关联
         productInterfaceLinkService.deleteProductInterfaceLinkById(id);
@@ -308,6 +332,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             tpil.setProductId(productIdArr.getString(i));
             tpil.setInterfaceId(id);
             tpil.setCreatedTime(new Date());
+            tpil.setCreatedBy(loginUserName);
             productInterfaceLinkService.post(tpil);
         }
         //替换接口参数
@@ -324,6 +349,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             tip.setParamLength(obj.getString("paramName").length());
             tip.setParamInOut(Constant.ParmInOut.IN);
             tip.setCreatedTime(new Date());
+            tip.setCreatedBy(loginUserName);
             interfaceParamService.post(tip);
         }
         JSONArray outParamList = jsonObj.getJSONArray("outParamList");
@@ -340,6 +366,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             tip.setParamOutStatus(obj.getString("paramOutStatus"));
             tip.setParamOutStatusSuccess(obj.getString("paramOutStatusSuccess"));
             tip.setCreatedTime(new Date());
+            tip.setCreatedBy(loginUserName);
             interfaceParamService.post(tip);
         }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "标准接口修改成功!", id);
@@ -566,9 +593,13 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @ApiOperation(value = "新增接口配置", notes = "新增接口配置")
     @PostMapping("/saveInterfaceConfig")
     @AvoidRepeatCommit
-    public ResultDto saveInterfaceConfig(@RequestBody BusinessInterfaceDto dto) {
+    public ResultDto saveInterfaceConfig(@RequestBody BusinessInterfaceDto dto, @RequestParam String loginUserName) {
         if (dto == null) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "请求参数不能为空!", null);
+        }
+        //校验是否获取到登录用户
+        if(StringUtils.isBlank(loginUserName)){
+            throw new RuntimeException("没有获取到登录用户");
         }
         List<TBusinessInterface> tbiList = dto.getBusinessInterfaceList();
         for (TBusinessInterface tbi : tbiList) {
@@ -577,6 +608,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             tbi.setInterfaceId(dto.getInterfaceId());
             tbi.setStatus(Constant.Status.START);
             tbi.setCreatedTime(new Date());
+            tbi.setCreatedBy(loginUserName);
             //产品与功能关联
             if (StringUtils.isBlank(dto.getProductFunctionLinkId())) {
                 TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(dto.getProductId(), dto.getFunctionId());
@@ -606,15 +638,20 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @ApiOperation(value = "编辑接口配置", notes = "编辑接口配置")
     @PostMapping("/updateInterfaceConfig")
     @AvoidRepeatCommit
-    public ResultDto updateInterfaceConfig(@RequestBody BusinessInterfaceDto dto) {
+    public ResultDto updateInterfaceConfig(@RequestBody BusinessInterfaceDto dto, @RequestParam String loginUserName) {
         if (dto == null) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "请求参数不能为空!", null);
+        }
+        //校验是否获取到登录用户
+        if(StringUtils.isBlank(loginUserName)){
+            throw new RuntimeException("没有获取到登录用户");
         }
         List<TBusinessInterface> tbiList = dto.getBusinessInterfaceList();
         for (TBusinessInterface tbi : tbiList) {
             //接口配置重新赋值
             tbi.setInterfaceId(dto.getInterfaceId());
             tbi.setUpdatedTime(new Date());
+            tbi.setUpdatedBy(loginUserName);
             //产品与功能关联
             if (StringUtils.isBlank(dto.getProductFunctionLinkId())) {
                 TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(dto.getProductId(), dto.getFunctionId());

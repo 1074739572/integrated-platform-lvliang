@@ -91,10 +91,14 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
     @ApiOperation(value = "新增or修改项目", notes = "新增or修改项目")
     @PostMapping("/saveAndUpdateProject")
     @AvoidRepeatCommit
-    public ResultDto saveAndUpdateProject(@ApiParam(value = "保存项目-产品-功能信息") @RequestBody JSONObject jsonObj) {
+    public ResultDto saveAndUpdateProject(@ApiParam(value = "保存项目-产品-功能信息") @RequestBody JSONObject jsonObj, @RequestParam String loginUserName) {
         String projectName = jsonObj.getString("projectName");
         if (StringUtils.isBlank(projectName)) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "项目名称为空!", null);
+        }
+        //校验是否获取到登录用户
+        if(StringUtils.isBlank(loginUserName)){
+            throw new RuntimeException("没有获取到登录用户");
         }
         String projectId = jsonObj.getString("id");
         //检验项目名称是否存在
@@ -103,14 +107,14 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
         }
         //项目新增
         if (StringUtils.isBlank(projectId)) {
-            return saveProject(jsonObj);
+            return saveProject(jsonObj,loginUserName);
         }else { //项目修改
-            return updateProject(jsonObj);
+            return updateProject(jsonObj,loginUserName);
         }
     }
 
     /** 新增项目 */
-    private ResultDto saveProject(JSONObject jsonObj) {
+    private ResultDto saveProject(JSONObject jsonObj, String loginUserName) {
         String projectId = batchUidService.getUid(qTProject.getTableName())+"";
 
         TProject project = new TProject();
@@ -120,6 +124,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
         project.setProjectStatus(Constant.Status.START);
         project.setProjectType(jsonObj.getString("projectType"));
         project.setCreatedTime(new Date());
+        project.setCreatedBy(loginUserName);
         projectService.post(project);
 
         JSONArray productList = jsonObj.getJSONArray("productList");
@@ -143,6 +148,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
                 tppl.setProjectId(projectId);
                 tppl.setProductFunctionLinkId(tpfl.getId());
                 tppl.setCreatedTime(new Date());
+                tppl.setCreatedBy(loginUserName);
                 projectProductLinkService.post(tppl);
             }
         }
@@ -150,7 +156,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
     }
 
     /** 修改项目 */
-    private ResultDto updateProject(JSONObject jsonObj) {
+    private ResultDto updateProject(JSONObject jsonObj, String loginUserName) {
         String projectId = jsonObj.getString("id");
         this.deleteProjectById(projectId);
 
@@ -158,6 +164,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
         project.setProjectName(jsonObj.getString("projectName"));
         project.setProjectType(jsonObj.getString("projectType"));
         project.setUpdatedTime(new Date());
+        project.setUpdatedBy(loginUserName);
         projectService.put(projectId, project);
 
         JSONArray productList = jsonObj.getJSONArray("productList");
@@ -184,6 +191,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
                     tppl.setProductFunctionLinkId(tpfl.getId());
                 }
                 tppl.setCreatedTime(new Date());
+                tpfl.setCreatedBy(loginUserName);
                 projectProductLinkService.post(tppl);
             }
         }
@@ -206,10 +214,17 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
     @ApiOperation(value = "更改项目启用状态", notes = "更改项目启用状态")
     @PostMapping("/updateProjectStatus")
     @AvoidRepeatCommit
-    public ResultDto updateProjectStatus(@ApiParam(value = "项目id") @RequestParam(value = "id", required = true) String id,
+    public ResultDto updateProjectStatus(@ApiParam(value = "项目id") @RequestParam(value = "id", required = true) String id, @RequestParam String loginUserName,
                                          @ApiParam(value = "项目状态 1启用 2停用") @RequestParam(value = "projectStatus", required = true) String projectStatus) {
+
+        //校验是否获取到登录用户
+        if(StringUtils.isBlank(loginUserName)){
+            throw new RuntimeException("没有获取到登录用户");
+        }
         try {
-            sqlQueryFactory.update(qTProject).set(qTProject.projectStatus, projectStatus)
+            sqlQueryFactory.update(qTProject)
+                    .set(qTProject.projectStatus, projectStatus)
+                    .set(qTProject.updatedBy,loginUserName)
                     .where(qTProject.id.eq(id)).execute();
         } catch (Exception e) {
             logger.error("项目状态修改失败!", ExceptionUtil.dealException(e));
