@@ -19,6 +19,10 @@ public class TInterface implements Serializable {
 
     private String interfaceFormat;
 
+    private String paramOutStatus;
+
+    private String paramOutStatusSuccess;
+
     private String createdBy;
 
     @JsonFormat(pattern="yyyy/MM/dd HH:mm:ss",timezone="GMT+8")
@@ -28,8 +32,6 @@ public class TInterface implements Serializable {
 
     @JsonFormat(pattern="yyyy/MM/dd HH:mm:ss",timezone="GMT+8")
     private java.util.Date updatedTime;
-
-    private String interfaceTypeName;
 
     public String getId() {
         return id;
@@ -71,6 +73,22 @@ public class TInterface implements Serializable {
         this.interfaceFormat = interfaceFormat;
     }
 
+    public String getParamOutStatus() {
+        return paramOutStatus;
+    }
+
+    public void setParamOutStatus(String paramOutStatus) {
+        this.paramOutStatus = paramOutStatus;
+    }
+
+    public String getParamOutStatusSuccess() {
+        return paramOutStatusSuccess;
+    }
+
+    public void setParamOutStatusSuccess(String paramOutStatusSuccess) {
+        this.paramOutStatusSuccess = paramOutStatusSuccess;
+    }
+
     public String getCreatedBy() {
         return createdBy;
     }
@@ -101,14 +119,6 @@ public class TInterface implements Serializable {
 
     public void setUpdatedTime(java.util.Date updatedTime) {
         this.updatedTime = updatedTime;
-    }
-
-    public String getInterfaceTypeName() {
-        return interfaceTypeName;
-    }
-
-    public void setInterfaceTypeName(String interfaceTypeName) {
-        this.interfaceTypeName = interfaceTypeName;
     }
 
     @Override

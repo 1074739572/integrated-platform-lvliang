@@ -1,12 +1,15 @@
 package com.iflytek.integrated.platform.service;
 
+import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
+import com.iflytek.integrated.platform.entity.THospitalVendorLink;
 import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +20,9 @@ import java.util.Date;
 import java.util.List;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
+import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
+import static com.iflytek.integrated.platform.entity.QTHospitalVendorLink.qTHospitalVendorLink;
+import static com.iflytek.integrated.platform.entity.QTInterfaceMonitor.qTInterfaceMonitor;
 import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.qTProductFunctionLink;
 import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConfig;
 import static com.querydsl.sql.SQLExpressions.groupConcat;
@@ -177,6 +183,42 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
                                                 .and(qTBusinessInterface.vendorConfigId.eq(vendorConfigId))))
                                         .fetch();
         return list;
+    }
+
+    /**
+     * 新增接口配置时根据条件判断是否存在该数据
+     * @param thvlList
+     * @param projectId
+     * @param productId
+     * @param interfaceId
+     * @return
+     */
+    public List<TBusinessInterface> getBusinessInterfaceIsExist(List<THospitalVendorLink> thvlList, String projectId, String productId, String interfaceId) {
+        ArrayList<Predicate> list = new ArrayList<>();
+
+        if(CollectionUtils.isNotEmpty(thvlList)) {
+            List<String> hospitalIds = new ArrayList<>();
+            for (THospitalVendorLink obj : thvlList) {
+                hospitalIds.add(obj.getHospitalId());
+            }
+            list.add(qTHospitalVendorLink.hospitalId.in(hospitalIds));
+        }
+        if(StringUtils.isNotEmpty(interfaceId)){
+            list.add(qTBusinessInterface.interfaceId.eq(interfaceId));
+        }
+        if(StringUtils.isNotEmpty(productId)){
+            list.add(qTProductFunctionLink.productId.eq(productId));
+        }
+        if(StringUtils.isNotEmpty(projectId)){
+            list.add(qTInterfaceMonitor.projectId.in(projectId));
+        }
+
+        List<TBusinessInterface> rtnList = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
+                .join(qTHospitalVendorLink).on(qTHospitalVendorLink.vendorConfigId.eq(qTBusinessInterface.vendorConfigId))
+                .join(qTProductFunctionLink).on(qTProductFunctionLink.id.eq(qTBusinessInterface.productFunctionLinkId))
+                .join(qTInterfaceMonitor).on(qTInterfaceMonitor.productFunctionLinkId.eq(qTProductFunctionLink.id))
+                .where(list.toArray(new Predicate[list.size()])).fetch();
+        return rtnList;
     }
 
 

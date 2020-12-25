@@ -13,6 +13,8 @@ public class BusinessInterfaceDto {
      */
     private String id;
 
+    private String projectId;
+
     private String platformId;
 
     private String productId;
@@ -30,5 +32,9 @@ public class BusinessInterfaceDto {
      * 多个厂商配置信息
      */
     private List<TBusinessInterface> businessInterfaceList;
+    /**
+     * 新增编辑接口配置标识  1新增 2编辑
+     */
+    private String addOrUpdate;
 
 }

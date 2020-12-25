@@ -213,7 +213,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             functionService.post(tf);
         }else {
             TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(productId, functionId);
-            if (tpfl != null) {
+            if (tpfl != null) {//???
                 return new ResultDto(Constant.ResultCode.ERROR_CODE, "该产品与功能已有关联!",tpfl);
             }
         }

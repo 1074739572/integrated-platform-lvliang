@@ -1,5 +1,7 @@
 package com.iflytek.integrated.platform.entity;
 
+import org.springframework.data.annotation.Transient;
+
 import java.io.Serializable;
 
 /**
@@ -59,29 +61,31 @@ public class TBusinessInterface implements Serializable {
 
     private java.util.Date updatedTime;
 
+    @Transient
     private String interfaceName;
-
+    @Transient
     private String platformId;
-
+    @Transient
     private String vendorId;
-
+    @Transient
     private String productId;
-
+    @Transient
     private String functionId;
 
     /**
      * 列表接口配置查询出参
      */
+    @Transient
     private String productName;
-
+    @Transient
     private String functionName;
-
+    @Transient
     private String versionId;
-
+    @Transient
     private String projectCode;
-
+    @Transient
     private String productCode;
-
+    @Transient
     private String interfaceUrl;
 
     public String getId() {

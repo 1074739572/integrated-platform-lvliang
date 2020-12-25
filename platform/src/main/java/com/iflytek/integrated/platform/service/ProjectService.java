@@ -69,7 +69,9 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
     public ResultDto getProject(
             @ApiParam(value = "项目类型 1区域 2医院") @RequestParam(required = false) String projectType,
             @ApiParam(value = "项目状态 1启用 2停用") @RequestParam(required = false) String projectStatus,
-            @ApiParam(value = "项目名称") @RequestParam(required = false) String projectName) {
+            @ApiParam(value = "项目名称") @RequestParam(required = false) String projectName,
+            @ApiParam(value = "页码",example = "1") @RequestParam(defaultValue = "1", required = false)Integer pageNo,
+            @ApiParam(value = "每页大小",example = "10") @RequestParam(defaultValue = "10", required = false)Integer pageSize) {
         ArrayList<Predicate> list = new ArrayList<>();
         if (StringUtils.isNotBlank(projectType)) {
             list.add(qTProject.projectType.eq(projectType));
@@ -81,7 +83,10 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
             list.add(qTProject.projectName.like(Utils.createFuzzyText(projectName)));
         }
         QueryResults<TProject> queryResults = sqlQueryFactory.select(qTProject).from(qTProject)
-                .where(list.toArray(new Predicate[list.size()])).orderBy(qTProject.updatedTime.desc()).fetchResults();
+                .where(list.toArray(new Predicate[list.size()]))
+                .limit(pageSize)
+                .offset((pageNo - 1) * pageSize)
+                .orderBy(qTProject.updatedTime.desc()).fetchResults();
         TableData<TProject> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取项目信息成功!", tableData);
     }
