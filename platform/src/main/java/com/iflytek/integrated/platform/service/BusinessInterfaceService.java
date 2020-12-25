@@ -14,10 +14,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
 import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.qTProductFunctionLink;
 import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConfig;
+import static com.querydsl.sql.SQLExpressions.groupConcat;
 
 /**
 * 对接接口配置
@@ -33,6 +35,7 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
         super(qTBusinessInterface, qTBusinessInterface.id);
     }
 
+
     /**
      *  更改mock状态
      * @param id
@@ -44,7 +47,7 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
     }
 
     /**
-     *  更改mock状态
+     *  更改启停用状态
      * @param id
      * @param status
      */
@@ -83,6 +86,44 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
      * @param pageSize
      * @return
      */
+//    public QueryResults<TBusinessInterface> getInterfaceConfigureList(String platformId, String status, String mockStatus, Integer pageNo, Integer pageSize) {
+//        ArrayList<Predicate> list = new ArrayList<>();
+//        list.add(qTVendorConfig.platformId.eq(platformId));
+//        if(StringUtils.isNotEmpty(status)) {
+//            list.add(qTBusinessInterface.status.eq(status));
+//        }
+//        if(StringUtils.isNotEmpty(mockStatus)) {
+//            list.add(qTBusinessInterface.mockStatus.eq(mockStatus));
+//        }
+//        QueryResults<TBusinessInterface> queryResults = sqlQueryFactory.select(
+//                Projections.bean(TBusinessInterface.class, qTBusinessInterface.id, qTBusinessInterface.productFunctionLinkId,
+//                        qTBusinessInterface.interfaceId, qTBusinessInterface.vendorConfigId, qTBusinessInterface.businessInterfaceName,
+//                        qTBusinessInterface.requestType, qTBusinessInterface.requestConstant, qTBusinessInterface.interfaceType,
+//                        qTBusinessInterface.pluginId, qTBusinessInterface.frontInterface, qTBusinessInterface.afterInterface,
+//                        qTBusinessInterface.inParamFormat, qTBusinessInterface.inParamSchema, qTBusinessInterface.inParamTemplate,
+//                        qTBusinessInterface.inParamFormatType, qTBusinessInterface.outParamFormat, qTBusinessInterface.outParamSchema,
+//                        qTBusinessInterface.outParamTemplate, qTBusinessInterface.outParamFormatType, qTBusinessInterface.mockStatus,
+//                        qTBusinessInterface.status, qTBusinessInterface.createdBy, qTBusinessInterface.createdTime,
+//                        qTBusinessInterface.updatedBy, qTBusinessInterface.updatedTime, qTVendorConfig.versionId.as("versionId")))
+//                .from(qTBusinessInterface)
+//                .leftJoin(qTVendorConfig).on(qTVendorConfig.id.eq(qTBusinessInterface.vendorConfigId))
+//                .where(list.toArray(new Predicate[list.size()]))
+//                .orderBy(qTBusinessInterface.updatedTime.desc())
+//                .limit(pageSize)
+//                .offset((pageNo - 1) * pageSize)
+//                .fetchResults();
+//        return queryResults;
+//    }
+
+    /**
+     * 获取接口配置信息列表
+     * @param platformId
+     * @param status
+     * @param mockStatus
+     * @param pageNo
+     * @param pageSize
+     * @return
+     */
     public QueryResults<TBusinessInterface> getInterfaceConfigureList(String platformId, String status, String mockStatus, Integer pageNo, Integer pageSize) {
         ArrayList<Predicate> list = new ArrayList<>();
         list.add(qTVendorConfig.platformId.eq(platformId));
@@ -94,22 +135,39 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
         }
         QueryResults<TBusinessInterface> queryResults = sqlQueryFactory.select(
                 Projections.bean(TBusinessInterface.class, qTBusinessInterface.id, qTBusinessInterface.productFunctionLinkId,
-                        qTBusinessInterface.interfaceId, qTBusinessInterface.vendorConfigId, qTBusinessInterface.businessInterfaceName,
+                        qTBusinessInterface.interfaceId, qTBusinessInterface.vendorConfigId,
+                        groupConcat(qTBusinessInterface.businessInterfaceName).as("businessInterfaceName"),
                         qTBusinessInterface.requestType, qTBusinessInterface.requestConstant, qTBusinessInterface.interfaceType,
-                        qTBusinessInterface.pluginId, qTBusinessInterface.frontInterface, qTBusinessInterface.afterInterface,
-                        qTBusinessInterface.inParamFormat, qTBusinessInterface.inParamSchema, qTBusinessInterface.inParamTemplate,
-                        qTBusinessInterface.inParamFormatType, qTBusinessInterface.outParamFormat, qTBusinessInterface.outParamSchema,
+                        qTBusinessInterface.pluginId, qTBusinessInterface.inParamFormat, qTBusinessInterface.inParamSchema,
+                        qTBusinessInterface.inParamTemplate, qTBusinessInterface.inParamFormatType, qTBusinessInterface.outParamFormat, qTBusinessInterface.outParamSchema,
                         qTBusinessInterface.outParamTemplate, qTBusinessInterface.outParamFormatType, qTBusinessInterface.mockStatus,
                         qTBusinessInterface.status, qTBusinessInterface.createdBy, qTBusinessInterface.createdTime,
                         qTBusinessInterface.updatedBy, qTBusinessInterface.updatedTime, qTVendorConfig.versionId.as("versionId")))
                 .from(qTBusinessInterface)
                 .leftJoin(qTVendorConfig).on(qTVendorConfig.id.eq(qTBusinessInterface.vendorConfigId))
                 .where(list.toArray(new Predicate[list.size()]))
+                .groupBy(qTBusinessInterface.productFunctionLinkId,qTBusinessInterface.interfaceId,qTBusinessInterface.vendorConfigId)
                 .orderBy(qTBusinessInterface.updatedTime.desc())
                 .limit(pageSize)
                 .offset((pageNo - 1) * pageSize)
                 .fetchResults();
         return queryResults;
+    }
+
+    /**
+     * 根据三条件获取
+     * @param productFunctionLinkId
+     * @param interfaceId
+     * @param vendorConfigId
+     * @return
+     */
+    public List<TBusinessInterface> getTBusinessInterfaceList(String productFunctionLinkId, String interfaceId, String vendorConfigId) {
+        List<TBusinessInterface> list = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
+                                        .where(qTBusinessInterface.productFunctionLinkId.eq(productFunctionLinkId)
+                                                .and(qTBusinessInterface.interfaceId.eq(interfaceId)
+                                                .and(qTBusinessInterface.vendorConfigId.eq(vendorConfigId))))
+                                        .fetch();
+        return list;
     }
 
 
