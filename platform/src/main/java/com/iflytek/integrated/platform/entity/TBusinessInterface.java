@@ -25,10 +25,6 @@ public class TBusinessInterface implements Serializable {
 
     private String pluginId;
 
-    private String frontInterface;
-
-    private String afterInterface;
-
     private String inParamFormat;
 
     private String inParamSchema;
@@ -158,22 +154,6 @@ public class TBusinessInterface implements Serializable {
 
     public void setPluginId(String pluginId) {
         this.pluginId = pluginId;
-    }
-
-    public String getFrontInterface() {
-        return frontInterface;
-    }
-
-    public void setFrontInterface(String frontInterface) {
-        this.frontInterface = frontInterface;
-    }
-
-    public String getAfterInterface() {
-        return afterInterface;
-    }
-
-    public void setAfterInterface(String afterInterface) {
-        this.afterInterface = afterInterface;
     }
 
     public String getInParamFormat() {

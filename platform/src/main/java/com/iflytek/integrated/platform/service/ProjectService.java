@@ -41,6 +41,7 @@ import static com.iflytek.integrated.platform.entity.QTProjectProductLink.qTProj
 */
 @Slf4j
 @Api(tags = "项目管理")
+
 @RestController
 @RequestMapping("/{version}/pt/projectManage")
 public class ProjectService extends QuerydslService<TProject, String, TProject, StringPath, PageRequest<TProject>> {

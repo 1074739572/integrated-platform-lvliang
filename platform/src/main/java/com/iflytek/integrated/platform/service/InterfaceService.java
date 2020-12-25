@@ -8,6 +8,7 @@ import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.common.utils.RedisUtil;
 import com.iflytek.integrated.platform.annotation.AvoidRepeatCommit;
+import com.iflytek.integrated.platform.dto.BusinessInterfaceDto;
 import com.iflytek.integrated.platform.dto.InDebugResDto;
 import com.iflytek.integrated.platform.utils.ToolsGenerate;
 import com.iflytek.integrated.platform.utils.Utils;
@@ -218,9 +219,6 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         if (StringUtils.isBlank(interfaceName)) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "接口名为空!", "接口名为空!");
         }
-        if (null != this.getInterfaceByName(interfaceName)) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该接口名已存在!", "该接口名已存在!");
-        }
         if (StringUtils.isBlank(jsonObj.getString("id"))) {
             return this.saveInterface(jsonObj);
         }
@@ -229,6 +227,10 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 
     /** 新增标准接口 */
     private ResultDto saveInterface(JSONObject jsonObj) {
+        String interfaceName = jsonObj.getString("interfaceName");
+        if (null != this.getInterfaceByName(interfaceName)) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该接口名已存在!", "该接口名已存在!");
+        }
         Utils.strIsJsonOrXml(jsonObj.getString("interfaceFormat"));
         String interfaceId = batchUidService.getUid(qTInterface.getTableName()) + "";
         //新增标准接口
@@ -496,92 +498,203 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @ApiOperation(value = "获取接口配置详情")
     @GetMapping("/getInterfaceConfigInfoById")
     public ResultDto getInterfaceConfigInfoById(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
-        TBusinessInterface tBusinessInterface = sqlQueryFactory.select(
-                Projections.bean(
-                    TBusinessInterface.class,
-                        qTProductFunctionLink.productId,
-                        qTProductFunctionLink.functionId,
-                        qTBusinessInterface.interfaceId,
-                        qTVendorConfig.vendorId,
-                        qTBusinessInterface.requestType,
-                        qTBusinessInterface.businessInterfaceName,
-                        qTBusinessInterface.frontInterface,
-                        qTBusinessInterface.afterInterface,
-                        qTBusinessInterface.pluginId,
-                        qTBusinessInterface.requestConstant,
-                        qTBusinessInterface.inParamFormat,
-                        qTBusinessInterface.inParamSchema,
-                        qTBusinessInterface.inParamTemplate,
-                        qTBusinessInterface.inParamFormatType,
-                        qTBusinessInterface.outParamFormat,
-                        qTBusinessInterface.outParamSchema,
-                        qTBusinessInterface.outParamTemplate,
-                        qTBusinessInterface.outParamFormatType
-                )
-            ).from(qTBusinessInterface)
-                .leftJoin(qTProductFunctionLink).on(qTBusinessInterface.productFunctionLinkId.eq(qTProductFunctionLink.id))
-                .leftJoin(qTVendorConfig).on(qTVendorConfig.id.eq(qTBusinessInterface.vendorConfigId))
-                .where(qTBusinessInterface.id.eq(id))
-                .fetchOne();
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"获取接口配置详情成功", tBusinessInterface);
+        //返回对象
+        BusinessInterfaceDto dto = new BusinessInterfaceDto();
+        dto.setId(id);
+        //获取接口配置对象
+        TBusinessInterface tbi = businessInterfaceService.getOne(id);
+        //标准接口
+        dto.setInterfaceId(tbi.getInterfaceId());
+        //获取厂商及配置信息
+        String vendorConfigId = tbi.getVendorConfigId();
+        dto.setVendorConfigId(vendorConfigId);
+        TVendorConfig tvc = vendorConfigService.getOne(vendorConfigId);
+        if (tvc != null) {
+            dto.setVendorId(tvc.getVendorId());
+        }
+        //获取产品与功能及关联信息
+        String productFunctionLinkId = tbi.getProductFunctionLinkId();
+        dto.setProductFunctionLinkId(productFunctionLinkId);
+        TProductFunctionLink tpfl = productFunctionLinkService.getOne(productFunctionLinkId);
+        if (tpfl != null) {
+            dto.setProductId(tpfl.getProductId());
+            dto.setFunctionId(tpfl.getFunctionId());
+        }
+        //多个厂商配置信息
+        String pflId = tbi.getProductFunctionLinkId();
+        String iId = tbi.getInterfaceId();
+        String vcId = tbi.getVendorConfigId();
+        List<TBusinessInterface> tbiList = businessInterfaceService.getTBusinessInterfaceList(pflId, iId, vcId);
+        dto.setBusinessInterfaceList(tbiList);
+
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"获取接口配置详情成功", dto);
+    }
+
+//    @ApiOperation(value = "获取接口配置详情")
+//    @GetMapping("/getInterfaceConfigInfoById")
+//    public ResultDto getInterfaceConfigInfoById(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
+//        TBusinessInterface tBusinessInterface = sqlQueryFactory.select(
+//                Projections.bean(
+//                    TBusinessInterface.class,
+//                        qTProductFunctionLink.productId,
+//                        qTProductFunctionLink.functionId,
+//                        qTBusinessInterface.interfaceId,
+//                        qTVendorConfig.vendorId,
+//                        qTBusinessInterface.requestType,
+//                        qTBusinessInterface.businessInterfaceName,
+//                        qTBusinessInterface.pluginId,
+//                        qTBusinessInterface.requestConstant,
+//                        qTBusinessInterface.inParamFormat,
+//                        qTBusinessInterface.inParamSchema,
+//                        qTBusinessInterface.inParamTemplate,
+//                        qTBusinessInterface.inParamFormatType,
+//                        qTBusinessInterface.outParamFormat,
+//                        qTBusinessInterface.outParamSchema,
+//                        qTBusinessInterface.outParamTemplate,
+//                        qTBusinessInterface.outParamFormatType
+//                )
+//            ).from(qTBusinessInterface)
+//                .leftJoin(qTProductFunctionLink).on(qTBusinessInterface.productFunctionLinkId.eq(qTProductFunctionLink.id))
+//                .leftJoin(qTVendorConfig).on(qTVendorConfig.id.eq(qTBusinessInterface.vendorConfigId))
+//                .where(qTBusinessInterface.id.eq(id))
+//                .fetchOne();
+//        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"获取接口配置详情成功", tBusinessInterface);
+//    }
+
+
+    @Transactional(rollbackFor = Exception.class)
+    @ApiOperation(value = "新增接口配置", notes = "新增接口配置")
+    @PostMapping("/saveInterfaceConfig")
+    @AvoidRepeatCommit
+    public ResultDto saveInterfaceConfig(@RequestBody BusinessInterfaceDto dto) {
+        if (dto == null) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "请求参数不能为空!", null);
+        }
+        List<TBusinessInterface> tbiList = dto.getBusinessInterfaceList();
+        for (TBusinessInterface tbi : tbiList) {
+            //新增接口配置
+            tbi.setId(batchUidService.getUid(qTBusinessInterface.getTableName())+"");
+            tbi.setInterfaceId(dto.getInterfaceId());
+            tbi.setStatus(Constant.Status.START);
+            tbi.setCreatedTime(new Date());
+            //产品与功能关联
+            if (StringUtils.isBlank(dto.getProductFunctionLinkId())) {
+                TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(dto.getProductId(), dto.getFunctionId());
+                tbi.setProductFunctionLinkId(tpfl!=null?tpfl.getId():null);
+            }else {
+                tbi.setProductFunctionLinkId(dto.getProductFunctionLinkId());
+            }
+            //厂商配置
+            if (StringUtils.isBlank(dto.getVendorConfigId())) {
+                TVendorConfig tvc = vendorConfigService.getObjByPlatformAndVendor(dto.getPlatformId(), dto.getVendorId());
+                tbi.setVendorConfigId(tvc!=null?tvc.getId():null);
+            }else {
+                tbi.setVendorConfigId(dto.getVendorConfigId());
+            }
+            //获取schema
+            toolsGenerate.generateSchemaToInterface(tbi);
+            //新增接口配置
+            businessInterfaceService.post(tbi);
+
+            setRedis(tbi.getId());
+        }
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "新增接口配置成功", null);
     }
 
 
     @Transactional(rollbackFor = Exception.class)
-    @ApiOperation(value = "新增/更新接口配置", notes = "新增/更新接口配置")
-    @PostMapping("/saveAndUpdateInterfaceConfig")
+    @ApiOperation(value = "编辑接口配置", notes = "编辑接口配置")
+    @PostMapping("/updateInterfaceConfig")
     @AvoidRepeatCommit
-    public ResultDto saveAndUpdateInterfaceConfig(@RequestBody JSONObject jsonObj) {
-        if (jsonObj == null) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "请求参数有误!", null);
+    public ResultDto updateInterfaceConfig(@RequestBody BusinessInterfaceDto dto) {
+        if (dto == null) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "请求参数不能为空!", null);
         }
-        TBusinessInterface obj = JSONObject.parseObject(jsonObj.toJSONString(), TBusinessInterface.class);
-
-        String rtnMsg = (null==obj.getId()?"新增":"修改")+"接口配置";
-
-        if (null == obj.getId()) {
-            TVendorConfig vendorConfig = vendorConfigService.getObjByPlatformAndVendor(obj.getPlatformId(), obj.getVendorId());
-            if (vendorConfig != null) {
-                //厂商配置id
-                obj.setVendorConfigId(vendorConfig.getId());
+        List<TBusinessInterface> tbiList = dto.getBusinessInterfaceList();
+        for (TBusinessInterface tbi : tbiList) {
+            //接口配置重新赋值
+            tbi.setInterfaceId(dto.getInterfaceId());
+            tbi.setUpdatedTime(new Date());
+            //产品与功能关联
+            if (StringUtils.isBlank(dto.getProductFunctionLinkId())) {
+                TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(dto.getProductId(), dto.getFunctionId());
+                tbi.setProductFunctionLinkId(tpfl!=null?tpfl.getId():null);
+            }else {
+                tbi.setProductFunctionLinkId(dto.getProductFunctionLinkId());
             }
-        }else {
-            TBusinessInterface tbi = businessInterfaceService.getOne(obj.getId());
-            if (tbi != null) {
-                //厂商配置id
-                obj.setVendorConfigId(tbi.getVendorConfigId());
+            //厂商配置
+            if (StringUtils.isBlank(dto.getVendorConfigId())) {
+                TVendorConfig tvc = vendorConfigService.getObjByPlatformAndVendor(dto.getPlatformId(), dto.getVendorId());
+                tbi.setVendorConfigId(tvc!=null?tvc.getId():null);
+            }else {
+                tbi.setVendorConfigId(dto.getVendorConfigId());
             }
-        }
-
-        //产品与功能关联
-        TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(obj.getProductId(), obj.getFunctionId());
-        if (tpfl == null) {
-            tpfl = new TProductFunctionLink();
-            tpfl.setId(batchUidService.getUid(qTProductFunctionLink.getTableName())+"");
-            tpfl.setProductId(obj.getProductId());
-            tpfl.setFunctionId(obj.getFunctionId());
-            tpfl.setCreatedTime(new Date());
-            productFunctionLinkService.post(tpfl);
-        }
-        //存储产品功能关联id
-        obj.setProductFunctionLinkId(tpfl.getId());
-
-        //获取schema
-        toolsGenerate.generateSchemaToInterface(obj);
-
-        if (StringUtils.isBlank(obj.getId())) {
+            //获取schema
+            toolsGenerate.generateSchemaToInterface(tbi);
             //新增接口配置
-            obj.setId(batchUidService.getUid(qTBusinessInterface.getTableName())+"");
-            obj.setStatus(Constant.Status.START);
-            obj.setCreatedTime(new Date());
-            businessInterfaceService.post(obj);
-        }else {
-            obj.setUpdatedTime(new Date());
-            businessInterfaceService.put(obj.getId(), obj);
+            businessInterfaceService.put(tbi.getId(), tbi);
+
+            setRedis(tbi.getId());
         }
-        setRedis(obj.getId());
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, rtnMsg+"成功", obj);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "编辑接口配置成功", null);
     }
+
+
+//    @Transactional(rollbackFor = Exception.class)
+//    @ApiOperation(value = "新增/更新接口配置", notes = "新增/更新接口配置")
+//    @PostMapping("/saveAndUpdateInterfaceConfig")
+//    @AvoidRepeatCommit
+//    public ResultDto saveAndUpdateInterfaceConfig(@RequestBody JSONObject jsonObj) {
+//        if (jsonObj == null) {
+//            return new ResultDto(Constant.ResultCode.ERROR_CODE, "请求参数有误!", null);
+//        }
+//        TBusinessInterface obj = JSONObject.parseObject(jsonObj.toJSONString(), TBusinessInterface.class);
+//
+//        String rtnMsg = (null==obj.getId()?"新增":"修改")+"接口配置";
+//
+//        if (null == obj.getId()) {
+//            TVendorConfig vendorConfig = vendorConfigService.getObjByPlatformAndVendor(obj.getPlatformId(), obj.getVendorId());
+//            if (vendorConfig != null) {
+//                //厂商配置id
+//                obj.setVendorConfigId(vendorConfig.getId());
+//            }
+//        }else {
+//            TBusinessInterface tbi = businessInterfaceService.getOne(obj.getId());
+//            if (tbi != null) {
+//                //厂商配置id
+//                obj.setVendorConfigId(tbi.getVendorConfigId());
+//            }
+//        }
+//
+//        //产品与功能关联
+//        TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(obj.getProductId(), obj.getFunctionId());
+//        if (tpfl == null) {
+//            tpfl = new TProductFunctionLink();
+//            tpfl.setId(batchUidService.getUid(qTProductFunctionLink.getTableName())+"");
+//            tpfl.setProductId(obj.getProductId());
+//            tpfl.setFunctionId(obj.getFunctionId());
+//            tpfl.setCreatedTime(new Date());
+//            productFunctionLinkService.post(tpfl);
+//        }
+//        //存储产品功能关联id
+//        obj.setProductFunctionLinkId(tpfl.getId());
+//
+//        //获取schema
+//        toolsGenerate.generateSchemaToInterface(obj);
+//
+//        if (StringUtils.isBlank(obj.getId())) {
+//            //新增接口配置
+//            obj.setId(batchUidService.getUid(qTBusinessInterface.getTableName())+"");
+//            obj.setStatus(Constant.Status.START);
+//            obj.setCreatedTime(new Date());
+//            businessInterfaceService.post(obj);
+//        }else {
+//            obj.setUpdatedTime(new Date());
+//            businessInterfaceService.put(obj.getId(), obj);
+//        }
+//        setRedis(obj.getId());
+//        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, rtnMsg+"成功", obj);
+//    }
 
 
     @ApiOperation(value = "根据参数格式获取jolt", notes = "根据参数格式获取jolt")
@@ -645,6 +758,8 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                 tip.setParamInstruction(obj.getParamInstruction());
                 tip.setParamLength(obj.getParamLength());
                 tip.setParamInOut(obj.getParamInOut());
+                tip.setParamOutStatus(obj.getParamOutStatus());
+                tip.setParamOutStatusSuccess(obj.getParamOutStatusSuccess());
                 if (Constant.ParmInOut.IN.equals(obj.getParamInOut())) {
                     inParamList.add(tip);
                 }

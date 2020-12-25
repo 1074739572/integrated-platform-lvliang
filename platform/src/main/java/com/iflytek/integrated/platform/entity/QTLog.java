@@ -34,7 +34,7 @@ public class QTLog extends com.querydsl.sql.RelationalPathBase<TLog> {
 
     public final DateTimePath<java.util.Date> createdTime = createDateTime("createdTime", java.util.Date.class);
 
-    public final StringPath id = createString("id");
+    public final NumberPath<Long> id = createNumber("id", Long.class);
 
     public final StringPath platformId = createString("platformId");
 
@@ -57,6 +57,8 @@ public class QTLog extends com.querydsl.sql.RelationalPathBase<TLog> {
     public final StringPath venderReq = createString("venderReq");
 
     public final StringPath visitAddr = createString("visitAddr");
+
+    public final com.querydsl.sql.PrimaryKey<TLog> primary = createPrimaryKey(id);
 
     public QTLog(String variable) {
         super(TLog.class, forVariable(variable), "null", "t_log");
@@ -90,7 +92,7 @@ public class QTLog extends com.querydsl.sql.RelationalPathBase<TLog> {
         addMetadata(businessReq, ColumnMetadata.named("BUSINESS_REQ").withIndex(7).ofType(Types.VARCHAR).withSize(1024).notNull());
         addMetadata(createdBy, ColumnMetadata.named("CREATED_BY").withIndex(15).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(16).ofType(Types.TIMESTAMP).withSize(19).notNull());
-        addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.BIGINT).withSize(19).notNull());
         addMetadata(platformId, ColumnMetadata.named("PLATFORM_ID").withIndex(3).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(productFunctionLinkId, ColumnMetadata.named("PRODUCT_FUNCTION_LINK_ID").withIndex(4).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(projectId, ColumnMetadata.named("PROJECT_ID").withIndex(2).ofType(Types.VARCHAR).withSize(32).notNull());

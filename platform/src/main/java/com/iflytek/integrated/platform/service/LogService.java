@@ -12,7 +12,7 @@ import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.StringPath;
+import com.querydsl.core.types.dsl.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +39,7 @@ import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
 @Api(tags = "服务监控")
 @RestController
 @RequestMapping("/{version}/pt/interfaceMonitor")
-public class LogService extends QuerydslService<TLog, String, TLog, StringPath, PageRequest<TLog>> {
+public class LogService extends QuerydslService<TLog, Long, TLog, NumberPath<Long>, PageRequest<TLog>> {
     private static final Logger logger = LoggerFactory.getLogger(LogService.class);
 
     public LogService(){
