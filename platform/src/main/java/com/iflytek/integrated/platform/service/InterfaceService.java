@@ -499,52 +499,52 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     }
 
 
-    @ApiOperation(value = "获取接口配置列表")
-    @GetMapping("/getInterfaceConfigureList2")
-    public ResultDto getInterfaceConfigureList2(
-            @ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId,
-            @ApiParam(value = "启停用状态") @RequestParam(value = "status", required = false) String status,
-            @ApiParam(value = "mock状态") @RequestParam(value = "mockStatus", required = false) String mockStatus,
-            @ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
-            @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize){
-        //查询条件
-        ArrayList<Predicate> list = new ArrayList<>();
-        list.add(qTPlatform.id.eq(platformId));
-        if (StringUtils.isNotBlank(status)) {
-            list.add(qTBusinessInterface.status.eq(status));
-        }
-        if (StringUtils.isNotBlank(mockStatus)) {
-            list.add(qTBusinessInterface.mockStatus.eq(mockStatus));
-        }
-        QueryResults<TBusinessInterface> queryResults = sqlQueryFactory.select(
-                Projections.bean(
-                        TBusinessInterface.class,
-                        qTBusinessInterface.id,
-                        qTBusinessInterface.businessInterfaceName,
-                        qTBusinessInterface.status,
-                        qTBusinessInterface.mockStatus,
-                        qTProduct.productName,
-                        qTFunction.functionName,
-                        qTInterface.interfaceName,
-                        qTVendorConfig.versionId
-                )
-            ).from(qTBusinessInterface)
-                .leftJoin(qTProductFunctionLink).on(qTBusinessInterface.productFunctionLinkId.eq(qTProductFunctionLink.id))
-                .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
-                .leftJoin(qTFunction).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
-                .leftJoin(qTInterface).on(qTInterface.id.eq(qTBusinessInterface.interfaceId))
-                .leftJoin(qTVendorConfig).on(qTVendorConfig.id.eq(qTBusinessInterface.vendorConfigId))
-                .leftJoin(qTProjectProductLink).on(qTProjectProductLink.productFunctionLinkId.eq(qTProductFunctionLink.id))
-                .leftJoin(qTPlatform).on(qTPlatform.projectId.eq(qTProjectProductLink.projectId))
-                .where(list.toArray(new Predicate[list.size()]))
-                .limit(pageSize)
-                .offset((pageNo - 1) * pageSize)
-                .orderBy(qTBusinessInterface.updatedTime.desc())
-                .fetchResults();
-        //分页
-        TableData<TBusinessInterface> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"获取接口配置列表获取成功", tableData);
-    }
+//    @ApiOperation(value = "获取接口配置列表")
+//    @GetMapping("/getInterfaceConfigureList2")
+//    public ResultDto getInterfaceConfigureList2(
+//            @ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId,
+//            @ApiParam(value = "启停用状态") @RequestParam(value = "status", required = false) String status,
+//            @ApiParam(value = "mock状态") @RequestParam(value = "mockStatus", required = false) String mockStatus,
+//            @ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
+//            @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize){
+//        //查询条件
+//        ArrayList<Predicate> list = new ArrayList<>();
+//        list.add(qTPlatform.id.eq(platformId));
+//        if (StringUtils.isNotBlank(status)) {
+//            list.add(qTBusinessInterface.status.eq(status));
+//        }
+//        if (StringUtils.isNotBlank(mockStatus)) {
+//            list.add(qTBusinessInterface.mockStatus.eq(mockStatus));
+//        }
+//        QueryResults<TBusinessInterface> queryResults = sqlQueryFactory.select(
+//                Projections.bean(
+//                        TBusinessInterface.class,
+//                        qTBusinessInterface.id,
+//                        qTBusinessInterface.businessInterfaceName,
+//                        qTBusinessInterface.status,
+//                        qTBusinessInterface.mockStatus,
+//                        qTProduct.productName,
+//                        qTFunction.functionName,
+//                        qTInterface.interfaceName,
+//                        qTVendorConfig.versionId
+//                )
+//            ).from(qTBusinessInterface)
+//                .leftJoin(qTProductFunctionLink).on(qTBusinessInterface.productFunctionLinkId.eq(qTProductFunctionLink.id))
+//                .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
+//                .leftJoin(qTFunction).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
+//                .leftJoin(qTInterface).on(qTInterface.id.eq(qTBusinessInterface.interfaceId))
+//                .leftJoin(qTVendorConfig).on(qTVendorConfig.id.eq(qTBusinessInterface.vendorConfigId))
+//                .leftJoin(qTProjectProductLink).on(qTProjectProductLink.productFunctionLinkId.eq(qTProductFunctionLink.id))
+//                .leftJoin(qTPlatform).on(qTPlatform.projectId.eq(qTProjectProductLink.projectId))
+//                .where(list.toArray(new Predicate[list.size()]))
+//                .limit(pageSize)
+//                .offset((pageNo - 1) * pageSize)
+//                .orderBy(qTBusinessInterface.updatedTime.desc())
+//                .fetchResults();
+//        //分页
+//        TableData<TBusinessInterface> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
+//        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"获取接口配置列表获取成功", tableData);
+//    }
 
 
     @ApiOperation(value = "获取接口配置详情")
@@ -608,6 +608,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     /**
      * 新增接口配置
      * @param dto
+     * @param loginUserName
      * @return
      */
     private ResultDto saveInterfaceConfig(BusinessInterfaceDto dto, String loginUserName) {
@@ -655,19 +656,13 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "新增接口配置成功", null);
     }
 
-
-    @Transactional(rollbackFor = Exception.class)
-    @ApiOperation(value = "编辑接口配置", notes = "编辑接口配置")
-    @PostMapping("/updateInterfaceConfig")
-    @AvoidRepeatCommit
-    public ResultDto updateInterfaceConfig(@RequestBody BusinessInterfaceDto dto, @RequestParam String loginUserName) {
-        if (dto == null) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "请求参数不能为空!", null);
-        }
-        //校验是否获取到登录用户
-        if(StringUtils.isBlank(loginUserName)){
-            throw new RuntimeException("没有获取到登录用户");
-        }
+    /**
+     * 编辑接口配置
+     * @param dto
+     * @param loginUserName
+     * @return
+     */
+    private ResultDto updateInterfaceConfig(BusinessInterfaceDto dto, String loginUserName) {
         //获取厂商配置
         String vendorConfigId = "";
         if (StringUtils.isBlank(dto.getVendorConfigId())) {
@@ -692,6 +687,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                 tbi.setInterfaceId(dto.getInterfaceId());
                 tbi.setStatus(Constant.Status.START);
                 tbi.setCreatedTime(new Date());
+                tbi.setCreatedBy(loginUserName);
                 tbi.setVendorConfigId(vendorConfigId);
                 tbi.setProductFunctionLinkId(productFunctionLinkId);
                 //获取schema
@@ -702,6 +698,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                 //接口配置重新赋值
                 tbi.setInterfaceId(dto.getInterfaceId());
                 tbi.setUpdatedTime(new Date());
+                tbi.setUpdatedBy(loginUserName);
                 tbi.setVendorConfigId(vendorConfigId);
                 tbi.setProductFunctionLinkId(productFunctionLinkId);
                 //获取schema
@@ -830,6 +827,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                     tip.setParamLength(obj.getParamLength());
                     tip.setParamInOut(obj.getParamInOut());
                     if (iDto.getParamOutStatus().equals(obj.getParamName())) {
+                        //开启状态
                         tip.setIsStart("1");
                     }
                     if (Constant.ParmInOut.IN.equals(obj.getParamInOut())) {
