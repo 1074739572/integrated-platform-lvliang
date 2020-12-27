@@ -112,7 +112,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
                 tvdl.setId(batchUidService.getUid(qTVendorDriveLink.getTableName())+"");
                 tvdl.setVendorId(vendorId);
                 tvdl.setDriveId(driveIdArr[i]);
-                tvdl.setDriveOrder(i);
+                tvdl.setDriveOrder(i+1);
                 tvdl.setCreatedTime(new Date());
                 tvdl.setCreatedBy(loginUserName);
                 vendorDriveLinkService.post(tvdl);
@@ -138,6 +138,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
             tvdl.setId(batchUidService.getUid(qTVendorDriveLink.getTableName())+"");
             tvdl.setVendorId(vendorId);
             tvdl.setDriveId(driveIdArr[i]);
+            tvdl.setDriveOrder(i+1);
             tvdl.setCreatedTime(new Date());
             tvdl.setCreatedBy(loginUserName);
             vendorDriveLinkService.post(tvdl);
@@ -191,7 +192,6 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
     }
 
 
-    @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "获取厂商信息", notes = "获取厂商信息")
     @GetMapping("/getVendorInfoList")
     public ResultDto getVendorInfoList(@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId) {
@@ -234,6 +234,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
     }
 
 
+    @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "删除平台下厂商配置信息", notes = "删除平台下厂商配置信息")
     @PostMapping("/delVendorConfig")
     public ResultDto delVendorConfig(@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId,

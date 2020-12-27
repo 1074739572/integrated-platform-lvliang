@@ -130,6 +130,12 @@ public class TDrive implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (this == obj) {
+            return true;
+        }
         if (obj instanceof TDrive) {
             if (this.id.equals(((TDrive) obj).id)) {
                 return true;
