@@ -3,6 +3,7 @@ package com.iflytek.integrated.platform.service;
 import com.iflytek.integrated.platform.entity.TInterfaceParam;
 import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
 import static com.iflytek.integrated.platform.entity.QTInterfaceParam.qTInterfaceParam;
 /**
 * 标准接口参数
@@ -40,7 +42,13 @@ public class InterfaceParamService extends QuerydslService<TInterfaceParam, Stri
      * @return
      */
     public List<TInterfaceParam> getParamsByInterfaceId(String interfaceId) {
-        return sqlQueryFactory.select(qTInterfaceParam).from(qTInterfaceParam)
+        return sqlQueryFactory.select(
+                Projections.bean(TInterfaceParam.class, qTInterfaceParam.id, qTInterfaceParam.paramName, qTInterfaceParam.paramInstruction,
+                        qTInterfaceParam.interfaceId, qTInterfaceParam.paramType, qTInterfaceParam.paramLength, qTInterfaceParam.paramInOut,
+                        qTInterfaceParam.createdBy, qTInterfaceParam.createdTime, qTInterfaceParam.updatedBy, qTInterfaceParam.updatedTime,
+                        qTInterface.paramOutStatus.as("paramOutStatus"), qTInterface.paramOutStatusSuccess.as("paramOutStatusSuccess")))
+                .from(qTInterfaceParam)
+                .leftJoin(qTInterface).on(qTInterface.id.eq(qTInterfaceParam.interfaceId))
                 .where(qTInterfaceParam.interfaceId.eq(interfaceId)).fetch();
     }
 

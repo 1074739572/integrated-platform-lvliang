@@ -92,8 +92,9 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @ApiOperation(value = "更改mock状态", notes = "更改mock状态")
     @PostMapping("/updateMockStatus")
     @AvoidRepeatCommit
-    public ResultDto updateMockStatus(@ApiParam(value = "接口配置") @RequestParam(value = "id", required = true) String id, @RequestParam String loginUserName,
-                                      @ApiParam(value = "更改后的状态") @RequestParam(value = "mockStatus", required = true) String mockStatus) {
+    public ResultDto updateMockStatus(@ApiParam(value = "接口配置") @RequestParam(value = "id", required = true) String id,
+                                      @ApiParam(value = "更改后的状态") @RequestParam(value = "mockStatus", required = true) String mockStatus,
+                                      @RequestParam String loginUserName) {
         //校验是否获取到登录用户
         if(StringUtils.isBlank(loginUserName)){
             throw new RuntimeException("没有获取到登录用户");
@@ -105,8 +106,9 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @ApiOperation(value = "更改接口配置状态", notes = "更改接口配置状态")
     @PostMapping("/updateStatus")
     @AvoidRepeatCommit
-    public ResultDto updateStatus(@ApiParam(value = "接口配置") @RequestParam(value = "id", required = true) String id, @RequestParam String loginUserName,
-                                      @ApiParam(value = "更改后的状态") @RequestParam(value = "status", required = true) String status) {
+    public ResultDto updateStatus(@ApiParam(value = "接口配置") @RequestParam(value = "id", required = true) String id,
+                                  @ApiParam(value = "更改后的状态") @RequestParam(value = "status", required = true) String status,
+                                  @RequestParam String loginUserName) {
         //校验是否获取到登录用户
         if(StringUtils.isBlank(loginUserName)){
             throw new RuntimeException("没有获取到登录用户");
@@ -132,8 +134,9 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 
     @ApiOperation(value = "保存mock模板", notes = "保存mock模板")
     @PostMapping("/saveMockTemplate")
-    public ResultDto saveMockTemplate(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id, @RequestParam String loginUserName,
-                                     @ApiParam(value = "mock模板") @RequestParam(value = "mockTemplate", required = true) String mockTemplate) {
+    public ResultDto saveMockTemplate(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id,
+                                     @ApiParam(value = "mock模板") @RequestParam(value = "mockTemplate", required = true) String mockTemplate,
+                                      @RequestParam String loginUserName) {
         //校验是否获取到登录用户
         if(StringUtils.isBlank(loginUserName)){
             throw new RuntimeException("没有获取到登录用户");
@@ -308,7 +311,8 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 
             //出参状态开启存储参数到标准接口表
             String paramOutStatus = obj.getString("paramOutStatus");
-            if ("1".equals(paramOutStatus)) { //目前暂定 1开
+            //入参该字段表示是否开启 目前暂定 1开
+            if ("1".equals(paramOutStatus)) {
                 ti.setParamOutStatus(obj.getString("paramName"));
                 ti.setParamOutStatusSuccess(obj.getString("paramOutStatusSuccess"));
             }
@@ -384,7 +388,8 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             interfaceParamService.post(tip);
             //出参状态开启存储参数到标准接口表
             String paramOutStatus = obj.getString("paramOutStatus");
-            if ("1".equals(paramOutStatus)) { //目前暂定 1开
+            //入参该字段表示是否开启 目前暂定 1开
+            if ("1".equals(paramOutStatus)) {
                 //标准接口信息出参赋值
                 String paramName = obj.getString("paramName");
                 String paramOutStatusSuccess = obj.getString("paramOutStatusSuccess");
@@ -711,58 +716,6 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "新增接口配置成功", null);
     }
 
-    /**
-     * 编辑接口配置
-     * @param dto
-     * @return
-     */
-    private ResultDto updateInterfaceConfig(BusinessInterfaceDto dto) {
-        //获取厂商配置
-        String vendorConfigId = "";
-        if (StringUtils.isBlank(dto.getVendorConfigId())) {
-            TVendorConfig tvc = vendorConfigService.getObjByPlatformAndVendor(dto.getPlatformId(), dto.getVendorId());
-            vendorConfigId = tvc!=null?tvc.getId():null;
-        }else {
-            vendorConfigId = dto.getVendorConfigId();
-        }
-        //产品与功能关联
-        String productFunctionLinkId = "";
-        if (StringUtils.isBlank(dto.getProductFunctionLinkId())) {
-            TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(dto.getProductId(), dto.getFunctionId());
-            productFunctionLinkId = tpfl!=null?tpfl.getId():null;
-        }else {
-            productFunctionLinkId = dto.getProductFunctionLinkId();
-        }
-        List<TBusinessInterface> tbiList = dto.getBusinessInterfaceList();
-        for (TBusinessInterface tbi : tbiList) {
-            if (StringUtils.isBlank(tbi.getId())) {
-                //新增的厂商配置
-                tbi.setId(batchUidService.getUid(qTBusinessInterface.getTableName())+"");
-                tbi.setInterfaceId(dto.getInterfaceId());
-                tbi.setStatus(Constant.Status.START);
-                tbi.setCreatedTime(new Date());
-                tbi.setVendorConfigId(vendorConfigId);
-                tbi.setProductFunctionLinkId(productFunctionLinkId);
-                //获取schema
-                toolsGenerate.generateSchemaToInterface(tbi);
-                //新增接口配置
-                businessInterfaceService.post(tbi);
-            }else {
-                //接口配置重新赋值
-                tbi.setInterfaceId(dto.getInterfaceId());
-                tbi.setUpdatedTime(new Date());
-                tbi.setVendorConfigId(vendorConfigId);
-                tbi.setProductFunctionLinkId(productFunctionLinkId);
-                //获取schema
-                toolsGenerate.generateSchemaToInterface(tbi);
-                //新增接口配置
-                businessInterfaceService.put(tbi.getId(), tbi);
-            }
-            setRedis(tbi.getId());
-        }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "编辑接口配置成功", null);
-    }
-
 
     @ApiOperation(value = "根据参数格式获取jolt", notes = "根据参数格式获取jolt")
     @PostMapping("/paramFormatJolt")
@@ -829,6 +782,8 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                     if (iDto.getParamOutStatus().equals(obj.getParamName())) {
                         //开启状态
                         tip.setIsStart("1");
+                        tip.setParamOutStatus(obj.getParamOutStatus());
+                        tip.setParamOutStatusSuccess(obj.getParamOutStatusSuccess());
                     }
                     if (Constant.ParmInOut.IN.equals(obj.getParamInOut())) {
                         inParamList.add(tip);

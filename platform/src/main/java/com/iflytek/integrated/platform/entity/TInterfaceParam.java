@@ -1,7 +1,6 @@
 package com.iflytek.integrated.platform.entity;
 
 import org.springframework.data.annotation.Transient;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 
@@ -37,6 +36,16 @@ public class TInterfaceParam implements Serializable {
      */
     @Transient
     private String isStart;
+    /**
+     * 状态字段（仅用于出参)
+     */
+    @Transient
+    private String paramOutStatus;
+    /**
+     * 状态字段成功状态值 (仅用于出参)
+     */
+    @Transient
+    private String paramOutStatusSuccess;
 
     public String getId() {
         return id;
@@ -132,6 +141,22 @@ public class TInterfaceParam implements Serializable {
 
     public void setIsStart(String isStart) {
         this.isStart = isStart;
+    }
+
+    public String getParamOutStatus() {
+        return paramOutStatus;
+    }
+
+    public void setParamOutStatus(String paramOutStatus) {
+        this.paramOutStatus = paramOutStatus;
+    }
+
+    public String getParamOutStatusSuccess() {
+        return paramOutStatusSuccess;
+    }
+
+    public void setParamOutStatusSuccess(String paramOutStatusSuccess) {
+        this.paramOutStatusSuccess = paramOutStatusSuccess;
     }
 
 }
