@@ -13,8 +13,8 @@ import javax.validation.constraints.NotNull;
 @Data
 public class JoltDebuggerDto {
 
-    @NotNull(message = "originJson不能为空")
-    private Object originJson;
+    @NotNull(message = "originObj")
+    private String originObj;
 
     @NotNull(message = "jolt不能为空")
     private JSONArray jolt;
