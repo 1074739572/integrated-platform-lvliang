@@ -28,11 +28,13 @@ public class QTInterface extends com.querydsl.sql.RelationalPathBase<TInterface>
 
     public final StringPath id = createString("id");
 
-    public final StringPath interfaceFormat = createString("interfaceFormat");
+    public final StringPath inParamFormat = createString("inParamFormat");
 
     public final StringPath interfaceName = createString("interfaceName");
 
     public final StringPath interfaceUrl = createString("interfaceUrl");
+
+    public final StringPath outParamFormat = createString("outParamFormat");
 
     public final StringPath paramOutStatus = createString("paramOutStatus");
 
@@ -72,17 +74,18 @@ public class QTInterface extends com.querydsl.sql.RelationalPathBase<TInterface>
     }
 
     public void addMetadata() {
-        addMetadata(createdBy, ColumnMetadata.named("CREATED_BY").withIndex(8).ofType(Types.VARCHAR).withSize(32).notNull());
-        addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(9).ofType(Types.TIMESTAMP).withSize(19).notNull());
+        addMetadata(createdBy, ColumnMetadata.named("CREATED_BY").withIndex(9).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(10).ofType(Types.TIMESTAMP).withSize(19).notNull());
         addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.VARCHAR).withSize(32).notNull());
-        addMetadata(interfaceFormat, ColumnMetadata.named("INTERFACE_FORMAT").withIndex(5).ofType(Types.VARCHAR).withSize(1024).notNull());
+        addMetadata(inParamFormat, ColumnMetadata.named("IN_PARAM_FORMAT").withIndex(5).ofType(Types.VARCHAR).withSize(1024).notNull());
         addMetadata(interfaceName, ColumnMetadata.named("INTERFACE_NAME").withIndex(2).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(interfaceUrl, ColumnMetadata.named("INTERFACE_URL").withIndex(4).ofType(Types.VARCHAR).withSize(64).notNull());
-        addMetadata(paramOutStatus, ColumnMetadata.named("PARAM_OUT_STATUS").withIndex(6).ofType(Types.VARCHAR).withSize(32).notNull());
-        addMetadata(paramOutStatusSuccess, ColumnMetadata.named("PARAM_OUT_STATUS_SUCCESS").withIndex(7).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(outParamFormat, ColumnMetadata.named("OUT_PARAM_FORMAT").withIndex(6).ofType(Types.VARCHAR).withSize(1024).notNull());
+        addMetadata(paramOutStatus, ColumnMetadata.named("PARAM_OUT_STATUS").withIndex(7).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(paramOutStatusSuccess, ColumnMetadata.named("PARAM_OUT_STATUS_SUCCESS").withIndex(8).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(typeId, ColumnMetadata.named("TYPE_ID").withIndex(3).ofType(Types.VARCHAR).withSize(32).notNull());
-        addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(10).ofType(Types.VARCHAR).withSize(32).notNull());
-        addMetadata(updatedTime, ColumnMetadata.named("UPDATED_TIME").withIndex(11).ofType(Types.TIMESTAMP).withSize(19).notNull());
+        addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(11).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(updatedTime, ColumnMetadata.named("UPDATED_TIME").withIndex(12).ofType(Types.TIMESTAMP).withSize(19).notNull());
     }
 
 }

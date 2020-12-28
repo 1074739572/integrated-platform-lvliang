@@ -17,7 +17,9 @@ public class TInterface implements Serializable {
 
     private String interfaceUrl;
 
-    private String interfaceFormat;
+    private String inParamFormat;
+
+    private String outParamFormat;
 
     private String paramOutStatus;
 
@@ -71,12 +73,20 @@ public class TInterface implements Serializable {
         this.interfaceUrl = interfaceUrl;
     }
 
-    public String getInterfaceFormat() {
-        return interfaceFormat;
+    public String getInParamFormat() {
+        return inParamFormat;
     }
 
-    public void setInterfaceFormat(String interfaceFormat) {
-        this.interfaceFormat = interfaceFormat;
+    public void setInParamFormat(String inParamFormat) {
+        this.inParamFormat = inParamFormat;
+    }
+
+    public String getOutParamFormat() {
+        return outParamFormat;
+    }
+
+    public void setOutParamFormat(String outParamFormat) {
+        this.outParamFormat = outParamFormat;
     }
 
     public String getParamOutStatus() {

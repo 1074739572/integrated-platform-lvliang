@@ -253,15 +253,20 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         if (null != this.getInterfaceByName(interfaceName)) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "该接口名已存在!", "该接口名已存在!");
         }
-        Utils.strIsJsonOrXml(jsonObj.getString("interfaceFormat"));
-        String interfaceId = batchUidService.getUid(qTInterface.getTableName()) + "";
+        //校验出入参格式字符串是否为json或者xml
+        String inParamFormat = jsonObj.getString("inParamFormat");
+        String outParamFormat = jsonObj.getString("outParamFormat");
+        Utils.strIsJsonOrXml(inParamFormat);
+        Utils.strIsJsonOrXml(outParamFormat);
         //新增标准接口
+        String interfaceId = batchUidService.getUid(qTInterface.getTableName()) + "";
         TInterface ti = new TInterface();
         ti.setId(interfaceId);
         ti.setInterfaceName(jsonObj.getString("interfaceName"));
         ti.setTypeId(jsonObj.getString("typeId"));
         ti.setInterfaceUrl(jsonObj.getString("interfaceUrl"));
-        ti.setInterfaceFormat(jsonObj.getString("interfaceFormat"));
+        ti.setInParamFormat(inParamFormat);
+        ti.setOutParamFormat(outParamFormat);
         ti.setCreatedTime(new Date());
         ti.setCreatedBy(loginUserName);
 
@@ -327,14 +332,19 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         String interfaceName = jsonObj.getString("interfaceName");
         String interfaceTypeId = jsonObj.getString("typeId");
         String interfaceUrl = jsonObj.getString("interfaceUrl");
-        String interfaceFormat = jsonObj.getString("interfaceFormat");
+        //校验出入参格式字符串是否为json或者xml
+        String inParamFormat = jsonObj.getString("inParamFormat");
+        String outParamFormat = jsonObj.getString("outParamFormat");
+        Utils.strIsJsonOrXml(inParamFormat);
+        Utils.strIsJsonOrXml(outParamFormat);
 
         //修改标准接口信息
         sqlQueryFactory.update(qTInterface)
                 .set(qTInterface.interfaceName, interfaceName)
                 .set(qTInterface.typeId, interfaceTypeId)
                 .set(qTInterface.interfaceUrl, interfaceUrl)
-                .set(qTInterface.interfaceFormat, interfaceFormat)
+                .set(qTInterface.inParamFormat, inParamFormat)
+                .set(qTInterface.outParamFormat, outParamFormat)
                 .set(qTInterface.updatedTime, new Date())
                 .set(qTInterface.paramOutStatus, "")
                 .set(qTInterface.paramOutStatusSuccess, "")
@@ -436,7 +446,8 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                     qTInterface.id,
                     qTInterface.interfaceName,
                     qTInterface.interfaceUrl,
-                    qTInterface.interfaceFormat,
+                    qTInterface.inParamFormat,
+                    qTInterface.outParamFormat,
                     qTInterface.updatedTime,
                     qTInterface.typeId,
                     qTType.typeName.as("interfaceTypeName"),
@@ -890,4 +901,5 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             throw new RuntimeException("redis删除接口失败");
         }
     }
+
 }
