@@ -82,16 +82,11 @@ public class ToolsGenerate {
      */
     public Object joltDebugger(JoltDebuggerDto dto){
         try {
-            if(StringUtils.isBlank(dto.getOriginObj())){
-                throw new RuntimeException("输入不能为空");
-            }
-            else {
-                String type = Utils.strIsJsonOrXml(dto.getOriginObj());
-                String url = joltDebuggerUrl + "?contenttype=" + type;
-                String param = JSONObject.toJSONString(dto);
-                HttpResult result = HttpClientUtil.doPost(url,param);
-                return JSONObject.parseObject(result.getContent());
-            }
+            String type = Utils.strIsJsonOrXml(dto.getOriginObj());
+            String url = joltDebuggerUrl + "?contenttype=" + type;
+            String param = JSONObject.toJSONString(dto);
+            HttpResult result = HttpClientUtil.doPost(url,param);
+            return JSONObject.parseObject(result.getContent());
         }catch (Exception e){
             throw new RuntimeException("jolt调试接口调取失败");
         }
