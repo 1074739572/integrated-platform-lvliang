@@ -44,7 +44,7 @@ public class ProductFunctionLinkService extends QuerydslService<TProductFunction
      */
     public TProductFunctionLink getObjByProductAndFunction(String productId, String functionId) {
         TProductFunctionLink obj = sqlQueryFactory.select(qTProductFunctionLink).from(qTProductFunctionLink)
-                .where(qTProductFunctionLink.productId.eq(productId).and(qTProductFunctionLink.functionId.eq(functionId))).fetchOne();
+                .where(qTProductFunctionLink.productId.eq(productId).and(qTProductFunctionLink.functionId.eq(functionId))).fetchFirst();
         return obj;
     }
 

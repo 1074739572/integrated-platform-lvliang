@@ -89,7 +89,7 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
         return sqlQueryFactory.select(Projections.bean(qTBusinessInterface, qTProductFunctionLink.productId.as("productId")))
                 .from(qTBusinessInterface)
                 .leftJoin(qTProductFunctionLink).on(qTBusinessInterface.productFunctionLinkId.eq(qTProductFunctionLink.id))
-                .where(qTBusinessInterface.interfaceId.eq(interfaceId)).fetchOne();
+                .where(qTBusinessInterface.interfaceId.eq(interfaceId)).fetchFirst();
     }
 
     /**

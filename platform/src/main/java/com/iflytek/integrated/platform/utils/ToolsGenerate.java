@@ -1,13 +1,11 @@
 package com.iflytek.integrated.platform.utils;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.common.HttpResult;
 import com.iflytek.integrated.common.utils.HttpClientUtil;
 import com.iflytek.integrated.platform.dto.JoltDebuggerDto;
-import com.iflytek.integrated.platform.dto.SchemaDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.querydsl.sql.SQLQueryFactory;
 import org.apache.commons.lang.StringUtils;
@@ -54,7 +52,7 @@ public class ToolsGenerate {
                 throw new RuntimeException("入参参数类型无效");
             }
             //解析入参
-            String schema = generateSchema(businessInterface.getInParamFormat(),type).getSchema();
+            String schema = generateSchema(businessInterface.getInParamFormat(),type);
             if(StringUtils.isEmpty(schema)){
                 throw new RuntimeException("入参schema获取失败");
             }
@@ -67,7 +65,7 @@ public class ToolsGenerate {
                 throw new RuntimeException("出参参数类型无效");
             }
             //解析入参
-            String schema = generateSchema(businessInterface.getOutParamFormat(),type).getSchema();
+            String schema = generateSchema(businessInterface.getOutParamFormat(),type);
             if(StringUtils.isEmpty(schema)){
                 throw new RuntimeException("出参schema获取失败");
             }
@@ -98,13 +96,11 @@ public class ToolsGenerate {
      * @param content
      * @return
      */
-    private SchemaDto generateSchema(String format, String content){
+    private String generateSchema(String format, String content){
         try {
             String url = MessageFormat.format(schemaUrl,content);
             HttpResult result = HttpClientUtil.doPost(url,format);
-
-            JSONObject jsonT = JSON.parseObject(result.getContent());
-            return new SchemaDto(jsonT);
+            return result.getContent();
         }
         catch (Exception e){
             throw new RuntimeException("schema解析失败");

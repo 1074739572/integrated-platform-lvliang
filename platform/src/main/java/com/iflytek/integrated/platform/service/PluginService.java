@@ -140,7 +140,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "id不能为空", "id不能为空");
         }
         //查看插件是否存在
-        TPlugin plugin = sqlQueryFactory.select(qTPlugin).from(qTPlugin).where(qTPlugin.id.eq(id)).fetchOne();
+        TPlugin plugin = sqlQueryFactory.select(qTPlugin).from(qTPlugin).where(qTPlugin.id.eq(id)).fetchFirst();
         if(plugin == null || StringUtils.isEmpty(plugin.getId())){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有找到该插件,删除失败", "没有找到该插件,删除失败");
         }

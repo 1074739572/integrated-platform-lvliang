@@ -343,7 +343,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
         if (StringUtils.isBlank(vendorName)) {
             return null;
         }
-        return sqlQueryFactory.select(qTVendor).from(qTVendor).where(qTVendor.vendorName.eq(vendorName)).fetchOne();
+        return sqlQueryFactory.select(qTVendor).from(qTVendor).where(qTVendor.vendorName.eq(vendorName)).fetchFirst();
     }
 
 }

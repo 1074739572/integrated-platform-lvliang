@@ -86,7 +86,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     public ResultDto delProductById(@ApiParam(value = "产品id") @RequestParam(value = "id", required = true) String id){
         //查看产品是否存在
         TProductFunctionLink functionLink = sqlQueryFactory.select(qTProductFunctionLink).from(qTProductFunctionLink)
-                .where(qTProductFunctionLink.id.eq(id)).fetchOne();
+                .where(qTProductFunctionLink.id.eq(id)).fetchFirst();
         if(functionLink == null || StringUtils.isEmpty(functionLink.getId())){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有找到该产品功能，删除失败", "没有找到该产品功能，删除失败");
         }
@@ -417,7 +417,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
      * @return
      */
     public TProduct getObjByProductName(String productName) {
-        return sqlQueryFactory.select(qTProduct).from(qTProduct).where(qTProduct.productName.eq(productName)).fetchOne();
+        return sqlQueryFactory.select(qTProduct).from(qTProduct).where(qTProduct.productName.eq(productName)).fetchFirst();
     }
 
 }

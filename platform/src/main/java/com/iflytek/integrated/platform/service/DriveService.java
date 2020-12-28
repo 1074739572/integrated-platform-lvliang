@@ -157,7 +157,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "id不能为空");
         }
         //查看驱动是否存在
-        TDrive drive = sqlQueryFactory.select(qTDrive).from(qTDrive).where(qTDrive.id.eq(id)).fetchOne();
+        TDrive drive = sqlQueryFactory.select(qTDrive).from(qTDrive).where(qTDrive.id.eq(id)).fetchFirst();
         if(drive == null || StringUtils.isEmpty(drive.getId())){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "没有找到该驱动，删除失败");
         }

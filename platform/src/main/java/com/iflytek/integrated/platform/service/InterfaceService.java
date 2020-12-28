@@ -168,7 +168,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                     .leftJoin(qTProject).on(qTProject.id.eq(qTPlatform.projectId))
                     .leftJoin(qTProductFunctionLink).on(qTProductFunctionLink.id.eq(qTBusinessInterface.productFunctionLinkId))
                     .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
-                    .where(qTBusinessInterface.id.eq(id)).fetchOne();
+                    .where(qTBusinessInterface.id.eq(id)).fetchFirst();
             if(businessInterface == null || StringUtils.isEmpty(businessInterface.getId())){
                 return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "没有查询到接口配置信息");
             }
@@ -481,7 +481,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                         .from(qTProductFunctionLink)
                         .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
                         .leftJoin(qTFunction).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
-                        .where(qTProductFunctionLink.id.eq(tbi.getProductFunctionLinkId())).fetchOne();
+                        .where(qTProductFunctionLink.id.eq(tbi.getProductFunctionLinkId())).fetchFirst();
                 if (tpfl != null) {
                     tbi.setProductName(tpfl.getProductName());
                     tbi.setFunctionName(tpfl.getFunctionName());
@@ -589,11 +589,12 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @ApiOperation(value = "新增/编辑接口配置", notes = "新增/编辑接口配置")
     @PostMapping("/saveAndUpdateInterfaceConfig")
     @AvoidRepeatCommit
-    public ResultDto saveAndUpdateInterfaceConfig(@RequestBody BusinessInterfaceDto dto, @RequestParam String loginUserName) {
+    public ResultDto saveAndUpdateInterfaceConfig(@RequestBody BusinessInterfaceDto dto/*, @RequestParam String loginUserName*/) {
         if (dto == null) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "请求参数不能为空!", null);
         }
         //校验是否获取到登录用户
+        String loginUserName = "1";
         if(StringUtils.isBlank(loginUserName)){
             throw new RuntimeException("没有获取到登录用户");
         }
@@ -863,7 +864,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         if (StringUtils.isBlank(interfaceName)) {
             return null;
         }
-        return sqlQueryFactory.select(qTInterface).from(qTInterface).where(qTInterface.interfaceName.eq(interfaceName)).fetchOne();
+        return sqlQueryFactory.select(qTInterface).from(qTInterface).where(qTInterface.interfaceName.eq(interfaceName)).fetchFirst();
     }
 
 

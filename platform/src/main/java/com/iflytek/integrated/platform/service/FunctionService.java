@@ -57,7 +57,7 @@ public class FunctionService extends QuerydslService<TFunction, String, TFunctio
      * @return
      */
     public TFunction getObjByName(String functionName) {
-        return sqlQueryFactory.select(qTFunction).from(qTFunction).where(qTFunction.functionName.eq(functionName)).fetchOne();
+        return sqlQueryFactory.select(qTFunction).from(qTFunction).where(qTFunction.functionName.eq(functionName)).fetchFirst();
     }
 
 

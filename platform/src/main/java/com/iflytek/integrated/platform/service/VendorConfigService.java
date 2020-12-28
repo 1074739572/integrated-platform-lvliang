@@ -34,7 +34,7 @@ public class VendorConfigService extends QuerydslService<TVendorConfig, String, 
      */
     public TVendorConfig getObjByPlatformAndVendor(String platformId, String vendorId) {
         return sqlQueryFactory.select(qTVendorConfig).from(qTVendorConfig).
-                where(qTVendorConfig.platformId.eq(platformId).and(qTVendorConfig.vendorId.eq(vendorId))).fetchOne();
+                where(qTVendorConfig.platformId.eq(platformId).and(qTVendorConfig.vendorId.eq(vendorId))).fetchFirst();
     }
 
     /**
