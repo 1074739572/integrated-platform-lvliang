@@ -3,6 +3,7 @@ package com.iflytek.integrated.platform.dto;
 import com.alibaba.fastjson.JSONArray;
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -13,7 +14,7 @@ import javax.validation.constraints.NotNull;
 @Data
 public class JoltDebuggerDto {
 
-    @NotNull(message = "originObj不能为空")
+    @NotBlank(message = "originObj不能为空")
     private String originObj;
 
     @NotNull(message = "jolt不能为空")
