@@ -162,8 +162,8 @@ public class Utils {
             JSONObject object = (JSONObject) json;
             for (Map.Entry<String, Object> entry: object.entrySet()) {
                 Object o = entry.getValue();
-                if(o instanceof JSONArray) {
-                    //如果是JSONArray继续循环
+                if(o instanceof JSONArray || o instanceof JSONObject) {
+                    //如果还是JSON继续循环
                     format(o,dtoList);
                 }
                 else {
