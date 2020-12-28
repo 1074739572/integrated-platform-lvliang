@@ -309,10 +309,9 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             tip.setCreatedBy(loginUserName);
             interfaceParamService.post(tip);
 
-            //出参状态开启存储参数到标准接口表
-            String paramOutStatus = obj.getString("paramOutStatus");
-            //入参该字段表示是否开启 目前暂定 1开
-            if ("1".equals(paramOutStatus)) {
+            //是否开启 1开
+            if ("1".equals(obj.getString("isStart"))) {
+                //存储参数到标准接口表
                 ti.setParamOutStatus(obj.getString("paramName"));
                 ti.setParamOutStatusSuccess(obj.getString("paramOutStatusSuccess"));
             }
@@ -386,10 +385,8 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             tip.setCreatedTime(new Date());
             tip.setCreatedBy(loginUserName);
             interfaceParamService.post(tip);
-            //出参状态开启存储参数到标准接口表
-            String paramOutStatus = obj.getString("paramOutStatus");
-            //入参该字段表示是否开启 目前暂定 1开
-            if ("1".equals(paramOutStatus)) {
+            //入参该字段表示是否开启 1开
+            if ("1".equals(obj.getString("isStart"))) {
                 //标准接口信息出参赋值
                 String paramName = obj.getString("paramName");
                 String paramOutStatusSuccess = obj.getString("paramOutStatusSuccess");
