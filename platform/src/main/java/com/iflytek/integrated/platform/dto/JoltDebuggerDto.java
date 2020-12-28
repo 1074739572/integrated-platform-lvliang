@@ -13,7 +13,7 @@ import javax.validation.constraints.NotNull;
 @Data
 public class JoltDebuggerDto {
 
-    @NotNull(message = "originObj")
+    @NotNull(message = "originObj不能为空")
     private String originObj;
 
     @NotNull(message = "jolt不能为空")
