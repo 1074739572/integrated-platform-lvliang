@@ -348,7 +348,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                 .set(qTInterface.updatedTime, new Date())
                 .set(qTInterface.paramOutStatus, "")
                 .set(qTInterface.paramOutStatusSuccess, "")
-                .set(qTInterface.updatedBy, loginUserName)
+                .set(qTInterface.updatedBy, StringUtils.isBlank(loginUserName)?"":loginUserName)
                 .where(qTInterface.id.eq(id)).execute();
         //替换产品与接口关联
         productInterfaceLinkService.deleteProductInterfaceLinkById(id);
@@ -428,14 +428,14 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @ApiOperation(value = "标准接口列表")
     @GetMapping("/getInterfaceList")
     public ResultDto getInterfaceList(
-              @ApiParam(value = "接口分类id") @RequestParam(value = "interfaceTypeCode", required = false) String interfaceTypeCode,
+              @ApiParam(value = "接口分类id") @RequestParam(value = "typeId", required = false) String typeId,
               @ApiParam(value = "接口名称") @RequestParam(value = "name", required = false) String name,
               @ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
               @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
         //查询条件
         ArrayList<Predicate> list = new ArrayList<>();
-        if(StringUtils.isNotEmpty(interfaceTypeCode)){
-            list.add(qTInterfaceType.interfaceTypeCode.eq(interfaceTypeCode));
+        if(StringUtils.isNotEmpty(typeId)){
+            list.add(qTInterfaceType.id.eq(typeId));
         }
         if(StringUtils.isNotEmpty(name)){
             list.add(qTInterface.interfaceName.like(Utils.createFuzzyText(name)));
