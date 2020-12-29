@@ -98,15 +98,19 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
 
     @ApiOperation(value = "驱动管理列表")
     @GetMapping("/getDriveList")
-    public ResultDto getDriveList(String driveName,
-                          @RequestParam(defaultValue = "1")Integer pageNo,
-                          @RequestParam(defaultValue = "10")Integer pageSize) {
+    public ResultDto getDriveList(@ApiParam(value = "驱动名称") @RequestParam(value = "driveName", required = false) String driveName,
+                                  @ApiParam(value = "驱动分类id") @RequestParam(value = "typeId", required = false) String typeId,
+                                  @RequestParam(defaultValue = "1")Integer pageNo,
+                                  @RequestParam(defaultValue = "10")Integer pageSize) {
         try {
             //查询条件
             ArrayList<Predicate> list = new ArrayList<>();
             //判断条件是否为空
-            if(StringUtils.isNotEmpty(driveName)){
+            if(StringUtils.isNotEmpty(driveName)) {
                 list.add(qTDrive.driveName.like(Utils.createFuzzyText(driveName)));
+            }
+            if(StringUtils.isNotEmpty(typeId)) {
+                list.add(qTDrive.typeId.eq(typeId));
             }
             //根据查询条件获取驱动列表
             QueryResults<TDrive> queryResults = sqlQueryFactory.select(

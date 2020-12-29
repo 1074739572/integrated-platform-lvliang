@@ -24,6 +24,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,15 +94,19 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
 
     @ApiOperation(value = "插件管理列表")
     @GetMapping("/getPluginList")
-    public ResultDto getPluginList(String pluginName,
-                           @RequestParam(defaultValue = "1")Integer pageNo,
-                           @RequestParam(defaultValue = "10")Integer pageSize){
+    public ResultDto getPluginList(@ApiParam(value = "插件名称") @RequestParam(value = "pluginName", required = false) String pluginName,
+                                   @ApiParam(value = "插件分类id") @RequestParam(value = "typeId", required = false) String typeId,
+                                   @RequestParam(defaultValue = "1")Integer pageNo,
+                                   @RequestParam(defaultValue = "10")Integer pageSize){
         try {
             //查询条件
             ArrayList<Predicate> list = new ArrayList<>();
             //判断条件是否为空
-            if(StringUtils.isNotEmpty(pluginName)){
+            if(StringUtils.isNotEmpty(pluginName)) {
                 list.add(qTPlugin.pluginName.like(Utils.createFuzzyText(pluginName)));
+            }
+            if(StringUtils.isNotEmpty(typeId)) {
+                list.add(qTPlugin.typeId.eq(typeId));
             }
             //根据查询条件获取插件列表
             QueryResults<TPlugin> queryResults = sqlQueryFactory.select(
