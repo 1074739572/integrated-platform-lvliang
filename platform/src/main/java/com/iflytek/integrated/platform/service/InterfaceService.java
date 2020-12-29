@@ -435,7 +435,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         //查询条件
         ArrayList<Predicate> list = new ArrayList<>();
         if(StringUtils.isNotEmpty(typeId)){
-            list.add(qTInterfaceType.id.eq(typeId));
+            list.add(qTInterface.typeId.eq(typeId));
         }
         if(StringUtils.isNotEmpty(name)){
             list.add(qTInterface.interfaceName.like(Utils.createFuzzyText(name)));
