@@ -187,7 +187,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
                 .set(qTPlatform.platformType, jsonObj.getString("platformType"))
                 .set(qTPlatform.projectId, jsonObj.getString("projectId"))
                 .set(qTPlatform.updatedTime, new Date())
-                .set(qTPlatform.updatedBy, loginUserName)
+                .set(qTPlatform.updatedBy, StringUtils.isBlank(loginUserName)?"":loginUserName)
                 .where(qTPlatform.id.eq(platformId)).execute();
         //删除平台下厂商医院配置信息
         List<TVendorConfig> tvcList = vendorConfigService.getObjByPlatformId(platformId);
@@ -197,7 +197,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
             }
         }
         //删除平台下厂商配置信息
-        vendorConfigService.delVendorConfigAll(platformId);
+//        vendorConfigService.delVendorConfigAll(platformId);
 
         JSONArray jsonArr = jsonObj.getJSONArray("vendorInfo");
         if (jsonArr.isEmpty()) {
@@ -250,7 +250,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
         sqlQueryFactory.update(qTPlatform)
                 .set(qTPlatform.platformStatus, platformStatus)
                 .set(qTPlatform.updatedTime, new Date())
-                .set(qTPlatform.updatedBy, loginUserName)
+                .set(qTPlatform.updatedBy, StringUtils.isBlank(loginUserName)?"":loginUserName)
                 .where(qTPlatform.id.eq(id)).execute();
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "平台状态更改成功!", id);
     }
