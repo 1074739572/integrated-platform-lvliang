@@ -300,19 +300,14 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
 
     @ApiOperation(value = "新增接口时选择产品及其功能下拉")
     @GetMapping("/getDisProductAndFunByProject")
-    public ResultDto getDisProductAndFunByProject(@ApiParam(value = "项目id") @RequestParam(value = "projectId", required = false) String projectId) {
-        ArrayList<Predicate> list = new ArrayList<>();
-        //判断条件是否为空
-        if(StringUtils.isNotBlank(projectId)){
-            list.add(qTProjectProductLink.projectId.eq(projectId));
-        }
+    public ResultDto getDisProductAndFunByProject(@ApiParam(value = "项目id") @RequestParam(value = "projectId", required = true) String projectId) {
         //获取指定项目下所有产品
         List<String> productList = sqlQueryFactory.selectDistinct(qTProduct.id)
-                .from(qTProduct)
-                .leftJoin(qTProductFunctionLink).on(qTProductFunctionLink.productId.eq(qTProduct.id))
-                .leftJoin(qTProjectProductLink).on(qTProjectProductLink.productFunctionLinkId.eq(qTProductFunctionLink.id))
-                .where(list.toArray(new Predicate[list.size()]))
-                .fetch();
+        .from(qTProduct)
+        .leftJoin(qTProductFunctionLink).on(qTProductFunctionLink.productId.eq(qTProduct.id))
+        .leftJoin(qTProjectProductLink).on(qTProjectProductLink.productFunctionLinkId.eq(qTProductFunctionLink.id))
+        .where(qTProjectProductLink.projectId.eq(projectId))
+        .fetch();
 
         List<TProduct> rtnList = new ArrayList<>();
         for (String productId : productList) {
@@ -327,11 +322,39 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
                     )
             ).from(qTFunction)
                     .leftJoin(qTProductFunctionLink).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
-                    .where(qTProductFunctionLink.productId.eq(productId))
+                    .leftJoin(qTProjectProductLink).on(qTProjectProductLink.productFunctionLinkId.eq(qTProductFunctionLink.id))
+                    .where(qTProductFunctionLink.productId.eq(productId).and(qTProjectProductLink.projectId.eq(projectId)))
                     .orderBy(qTFunction.updatedTime.desc()).fetch();
             tp.setFunctions(functions);
             rtnList.add(tp);
         }
+
+//        //获取指定项目下所有产品
+//        List<String> productList = sqlQueryFactory.selectDistinct(qTProduct.id)
+//                .from(qTProduct)
+//                .leftJoin(qTProductFunctionLink).on(qTProductFunctionLink.productId.eq(qTProduct.id))
+//                .leftJoin(qTProjectProductLink).on(qTProjectProductLink.productFunctionLinkId.eq(qTProductFunctionLink.id))
+//                .where(list.toArray(new Predicate[list.size()]))
+//                .fetch();
+//
+//        List<TProduct> rtnList = new ArrayList<>();
+//        for (String productId : productList) {
+//            TProduct tp = this.getOne(productId);
+//            //拼接方法列表
+//            List<TFunction> functions = sqlQueryFactory.select(
+//                    Projections.bean(
+//                            TFunction.class,
+//                            qTFunction.id,
+//                            qTFunction.functionCode,
+//                            qTFunction.functionName
+//                    )
+//            ).from(qTFunction)
+//                    .leftJoin(qTProductFunctionLink).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
+//                    .where(qTProductFunctionLink.productId.eq(productId))
+//                    .orderBy(qTFunction.updatedTime.desc()).fetch();
+//            tp.setFunctions(functions);
+//            rtnList.add(tp);
+//        }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"选择产品下拉及其功能获取成功!", rtnList);
     }
 
