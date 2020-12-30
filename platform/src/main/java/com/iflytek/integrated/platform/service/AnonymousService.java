@@ -48,22 +48,28 @@ public class AnonymousService {
             String template = StringUtils.isNotEmpty(businessInterface.getMockTemplate())?
                     businessInterface.getMockTemplate():businessInterface.getOutParamFormat();
             //根据模板类型处理
-            if(Constant.ParamFormatType.JSON.getType().equals(type)){
-                //JSON类型
-                String json = Mock.mock(template);
-                return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", json);
-            }
-            else {
-                //XML类型
-                template = XmlJsonUtils.convertXmlIntoJSONObject(template);
-                String json = Mock.mock(template);
-                String xml = XmlJsonUtils.jsonToXml(json);
-                return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", xml);
-            }
+            return mock(template, type);
         }catch (Exception e){
             logger.error(e.getMessage());
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "获取mock数值错误："+e.getMessage());
         }
     }
 
+    @ApiOperation(value = "mock测试")
+    @GetMapping("/mock")
+    public ResultDto mock(String mock,String type) {
+        //根据模板类型处理
+        if(Constant.ParamFormatType.JSON.getType().equals(type)){
+            //JSON类型
+            String json = Mock.mock(mock);
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", json);
+        }
+        else {
+            //XML类型
+            mock = XmlJsonUtils.convertXmlIntoJSONObject(mock);
+            String json = Mock.mock(mock);
+            String xml = XmlJsonUtils.jsonToXml(json);
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", xml);
+        }
+    }
 }

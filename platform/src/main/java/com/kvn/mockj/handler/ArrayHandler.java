@@ -24,7 +24,8 @@ public class ArrayHandler implements TypeHandler {
         if (options.getRule().getParameters() == null || options.getRule().getParameters().isEmpty()) {
             JSONArray jaR = new JSONArray();
 
-            for (int size = 0; size < Function.$integer(Function.arraySize);size ++){
+            Integer length = Function.arraySize != null?Function.$integer(Function.arraySize):1;
+            for (int size = 0; size < length;size ++){
                 JSONArray templates = (JSONArray) options.getTemplate();
                 for (int i = 0; i < templates.size(); i++) {
                     Context context = new Context();

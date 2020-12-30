@@ -81,8 +81,12 @@ public class XmlJsonUtils {
                 JSONArray jsonArray = jObj.getJSONArray(en.getKey());
                 for (int i = 0; i < jsonArray.size(); i++) {
                     buffer.append("<"+en.getKey()+">");
-                    JSONObject jsonobject =  jsonArray.getJSONObject(i);
-                    jsonToXmlStr(jsonobject,buffer);
+                    if(jsonArray.get(i) instanceof JSONObject){
+                        jsonToXmlStr(jsonArray.getJSONObject(i),buffer);
+                    }
+                    else {
+                        buffer.append(jsonArray.get(i));
+                    }
                     buffer.append("</"+en.getKey()+">");
                 }
             }
