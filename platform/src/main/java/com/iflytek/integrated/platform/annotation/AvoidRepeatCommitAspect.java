@@ -65,7 +65,7 @@ public class AvoidRepeatCommitAspect {
         Long value = (Long) redisTemplate.opsForValue().get(key);
         if (value != null) {
             logger.info("接口正在处理，请稍后！");
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "1", "休息一会再来");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "操作较频繁,请休息一会再点", "休息一会再来");
         }
         redisTemplate.opsForValue().set(key, batchUidService.getUid("avoidRepeat"), timeout, TimeUnit.MILLISECONDS);
         //执行方法
