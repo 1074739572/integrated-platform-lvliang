@@ -1,5 +1,7 @@
 package com.iflytek.integrated.platform.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.io.Serializable;
 
 /**
@@ -37,6 +39,7 @@ public class TLog implements Serializable {
 
     private String createdBy;
 
+    @JsonFormat(pattern="yyyy/MM/dd HH:mm:ss",timezone="GMT+8")
     private java.util.Date createdTime;
 
     private String updatedBy;

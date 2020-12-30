@@ -70,9 +70,9 @@ public class LogService extends QuerydslService<TLog, Long, TLog, NumberPath<Lon
             QueryResults<InterfaceMonitorDto> queryResults = sqlQueryFactory.select(
                     Projections.bean(InterfaceMonitorDto.class,
                             qTInterfaceMonitor.id,
-                            qTInterfaceMonitor.status,
-                            qTInterfaceMonitor.successCount,
-                            qTInterfaceMonitor.errorCount,
+                            qTInterfaceMonitor.status.max().as("status"),
+                            qTInterfaceMonitor.successCount.sum().as("successCount"),
+                            qTInterfaceMonitor.errorCount.sum().as("errorCount"),
                             qTProject.projectName,
                             qTPlatform.platformName,
                             qTProduct.productName,
@@ -83,6 +83,7 @@ public class LogService extends QuerydslService<TLog, Long, TLog, NumberPath<Lon
                     .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
                     .leftJoin(qTFunction).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
                     .where(list.toArray(new Predicate[list.size()]))
+                    .groupBy(qTInterfaceMonitor.platformId,qTInterfaceMonitor.projectId,qTInterfaceMonitor.productFunctionLinkId)
                     .limit(pageSize)
                     .offset((pageNo - 1) * pageSize)
                     .orderBy(qTInterfaceMonitor.updatedTime.desc())
@@ -106,7 +107,7 @@ public class LogService extends QuerydslService<TLog, Long, TLog, NumberPath<Lon
         if(StringUtils.isEmpty(interfaceMonitorId)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE,"","获取日志详细列表，id必传");
         }
-        list.add(qTInterfaceMonitor.id.eq(interfaceMonitorId));
+        list.add(qTInterfaceMonitor.id.eq(Long.valueOf(interfaceMonitorId)));
         if(StringUtils.isNotBlank(status)){
             list.add(qTLog.status.eq(status));
         }
@@ -130,8 +131,7 @@ public class LogService extends QuerydslService<TLog, Long, TLog, NumberPath<Lon
             ).from(qTLog)
             .leftJoin(qTInterfaceMonitor).on(qTInterfaceMonitor.projectId.eq(qTLog.projectId)
                 .and(qTInterfaceMonitor.platformId.eq(qTLog.platformId)
-                .and(qTInterfaceMonitor.productFunctionLinkId.eq(qTLog.productFunctionLinkId)
-                .and(qTInterfaceMonitor.businessInterfaceId.eq(qTLog.businessInterfaceId)))))
+                .and(qTInterfaceMonitor.productFunctionLinkId.eq(qTLog.productFunctionLinkId))))
             .where(list.toArray(new Predicate[list.size()]))
             .limit(pageSize)
             .offset((pageNo - 1) * pageSize)

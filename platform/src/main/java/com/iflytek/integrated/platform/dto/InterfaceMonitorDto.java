@@ -13,7 +13,7 @@ public class InterfaceMonitorDto {
     /**
      * 接口监控id
      */
-    private String id;
+    private Long id;
 
     /**
      * 产品名

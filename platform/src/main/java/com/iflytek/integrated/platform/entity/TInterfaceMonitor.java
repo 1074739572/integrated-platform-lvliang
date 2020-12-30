@@ -7,7 +7,7 @@ import java.io.Serializable;
  */
 public class TInterfaceMonitor implements Serializable {
 
-    private String id;
+    private Long id;
 
     private String projectId;
 
@@ -31,11 +31,11 @@ public class TInterfaceMonitor implements Serializable {
 
     private java.util.Date updatedTime;
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

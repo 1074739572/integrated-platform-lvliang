@@ -30,7 +30,7 @@ public class QTInterfaceMonitor extends com.querydsl.sql.RelationalPathBase<TInt
 
     public final NumberPath<Integer> errorCount = createNumber("errorCount", Integer.class);
 
-    public final StringPath id = createString("id");
+    public final NumberPath<Long> id = createNumber("id", Long.class);
 
     public final StringPath platformId = createString("platformId");
 
@@ -45,6 +45,8 @@ public class QTInterfaceMonitor extends com.querydsl.sql.RelationalPathBase<TInt
     public final StringPath updatedBy = createString("updatedBy");
 
     public final DateTimePath<java.util.Date> updatedTime = createDateTime("updatedTime", java.util.Date.class);
+
+    public final com.querydsl.sql.PrimaryKey<TInterfaceMonitor> primary = createPrimaryKey(id);
 
     public QTInterfaceMonitor(String variable) {
         super(TInterfaceMonitor.class, forVariable(variable), "null", "t_interface_monitor");
@@ -76,7 +78,7 @@ public class QTInterfaceMonitor extends com.querydsl.sql.RelationalPathBase<TInt
         addMetadata(createdBy, ColumnMetadata.named("CREATED_BY").withIndex(9).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(10).ofType(Types.TIMESTAMP).withSize(19).notNull());
         addMetadata(errorCount, ColumnMetadata.named("ERROR_COUNT").withIndex(7).ofType(Types.INTEGER).withSize(10).notNull());
-        addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.BIGINT).withSize(19).notNull());
         addMetadata(platformId, ColumnMetadata.named("PLATFORM_ID").withIndex(3).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(productFunctionLinkId, ColumnMetadata.named("PRODUCT_FUNCTION_LINK_ID").withIndex(4).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(projectId, ColumnMetadata.named("PROJECT_ID").withIndex(2).ofType(Types.VARCHAR).withSize(32).notNull());
