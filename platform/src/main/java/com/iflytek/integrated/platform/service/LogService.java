@@ -135,7 +135,7 @@ public class LogService extends QuerydslService<TLog, Long, TLog, NumberPath<Lon
             .where(list.toArray(new Predicate[list.size()]))
             .limit(pageSize)
             .offset((pageNo - 1) * pageSize)
-            .orderBy(qTLog.updatedTime.desc())
+            .orderBy(qTLog.createdTime.desc())
             .fetchResults();
         //分页
         TableData<TLog> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
