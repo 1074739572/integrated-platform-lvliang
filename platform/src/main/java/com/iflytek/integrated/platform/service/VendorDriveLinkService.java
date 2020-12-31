@@ -47,4 +47,14 @@ public class VendorDriveLinkService extends QuerydslService<TVendorDriveLink, St
                 .where(qTVendorDriveLink.vendorId.eq(vendorId)).fetch();
     }
 
+    /**
+     * 根据驱动id获取厂商驱动关联
+     * @param driveId
+     * @return
+     */
+    public List<TVendorDriveLink> getVendorDriveLinkByDriveId(String driveId) {
+        return sqlQueryFactory.select(qTVendorDriveLink).from(qTVendorDriveLink)
+                .where(qTVendorDriveLink.driveId.eq(driveId)).fetch();
+    }
+
 }

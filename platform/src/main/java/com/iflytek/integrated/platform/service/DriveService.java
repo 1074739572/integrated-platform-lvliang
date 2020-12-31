@@ -10,6 +10,7 @@ import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.entity.TType;
+import com.iflytek.integrated.platform.entity.TVendorDriveLink;
 import com.iflytek.integrated.platform.utils.ToolsGenerate;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.TDrive;
@@ -58,6 +59,8 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
 
     private static final Logger logger = LoggerFactory.getLogger(DriveService.class);
 
+    @Autowired
+    private VendorDriveLinkService vendorDriveLinkService;
     @Autowired
     private BatchUidService batchUidService;
     @Autowired
@@ -163,7 +166,12 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
         //查看驱动是否存在
         TDrive drive = sqlQueryFactory.select(qTDrive).from(qTDrive).where(qTDrive.id.eq(id)).fetchFirst();
         if(drive == null || StringUtils.isEmpty(drive.getId())){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "没有找到该驱动，删除失败");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有找到该驱动，删除失败!", "没有找到该驱动,删除失败!");
+        }
+        //校验该驱动是否有厂商关联
+        List<TVendorDriveLink> tvdlList = vendorDriveLinkService.getVendorDriveLinkByDriveId(id);
+        if (CollectionUtils.isNotEmpty(tvdlList)) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该驱动已有厂商关联,不可删除!", "该驱动已有厂商关联,不可删除!");
         }
         //删除驱动
         Long lon = sqlQueryFactory.delete(qTDrive).where(qTDrive.id.eq(drive.getId())).execute();

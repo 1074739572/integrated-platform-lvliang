@@ -229,7 +229,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
         try {
             sqlQueryFactory.update(qTProject)
                     .set(qTProject.projectStatus, projectStatus)
-                    .set(qTProject.updatedBy,loginUserName)
+                    .set(qTProject.updatedBy, StringUtils.isBlank(loginUserName)?"":loginUserName)
                     .where(qTProject.id.eq(id)).execute();
         } catch (Exception e) {
             logger.error("项目状态修改失败!", ExceptionUtil.dealException(e));

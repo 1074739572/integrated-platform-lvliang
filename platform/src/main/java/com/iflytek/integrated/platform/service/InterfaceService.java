@@ -722,7 +722,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             }
             setRedis(tbi.getId());
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "新增接口配置成功", null);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "编辑接口配置成功", null);
     }
 
 
