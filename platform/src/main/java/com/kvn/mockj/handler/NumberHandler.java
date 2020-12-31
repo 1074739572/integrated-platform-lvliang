@@ -47,10 +47,15 @@ public class NumberHandler implements TypeHandler {
             return options.getRule().getCount();
         }
 
-        // "number|+1": 202
-        int lastValue = options.getContext().getIncInitValue() != null ? options.getContext().getIncInitValue() : (Integer) options.getTemplate();
-        options.getContext().setIncInitValue(lastValue + 1);
-        return options.getContext().getIncInitValue();
+        if(options.getType().equals(Integer.class)){
+            // "number|+1": 202
+            int lastValue = options.getContext().getIncInitValue() != null ? options.getContext().getIncInitValue() : (Integer) options.getTemplate();
+            options.getContext().setIncInitValue(lastValue + 1);
+            return options.getContext().getIncInitValue();
+        }
+        else {
+            return options.getTemplate();
+        }
     }
 
 
