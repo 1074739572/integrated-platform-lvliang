@@ -728,12 +728,13 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 
     @ApiOperation(value = "根据参数格式获取jolt", notes = "根据参数格式获取jolt")
     @PostMapping("/paramFormatJolt")
-    public ResultDto paramFormatJolt(String paramFormat, String content){
+    public ResultDto paramFormatJolt(String paramFormat, String content,
+                             @RequestParam(value = "joltType", defaultValue = "request", required = false) String joltType){
         String contentType = Constant.ParamFormatType.getByType(content);
         if(StringUtils.isBlank(contentType) || Constant.ParamFormatType.NONE.getType().equals(contentType)){
             throw new RuntimeException("参数类型无效");
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "成功", toolsGenerate.generateJolt(paramFormat, contentType));
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "成功", toolsGenerate.generateJolt(paramFormat, contentType, joltType));
     }
 
 

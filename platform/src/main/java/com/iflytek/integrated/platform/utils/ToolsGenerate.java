@@ -113,9 +113,9 @@ public class ToolsGenerate {
      * @param content
      * @return
      */
-    public String generateJolt(String format, String content){
+    public String generateJolt(String format, String content, String joltType){
         try {
-            String url = MessageFormat.format(joltUrl,content);
+            String url = MessageFormat.format(joltUrl,content,joltType);
             HttpResult result = HttpClientUtil.doPost(url,format);
             return result.getContent();
         }
