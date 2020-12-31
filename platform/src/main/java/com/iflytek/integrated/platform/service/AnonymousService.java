@@ -4,6 +4,7 @@ import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.utils.XmlJsonUtils;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
+import com.iflytek.integrated.platform.utils.Utils;
 import com.kvn.mockj.Mock;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -12,9 +13,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @author czzhan
@@ -48,28 +47,37 @@ public class AnonymousService {
             String template = StringUtils.isNotEmpty(businessInterface.getMockTemplate())?
                     businessInterface.getMockTemplate():businessInterface.getOutParamFormat();
             //根据模板类型处理
-            return mock(template, type);
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", resultMock(template, type));
         }catch (Exception e){
             logger.error(e.getMessage());
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "获取mock数值错误："+e.getMessage());
         }
     }
 
-    @ApiOperation(value = "mock测试")
-    @GetMapping("/mock")
-    public ResultDto mock(String mock,String type) {
+    @ApiOperation(value = "mock")
+    @PostMapping("/mock")
+    public ResultDto mock(@RequestBody String mock) {
+        String type = Utils.strIsJsonOrXml(mock);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", resultMock(mock, type));
+    }
+
+    /**
+     *
+     * @param mock
+     * @param type
+     * @return
+     */
+    private String resultMock(String mock,String type){
         //根据模板类型处理
         if(Constant.ParamFormatType.JSON.getType().equals(type)){
             //JSON类型
-            String json = Mock.mock(mock);
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", json);
+            return Mock.mock(mock);
         }
         else {
             //XML类型
             mock = XmlJsonUtils.convertXmlIntoJSONObject(mock);
             String json = Mock.mock(mock);
-            String xml = XmlJsonUtils.jsonToXml(json);
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", xml);
+            return XmlJsonUtils.jsonToXml(json);
         }
     }
 }
