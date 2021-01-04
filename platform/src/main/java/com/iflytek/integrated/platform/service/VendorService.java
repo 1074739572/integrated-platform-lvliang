@@ -22,6 +22,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +59,8 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
     private VendorConfigService vendorConfigService;
     @Autowired
     private HospitalService hospitalService;
+    @Autowired
+    private BusinessInterfaceService businessInterfaceService;
     @Autowired
     private BatchUidService batchUidService;
     @Autowired
@@ -151,6 +154,10 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
     @ApiOperation(value = "删除厂商", notes = "删除厂商")
     @PostMapping("/delVendorById")
     public ResultDto delVendorById(@ApiParam(value = "厂商id") @RequestParam(value = "id", required = true) String id) {
+        List<TVendorConfig> tvcList = vendorConfigService.getObjByVendorId(id);
+        if (CollectionUtils.isNotEmpty(tvcList)) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该厂商已有厂商配置数据相关联,暂无法删除!", "该厂商已有厂商配置数据相关联,暂无法删除!");
+        }
         //删除厂商
         this.delete(id);
         //删除厂商与驱动关联
@@ -241,13 +248,17 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
                                      @ApiParam(value = "厂商id") @RequestParam(value = "vendorId", required = true) String vendorId) {
         TVendorConfig tvc = vendorConfigService.getObjByPlatformAndVendor(platformId, vendorId);
         if (tvc != null) {
+            List<TBusinessInterface> tbiList = businessInterfaceService.getListByVendorConfigId(tvc.getId());
+            if (CollectionUtils.isNotEmpty(tbiList)) {
+                return new ResultDto(Constant.ResultCode.ERROR_CODE, "该厂商已有接口配置数据相关联,暂无法删除!", "该厂商已有接口配置数据相关联,暂无法删除!");
+            }
             //删除厂商配置
             vendorConfigService.delete(tvc.getId());
             //删除厂商配置关联的医院
             hospitalVendorLinkService.deleteByVendorConfigId(tvc.getId());
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "厂商配置删除成功!", null);
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "厂商配置删除成功!", "厂商配置删除成功!");
         }
-        return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据平台与厂商id未查到该厂商配置信息!", null);
+        return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据平台id与厂商id未查到该厂商配置信息!", "根据平台id与厂商id未查到该厂商配置信息!");
     }
 
 

@@ -4,10 +4,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.*;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.annotation.AvoidRepeatCommit;
+import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.integrated.platform.utils.Utils;
-import com.iflytek.integrated.platform.entity.TFunction;
-import com.iflytek.integrated.platform.entity.TProduct;
-import com.iflytek.integrated.platform.entity.TProductFunctionLink;
 import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
@@ -55,6 +53,10 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     @Autowired
     private ProductFunctionLinkService productFunctionLinkService;
     @Autowired
+    private ProductInterfaceLinkService productInterfaceLinkService;
+    @Autowired
+    private BusinessInterfaceService businessInterfaceService;
+    @Autowired
     private BatchUidService batchUidService;
     @Autowired
     private Utils utils;
@@ -83,20 +85,41 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "产品管理删除")
     @PostMapping("/delProductById")
-    public ResultDto delProductById(@ApiParam(value = "产品id") @RequestParam(value = "id", required = true) String id){
-        //查看产品是否存在
-        TProductFunctionLink functionLink = sqlQueryFactory.select(qTProductFunctionLink).from(qTProductFunctionLink)
-                .where(qTProductFunctionLink.id.eq(id)).fetchFirst();
-        if(functionLink == null || StringUtils.isEmpty(functionLink.getId())){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有找到该产品功能，删除失败", "没有找到该产品功能，删除失败");
+    public ResultDto delProductById(@ApiParam(value = "产品功能关联表id") @RequestParam(value = "id", required = true) String id){
+        //查看产品功能关联是否存在
+        TProductFunctionLink functionLink = productFunctionLinkService.getOne(id);
+        if(functionLink == null){
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有找到该产品功能,删除失败!", "没有找到该产品功能,删除失败!");
         }
-        //删除产品：删除产品和功能的关联关系
-        Long lon = sqlQueryFactory.delete(qTProductFunctionLink)
-                .where(qTProductFunctionLink.id.eq(functionLink.getId())).execute();
+        //删除产品功能关联关系前先查询该关联数据是否有接口配置相关联
+        List<TBusinessInterface> tbiList = businessInterfaceService.getListByProductFunctionLinkId(id);
+        if (CollectionUtils.isNotEmpty(tbiList)) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该产品功能已与接口配置关联,无法删除!", "该产品功能已与接口配置关联,无法删除!");
+        }
+        //删除产品和功能的关联关系
+        long lon = productFunctionLinkService.delete(id);
         if(lon <= 0){
-            throw new RuntimeException("产品功能删除失败");
+            throw new RuntimeException("产品功能删除失败!");
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "产品功能删除成功", "产品功能删除成功");
+        //如果该产品下没有其它功能关联,则删除该产品
+        String productId = functionLink.getProductId();
+        List<TProductFunctionLink> fetch = sqlQueryFactory.select(qTProductFunctionLink).from(qTProductFunctionLink)
+                .where(qTProductFunctionLink.productId.eq(productId)).fetch();
+        if (CollectionUtils.isEmpty(fetch)) {
+            //删除产品前判断该产品是否有标准接口相关联
+            List<TProductInterfaceLink> tpilList = productInterfaceLinkService.getObjByProduct(productId);
+            if (CollectionUtils.isEmpty(tpilList)) {
+                this.delete(productId);
+            }
+        }
+        //如果该功能没有产品相关联,则删除该功能
+        String functionId = functionLink.getFunctionId();
+        fetch = sqlQueryFactory.select(qTProductFunctionLink).from(qTProductFunctionLink)
+                .where(qTProductFunctionLink.functionId.eq(functionId)).fetch();
+        if (CollectionUtils.isEmpty(fetch)) {
+            functionService.delete(functionId);
+        }
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "产品功能删除成功!", "产品功能删除成功!");
     }
 
 

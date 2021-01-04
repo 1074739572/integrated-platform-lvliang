@@ -48,6 +48,17 @@ public class VendorConfigService extends QuerydslService<TVendorConfig, String, 
     }
 
     /**
+     * 根据厂商获取所有厂商配置信息
+     * @param vendorId
+     * @return
+     */
+    public List<TVendorConfig> getObjByVendorId(String vendorId) {
+        List<TVendorConfig> list = sqlQueryFactory.select(qTVendorConfig).from(qTVendorConfig)
+                .where(qTVendorConfig.vendorId.eq(vendorId)).fetch();
+        return list;
+    }
+
+    /**
      * 删除平台下的某厂商配置信息
      * @param platformId
      * @param vendorId
@@ -65,5 +76,6 @@ public class VendorConfigService extends QuerydslService<TVendorConfig, String, 
     public void delVendorConfigAll(String platformId) {
         sqlQueryFactory.delete(qTVendorConfig).where(qTVendorConfig.platformId.eq(platformId)).execute();
     }
+
 
 }

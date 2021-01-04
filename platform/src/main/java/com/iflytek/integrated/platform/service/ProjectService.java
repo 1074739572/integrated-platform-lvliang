@@ -221,7 +221,6 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
     @AvoidRepeatCommit
     public ResultDto updateProjectStatus(@ApiParam(value = "项目id") @RequestParam(value = "id", required = true) String id, @RequestParam String loginUserName,
                                          @ApiParam(value = "项目状态 1启用 2停用") @RequestParam(value = "projectStatus", required = true) String projectStatus) {
-
         //校验是否获取到登录用户
         if(StringUtils.isBlank(loginUserName)){
             throw new RuntimeException("没有获取到登录用户");

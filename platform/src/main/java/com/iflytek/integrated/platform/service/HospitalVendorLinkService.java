@@ -45,4 +45,16 @@ public class HospitalVendorLinkService extends QuerydslService<THospitalVendorLi
                 .where(qTHospitalVendorLink.vendorConfigId.eq(vendorConfigId)).execute();
     }
 
+    /**
+     * 根据医院id获取厂商医院配置
+     * @param hospitalId
+     * @return
+     */
+    public List<THospitalVendorLink> getThvlListByHospitalId(String hospitalId) {
+        List<THospitalVendorLink> list = sqlQueryFactory.select(qTHospitalVendorLink).from(qTHospitalVendorLink)
+                .where(qTHospitalVendorLink.hospitalId.eq(hospitalId))
+                .fetch();
+        return list;
+    }
+
 }

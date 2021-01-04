@@ -1,6 +1,5 @@
 package com.iflytek.integrated.platform.service;
 
-import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.THospitalVendorLink;
 import com.iflytek.medicalboot.core.dto.PageRequest;
@@ -20,9 +19,7 @@ import java.util.Date;
 import java.util.List;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
-import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
 import static com.iflytek.integrated.platform.entity.QTHospitalVendorLink.qTHospitalVendorLink;
-import static com.iflytek.integrated.platform.entity.QTInterfaceMonitor.qTInterfaceMonitor;
 import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.qTProductFunctionLink;
 import static com.iflytek.integrated.platform.entity.QTProjectProductLink.qTProjectProductLink;
 import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConfig;
@@ -224,5 +221,43 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
         return rtnList;
     }
 
+
+    /**
+     * 根据产品功能关联表id获取对接接口配置数据
+     * @param productFunctionLinkId
+     * @return
+     */
+    public List<TBusinessInterface> getListByProductFunctionLinkId(String productFunctionLinkId) {
+        List<TBusinessInterface> list = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
+                .where(qTBusinessInterface.productFunctionLinkId.eq(productFunctionLinkId))
+                .fetch();
+        return list;
+    }
+
+
+    /**
+     * 根据插件表id获取对接接口配置数据
+     * @param pluginId
+     * @return
+     */
+    public List<TBusinessInterface> getListByPluginId(String pluginId) {
+        List<TBusinessInterface> list = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
+                .where(qTBusinessInterface.pluginId.eq(pluginId))
+                .fetch();
+        return list;
+    }
+
+
+    /**
+     * 根据厂商配置id获取对接接口配置数据
+     * @param vendorConfigId
+     * @return
+     */
+    public List<TBusinessInterface> getListByVendorConfigId(String vendorConfigId) {
+        List<TBusinessInterface> list = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
+                .where(qTBusinessInterface.vendorConfigId.eq(vendorConfigId))
+                .fetch();
+        return list;
+    }
 
 }

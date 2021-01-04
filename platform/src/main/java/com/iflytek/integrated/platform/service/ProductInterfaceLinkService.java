@@ -35,14 +35,23 @@ public class ProductInterfaceLinkService  extends QuerydslService<TProductInterf
     }
 
     /**
-    * 根据接口id获取产品与标准接口关联
-    * @author weihe9
-    * @date 2020/12/16 11:04
-    */
+     * 根据接口id获取产品与标准接口关联
+     * @param interfaceId
+     * @return
+     */
     public List<TProductInterfaceLink> getObjByInterface(String interfaceId) {
         return sqlQueryFactory.select(qTProductInterfaceLink).from(qTProductInterfaceLink)
                 .where(qTProductInterfaceLink.interfaceId.eq(interfaceId)).fetch();
     }
 
+    /**
+     * 根据产品id获取产品与标准接口关联
+     * @param productId
+     * @return
+     */
+    public List<TProductInterfaceLink> getObjByProduct(String productId) {
+        return sqlQueryFactory.select(qTProductInterfaceLink).from(qTProductInterfaceLink)
+                .where(qTProductInterfaceLink.productId.eq(productId)).fetch();
+    }
 
 }

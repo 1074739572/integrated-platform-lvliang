@@ -9,6 +9,7 @@ import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.common.utils.RedisUtil;
 import com.iflytek.integrated.platform.annotation.AvoidRepeatCommit;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
+import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TType;
 import com.iflytek.integrated.platform.utils.ToolsGenerate;
 import com.iflytek.integrated.platform.utils.Utils;
@@ -66,6 +67,8 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
     private RedisUtil redisUtil;
     @Autowired
     private ToolsGenerate toolsGenerate;
+    @Autowired
+    private BusinessInterfaceService businessInterfaceService;
 
     @ApiOperation(value = "接口配置选择插件下拉")
     @GetMapping("/getDisPlugin")
@@ -140,14 +143,19 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "插件管理删除")
     @PostMapping("/delPluginById")
-    public ResultDto delPluginById(String id){
+    public ResultDto delPluginById(@ApiParam(value = "插件id") @RequestParam(value = "id", required = true) String id){
         if(StringUtils.isEmpty(id)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "id不能为空", "id不能为空");
         }
         //查看插件是否存在
         TPlugin plugin = sqlQueryFactory.select(qTPlugin).from(qTPlugin).where(qTPlugin.id.eq(id)).fetchFirst();
         if(plugin == null || StringUtils.isEmpty(plugin.getId())){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有找到该插件,删除失败", "没有找到该插件,删除失败");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有找到该插件,删除失败!", "没有找到该插件,删除失败!");
+        }
+        //删除插件前校验是否有接口配置相关联
+        List<TBusinessInterface> tbiList = businessInterfaceService.getListByPluginId(id);
+        if (CollectionUtils.isNotEmpty(tbiList)) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该插件有接口配置相关联,暂无法删除!", "该插件有接口配置相关联,暂无法删除!");
         }
         //删除插件
         Long lon = sqlQueryFactory.delete(qTPlugin).where(qTPlugin.id.eq(plugin.getId())).execute();

@@ -3,6 +3,7 @@ package com.iflytek.integrated.platform.service;
 import com.iflytek.integrated.common.*;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.annotation.AvoidRepeatCommit;
+import com.iflytek.integrated.platform.entity.THospitalVendorLink;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.THospital;
 import com.iflytek.integrated.platform.validator.ValidationResult;
@@ -51,12 +52,15 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
     private BatchUidService batchUidService;
     @Autowired
     private ValidatorHelper validatorHelper;
+    @Autowired
+    private HospitalVendorLinkService hospitalVendorLinkService;
 
     @ApiOperation(value = "获取医院管理列表")
     @GetMapping("/getHospitalList")
-    public ResultDto getHospitalListPage(String hospitalName,String areaCode,
-                             @RequestParam(defaultValue = "1")Integer pageNo,
-                             @RequestParam(defaultValue = "10")Integer pageSize){
+    public ResultDto getHospitalListPage(@RequestParam(value = "hospitalName", required = false) String hospitalName,
+                                         @RequestParam(value = "areaCode", required = false) String areaCode,
+                                         @RequestParam(defaultValue = "1")Integer pageNo,
+                                         @RequestParam(defaultValue = "10")Integer pageSize){
         try {
             //查询条件
             ArrayList<Predicate> list = new ArrayList<>();
@@ -104,6 +108,11 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
                 .where(qTHospital.id.eq(id).and(qTHospital.status.eq(Constant.Status.YES))).fetch();
         if(hospitals == null || hospitals.size() == 0){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "不存在该医院", "不存在该医院");
+        }
+        //删除前校验改医院是否关联厂商
+        List<THospitalVendorLink> thvlList = hospitalVendorLinkService.getThvlListByHospitalId(id);
+        if (CollectionUtils.isNotEmpty(thvlList)) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该医院已有厂商想关联,无法删除!", "该医院已有厂商想关联,无法删除!");
         }
         //逻辑删除
         Long lon = sqlQueryFactory.update(qTHospital).set(qTHospital.status, Constant.Status.NO)

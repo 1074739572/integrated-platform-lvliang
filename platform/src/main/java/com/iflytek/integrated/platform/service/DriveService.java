@@ -179,7 +179,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
             throw new RuntimeException("驱动管理,驱动删除失败");
         }
         delRedis(id);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "驱动管理,驱动删除成功");
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "驱动管理,驱动删除成功", "驱动管理,驱动删除成功");
     }
 
     @Transactional(rollbackFor = Exception.class)
