@@ -114,7 +114,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
     @ApiOperation(value = "新增or修改平台", notes = "新增or修改平台")
     @PostMapping("/saveAndUpdatePlatform")
     @AvoidRepeatCommit
-    public ResultDto saveAndUpdatePlatform(@RequestBody JSONObject jsonObj, @RequestParam String loginUserName) {
+    public ResultDto saveAndUpdatePlatform(@RequestBody JSONObject jsonObj , @RequestParam String loginUserName) {
         //校验是否获取到登录用户
         if(StringUtils.isBlank(loginUserName)){
             throw new RuntimeException("没有获取到登录用户");
@@ -197,7 +197,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
             }
         }
         //删除平台下厂商配置信息
-//        vendorConfigService.delVendorConfigAll(platformId);
+        vendorConfigService.delVendorConfigAll(platformId);
 
         JSONArray jsonArr = jsonObj.getJSONArray("vendorInfo");
         if (jsonArr.isEmpty()) {

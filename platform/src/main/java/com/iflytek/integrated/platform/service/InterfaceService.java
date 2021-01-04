@@ -263,6 +263,12 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         if (null != this.getInterfaceByName(interfaceName)) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "该接口名已存在!", "该接口名已存在!");
         }
+        //出参
+        JSONArray outParamList = jsonObj.getJSONArray("outParamList");
+        if (outParamList == null || outParamList.size() == 0) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "出参不能为空!", "出参不能为空!");
+        }
+
         //校验出入参格式字符串是否为json或者xml
         String inParamFormat = jsonObj.getString("inParamFormat");
         String outParamFormat = jsonObj.getString("outParamFormat");
@@ -309,7 +315,6 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             interfaceParamService.post(tip);
         }
         //出参
-        JSONArray outParamList = jsonObj.getJSONArray("outParamList");
         for (int i = 0; i < outParamList.size(); i++) {
             TInterfaceParam tip = new TInterfaceParam();
             tip.setId(batchUidService.getUid(qTInterfaceParam.getTableName()) + "");
@@ -323,7 +328,6 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             tip.setCreatedTime(new Date());
             tip.setCreatedBy(loginUserName);
             interfaceParamService.post(tip);
-
             //是否开启 1开
             if ("1".equals(obj.getString("isStart"))) {
                 //存储参数到标准接口表
@@ -338,6 +342,12 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 
     /** 修改标准接口 */
     private ResultDto updateInterface(JSONObject jsonObj, String loginUserName) {
+        //出参
+        JSONArray outParamList = jsonObj.getJSONArray("outParamList");
+        if (outParamList == null || outParamList.size() == 0) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "出参不能为空!", "出参不能为空!");
+        }
+
         String id = jsonObj.getString("id");
         String interfaceName = jsonObj.getString("interfaceName");
         String interfaceTypeId = jsonObj.getString("typeId");
@@ -391,7 +401,6 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             interfaceParamService.post(tip);
         }
         //出参
-        JSONArray outParamList = jsonObj.getJSONArray("outParamList");
         for (int i = 0; i < outParamList.size(); i++) {
             TInterfaceParam tip = new TInterfaceParam();
             tip.setId(batchUidService.getUid(qTInterfaceParam.getTableName()) + "");
