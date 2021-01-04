@@ -20,8 +20,8 @@ import java.util.List;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
 import static com.iflytek.integrated.platform.entity.QTHospitalVendorLink.qTHospitalVendorLink;
+import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
 import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.qTProductFunctionLink;
-import static com.iflytek.integrated.platform.entity.QTProjectProductLink.qTProjectProductLink;
 import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConfig;
 import static com.querydsl.sql.SQLExpressions.groupConcat;
 
@@ -208,15 +208,14 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
             list.add(qTProductFunctionLink.productId.eq(productId));
         }
         if(StringUtils.isNotEmpty(projectId)){
-//            list.add(qTInterfaceMonitor.projectId.in(projectId));
-            list.add(qTProjectProductLink.projectId.in(projectId));
+            list.add(qTPlatform.projectId.in(projectId));
         }
 
         List<TBusinessInterface> rtnList = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
                 .join(qTHospitalVendorLink).on(qTHospitalVendorLink.vendorConfigId.eq(qTBusinessInterface.vendorConfigId))
                 .join(qTProductFunctionLink).on(qTProductFunctionLink.id.eq(qTBusinessInterface.productFunctionLinkId))
-//                .join(qTInterfaceMonitor).on(qTInterfaceMonitor.productFunctionLinkId.eq(qTProductFunctionLink.id))
-                .join(qTProjectProductLink).on(qTProjectProductLink.productFunctionLinkId.eq(qTBusinessInterface.productFunctionLinkId))
+                .join(qTVendorConfig).on(qTVendorConfig.id.eq(qTBusinessInterface.vendorConfigId))
+                .join(qTPlatform).on(qTPlatform.id.eq(qTVendorConfig.platformId))
                 .where(list.toArray(new Predicate[list.size()])).fetch();
         return rtnList;
     }
