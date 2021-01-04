@@ -13,9 +13,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface AvoidRepeatCommit {
     /**
-     * 指定时间内不可重复提交,单位毫秒,默认5000毫秒
+     * 指定时间内不可重复提交,单位毫秒,设置500毫秒
      *
      * @return long
      */
-    long timeout() default 3000;
+    long timeout() default 500;
 }
