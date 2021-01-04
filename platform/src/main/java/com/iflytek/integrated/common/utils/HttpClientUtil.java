@@ -88,7 +88,7 @@ public class HttpClientUtil {
     /**
      * 指客户端和服务器建立连接的超时时间(单位ms)
      */
-    public static final int CONNECT_TIMEOUT = 3000;
+    public static final int CONNECT_TIMEOUT = 10000;
     /**
      * 连接池的最大连接数，0代表不限；0需要考虑连接泄露导致系统崩溃的后果
      */
