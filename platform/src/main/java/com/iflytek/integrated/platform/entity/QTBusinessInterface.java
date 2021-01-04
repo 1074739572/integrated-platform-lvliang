@@ -46,6 +46,8 @@ public class QTBusinessInterface extends com.querydsl.sql.RelationalPathBase<TBu
 
     public final StringPath interfaceType = createString("interfaceType");
 
+    public final NumberPath<Integer> mockIsUse = createNumber("mockIsUse", Integer.class);
+
     public final StringPath mockStatus = createString("mockStatus");
 
     public final StringPath mockTemplate = createString("mockTemplate");
@@ -114,6 +116,7 @@ public class QTBusinessInterface extends com.querydsl.sql.RelationalPathBase<TBu
         addMetadata(inParamTemplate, ColumnMetadata.named("IN_PARAM_TEMPLATE").withIndex(12).ofType(Types.LONGVARCHAR).withSize(65535));
         addMetadata(interfaceId, ColumnMetadata.named("INTERFACE_ID").withIndex(3).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(interfaceType, ColumnMetadata.named("INTERFACE_TYPE").withIndex(8).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(mockIsUse, ColumnMetadata.named("MOCK_IS_USE").withIndex(27).ofType(Types.INTEGER).withSize(10).notNull());
         addMetadata(mockStatus, ColumnMetadata.named("MOCK_STATUS").withIndex(19).ofType(Types.VARCHAR).withSize(1).notNull());
         addMetadata(mockTemplate, ColumnMetadata.named("MOCK_TEMPLATE").withIndex(18).ofType(Types.LONGVARCHAR).withSize(65535));
         addMetadata(outParamFormat, ColumnMetadata.named("OUT_PARAM_FORMAT").withIndex(14).ofType(Types.LONGVARCHAR).withSize(65535));

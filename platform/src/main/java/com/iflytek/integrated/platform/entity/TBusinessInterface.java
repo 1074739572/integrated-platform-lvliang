@@ -61,6 +61,8 @@ public class TBusinessInterface implements Serializable {
 
     private java.util.Date updatedTime;
 
+    private Integer mockIsUse;
+
     @Transient
     private String interfaceName;
     @Transient
@@ -384,5 +386,13 @@ public class TBusinessInterface implements Serializable {
         this.interfaceUrl = interfaceUrl;
     }
 
+
+    public Integer getMockIsUse() {
+        return mockIsUse;
+    }
+
+    public void setMockIsUse(Integer mockIsUse) {
+        this.mockIsUse = mockIsUse;
+    }
 }
 

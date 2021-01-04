@@ -46,6 +46,11 @@ public class AnonymousService {
             //获取模板
             String template = StringUtils.isNotEmpty(businessInterface.getMockTemplate())?
                     businessInterface.getMockTemplate():businessInterface.getOutParamFormat();
+
+            //如果无需模拟
+            if(businessInterface.getMockIsUse() == 0){
+                return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", template);
+            }
             //根据模板类型处理
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", resultMock(template, type));
         }catch (Exception e){
