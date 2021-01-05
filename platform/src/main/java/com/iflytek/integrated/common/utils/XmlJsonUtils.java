@@ -1,6 +1,8 @@
 package com.iflytek.integrated.common.utils;
 
 import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Iterator;
 import java.util.Map;
@@ -15,7 +17,9 @@ import org.dom4j.DocumentHelper;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
 
+import org.json.JSONException;
 import org.json.XML;
+import org.json.XMLTokener;
 
 
 /**
@@ -39,7 +43,7 @@ public class XmlJsonUtils {
             XMLWriter writer = new XMLWriter(out, format);
             writer.write(xmlDocument);
             writer.flush();
-            return XML.toJSONObject(out.toString()).toString();
+            return toJSONObject(out.toString()).toString();
         } catch (DocumentException e){
             e.printStackTrace();
         } catch (IOException e) {
@@ -98,6 +102,162 @@ public class XmlJsonUtils {
 
         }
         return buffer.toString();
+    }
+
+    private static org.json.JSONObject toJSONObject(String string) throws JSONException {
+        return toJSONObject(string, false);
+    }
+
+    private static org.json.JSONObject toJSONObject(String string, boolean keepStrings) throws JSONException {
+        return toJSONObject((Reader)(new StringReader(string)), keepStrings);
+    }
+
+    private static org.json.JSONObject toJSONObject(Reader reader, boolean keepStrings) throws JSONException {
+        org.json.JSONObject jo = new org.json.JSONObject();
+        XMLTokener x = new XMLTokener(reader);
+
+        while(x.more()) {
+            x.skipPast("<");
+            if (x.more()) {
+                parse(x, jo, (String)null, keepStrings);
+            }
+        }
+
+        return jo;
+    }
+
+    private static boolean parse(XMLTokener x, org.json.JSONObject context, String name, boolean keepStrings) throws JSONException {
+        org.json.JSONObject jsonobject = null;
+        Object token = x.nextToken();
+        String string;
+        if (token == XML.BANG) {
+            char c = x.next();
+            if (c == '-') {
+                if (x.next() == '-') {
+                    x.skipPast("-->");
+                    return false;
+                }
+
+                x.back();
+            } else if (c == '[') {
+                token = x.nextToken();
+                if ("CDATA".equals(token) && x.next() == '[') {
+                    string = x.nextCDATA();
+                    if (string.length() > 0) {
+                        context.accumulate("_value_", string);
+                    }
+
+                    return false;
+                }
+
+                throw x.syntaxError("Expected 'CDATA['");
+            }
+
+            int i = 1;
+
+            do {
+                token = x.nextMeta();
+                if (token == null) {
+                    throw x.syntaxError("Missing '>' after '<!'.");
+                }
+
+                if (token == XML.LT) {
+                    ++i;
+                } else if (token == XML.GT) {
+                    --i;
+                }
+            } while(i > 0);
+
+            return false;
+        } else if (token == XML.QUEST) {
+            x.skipPast("?>");
+            return false;
+        } else if (token == XML.SLASH) {
+            token = x.nextToken();
+            if (name == null) {
+                throw x.syntaxError("Mismatched close tag " + token);
+            } else if (!token.equals(name)) {
+                throw x.syntaxError("Mismatched " + name + " and " + token);
+            } else if (x.nextToken() != XML.GT) {
+                throw x.syntaxError("Misshaped close tag");
+            } else {
+                return true;
+            }
+        } else if (token instanceof Character) {
+            throw x.syntaxError("Misshaped tag");
+        } else {
+            String tagName = (String)token;
+            token = null;
+            jsonobject = new org.json.JSONObject();
+
+            while(true) {
+                if (token == null) {
+                    token = x.nextToken();
+                }
+
+                if (!(token instanceof String)) {
+                    if (token == XML.SLASH) {
+                        if (x.nextToken() != XML.GT) {
+                            throw x.syntaxError("Misshaped tag");
+                        }
+
+                        if (jsonobject.length() > 0) {
+                            context.accumulate(tagName, jsonobject);
+                        } else {
+                            context.accumulate(tagName, "");
+                        }
+
+                        return false;
+                    }
+
+                    if (token != XML.GT) {
+                        throw x.syntaxError("Misshaped tag");
+                    }
+
+                    while(true) {
+                        token = x.nextContent();
+                        if (token == null) {
+                            if (tagName != null) {
+                                throw x.syntaxError("Unclosed tag " + tagName);
+                            }
+
+                            return false;
+                        }
+
+                        if (token instanceof String) {
+                            string = (String)token;
+                            if (string.length() > 0) {
+                                jsonobject.accumulate("_value_", keepStrings ? string : XML.stringToValue(string));
+                            }
+                        } else if (token == XML.LT && parse(x, jsonobject, tagName, keepStrings)) {
+                            if (jsonobject.length() == 0) {
+                                context.accumulate(tagName, "");
+                            } else if (jsonobject.length() == 1 && jsonobject.opt("_value_") != null) {
+                                context.accumulate(tagName, jsonobject.opt("_value_"));
+                            } else {
+                                context.accumulate(tagName, jsonobject);
+                            }
+
+                            return false;
+                        }
+                    }
+                }
+
+                string = (String)token;
+                token = x.nextToken();
+                if (token == XML.EQ) {
+                    token = x.nextToken();
+                    if (!(token instanceof String)) {
+                        throw x.syntaxError("Missing value");
+                    }
+
+                    jsonobject.accumulate(string, keepStrings ? (String)token : XML.stringToValue((String)token));
+                    token = null;
+                } else {
+                    jsonobject.accumulate(string, "");
+                }
+            }
+        }
     }
 }
 

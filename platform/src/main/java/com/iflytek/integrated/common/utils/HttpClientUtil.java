@@ -76,7 +76,7 @@ public class HttpClientUtil {
     /**
      * 指客户端从服务器读取数据包的间隔超时时间
      */
-    public static final int READ_TIMEOUT = 60000;
+    public static final int READ_TIMEOUT = 10000;
     /**
      * 长连接保持时间(单位s)
      */
