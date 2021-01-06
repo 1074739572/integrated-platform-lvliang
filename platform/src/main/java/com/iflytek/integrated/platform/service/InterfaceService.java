@@ -242,8 +242,9 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @ApiOperation(value = "标准接口新增/编辑", notes = "标准接口新增/编辑")
     @PostMapping("/saveAndUpdateInterface")
     @AvoidRepeatCommit
-    public ResultDto saveAndUpdateInterface(@RequestBody JSONObject jsonObj, @RequestParam String loginUserName) {
+    public ResultDto saveAndUpdateInterface(@RequestBody JSONObject jsonObj/**@RequestParam String loginUserName*/) {
         //校验是否获取到登录用户
+        String loginUserName = "1";
         if(StringUtils.isBlank(loginUserName)){
             throw new RuntimeException("没有获取到登录用户");
         }
@@ -654,13 +655,15 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             vendorConfigId = dto.getVendorConfigId();
         }
         //产品与功能关联
-        String productFunctionLinkId = "";
-        if (StringUtils.isBlank(dto.getProductFunctionLinkId())) {
-            TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(dto.getProductId(), dto.getFunctionId());
-            productFunctionLinkId = tpfl!=null?tpfl.getId():null;
-        }else {
-            productFunctionLinkId = dto.getProductFunctionLinkId();
-        }
+        TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(dto.getProductId(), dto.getFunctionId());
+        String productFunctionLinkId = tpfl!=null?tpfl.getId():null;
+//        String productFunctionLinkId = "";
+//        if (StringUtils.isBlank(dto.getProductFunctionLinkId())) {
+//            TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(dto.getProductId(), dto.getFunctionId());
+//            productFunctionLinkId = tpfl!=null?tpfl.getId():null;
+//        }else {
+//            productFunctionLinkId = dto.getProductFunctionLinkId();
+//        }
         //根据项目,厂商,标准接口判定是否存在相同配置数据
         List<THospitalVendorLink> thvlList = hospitalVendorLinkService.getTHospitalVendorLinkByVendorConfigId(vendorConfigId);
         //根据条件判断是否存在该数据
@@ -705,13 +708,15 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             vendorConfigId = dto.getVendorConfigId();
         }
         //产品与功能关联
-        String productFunctionLinkId = "";
-        if (StringUtils.isBlank(dto.getProductFunctionLinkId())) {
-            TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(dto.getProductId(), dto.getFunctionId());
-            productFunctionLinkId = tpfl!=null?tpfl.getId():null;
-        }else {
-            productFunctionLinkId = dto.getProductFunctionLinkId();
-        }
+        TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(dto.getProductId(), dto.getFunctionId());
+        String productFunctionLinkId = tpfl!=null?tpfl.getId():null;
+//        String productFunctionLinkId = "";
+//        if (StringUtils.isBlank(dto.getProductFunctionLinkId())) {
+//            TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(dto.getProductId(), dto.getFunctionId());
+//            productFunctionLinkId = tpfl!=null?tpfl.getId():null;
+//        }else {
+//            productFunctionLinkId = dto.getProductFunctionLinkId();
+//        }
         List<TBusinessInterface> tbiList = dto.getBusinessInterfaceList();
         for (TBusinessInterface tbi : tbiList) {
             if (StringUtils.isBlank(tbi.getId())) {

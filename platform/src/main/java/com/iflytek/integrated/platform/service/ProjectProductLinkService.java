@@ -31,8 +31,15 @@ public class ProjectProductLinkService extends QuerydslService<TProjectProductLi
      * @return
      */
     public List<TProjectProductLink> findProjectProductLinkByProjectId(String projectId) {
-        return sqlQueryFactory.select(qTProjectProductLink).from(qTProjectProductLink)
+        List<TProjectProductLink> list = sqlQueryFactory.select(qTProjectProductLink).from(qTProjectProductLink)
                 .where(qTProjectProductLink.projectId.eq(projectId)).fetch();
+        return list;
+    }
+
+    public List<TProjectProductLink> findProjectProductLinkByPflId(String productFunctionLinkId) {
+        List<TProjectProductLink> list = sqlQueryFactory.select(qTProjectProductLink).from(qTProjectProductLink)
+                .where(qTProjectProductLink.productFunctionLinkId.eq(productFunctionLinkId)).fetch();
+        return list;
     }
 
 }

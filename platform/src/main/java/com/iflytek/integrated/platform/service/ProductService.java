@@ -55,6 +55,8 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     @Autowired
     private ProductInterfaceLinkService productInterfaceLinkService;
     @Autowired
+    private ProjectProductLinkService projectProductLinkService;
+    @Autowired
     private BusinessInterfaceService businessInterfaceService;
     @Autowired
     private BatchUidService batchUidService;
@@ -91,11 +93,17 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         if(functionLink == null){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有找到该产品功能,删除失败!", "没有找到该产品功能,删除失败!");
         }
+        //删除产品功能关联关系前先查询该关联数据是否有项目相关联
+        List<TProjectProductLink> tpplList = projectProductLinkService.findProjectProductLinkByPflId(id);
+        if (CollectionUtils.isNotEmpty(tpplList)) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该产品功能已与项目关联,无法删除!", "该产品功能已与项目关联,无法删除!");
+        }
         //删除产品功能关联关系前先查询该关联数据是否有接口配置相关联
         List<TBusinessInterface> tbiList = businessInterfaceService.getListByProductFunctionLinkId(id);
         if (CollectionUtils.isNotEmpty(tbiList)) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "该产品功能已与接口配置关联,无法删除!", "该产品功能已与接口配置关联,无法删除!");
         }
+
         //删除产品和功能的关联关系
         long lon = productFunctionLinkService.delete(id);
         if(lon <= 0){
@@ -112,6 +120,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
                 this.delete(productId);
             }
         }
+
         //如果该功能没有产品相关联,则删除该功能
         String functionId = functionLink.getFunctionId();
         fetch = sqlQueryFactory.select(qTProductFunctionLink).from(qTProductFunctionLink)
@@ -127,9 +136,8 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     @ApiOperation(value = "产品管理新增/编辑")
     @PostMapping("/saveAndUpdateProduct")
     @AvoidRepeatCommit
-    public ResultDto saveAndUpdateProduct(@RequestBody JSONObject jsonObj/**, @RequestParam String loginUserName*/) {
+    public ResultDto saveAndUpdateProduct(@RequestBody JSONObject jsonObj, @RequestParam String loginUserName) {
         //校验是否获取到登录用户
-        String loginUserName = "1";
         if(StringUtils.isBlank(loginUserName)){
             throw new RuntimeException("没有获取到登录用户");
         }
