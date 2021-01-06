@@ -12,5 +12,7 @@ public class ParamsDto {
 
     private String paramKey;
 
+    private String paramType;
+
     private Object paramValue;
 }

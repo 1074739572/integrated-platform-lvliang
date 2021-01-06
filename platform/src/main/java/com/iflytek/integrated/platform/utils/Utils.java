@@ -166,9 +166,10 @@ public class Utils {
 
                 ParamsDto dto = new ParamsDto();
                 dto.setParamKey(entry.getKey());
+                dto.setParamType(o != null ? o.getClass().getSimpleName(): "");
                 if(o instanceof JSONArray || o instanceof JSONObject) {
                     //如果还是JSON继续循环
-                    dto.setParamValue("arrayList");
+                    dto.setParamValue("");
                     dtoList.add(dto);
                     format(o,dtoList);
                 }
@@ -178,7 +179,7 @@ public class Utils {
                     if(keyList.contains(entry.getKey()) || StringUtils.isBlank(entry.getKey())){
                         continue;
                     }
-                    dto.setParamValue(entry.getValue());
+                    dto.setParamValue(o);
                     dtoList.add(dto);
                 }
             }
