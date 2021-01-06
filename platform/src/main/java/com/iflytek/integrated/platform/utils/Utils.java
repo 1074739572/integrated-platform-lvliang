@@ -1,8 +1,10 @@
 package com.iflytek.integrated.platform.utils;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.parser.Feature;
 import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.utils.PinYinUtil;
 import com.iflytek.integrated.platform.dto.ParamsDto;
@@ -138,15 +140,14 @@ public class Utils {
      * @return
      */
     public static List<ParamsDto> jsonFormat(String paramJson){
-        Object json = null;
+        List<ParamsDto> dtoList = new ArrayList<>();
+        JSON json = null;
         try{
-            json = JSONObject.parseObject(paramJson);
+            json = JSONObject.parseObject(paramJson, Feature.OrderedField);
         }
-        catch (JSONException e){
+        catch (ClassCastException e){
             json = JSONArray.parseArray(paramJson);
         }
-        List<ParamsDto> dtoList = new ArrayList<>();
-
         format(json,dtoList);
         return dtoList;
     }
@@ -162,8 +163,13 @@ public class Utils {
             JSONObject object = (JSONObject) json;
             for (Map.Entry<String, Object> entry: object.entrySet()) {
                 Object o = entry.getValue();
+
+                ParamsDto dto = new ParamsDto();
+                dto.setParamKey(entry.getKey());
                 if(o instanceof JSONArray || o instanceof JSONObject) {
                     //如果还是JSON继续循环
+                    dto.setParamValue("arrayList");
+                    dtoList.add(dto);
                     format(o,dtoList);
                 }
                 else {
@@ -172,8 +178,6 @@ public class Utils {
                     if(keyList.contains(entry.getKey()) || StringUtils.isBlank(entry.getKey())){
                         continue;
                     }
-                    ParamsDto dto = new ParamsDto();
-                    dto.setParamKey(entry.getKey());
                     dto.setParamValue(entry.getValue());
                     dtoList.add(dto);
                 }
