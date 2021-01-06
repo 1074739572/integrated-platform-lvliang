@@ -91,7 +91,9 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
                         qTPlatform.platformStatus,
                         qTPlatform.platformType,
                         qTPlatform.createdTime,
-                        qTPlatform.updatedTime
+                        qTPlatform.updatedTime,
+                        qTPlatform.createdBy,
+                        qTPlatform.updatedBy
                     )
             ).from(qTPlatform)
              .where(list.toArray(new Predicate[list.size()]))

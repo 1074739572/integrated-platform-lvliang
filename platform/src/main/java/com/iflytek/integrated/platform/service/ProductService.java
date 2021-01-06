@@ -127,8 +127,9 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     @ApiOperation(value = "产品管理新增/编辑")
     @PostMapping("/saveAndUpdateProduct")
     @AvoidRepeatCommit
-    public ResultDto saveAndUpdateProduct(@RequestBody JSONObject jsonObj, @RequestParam String loginUserName) {
+    public ResultDto saveAndUpdateProduct(@RequestBody JSONObject jsonObj/**, @RequestParam String loginUserName*/) {
         //校验是否获取到登录用户
+        String loginUserName = "1";
         if(StringUtils.isBlank(loginUserName)){
             throw new RuntimeException("没有获取到登录用户");
         }
@@ -195,13 +196,16 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             functionService.post(tf);
         }
         //新增产品与功能关联
-        TProductFunctionLink tpfl = new TProductFunctionLink();
-        tpfl.setId(batchUidService.getUid(qTProductFunctionLink.getTableName()) + "");
-        tpfl.setProductId(productId);
-        tpfl.setFunctionId(functionId);
-        tpfl.setCreatedTime(new Date());
-        tpfl.setCreatedBy(loginUserName);
-        productFunctionLinkService.post(tpfl);
+        TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(productId, functionId);
+        if (tpfl == null || StringUtils.isBlank(tpfl.getId())) {
+            tpfl = new TProductFunctionLink();
+            tpfl.setId(batchUidService.getUid(qTProductFunctionLink.getTableName()) + "");
+            tpfl.setProductId(productId);
+            tpfl.setFunctionId(functionId);
+            tpfl.setCreatedTime(new Date());
+            tpfl.setCreatedBy(loginUserName);
+            productFunctionLinkService.post(tpfl);
+        }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"新增产品功能关联成功", tpfl);
     }
 
@@ -236,7 +240,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             functionService.post(tf);
         }else {
             TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(productId, functionId);
-            if (tpfl != null) {//???
+            if (tpfl != null) {
                 return new ResultDto(Constant.ResultCode.ERROR_CODE, "该产品与功能已有关联!",tpfl);
             }
         }

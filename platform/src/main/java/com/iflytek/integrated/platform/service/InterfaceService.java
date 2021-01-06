@@ -216,10 +216,10 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     public ResultDto delInterfaceById(@ApiParam(value = "标准接口id") @RequestParam(value = "id", required = true) String id) {
         try {
             //校验该接口是否有产品关联
-            List<TProductInterfaceLink> tpilList = productInterfaceLinkService.getObjByInterface(id);
-            if (CollectionUtils.isNotEmpty(tpilList)) {
-                return new ResultDto(Constant.ResultCode.ERROR_CODE, "该标准接口已有产品关联,暂无法删除!", "该标准接口已有产品关联,暂无法删除!");
-            }
+//            List<TProductInterfaceLink> tpilList = productInterfaceLinkService.getObjByInterface(id);
+//            if (CollectionUtils.isNotEmpty(tpilList)) {
+//                return new ResultDto(Constant.ResultCode.ERROR_CODE, "该标准接口已有产品关联,暂无法删除!", "该标准接口已有产品关联,暂无法删除!");
+//            }
             //校验该接口是否有接口配置关联
             TBusinessInterface tbi = businessInterfaceService.getProductIdByInterfaceId(id);
             if (tbi != null && StringUtils.isNotBlank(tbi.getId())) {

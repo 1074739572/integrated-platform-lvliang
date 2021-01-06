@@ -156,7 +156,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
                 throw new RuntimeException("医院管理编辑失败");
             }
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", "医院管理新增或编辑成功");
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "医院管理新增或编辑成功", "医院管理新增或编辑成功");
     }
 
     @ApiOperation(value = "医院配置")
