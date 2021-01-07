@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static com.iflytek.integrated.platform.entity.QTFunction.qTFunction;
 import static com.iflytek.integrated.platform.entity.QTProduct.qTProduct;
@@ -45,6 +46,25 @@ public class ProductFunctionLinkService extends QuerydslService<TProductFunction
     public TProductFunctionLink getObjByProductAndFunction(String productId, String functionId) {
         TProductFunctionLink obj = sqlQueryFactory.select(qTProductFunctionLink).from(qTProductFunctionLink)
                 .where(qTProductFunctionLink.productId.eq(productId).and(qTProductFunctionLink.functionId.eq(functionId))).fetchFirst();
+        return obj;
+    }
+
+    /**
+     * 获取产品-功能关联对象
+     * @param productId
+     * @param functionId
+     * @return
+     */
+    public TProductFunctionLink getObjByProductAndFunctionByNoId(String productId, String functionId, String productFunctionId) {
+        ArrayList<Predicate> list = new ArrayList<>();
+        list.add(qTProductFunctionLink.productId.eq(productId));
+        list.add(qTProductFunctionLink.functionId.eq(functionId));
+        if(StringUtils.isNotEmpty(productFunctionId)){
+            list.add(qTProductFunctionLink.id.notEqualsIgnoreCase(productFunctionId));
+        }
+        TProductFunctionLink obj = sqlQueryFactory.select(qTProductFunctionLink).from(qTProductFunctionLink)
+                .where(list.toArray(new Predicate[list.size()]))
+                .fetchFirst();
         return obj;
     }
 
@@ -93,6 +113,18 @@ public class ProductFunctionLinkService extends QuerydslService<TProductFunction
                 .where(qTProductFunctionLink.id.eq(id)).execute();
     }
 
+    /**
+     * 查询某产品下所有关联(排除当前)
+     * @param productId
+     * @param id
+     * @return
+     */
+//    public List<TProductFunctionLink> getListByProductIdAndNoId(String productId, String id) {
+//        List<TProductFunctionLink> list = sqlQueryFactory.select(qTProductFunctionLink).from(qTProductFunctionLink)
+//                .where(qTProductFunctionLink.productId.eq(productId).and(qTProductFunctionLink.id.notEqualsIgnoreCase(id)))
+//                .fetch();
+//        return list;
+//    }
 
     /**
      * 根据项目id获取所有产品id
