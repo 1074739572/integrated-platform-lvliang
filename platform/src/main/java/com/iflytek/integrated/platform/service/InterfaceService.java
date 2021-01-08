@@ -780,6 +780,10 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     public ResultDto deleteInterfaceConfigure(
             @ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
         TBusinessInterface tbi = businessInterfaceService.getOne(id);
+        if (tbi == null) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该接口id查询不到接口配置信息!", "该接口id查询不到接口配置信息!");
+        }
+        List<TBusinessInterface> list = businessInterfaceService.getListByCondition(tbi.getProductFunctionLinkId(), tbi.getInterfaceId(), tbi.getVendorConfigId());
         //删除相同条件接口配置
         long count = businessInterfaceService.delObjByCondition(
                 tbi.getProductFunctionLinkId(), tbi.getInterfaceId(), tbi.getVendorConfigId());
@@ -787,7 +791,6 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "接口配置删除失败!", "接口配置删除失败!");
         }
         //删除redis记录
-        List<TBusinessInterface> list = businessInterfaceService.getListByCondition(tbi.getProductFunctionLinkId(), tbi.getInterfaceId(), tbi.getVendorConfigId());
         if (CollectionUtils.isNotEmpty(list)) {
             for (TBusinessInterface obj : list) {
                 delRedis(obj.getId());
