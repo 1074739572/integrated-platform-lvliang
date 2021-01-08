@@ -187,9 +187,6 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
     private ResultDto updatePlatform(JSONObject jsonObj, String loginUserName) {
         //删除平台下厂商配置信息  编辑平台 flag=1  编辑厂商信息 flag=2
         String flag = jsonObj.getString("flag");
-//        if ("1".equals(flag)) {
-//
-//        }
 
         String platformId = jsonObj.getString("id");
         sqlQueryFactory.update(qTPlatform).set(qTPlatform.platformName, jsonObj.getString("platformName"))

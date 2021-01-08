@@ -343,14 +343,29 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 
     /** 修改标准接口 */
     private ResultDto updateInterface(JSONObject jsonObj, String loginUserName) {
+        String id = jsonObj.getString("id");
+        TInterface tf = this.getOne(id);
+        if (tf == null) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据传入id未查出对应标准接口,检查是否传入错误!", "根据传入id未查出对应标准接口,检查是否传入错误!");
+        }
+        //传入标准接口名
+        String interfaceName = jsonObj.getString("interfaceName");
+        //查询新接口名是否已存在
+        tf = sqlQueryFactory.select(qTInterface).from(qTInterface)
+                .where(qTInterface.interfaceName.eq(interfaceName).and(qTInterface.id.notEqualsIgnoreCase(id)))
+                .fetchOne();
+        if (tf != null) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该接口名已存在!", "该接口名已存在!");
+        }
+
         //出参
         JSONArray outParamList = jsonObj.getJSONArray("outParamList");
         if (outParamList == null || outParamList.size() == 0) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "出参不能为空!", "出参不能为空!");
         }
 
-        String id = jsonObj.getString("id");
-        String interfaceName = jsonObj.getString("interfaceName");
+//        String id = jsonObj.getString("id");
+//        String interfaceName = jsonObj.getString("interfaceName");
         String interfaceTypeId = jsonObj.getString("typeId");
         String interfaceUrl = jsonObj.getString("interfaceUrl");
         //校验出入参格式字符串是否为json或者xml
