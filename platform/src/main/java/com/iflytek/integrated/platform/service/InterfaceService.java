@@ -92,9 +92,9 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @PostMapping("/updateMockStatus")
     @Transactional(rollbackFor = Exception.class)
     public ResultDto updateMockStatus(@ApiParam(value = "接口配置") @RequestParam(value = "id", required = true) String id,
-                                      @ApiParam(value = "更改后的状态") @RequestParam(value = "mockStatus", required = true) String mockStatus,
-                                      @RequestParam String loginUserName) {
+                                      @ApiParam(value = "更改后的状态") @RequestParam(value = "mockStatus", required = true) String mockStatus/**,@RequestParam String loginUserName*/) {
         //校验是否获取到登录用户
+        String loginUserName = "1";
         if(StringUtils.isBlank(loginUserName)){
             throw new RuntimeException("没有获取到登录用户");
         }
@@ -106,9 +106,10 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @PostMapping("/updateStatus")
     @Transactional(rollbackFor = Exception.class)
     public ResultDto updateStatus(@ApiParam(value = "接口配置") @RequestParam(value = "id", required = true) String id,
-                                  @ApiParam(value = "更改后的状态") @RequestParam(value = "status", required = true) String status,
-                                  @RequestParam String loginUserName) {
+                                  @ApiParam(value = "更改后的状态") @RequestParam(value = "status", required = true) String status/**,@RequestParam String loginUserName*/
+                                  ) {
         //校验是否获取到登录用户
+        String loginUserName = "1";
         if(StringUtils.isBlank(loginUserName)){
             throw new RuntimeException("没有获取到登录用户");
         }
@@ -776,14 +777,23 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 
     @ApiOperation(value = "接口配置删除", notes = "接口配置删除")
     @PostMapping("/deleteInterfaceConfigure")
-    public ResultDto deleteInterfaceConfigure(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
-        //删除接口配置
-        Long lon = businessInterfaceService.delete(id);
-        if(lon <= 0){
-            throw new RuntimeException("删除接口失败");
+    public ResultDto deleteInterfaceConfigure(
+            @ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
+        TBusinessInterface tbi = businessInterfaceService.getOne(id);
+        //删除相同条件接口配置
+        long count = businessInterfaceService.delObjByCondition(
+                tbi.getProductFunctionLinkId(), tbi.getInterfaceId(), tbi.getVendorConfigId());
+        if(count <= 0){
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "接口配置删除失败!", "接口配置删除失败!");
         }
-        delRedis(id);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "接口配置删除成功!", null);
+        //删除redis记录
+        List<TBusinessInterface> list = businessInterfaceService.getListByCondition(tbi.getProductFunctionLinkId(), tbi.getInterfaceId(), tbi.getVendorConfigId());
+        if (CollectionUtils.isNotEmpty(list)) {
+            for (TBusinessInterface obj : list) {
+                delRedis(obj.getId());
+            }
+        }
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "接口配置删除成功!共删除"+count+"条数据", "接口配置删除成功!共删除"+count+"条数据");
     }
 
 

@@ -40,9 +40,10 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
     }
 
     /**
-     *  更改mock状态
+     * 根据相同条件更改接口配置mock状态
      * @param id
      * @param mockStatus
+     * @param loginUserName
      */
     public void updateMockStatus(String id, String mockStatus, String loginUserName) {
         //获取多接口，多个接口的id集合
@@ -59,9 +60,10 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
     }
 
     /**
-     *  更改启停用状态
+     * 根据相同条件更改接口配置启停用状态
      * @param id
      * @param status
+     * @param loginUserName
      */
     public void updateStatus(String id, String status, String loginUserName) {
         //获取多接口，多个接口的id集合
@@ -76,6 +78,38 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
             throw new RuntimeException("启停用状态编辑失败");
         }
     }
+
+
+    /**
+     * 根据相同条件删除接口配置数据
+     * @param productFunctionLinkId
+     * @param interfaceId
+     * @param vendorConfigId
+     */
+    public long delObjByCondition(String productFunctionLinkId, String interfaceId, String vendorConfigId) {
+        long count = sqlQueryFactory.delete(qTBusinessInterface)
+                .where(qTBusinessInterface.productFunctionLinkId.eq(productFunctionLinkId)
+                        .and(qTBusinessInterface.interfaceId.eq(interfaceId)
+                        .and(qTBusinessInterface.vendorConfigId.eq(vendorConfigId))))
+                .execute();
+        return count;
+    }
+
+    /**
+     * 根据相同条件查询所有接口配置数据
+     * @param productFunctionLinkId
+     * @param interfaceId
+     * @param vendorConfigId
+     */
+    public List<TBusinessInterface> getListByCondition(String productFunctionLinkId, String interfaceId, String vendorConfigId) {
+        List<TBusinessInterface> list = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
+                                        .where(qTBusinessInterface.productFunctionLinkId.eq(productFunctionLinkId)
+                                                .and(qTBusinessInterface.interfaceId.eq(interfaceId)
+                                                        .and(qTBusinessInterface.vendorConfigId.eq(vendorConfigId))))
+                                        .fetch();
+        return list;
+    }
+
 
     /**
      *  保存mock模板
@@ -297,4 +331,5 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
         }
         return idList;
     }
+
 }
