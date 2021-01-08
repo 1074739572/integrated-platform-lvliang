@@ -7,7 +7,6 @@ import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.common.utils.RedisUtil;
-import com.iflytek.integrated.platform.annotation.AvoidRepeatCommit;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TType;
@@ -169,7 +168,6 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "插件新增/编辑")
     @PostMapping("/saveAndUpdatePlugin")
-    @AvoidRepeatCommit
     public ResultDto saveAndUpdatePlugin(@RequestBody TPlugin plugin, @RequestParam String loginUserName){
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(plugin);

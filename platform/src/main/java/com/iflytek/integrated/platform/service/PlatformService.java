@@ -6,7 +6,6 @@ import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
-import com.iflytek.integrated.platform.annotation.AvoidRepeatCommit;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.THospitalVendorLink;
 import com.iflytek.integrated.platform.entity.TPlatform;
@@ -115,7 +114,6 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增or修改平台", notes = "新增or修改平台")
     @PostMapping("/saveAndUpdatePlatform")
-    @AvoidRepeatCommit
     public ResultDto saveAndUpdatePlatform(@RequestBody JSONObject jsonObj /**, @RequestParam String loginUserName*/) {
         //校验是否获取到登录用户
         String loginUserName = "1";
@@ -350,7 +348,6 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
 
     @ApiOperation(value = "更改启停用状态", notes = "更改启停用状态")
     @PostMapping("/updateStatus")
-    @AvoidRepeatCommit
     public ResultDto updateStatus(
             @ApiParam(value = "平台id") @RequestParam(value = "id", required = true) String id,  String loginUserName,//@RequestParam
             @ApiParam(value = "平台状态 1启用 2停用") @RequestParam(value = "platformStatus", required = true) String platformStatus) {

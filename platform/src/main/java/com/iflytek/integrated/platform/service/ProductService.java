@@ -3,7 +3,6 @@ package com.iflytek.integrated.platform.service;
 import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.*;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
-import com.iflytek.integrated.platform.annotation.AvoidRepeatCommit;
 import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.medicalboot.core.dto.PageRequest;
@@ -135,7 +134,6 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "产品管理新增/编辑")
     @PostMapping("/saveAndUpdateProduct")
-    @AvoidRepeatCommit
     public ResultDto saveAndUpdateProduct(@RequestBody JSONObject jsonObj/**, @RequestParam String loginUserName*/) {
         //校验是否获取到登录用户
         String loginUserName = "1";

@@ -6,7 +6,6 @@ import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
-import com.iflytek.integrated.platform.annotation.AvoidRepeatCommit;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.TProductFunctionLink;
 import com.iflytek.integrated.platform.entity.TProject;
@@ -95,7 +94,6 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增or修改项目", notes = "新增or修改项目")
     @PostMapping("/saveAndUpdateProject")
-    @AvoidRepeatCommit
     public ResultDto saveAndUpdateProject(@ApiParam(value = "保存项目-产品-功能信息") @RequestBody JSONObject jsonObj, @RequestParam String loginUserName) {
         String projectName = jsonObj.getString("projectName");
         if (StringUtils.isBlank(projectName)) {
@@ -218,7 +216,6 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
 
     @ApiOperation(value = "更改项目启用状态", notes = "更改项目启用状态")
     @PostMapping("/updateProjectStatus")
-    @AvoidRepeatCommit
     public ResultDto updateProjectStatus(@ApiParam(value = "项目id") @RequestParam(value = "id", required = true) String id, @RequestParam String loginUserName,
                                          @ApiParam(value = "项目状态 1启用 2停用") @RequestParam(value = "projectStatus", required = true) String projectStatus) {
         //校验是否获取到登录用户
