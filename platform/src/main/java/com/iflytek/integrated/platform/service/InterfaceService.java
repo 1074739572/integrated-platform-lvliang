@@ -440,7 +440,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                         qTInterfaceType.interfaceTypeCode,
                         qTInterfaceType.interfaceTypeName
                 )
-        ).from(qTInterfaceType).orderBy(qTInterfaceType.updatedTime.desc()).fetch();
+        ).from(qTInterfaceType).orderBy(qTInterfaceType.createdTime.desc()).fetch();
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", vendors);
     }
 
@@ -484,7 +484,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                     .groupBy(qTInterface.id)
                     .limit(pageSize)
                     .offset((pageNo - 1) * pageSize)
-                    .orderBy(qTInterface.updatedTime.desc())
+                    .orderBy(qTInterface.createdTime.desc())
                     .fetchResults();
         //分页
         TableData<TInterface> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
@@ -572,7 +572,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 //                .where(list.toArray(new Predicate[list.size()]))
 //                .limit(pageSize)
 //                .offset((pageNo - 1) * pageSize)
-//                .orderBy(qTBusinessInterface.updatedTime.desc())
+//                .orderBy(qTBusinessInterface.createdTime.desc())
 //                .fetchResults();
 //        //分页
 //        TableData<TBusinessInterface> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
@@ -849,11 +849,11 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                     .leftJoin(qTBusinessInterface).on(qTBusinessInterface.interfaceId.eq(qTInterface.id))
                     .leftJoin(qTProjectProductLink).on(qTProjectProductLink.productFunctionLinkId.eq(qTBusinessInterface.productFunctionLinkId))
                     .where(qTProjectProductLink.projectId.eq(projectId))
-                    .orderBy(qTInterface.updatedTime.desc()).fetch();
+                    .orderBy(qTInterface.createdTime.desc()).fetch();
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", interfaces);
         }
         //获取所有接口
-        interfaces = sqlQueryFactory.select(qTInterface).from(qTInterface) .orderBy(qTInterface.updatedTime.desc()).fetch();
+        interfaces = sqlQueryFactory.select(qTInterface).from(qTInterface) .orderBy(qTInterface.createdTime.desc()).fetch();
         if (StringUtils.isBlank(projectId)) {
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", interfaces);
         }
@@ -862,7 +862,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                     .leftJoin(qTBusinessInterface).on(qTBusinessInterface.interfaceId.eq(qTInterface.id))
                     .leftJoin(qTProjectProductLink).on(qTProjectProductLink.productFunctionLinkId.eq(qTBusinessInterface.productFunctionLinkId))
                     .where(qTProjectProductLink.projectId.eq(projectId))
-                    .orderBy(qTInterface.updatedTime.desc()).fetch();
+                    .orderBy(qTInterface.createdTime.desc()).fetch();
         //去除当前项目下的接口
         interfaces.removeAll(tiList);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", interfaces);

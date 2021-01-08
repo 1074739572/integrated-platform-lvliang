@@ -88,7 +88,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
                     .where(list.toArray(new Predicate[list.size()]))
                     .limit(pageSize)
                     .offset((pageNo - 1) * pageSize)
-                    .orderBy(qTHospital.updatedTime.desc())
+                    .orderBy(qTHospital.createdTime.desc())
                     .fetchResults();
             //分页
             TableData<THospital> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
@@ -169,7 +169,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
                         qTHospital.hospitalName,
                         qTHospital.hospitalCode
                 )
-            ).from(qTHospital).orderBy(qTHospital.updatedTime.desc()).fetch();
+            ).from(qTHospital).orderBy(qTHospital.createdTime.desc()).fetch();
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"医院配置信息获取成功", hospitals);
     }
 

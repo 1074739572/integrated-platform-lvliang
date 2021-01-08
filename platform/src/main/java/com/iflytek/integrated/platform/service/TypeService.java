@@ -50,7 +50,7 @@ public class TypeService extends QuerydslService<TType, String, TType, StringPat
                 Projections.bean(TType.class, qTType.id, qTType.type, qTType.typeCode, qTType.typeName))
                 .from(qTType)
                 .where(list.toArray(new Predicate[list.size()]))
-                .orderBy(qTType.updatedTime.desc())
+                .orderBy(qTType.createdTime.desc())
                 .fetch();
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", typeList);
     }

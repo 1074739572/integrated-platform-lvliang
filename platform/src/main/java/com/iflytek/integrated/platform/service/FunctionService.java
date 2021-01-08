@@ -47,7 +47,7 @@ public class FunctionService extends QuerydslService<TFunction, String, TFunctio
                         qTFunction.functionCode,
                         qTFunction.functionName
                 )
-        ).from(qTFunction).orderBy(qTFunction.updatedTime.desc()).fetch();
+        ).from(qTFunction).orderBy(qTFunction.createdTime.desc()).fetch();
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"获取产品功能下拉成功", functions);
     }
 

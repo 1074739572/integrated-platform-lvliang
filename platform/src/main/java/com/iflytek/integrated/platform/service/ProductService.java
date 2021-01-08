@@ -271,7 +271,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
                         qTProduct.productName,
                         qTProduct.productCode
                 )
-            ).from(qTProduct).orderBy(qTProduct.updatedTime.desc()).fetch();
+            ).from(qTProduct).orderBy(qTProduct.createdTime.desc()).fetch();
         //拼接方法列表
         for (TProduct product : products){
             List<TFunction> functions = sqlQueryFactory.select(
@@ -284,7 +284,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             ).from(qTFunction)
             .leftJoin(qTProductFunctionLink).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
             .where(qTProductFunctionLink.productId.eq(product.getId()))
-            .orderBy(qTFunction.updatedTime.desc()).fetch();
+            .orderBy(qTFunction.createdTime.desc()).fetch();
             product.setFunctions(functions);
         }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"选择产品下拉及其功能获取成功!", products);
@@ -312,7 +312,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
 //            ).from(qTFunction)
 //                    .leftJoin(qTProductFunctionLink).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
 //                    .where(qTProductFunctionLink.productId.eq(product.getId()))
-//                    .orderBy(qTFunction.updatedTime.desc()).fetch();
+//                    .orderBy(qTFunction.createdTime.desc()).fetch();
 //            product.setFunctions(functions);
 //        }
 //        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"选择产品下拉及其功能获取成功!", productList);
@@ -362,7 +362,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
                     .leftJoin(qTProductFunctionLink).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
                     .leftJoin(qTProjectProductLink).on(qTProjectProductLink.productFunctionLinkId.eq(qTProductFunctionLink.id))
                     .where(qTProductFunctionLink.productId.eq(productId).and(qTProjectProductLink.projectId.eq(projectId)))
-                    .orderBy(qTFunction.updatedTime.desc()).fetch();
+                    .orderBy(qTFunction.createdTime.desc()).fetch();
             tp.setFunctions(functions);
             rtnList.add(tp);
         }
@@ -389,7 +389,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
 //            ).from(qTFunction)
 //                    .leftJoin(qTProductFunctionLink).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
 //                    .where(qTProductFunctionLink.productId.eq(productId))
-//                    .orderBy(qTFunction.updatedTime.desc()).fetch();
+//                    .orderBy(qTFunction.createdTime.desc()).fetch();
 //            tp.setFunctions(functions);
 //            rtnList.add(tp);
 //        }

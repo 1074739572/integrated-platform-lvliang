@@ -179,7 +179,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
         QueryResults<TVendor> queryResults = sqlQueryFactory.select(qTVendor).from(qTVendor)
                 .where(list.toArray(new Predicate[list.size()]))
                 .limit(pageSize).offset((pageNo - 1) * pageSize)
-                .orderBy(qTVendor.updatedTime.desc())
+                .orderBy(qTVendor.createdTime.desc())
                 .fetchResults();
         //添加厂商驱动
         List<TVendor> rtnList = queryResults.getResults();
@@ -288,11 +288,11 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
                     .leftJoin(qTVendorConfig).on(qTVendorConfig.vendorId.eq(qTVendor.id))
                     .leftJoin(qTPlatform).on(qTPlatform.id.eq(qTVendorConfig.platformId))
                     .where(qTPlatform.projectId.eq(projectId))
-                    .orderBy(qTVendor.updatedTime.desc()).fetch();
+                    .orderBy(qTVendor.createdTime.desc()).fetch();
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", vendors);
         }
         //获取所有厂商
-        vendors = sqlQueryFactory.select(qTVendor).from(qTVendor) .orderBy(qTVendor.updatedTime.desc()).fetch();
+        vendors = sqlQueryFactory.select(qTVendor).from(qTVendor) .orderBy(qTVendor.createdTime.desc()).fetch();
         if (StringUtils.isBlank(projectId)) {
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", vendors);
         }
@@ -301,7 +301,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
                             .leftJoin(qTVendorConfig).on(qTVendorConfig.vendorId.eq(qTVendor.id))
                             .leftJoin(qTPlatform).on(qTPlatform.id.eq(qTVendorConfig.platformId))
                             .where(qTPlatform.projectId.eq(projectId))
-                            .orderBy(qTVendor.updatedTime.desc()).fetch();
+                            .orderBy(qTVendor.createdTime.desc()).fetch();
         //去除当前项目下的厂商
         vendors.removeAll(tvList);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", vendors);

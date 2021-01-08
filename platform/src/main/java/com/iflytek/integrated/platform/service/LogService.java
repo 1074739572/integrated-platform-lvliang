@@ -86,7 +86,7 @@ public class LogService extends QuerydslService<TLog, Long, TLog, NumberPath<Lon
                     .groupBy(qTInterfaceMonitor.platformId,qTInterfaceMonitor.projectId,qTInterfaceMonitor.productFunctionLinkId)
                     .limit(pageSize)
                     .offset((pageNo - 1) * pageSize)
-                    .orderBy(qTInterfaceMonitor.updatedTime.desc())
+                    .orderBy(qTInterfaceMonitor.createdTime.desc())
                     .fetchResults();
             //分页
             TableData<InterfaceMonitorDto> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());

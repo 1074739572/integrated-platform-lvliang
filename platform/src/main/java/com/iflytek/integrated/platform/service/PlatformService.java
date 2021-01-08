@@ -99,7 +99,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
              .where(list.toArray(new Predicate[list.size()]))
              .limit(pageSize)
              .offset((pageNo - 1) * pageSize)
-             .orderBy(qTPlatform.updatedTime.desc(),qTPlatform.createdTime.desc())
+             .orderBy(qTPlatform.createdTime.desc())
              .fetchResults();
             //分页
             TableData<TPlatform> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());

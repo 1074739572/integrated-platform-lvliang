@@ -80,7 +80,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
                         qTDrive.driveCode,
                         qTDrive.driveName
                 )
-        ).from(qTDrive).orderBy(qTDrive.updatedTime.desc()).fetch();
+        ).from(qTDrive).orderBy(qTDrive.createdTime.desc()).fetch();
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"",drives);
     }
 
@@ -133,7 +133,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
                     .leftJoin(qTType).on(qTType.id.eq(qTDrive.typeId))
                     .limit(pageSize)
                     .offset((pageNo - 1) * pageSize)
-                    .orderBy(qTDrive.updatedTime.desc())
+                    .orderBy(qTDrive.createdTime.desc())
                     .fetchResults();
             //分页
             TableData<TDrive> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
@@ -222,14 +222,14 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
     @GetMapping("/getDriveChoiceList")
     public ResultDto getDriveChoiceList() {
         //获取驱动类型list
-        List<TType> typeList = sqlQueryFactory.select(qTType).from(qTType).where(qTType.type.eq(Constant.TypeStatus.DRIVE)).orderBy(qTType.updatedTime.desc()).fetch();
+        List<TType> typeList = sqlQueryFactory.select(qTType).from(qTType).where(qTType.type.eq(Constant.TypeStatus.DRIVE)).orderBy(qTType.createdTime.desc()).fetch();
 
         JSONArray rtnArr = new JSONArray();
         for (TType tt : typeList) {
             JSONObject jsonObj = new JSONObject();
             jsonObj.put("id", tt.getId());
             jsonObj.put("name", tt.getTypeName());
-            List<TDrive> driveList = sqlQueryFactory.select(qTDrive).from(qTDrive).where(qTDrive.typeId.eq(tt.getId())).orderBy(qTDrive.updatedTime.desc()).fetch();
+            List<TDrive> driveList = sqlQueryFactory.select(qTDrive).from(qTDrive).where(qTDrive.typeId.eq(tt.getId())).orderBy(qTDrive.createdTime.desc()).fetch();
             JSONArray arr = new JSONArray();
             for (TDrive td : driveList) {
                 JSONObject obj = new JSONObject();

@@ -74,14 +74,14 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
     @GetMapping("/getDisPlugin")
     public ResultDto getDisPlugin() {
         //获取插件类型list
-        List<TType> typeList = sqlQueryFactory.select(qTType).from(qTType).where(qTType.type.eq(Constant.TypeStatus.PLUGIN)).orderBy(qTType.updatedTime.desc()).fetch();
+        List<TType> typeList = sqlQueryFactory.select(qTType).from(qTType).where(qTType.type.eq(Constant.TypeStatus.PLUGIN)).orderBy(qTType.createdTime.desc()).fetch();
 
         JSONArray rtnArr = new JSONArray();
         for (TType tt : typeList) {
             JSONObject jsonObj = new JSONObject();
             jsonObj.put("typeId", tt.getId());
             jsonObj.put("name", tt.getTypeName());
-            List<TPlugin> pluginList = sqlQueryFactory.select(qTPlugin).from(qTPlugin).where(qTPlugin.typeId.eq(tt.getId())).orderBy(qTPlugin.updatedTime.desc()).fetch();
+            List<TPlugin> pluginList = sqlQueryFactory.select(qTPlugin).from(qTPlugin).where(qTPlugin.typeId.eq(tt.getId())).orderBy(qTPlugin.createdTime.desc()).fetch();
             JSONArray arr = new JSONArray();
             for (TPlugin tp : pluginList) {
                 JSONObject obj = new JSONObject();
@@ -129,7 +129,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
                     .where(list.toArray(new Predicate[list.size()]))
                     .limit(pageSize)
                     .offset((pageNo - 1) * pageSize)
-                    .orderBy(qTPlugin.updatedTime.desc())
+                    .orderBy(qTPlugin.createdTime.desc())
                     .fetchResults();
             //分页
             TableData<TPlugin> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());

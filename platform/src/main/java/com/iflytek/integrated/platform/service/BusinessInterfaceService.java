@@ -121,7 +121,7 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
 //                .from(qTBusinessInterface)
 //                .leftJoin(qTVendorConfig).on(qTVendorConfig.id.eq(qTBusinessInterface.vendorConfigId))
 //                .where(list.toArray(new Predicate[list.size()]))
-//                .orderBy(qTBusinessInterface.updatedTime.desc())
+//                .orderBy(qTBusinessInterface.createdTime.desc())
 //                .limit(pageSize)
 //                .offset((pageNo - 1) * pageSize)
 //                .fetchResults();
@@ -160,7 +160,7 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
                 .leftJoin(qTVendorConfig).on(qTVendorConfig.id.eq(qTBusinessInterface.vendorConfigId))
                 .where(list.toArray(new Predicate[list.size()]))
                 .groupBy(qTBusinessInterface.productFunctionLinkId,qTBusinessInterface.interfaceId,qTBusinessInterface.vendorConfigId)
-                .orderBy(qTBusinessInterface.updatedTime.desc())
+                .orderBy(qTBusinessInterface.createdTime.desc())
                 .limit(pageSize)
                 .offset((pageNo - 1) * pageSize)
                 .fetchResults();

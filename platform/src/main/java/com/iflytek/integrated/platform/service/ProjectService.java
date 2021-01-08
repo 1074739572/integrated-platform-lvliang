@@ -86,7 +86,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
                 .where(list.toArray(new Predicate[list.size()]))
                 .limit(pageSize)
                 .offset((pageNo - 1) * pageSize)
-                .orderBy(qTProject.updatedTime.desc()).fetchResults();
+                .orderBy(qTProject.createdTime.desc()).fetchResults();
         TableData<TProject> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取项目信息成功!", tableData);
     }
