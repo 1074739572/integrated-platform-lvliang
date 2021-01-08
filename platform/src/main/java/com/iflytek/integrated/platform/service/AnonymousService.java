@@ -3,6 +3,7 @@ package com.iflytek.integrated.platform.service;
 import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.utils.XmlJsonUtils;
+import com.iflytek.integrated.common.utils.ase.AesUtil;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.kvn.mockj.Mock;
@@ -64,6 +65,26 @@ public class AnonymousService {
     public ResultDto mock(@RequestBody String mock) {
         String type = Utils.strIsJsonOrXml(mock);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", resultMock(mock, type));
+    }
+
+    @ApiOperation(value = "encrypt")
+    @PostMapping("/encrypt")
+    public ResultDto encrypt(String content){
+        try {
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", AesUtil.encrypt(content));
+        }catch (Exception e){
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "加密失败");
+        }
+    }
+
+    @ApiOperation(value = "decrypt")
+    @PostMapping("/decrypt")
+    public ResultDto decrypt(String content){
+        try {
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", AesUtil.decrypt(content));
+        }catch (Exception e){
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "解密失败");
+        }
     }
 
     /**

@@ -39,18 +39,23 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
         super(qTBusinessInterface, qTBusinessInterface.id);
     }
 
-
     /**
      *  更改mock状态
      * @param id
      * @param mockStatus
      */
     public void updateMockStatus(String id, String mockStatus, String loginUserName) {
-        sqlQueryFactory.update(qTBusinessInterface)
+        //获取多接口，多个接口的id集合
+        List<String> idList = busInterfaceIds(id);
+        long size = sqlQueryFactory.update(qTBusinessInterface)
                 .set(qTBusinessInterface.mockStatus, mockStatus)
                 .set(qTBusinessInterface.updatedTime, new Date())
                 .set(qTBusinessInterface.updatedBy, loginUserName)
-            .where(qTBusinessInterface.id.eq(id)).execute();
+            .where(qTBusinessInterface.id.in(idList)).execute();
+        //判断编辑是否成功
+        if(idList.size() != size){
+            throw new RuntimeException("mock状态编辑失败");
+        }
     }
 
     /**
@@ -59,11 +64,17 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
      * @param status
      */
     public void updateStatus(String id, String status, String loginUserName) {
-        sqlQueryFactory.update(qTBusinessInterface)
+        //获取多接口，多个接口的id集合
+        List<String> idList = busInterfaceIds(id);
+        long size = sqlQueryFactory.update(qTBusinessInterface)
                 .set(qTBusinessInterface.status, status)
                 .set(qTBusinessInterface.updatedTime, new Date())
                 .set(qTBusinessInterface.updatedBy, loginUserName)
-            .where(qTBusinessInterface.id.eq(id)).execute();
+            .where(qTBusinessInterface.id.in(idList)).execute();
+        //判断编辑是否成功
+        if(idList.size() != size){
+            throw new RuntimeException("启停用状态编辑失败");
+        }
     }
 
     /**
@@ -259,4 +270,31 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
         return list;
     }
 
+    /**
+     * 根据id，获取id的list
+     * @return
+     */
+    private List<String> busInterfaceIds(String id){
+        TBusinessInterface businessInterface = getOne(id);
+        if(businessInterface == null){
+            throw new RuntimeException("没有找到接口配置");
+        }
+        ArrayList<Predicate> list = new ArrayList<>();
+        if(StringUtils.isNotBlank(businessInterface.getInterfaceId())){
+            list.add(qTBusinessInterface.interfaceId.eq(businessInterface.getInterfaceId()));
+        }
+        if(StringUtils.isNotBlank(businessInterface.getProductFunctionLinkId())){
+            list.add(qTBusinessInterface.productFunctionLinkId.eq(businessInterface.getProductFunctionLinkId()));
+        }
+        if(StringUtils.isNotBlank(businessInterface.getVendorConfigId())){
+            list.add(qTBusinessInterface.vendorConfigId.eq(businessInterface.getVendorConfigId()));
+        }
+        //获取id集合
+        List<String> idList = sqlQueryFactory.select(qTBusinessInterface.id)
+                .from(qTBusinessInterface).where(list.toArray(new Predicate[list.size()])).fetch();
+        if(CollectionUtils.isEmpty(idList)){
+            throw new RuntimeException("没有找到多接口配置id集合");
+        }
+        return idList;
+    }
 }

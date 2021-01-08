@@ -90,6 +90,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 
     @ApiOperation(value = "更改mock状态", notes = "更改mock状态")
     @PostMapping("/updateMockStatus")
+    @Transactional(rollbackFor = Exception.class)
     public ResultDto updateMockStatus(@ApiParam(value = "接口配置") @RequestParam(value = "id", required = true) String id,
                                       @ApiParam(value = "更改后的状态") @RequestParam(value = "mockStatus", required = true) String mockStatus,
                                       @RequestParam String loginUserName) {
@@ -103,6 +104,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 
     @ApiOperation(value = "更改接口配置状态", notes = "更改接口配置状态")
     @PostMapping("/updateStatus")
+    @Transactional(rollbackFor = Exception.class)
     public ResultDto updateStatus(@ApiParam(value = "接口配置") @RequestParam(value = "id", required = true) String id,
                                   @ApiParam(value = "更改后的状态") @RequestParam(value = "status", required = true) String status,
                                   @RequestParam String loginUserName) {
@@ -131,6 +133,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 
     @ApiOperation(value = "保存mock模板", notes = "保存mock模板")
     @PostMapping("/saveMockTemplate")
+    @Transactional(rollbackFor = Exception.class)
     public ResultDto saveMockTemplate(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id,
                                      @ApiParam(value = "mock模板") @RequestParam(value = "mockTemplate", required = true) String mockTemplate,
                                       @RequestParam String loginUserName) {
@@ -911,7 +914,6 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         }
         return sqlQueryFactory.select(qTInterface).from(qTInterface).where(qTInterface.interfaceName.eq(interfaceName)).fetchFirst();
     }
-
 
     /**
      * 更新redis记录
