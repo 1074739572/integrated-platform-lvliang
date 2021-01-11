@@ -108,10 +108,10 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         if(hospitals == null || hospitals.size() == 0){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "不存在该医院", "不存在该医院");
         }
-        //删除前校验改医院是否关联厂商
+        //删除前校验该医院是否关联厂商
         List<THospitalVendorLink> thvlList = hospitalVendorLinkService.getThvlListByHospitalId(id);
         if (CollectionUtils.isNotEmpty(thvlList)) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该医院已有厂商想关联,无法删除!", "该医院已有厂商想关联,无法删除!");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该医院已有厂商相关联,无法删除!", "该医院已有厂商相关联,无法删除!");
         }
         //逻辑删除
         Long lon = sqlQueryFactory.update(qTHospital).set(qTHospital.status, Constant.Status.NO)
@@ -125,13 +125,14 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "医院管理新增/编辑")
     @PostMapping("/saveAndUpdateHospital")
-    public ResultDto saveAndUpdateHospital(@RequestBody THospital hospital, @RequestParam String loginUserName){
+    public ResultDto saveAndUpdateHospital(@RequestBody THospital hospital/**, @RequestParam String loginUserName*/){
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(hospital);
         if (validationResult.isHasErrors()) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, validationResult.getErrorMsg(), validationResult.getErrorMsg());
         }
         //校验是否获取到登录用户
+        String loginUserName = "1";
         if(StringUtils.isBlank(loginUserName)){
             throw new RuntimeException("没有获取到登录用户");
         }
@@ -167,7 +168,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
                         qTHospital.hospitalName,
                         qTHospital.hospitalCode
                 )
-            ).from(qTHospital).orderBy(qTHospital.createdTime.desc()).fetch();
+            ).from(qTHospital).where(qTHospital.status.eq(Constant.Status.YES)).orderBy(qTHospital.createdTime.desc()).fetch();
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"医院配置信息获取成功", hospitals);
     }
 

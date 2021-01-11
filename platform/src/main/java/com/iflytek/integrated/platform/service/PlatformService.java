@@ -6,6 +6,7 @@ import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.THospitalVendorLink;
 import com.iflytek.integrated.platform.entity.TPlatform;
@@ -52,6 +53,8 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
     private VendorConfigService vendorConfigService;
     @Autowired
     private HospitalVendorLinkService hospitalVendorLinkService;
+    @Autowired
+    private BusinessInterfaceService businessInterfaceService;
     @Autowired
     private BatchUidService batchUidService;
     @Autowired
@@ -360,12 +363,48 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
     }
 
 
+    @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "删除平台", notes = "删除平台")
     @PostMapping("/deletePlatform")
     public ResultDto deletePlatform(@ApiParam(value = "平台id") @RequestParam(value = "id", required = true) String id) {
+        TPlatform tp = this.getOne(id);
+        if (tp == null) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该平台不存在!", "该平台不存在!");
+        }
         //删除平台
-        this.delete(id);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "删除平台成功!", id);
+        long count = this.delete(id);
+        if (count <= 0) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "平台删除失败!", "平台删除失败!");
+        }
+        //获取平台下所有厂商配置
+        List<TVendorConfig> tvcList = vendorConfigService.getObjByPlatformId(id);
+        count = 0;
+        for (TVendorConfig tvc : tvcList) {
+            //删除医院与厂商配置关联信息
+            count += hospitalVendorLinkService.deleteByVendorConfigId(tvc.getId());
+        }
+
+        //删除平台下所有关联的接口配置
+        List<TBusinessInterface> tbiList = businessInterfaceService.getListByPlatform(id);
+        for (TBusinessInterface tbi : tbiList) {
+            businessInterfaceService.delete(tbi.getId());
+        }
+        //删除平台下的所有厂商配置信息
+        long vcCount = vendorConfigService.delVendorConfigAll(id);
+
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "平台"+tp.getPlatformName()+"删除成功,同时删除该平台下"+vcCount+"条厂商配置,"+count+"条厂商医院配置!",
+                "平台"+tp.getPlatformName()+"删除成功,同时删除该平台下"+vcCount+"条厂商配置,"+count+"条厂商医院配置!");
+    }
+
+    /**
+     * 获取项目下所有平台信息
+     * @param projectId
+     * @return
+     */
+    public List<TPlatform> getListByProjectId(String projectId) {
+        List<TPlatform> list = sqlQueryFactory.select(qTPlatform).from(qTPlatform)
+                .where(qTPlatform.projectId.eq(projectId)).fetch();
+        return list;
     }
 
 

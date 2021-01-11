@@ -73,8 +73,8 @@ public class VendorConfigService extends QuerydslService<TVendorConfig, String, 
      * 删除平台下所有厂商配置信息
      * @param platformId
      */
-    public void delVendorConfigAll(String platformId) {
-        sqlQueryFactory.delete(qTVendorConfig).where(qTVendorConfig.platformId.eq(platformId)).execute();
+    public long delVendorConfigAll(String platformId) {
+        return sqlQueryFactory.delete(qTVendorConfig).where(qTVendorConfig.platformId.eq(platformId)).execute();
     }
 
 

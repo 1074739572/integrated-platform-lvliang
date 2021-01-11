@@ -220,9 +220,13 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 //            if (CollectionUtils.isNotEmpty(tpilList)) {
 //                return new ResultDto(Constant.ResultCode.ERROR_CODE, "该标准接口已有产品关联,暂无法删除!", "该标准接口已有产品关联,暂无法删除!");
 //            }
-            //校验该接口是否有接口配置关联
+            //校验该接口是否有产品关联
             TBusinessInterface tbi = businessInterfaceService.getProductIdByInterfaceId(id);
             if (tbi != null && StringUtils.isNotBlank(tbi.getId())) {
+                return new ResultDto(Constant.ResultCode.ERROR_CODE, "该标准接口已有产品关联,暂无法删除!", "该标准接口已有产品关联,暂无法删除!");
+            }
+            List<TBusinessInterface> list = businessInterfaceService.getListByInterfaceId(id);
+            if (CollectionUtils.isNotEmpty(list)) {
                 return new ResultDto(Constant.ResultCode.ERROR_CODE, "该标准接口已有接口配置关联,暂无法删除!", "该标准接口已有接口配置关联,暂无法删除!");
             }
             //删除接口
@@ -662,7 +666,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         //获取厂商配置
         String vendorConfigId = "";
         if (StringUtils.isBlank(dto.getVendorConfigId())) {
-            TVendorConfig tvc = vendorConfigService.getObjByPlatformAndVendor(dto.getPlatformId(), dto.getVendorId());
+            TVendorConfig tvc = vendorConfigService.getObjByPlatformAndVendor(dto.getPlatformId(), dto.getVendorId());//???
             vendorConfigId = tvc!=null?tvc.getId():null;
         }else {
             vendorConfigId = dto.getVendorConfigId();

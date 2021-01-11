@@ -40,9 +40,9 @@ public class HospitalVendorLinkService extends QuerydslService<THospitalVendorLi
      * 删除厂商配置的关联医院信息
      * @param vendorConfigId
      */
-    public void deleteByVendorConfigId(String vendorConfigId) {
-        sqlQueryFactory.delete(qTHospitalVendorLink)
-                .where(qTHospitalVendorLink.vendorConfigId.eq(vendorConfigId)).execute();
+    public long deleteByVendorConfigId(String vendorConfigId) {
+        return sqlQueryFactory.delete(qTHospitalVendorLink)
+                    .where(qTHospitalVendorLink.vendorConfigId.eq(vendorConfigId)).execute();
     }
 
     /**

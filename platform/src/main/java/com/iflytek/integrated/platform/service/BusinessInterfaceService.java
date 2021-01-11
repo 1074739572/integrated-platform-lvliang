@@ -136,6 +136,15 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
     }
 
     /**
+     * 根据标准接口id获取接口配置id(获取标准接口详情使用)
+     * @param interfaceId
+     */
+    public List<TBusinessInterface> getListByInterfaceId(String interfaceId) {
+        return sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
+                .where(qTBusinessInterface.interfaceId.eq(interfaceId)).fetch();
+    }
+
+    /**
      * 获取接口配置信息列表
      * @param platformId
      * @param status
@@ -303,6 +312,20 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
                 .fetch();
         return list;
     }
+
+
+    /**
+     * 获取平台下的所有接口配置信息
+     * @param platformId
+     */
+    public List<TBusinessInterface> getListByPlatform(String platformId) {
+        List<TBusinessInterface> list = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
+                .leftJoin(qTVendorConfig).on(qTBusinessInterface.vendorConfigId.eq(qTVendorConfig.id))
+                .where(qTVendorConfig.platformId.eq(platformId))
+                .fetch();
+        return list;
+    }
+
 
     /**
      * 根据id，获取id的list

@@ -92,15 +92,15 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         if(functionLink == null){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有找到该产品功能,删除失败!", "没有找到该产品功能,删除失败!");
         }
-        //删除产品功能关联关系前先查询该关联数据是否有项目相关联
-        List<TProjectProductLink> tpplList = projectProductLinkService.findProjectProductLinkByPflId(id);
-        if (CollectionUtils.isNotEmpty(tpplList)) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该产品功能已与项目关联,无法删除!", "该产品功能已与项目关联,无法删除!");
-        }
         //删除产品功能关联关系前先查询该关联数据是否有接口配置相关联
         List<TBusinessInterface> tbiList = businessInterfaceService.getListByProductFunctionLinkId(id);
         if (CollectionUtils.isNotEmpty(tbiList)) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "该产品功能已与接口配置关联,无法删除!", "该产品功能已与接口配置关联,无法删除!");
+        }
+        //删除产品功能关联关系前先查询该关联数据是否有项目相关联
+        List<TProjectProductLink> tpplList = projectProductLinkService.findProjectProductLinkByPflId(id);
+        if (CollectionUtils.isNotEmpty(tpplList)) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该产品功能已与项目关联,无法删除!", "该产品功能已与项目关联,无法删除!");
         }
 
         //删除产品和功能的关联关系
