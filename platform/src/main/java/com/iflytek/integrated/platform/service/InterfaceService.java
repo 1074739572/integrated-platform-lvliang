@@ -14,6 +14,8 @@ import com.iflytek.integrated.platform.utils.ToolsGenerate;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.dto.InterfaceDto;
 import com.iflytek.integrated.platform.entity.*;
+import com.iflytek.integrated.platform.validator.ValidationResult;
+import com.iflytek.integrated.platform.validator.ValidatorHelper;
 import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
@@ -82,6 +84,8 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     private ToolsGenerate toolsGenerate;
     @Resource
     private RedisUtil redisUtil;
+    @Autowired
+    private ValidatorHelper validatorHelper;
 
     private static final Logger logger = LoggerFactory.getLogger(InterfaceService.class);
 
@@ -152,6 +156,11 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             throw new RuntimeException("没有获取到mock模板");
         }
         for (MockTemplateDto dto : dtoList){
+            //校验参数是否完整
+            ValidationResult validationResult = validatorHelper.validate(dto);
+            if (validationResult.isHasErrors()) {
+                throw new RuntimeException(validationResult.getErrorMsg());
+            }
             //校验mock模板格式是否正确
             Utils.strIsJsonOrXml(dto.getMockTemplate());
             long lon = businessInterfaceService.saveMockTemplate(dto.getId(),
