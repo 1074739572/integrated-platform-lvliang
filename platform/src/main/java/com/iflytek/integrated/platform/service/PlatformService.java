@@ -123,6 +123,13 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
         if(StringUtils.isBlank(loginUserName)){
             throw new RuntimeException("没有获取到登录用户");
         }
+        //平台名称校验
+        String platformName = jsonObj.getString("platformName");
+        boolean isExist = getPlatformNameIsExistByProjectId(jsonObj.getString("projectId"), platformName);
+        if (isExist) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "平台名称为空或此项目下该名称已存在!", platformName);
+        }
+
         if (StringUtils.isBlank(jsonObj.getString("id"))) {
             return savePlatform(jsonObj,loginUserName);
         }
@@ -405,6 +412,25 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
         List<TPlatform> list = sqlQueryFactory.select(qTPlatform).from(qTPlatform)
                 .where(qTPlatform.projectId.eq(projectId)).fetch();
         return list;
+    }
+
+    /**
+     * 校验项目下是否有相同平台名称
+     * @param projectId
+     * @param platformName
+     * @return
+     */
+    public boolean getPlatformNameIsExistByProjectId(String projectId, String platformName) {
+        if (StringUtils.isBlank(platformName)) {
+            return true;
+        }
+        TPlatform tp = sqlQueryFactory.select(qTPlatform).from(qTPlatform)
+                .where(qTPlatform.projectId.eq(projectId).and(qTPlatform.platformName.eq(platformName.trim())))
+                .fetchFirst();
+        if (tp != null) {
+            return true;
+        }
+        return false;
     }
 
 

@@ -233,6 +233,7 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
                                         .where(qTBusinessInterface.productFunctionLinkId.eq(productFunctionLinkId)
                                                 .and(qTBusinessInterface.interfaceId.eq(interfaceId)
                                                 .and(qTBusinessInterface.vendorConfigId.eq(vendorConfigId))))
+                                        .orderBy(qTBusinessInterface.excErrOrder.asc())
                                         .fetch();
         return list;
     }
