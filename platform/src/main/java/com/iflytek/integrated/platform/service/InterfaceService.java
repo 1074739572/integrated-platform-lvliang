@@ -9,6 +9,7 @@ import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.common.utils.RedisUtil;
 import com.iflytek.integrated.platform.dto.BusinessInterfaceDto;
 import com.iflytek.integrated.platform.dto.InDebugResDto;
+import com.iflytek.integrated.platform.dto.MockTemplateDto;
 import com.iflytek.integrated.platform.utils.ToolsGenerate;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.dto.InterfaceDto;
@@ -120,32 +121,47 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @ApiOperation(value = "获取mock模板", notes = "获取mock模板")
     @GetMapping("/getMockTemplate")
     public ResultDto getMockTemplate(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
-        TBusinessInterface obj = businessInterfaceService.getOne(id);
-        if(obj == null || StringUtils.isEmpty(obj.getId())){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有找到接口", id);
+        List<TBusinessInterface> interfaces = businessInterfaceService.busInterfaces(id);
+        if(CollectionUtils.isEmpty(interfaces)){
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有找到接口配置", id);
         }
-        String template = obj.getMockTemplate();
-        if(StringUtils.isEmpty(template)){
-            //如果没有出参模板，获取出参格式
-            template = obj.getOutParamFormat();
+        List<MockTemplateDto> dtoList = new ArrayList<>();
+        for(TBusinessInterface businessInterface : interfaces){
+            MockTemplateDto dto = new  MockTemplateDto(
+                    businessInterface.getId(),
+                    //如果mock模板为空，取出参的格式，作为初始的mock模板
+                    StringUtils.isNotBlank(businessInterface.getMockTemplate())?
+                            businessInterface.getMockTemplate():businessInterface.getOutParamFormat(),
+                    businessInterface.getMockStatus(),
+                    businessInterface.getMockIsUse(),
+                    businessInterface.getExcErrOrder()
+            );
+            dtoList.add(dto);
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取mock模板成功!", template);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取mock模板成功!", dtoList);
     }
 
     @ApiOperation(value = "保存mock模板", notes = "保存mock模板")
     @PostMapping("/saveMockTemplate")
     @Transactional(rollbackFor = Exception.class)
-    public ResultDto saveMockTemplate(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id,
-                                     @ApiParam(value = "mock模板") @RequestParam(value = "mockTemplate", required = true) String mockTemplate,
-                                      @RequestParam String loginUserName) {
+    public ResultDto saveMockTemplate(@RequestBody List<MockTemplateDto> dtoList, @RequestParam String loginUserName) {
         //校验是否获取到登录用户
         if(StringUtils.isBlank(loginUserName)){
             throw new RuntimeException("没有获取到登录用户");
         }
-        //校验mock模板格式是否正确
-        Utils.strIsJsonOrXml(mockTemplate);
-        businessInterfaceService.saveMockTemplate(id, mockTemplate, loginUserName);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "保存mock模板成功!", id);
+        if(CollectionUtils.isEmpty(dtoList)){
+            throw new RuntimeException("没有获取到mock模板");
+        }
+        for (MockTemplateDto dto : dtoList){
+            //校验mock模板格式是否正确
+            Utils.strIsJsonOrXml(dto.getMockTemplate());
+            long lon = businessInterfaceService.saveMockTemplate(dto.getId(),
+                    dto.getMockTemplate(), dto.getMockIsUse(), loginUserName);
+            if(lon <= 0){
+                throw new RuntimeException("保存mock模板失败");
+            }
+        }
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "保存mock模板成功!", "");
     }
 
     @ApiOperation(value = "获取接口调试显示数据", notes = "获取接口调试显示数据")

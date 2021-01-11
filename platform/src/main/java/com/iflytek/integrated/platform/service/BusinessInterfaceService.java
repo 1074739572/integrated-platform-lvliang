@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
 import static com.iflytek.integrated.platform.entity.QTHospitalVendorLink.qTHospitalVendorLink;
@@ -115,10 +116,12 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
      *  保存mock模板
      * @param id
      * @param mockTemplate
+     * @param mockIsUse
      */
-    public void saveMockTemplate(String id, String mockTemplate, String loginUserName) {
-        sqlQueryFactory.update(qTBusinessInterface)
+    public Long saveMockTemplate(String id, String mockTemplate,Integer mockIsUse, String loginUserName) {
+        return sqlQueryFactory.update(qTBusinessInterface)
                 .set(qTBusinessInterface.mockTemplate, mockTemplate)
+                .set(qTBusinessInterface.mockIsUse, mockIsUse)
                 .set(qTBusinessInterface.updatedTime, new Date())
                 .set(qTBusinessInterface.updatedBy, loginUserName)
             .where(qTBusinessInterface.id.eq(id)).execute();
@@ -327,12 +330,12 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
         return list;
     }
 
-
     /**
-     * 根据id，获取id的list
+     * 根据id获取多接口配置下全部接口
+     * @param id
      * @return
      */
-    private List<String> busInterfaceIds(String id){
+    public List<TBusinessInterface> busInterfaces(String id){
         TBusinessInterface businessInterface = getOne(id);
         if(businessInterface == null){
             throw new RuntimeException("没有找到接口配置");
@@ -347,13 +350,22 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
         if(StringUtils.isNotBlank(businessInterface.getVendorConfigId())){
             list.add(qTBusinessInterface.vendorConfigId.eq(businessInterface.getVendorConfigId()));
         }
-        //获取id集合
-        List<String> idList = sqlQueryFactory.select(qTBusinessInterface.id)
-                .from(qTBusinessInterface).where(list.toArray(new Predicate[list.size()])).fetch();
-        if(CollectionUtils.isEmpty(idList)){
-            throw new RuntimeException("没有找到多接口配置id集合");
+        List<TBusinessInterface> interfaces = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
+            .where(list.toArray(new Predicate[list.size()])).orderBy(qTBusinessInterface.excErrOrder.asc()).fetch();
+        if(CollectionUtils.isEmpty(interfaces)){
+            throw new RuntimeException("没有找到多接口配置集合");
         }
-        return idList;
+        return interfaces;
+    }
+
+    /**
+     * 根据id，获取id的list
+     * @return
+     */
+    private List<String> busInterfaceIds(String id){
+        //获取id集合
+        List<TBusinessInterface> interfaces = busInterfaces(id);
+        return interfaces.stream().map(TBusinessInterface::getId).collect(Collectors.toList());
     }
 
 }
