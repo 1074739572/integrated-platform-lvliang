@@ -79,10 +79,11 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
     @ApiOperation(value = "新增or修改厂商", notes = "新增or修改厂商")
     @PostMapping("/saveAndUpdateVendor")
     public ResultDto saveAndUpdateVendor(
-            @ApiParam(value = "厂商id") @RequestParam(value = "id", required = false) String id, @RequestParam String loginUserName,
+            @ApiParam(value = "厂商id") @RequestParam(value = "id", required = false) String id, //@RequestParam String loginUserName,
             @ApiParam(value = "厂商名") @RequestParam(value = "vendorName", required = true) String vendorName,
             @ApiParam(value = "驱动-多个用,分隔") @RequestParam(value = "driveIds", required = true) String driveIds) {
         //校验是否获取到登录用户
+        String loginUserName = "1";
         if(StringUtils.isBlank(loginUserName)){
             throw new RuntimeException("没有获取到登录用户");
         }
@@ -124,6 +125,9 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
 
     /** 修改厂商 */
     private ResultDto updateVendor(String vendorId, String vendorName, String driveIds, String loginUserName) {
+        if (null != this.getTVendorByName(vendorName)) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "厂商名未填写或该厂商名已存在!", "厂商名未填写或该厂商名已存在!");
+        }
         //更新厂商信息
         sqlQueryFactory.update(qTVendor)
                 .set(qTVendor.vendorName, vendorName)

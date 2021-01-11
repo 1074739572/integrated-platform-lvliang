@@ -804,6 +804,21 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     }
 
 
+    @ApiOperation(value = "根据id删除单个接口配置信息", notes = "根据id删除单个接口配置信息")
+    @PostMapping("/deleteBusinessInterfaceById")
+    public ResultDto deleteBusinessInterfaceById(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
+        TBusinessInterface tbi = businessInterfaceService.getOne(id);
+        if (tbi == null) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据id未查出该接口配置信息!", id);
+        }
+        long count = businessInterfaceService.delete(id);
+        if (count < 1) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据id删除该接口配置信息失败!", id);
+        }
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "单个接口配置信息删除成功!", "单个接口配置信息删除成功!");
+    }
+
+
     @ApiOperation(value = "获取标准接口详情", notes = "获取标准接口详情")
     @GetMapping("/getInterfaceInfoById")
     public ResultDto getInterfaceInfoById(@ApiParam(value = "标准接口id") @RequestParam(value = "id", required = true) String id) {
