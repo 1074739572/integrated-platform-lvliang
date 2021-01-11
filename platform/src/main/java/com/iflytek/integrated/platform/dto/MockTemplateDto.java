@@ -14,17 +14,13 @@ public class MockTemplateDto {
 
     String mockTemplate;
 
-    String mockStatus;
-
     Integer mockIsUse;
 
     Integer excErrOrder;
 
-    public MockTemplateDto(String id, String mockTemplate, String mockStatus,
-                           Integer mockIsUse, Integer excErrOrder){
+    public MockTemplateDto(String id, String mockTemplate, Integer mockIsUse, Integer excErrOrder){
         this.id = id;
         this.mockTemplate = mockTemplate;
-        this.mockStatus = mockStatus;
         this.mockIsUse = mockIsUse;
         this.excErrOrder = excErrOrder;
     }

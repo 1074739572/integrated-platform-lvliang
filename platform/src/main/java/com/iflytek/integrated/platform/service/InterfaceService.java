@@ -132,7 +132,6 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                     //如果mock模板为空，取出参的格式，作为初始的mock模板
                     StringUtils.isNotBlank(businessInterface.getMockTemplate())?
                             businessInterface.getMockTemplate():businessInterface.getOutParamFormat(),
-                    businessInterface.getMockStatus(),
                     businessInterface.getMockIsUse(),
                     businessInterface.getExcErrOrder()
             );
