@@ -124,8 +124,9 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
             throw new RuntimeException("没有获取到登录用户");
         }
         //平台名称校验
+        String platformId = jsonObj.getString("id");
         String platformName = jsonObj.getString("platformName");
-        boolean isExist = getPlatformNameIsExistByProjectId(jsonObj.getString("projectId"), platformName);
+        boolean isExist = getPlatformNameIsExistByProjectId(platformId, jsonObj.getString("projectId"), platformName);
         if (isExist) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "平台名称为空或此项目下该名称已存在!", platformName);
         }
@@ -416,16 +417,23 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
 
     /**
      * 校验项目下是否有相同平台名称
+     * @param platformId
      * @param projectId
      * @param platformName
      * @return
      */
-    public boolean getPlatformNameIsExistByProjectId(String projectId, String platformName) {
+    public boolean getPlatformNameIsExistByProjectId(String platformId, String projectId, String platformName) {
         if (StringUtils.isBlank(platformName)) {
             return true;
         }
+        ArrayList<Predicate> list = new ArrayList<>();
+        list.add(qTPlatform.projectId.eq(projectId));
+        list.add(qTPlatform.platformName.eq(platformName.trim()));
+        if(StringUtils.isNotEmpty(platformId)) {
+            list.add(qTPlatform.id.notEqualsIgnoreCase(platformId));
+        }
         TPlatform tp = sqlQueryFactory.select(qTPlatform).from(qTPlatform)
-                .where(qTPlatform.projectId.eq(projectId).and(qTPlatform.platformName.eq(platformName.trim())))
+                .where(list.toArray(new Predicate[list.size()]))
                 .fetchFirst();
         if (tp != null) {
             return true;
