@@ -18,9 +18,17 @@ public class AesUtil {
     /**
      * 秘钥key
      */
-    private static String KEY = "w5xv7[Nmc0Z/3U^X";
+    private static String KEY;
 
     private static final String UTF_8 = "utf-8";
+
+    /**
+     * 构造函数
+     * @param key
+     */
+    public AesUtil(String key){
+        AesUtil.KEY = key;
+    }
 
     public static String encrypt(String content) {
         try {
