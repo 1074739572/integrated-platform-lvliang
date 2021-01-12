@@ -2,12 +2,12 @@ package com.iflytek.integrated.common.bean;
 
 import com.alibaba.fastjson.JSON;
 import com.iflytek.integrated.common.UserDto;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
-import sun.misc.BASE64Decoder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -37,7 +37,7 @@ public class UserLoginIntercept extends HandlerInterceptorAdapter {
             //获取登录信息，并进行base64解码
             String userBase64 = request.getHeader(HEADER_X_USER);
             if(StringUtils.isNotBlank(userBase64)){
-                byte[] bytes = new BASE64Decoder().decodeBuffer(userBase64);
+                byte[] bytes = Base64.decodeBase64(userBase64);
                 String user = new String(bytes, "UTF-8");
                 UserDto dto = JSON.parseObject(user, UserDto.class);
                 if(StringUtils.isNotBlank(dto.getName())){
