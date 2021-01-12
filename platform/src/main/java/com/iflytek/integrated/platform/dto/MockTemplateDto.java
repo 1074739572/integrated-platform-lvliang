@@ -26,6 +26,10 @@ public class MockTemplateDto {
 
     String businessInterfaceName;
 
+    public MockTemplateDto(){
+
+    }
+
     public MockTemplateDto(String id, String mockTemplate, Integer mockIsUse, Integer excErrOrder, String businessInterfaceName){
         this.id = id;
         this.mockTemplate = mockTemplate;
