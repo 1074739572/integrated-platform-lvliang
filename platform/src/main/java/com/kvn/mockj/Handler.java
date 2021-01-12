@@ -17,7 +17,7 @@ public class Handler {
         name = name == null ? "" : name;
         context = context == null ? new Context() : context;
         Rule rule = Parser.parseRule(name);
-        Class type =  Parser.parseType(template);
+        Class type =  template != null?Parser.parseType(template):null;
         Options options = new Options(type, template, name, parseName(name), rule, context);
         return TypeHandlerFactory.getTypeHandler(type).handle(options);
     }
