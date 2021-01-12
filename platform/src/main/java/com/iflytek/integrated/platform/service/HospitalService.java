@@ -1,6 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
 import com.iflytek.integrated.common.*;
+import com.iflytek.integrated.common.bean.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.entity.THospitalVendorLink;
 import com.iflytek.integrated.platform.utils.Utils;
@@ -125,14 +126,14 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "医院管理新增/编辑")
     @PostMapping("/saveAndUpdateHospital")
-    public ResultDto saveAndUpdateHospital(@RequestBody THospital hospital/**, @RequestParam String loginUserName*/){
+    public ResultDto saveAndUpdateHospital(@RequestBody THospital hospital){
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(hospital);
         if (validationResult.isHasErrors()) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, validationResult.getErrorMsg(), validationResult.getErrorMsg());
         }
         //校验是否获取到登录用户
-        String loginUserName = "1";
+        String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
             throw new RuntimeException("没有获取到登录用户");
         }

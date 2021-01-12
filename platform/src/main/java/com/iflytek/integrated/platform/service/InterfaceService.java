@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
+import com.iflytek.integrated.common.bean.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.common.utils.RedisUtil;
 import com.iflytek.integrated.platform.dto.BusinessInterfaceDto;
@@ -97,9 +98,9 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @PostMapping("/updateMockStatus")
     @Transactional(rollbackFor = Exception.class)
     public ResultDto updateMockStatus(@ApiParam(value = "接口配置") @RequestParam(value = "id", required = true) String id,
-                                      @ApiParam(value = "更改后的状态") @RequestParam(value = "mockStatus", required = true) String mockStatus/**,@RequestParam String loginUserName*/) {
+                                      @ApiParam(value = "更改后的状态") @RequestParam(value = "mockStatus", required = true) String mockStatus) {
         //校验是否获取到登录用户
-        String loginUserName = "1";
+        String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
             throw new RuntimeException("没有获取到登录用户");
         }
@@ -111,10 +112,9 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @PostMapping("/updateStatus")
     @Transactional(rollbackFor = Exception.class)
     public ResultDto updateStatus(@ApiParam(value = "接口配置") @RequestParam(value = "id", required = true) String id,
-                                  @ApiParam(value = "更改后的状态") @RequestParam(value = "status", required = true) String status/**,@RequestParam String loginUserName*/
-                                  ) {
+                                  @ApiParam(value = "更改后的状态") @RequestParam(value = "status", required = true) String status) {
         //校验是否获取到登录用户
-        String loginUserName = "1";
+        String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
             throw new RuntimeException("没有获取到登录用户");
         }
@@ -148,8 +148,9 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @ApiOperation(value = "保存mock模板", notes = "保存mock模板")
     @PostMapping("/saveMockTemplate")
     @Transactional(rollbackFor = Exception.class)
-    public ResultDto saveMockTemplate(@RequestBody List<MockTemplateDto> dtoList, @RequestParam String loginUserName) {
+    public ResultDto saveMockTemplate(@RequestBody List<MockTemplateDto> dtoList) {
         //校验是否获取到登录用户
+        String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
             throw new RuntimeException("没有获取到登录用户");
         }
@@ -270,9 +271,9 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "标准接口新增/编辑", notes = "标准接口新增/编辑")
     @PostMapping("/saveAndUpdateInterface")
-    public ResultDto saveAndUpdateInterface(@RequestBody JSONObject jsonObj/**@RequestParam String loginUserName*/) {
+    public ResultDto saveAndUpdateInterface(@RequestBody JSONObject jsonObj) {
         //校验是否获取到登录用户
-        String loginUserName = "1";
+        String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
             throw new RuntimeException("没有获取到登录用户");
         }
@@ -662,12 +663,12 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增/编辑接口配置", notes = "新增/编辑接口配置")
     @PostMapping("/saveAndUpdateInterfaceConfig")
-    public ResultDto saveAndUpdateInterfaceConfig(@RequestBody BusinessInterfaceDto dto/*, @RequestParam String loginUserName*/) {
+    public ResultDto saveAndUpdateInterfaceConfig(@RequestBody BusinessInterfaceDto dto) {
         if (dto == null) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "请求参数不能为空!", null);
         }
         //校验是否获取到登录用户
-        String loginUserName = "1";
+        String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
             throw new RuntimeException("没有获取到登录用户");
         }

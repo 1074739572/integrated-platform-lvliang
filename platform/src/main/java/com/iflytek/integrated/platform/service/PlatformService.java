@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
+import com.iflytek.integrated.common.bean.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.utils.Utils;
@@ -117,9 +118,9 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增or修改平台", notes = "新增or修改平台")
     @PostMapping("/saveAndUpdatePlatform")
-    public ResultDto saveAndUpdatePlatform(@RequestBody JSONObject jsonObj /**, @RequestParam String loginUserName*/) {
+    public ResultDto saveAndUpdatePlatform(@RequestBody JSONObject jsonObj) {
         //校验是否获取到登录用户
-        String loginUserName = "1";
+        String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
             throw new RuntimeException("没有获取到登录用户");
         }

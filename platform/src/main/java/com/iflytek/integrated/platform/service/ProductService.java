@@ -2,6 +2,7 @@ package com.iflytek.integrated.platform.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.*;
+import com.iflytek.integrated.common.bean.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.integrated.platform.utils.Utils;
@@ -134,9 +135,9 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "产品管理新增/编辑")
     @PostMapping("/saveAndUpdateProduct")
-    public ResultDto saveAndUpdateProduct(@RequestBody JSONObject jsonObj/**, @RequestParam String loginUserName*/) {
+    public ResultDto saveAndUpdateProduct(@RequestBody JSONObject jsonObj) {
         //校验是否获取到登录用户
-        String loginUserName = "1";
+        String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
             throw new RuntimeException("没有获取到登录用户");
         }

@@ -22,6 +22,18 @@ public class UserLoginIntercept extends HandlerInterceptorAdapter {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception{
         Map req = request.getParameterMap();
+        if(req.containsKey("loginUserId") && req.get("loginUserId") != null){
+            String[] loginUserId = (String[]) req.get("loginUserId");
+            if(loginUserId.length > 0){
+                LOGIN_USER.setLoginUserId(loginUserId[0]);
+            }
+        }
+        if(req.containsKey("loginUserName") && req.get("loginUserName")!= null){
+            String[] loginUserName = (String[]) req.get("loginUserName");
+            if(loginUserName.length > 0){
+                LOGIN_USER.setLoginUserName(loginUserName[0]);
+            }
+        }
         return super.preHandle(request, response, handler);
     }
 }

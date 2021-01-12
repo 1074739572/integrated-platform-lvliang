@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
+import com.iflytek.integrated.common.bean.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.common.utils.RedisUtil;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
@@ -168,13 +169,14 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "插件新增/编辑")
     @PostMapping("/saveAndUpdatePlugin")
-    public ResultDto saveAndUpdatePlugin(@RequestBody TPlugin plugin, @RequestParam String loginUserName){
+    public ResultDto saveAndUpdatePlugin(@RequestBody TPlugin plugin){
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(plugin);
         if (validationResult.isHasErrors()) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "参数校验不通过", validationResult.getErrorMsg());
         }
         //校验是否获取到登录用户
+        String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
             throw new RuntimeException("没有获取到登录用户");
         }

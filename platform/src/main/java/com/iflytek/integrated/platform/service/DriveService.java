@@ -3,6 +3,7 @@ package com.iflytek.integrated.platform.service;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.Constant;
+import com.iflytek.integrated.common.bean.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.RedisUtil;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.common.ResultDto;
@@ -184,13 +185,14 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "驱动新增/编辑")
     @PostMapping("/saveAndUpdateDrive")
-    public ResultDto saveAndUpdateDrive(@RequestBody TDrive drive, @RequestParam String loginUserName){
+    public ResultDto saveAndUpdateDrive(@RequestBody TDrive drive){
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(drive);
         if (validationResult.isHasErrors()) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "", validationResult.getErrorMsg());
         }
         //校验是否获取到登录用户
+        String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
             throw new RuntimeException("没有获取到登录用户");
         }
