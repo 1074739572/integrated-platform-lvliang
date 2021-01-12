@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
  * @date 2021/1/11 9:14
  */
 @Configuration
-public class InitBean {
+public class InitConfig {
 
     @Value("${mock.string.len}")
     public String mockStringLen;

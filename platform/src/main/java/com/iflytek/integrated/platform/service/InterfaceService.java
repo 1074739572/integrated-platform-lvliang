@@ -137,7 +137,8 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                     StringUtils.isNotBlank(businessInterface.getMockTemplate())?
                             businessInterface.getMockTemplate():businessInterface.getOutParamFormat(),
                     businessInterface.getMockIsUse(),
-                    businessInterface.getExcErrOrder()
+                    businessInterface.getExcErrOrder(),
+                    businessInterface.getBusinessInterfaceName()
             );
             dtoList.add(dto);
         }

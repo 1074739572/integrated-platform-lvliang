@@ -24,10 +24,13 @@ public class MockTemplateDto {
 
     Integer excErrOrder;
 
-    public MockTemplateDto(String id, String mockTemplate, Integer mockIsUse, Integer excErrOrder){
+    String businessInterfaceName;
+
+    public MockTemplateDto(String id, String mockTemplate, Integer mockIsUse, Integer excErrOrder, String businessInterfaceName){
         this.id = id;
         this.mockTemplate = mockTemplate;
         this.mockIsUse = mockIsUse;
         this.excErrOrder = excErrOrder;
+        this.businessInterfaceName = businessInterfaceName;
     }
 }
