@@ -171,7 +171,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
         //校验该驱动是否有厂商关联
         List<TVendorDriveLink> tvdlList = vendorDriveLinkService.getVendorDriveLinkByDriveId(id);
         if (CollectionUtils.isNotEmpty(tvdlList)) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该驱动已有厂商关联,不可删除!", "该驱动已有厂商关联,不可删除!");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该驱动已有厂商相关联,无法删除!", "该驱动已有厂商相关联,无法删除!");
         }
         //删除驱动
         Long lon = sqlQueryFactory.delete(qTDrive).where(qTDrive.id.eq(drive.getId())).execute();
@@ -253,8 +253,11 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
     private void isExistence(String id, String driveName, String driveCode, String driveContent){
         //校验是否存在重复驱动
         ArrayList<Predicate> list = new ArrayList<>();
-        list.add(qTDrive.driveName.eq(driveName)
-                .or(qTDrive.driveCode.eq(driveCode)));
+        if (StringUtils.isBlank(driveCode)) {
+            list.add(qTDrive.driveName.eq(driveName));
+        }else {
+            list.add(qTDrive.driveName.eq(driveName).or(qTDrive.driveCode.eq(driveCode)));
+        }
         if(StringUtils.isNotEmpty(id)){
             list.add(qTDrive.id.notEqualsIgnoreCase(id));
         }
