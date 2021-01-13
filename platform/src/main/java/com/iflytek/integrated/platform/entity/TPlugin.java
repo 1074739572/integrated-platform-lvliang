@@ -19,7 +19,6 @@ public class TPlugin implements Serializable {
     @Length(max = 20, message = "插件名称不能超过20")
     private String pluginName;
 
-    @NotBlank(message = "插件编码不能为空")
     @Length(max = 20, message = "插件编码不能超过20")
     private String pluginCode;
 

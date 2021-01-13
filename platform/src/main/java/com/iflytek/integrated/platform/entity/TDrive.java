@@ -19,7 +19,6 @@ public class TDrive implements Serializable {
     @Length(max = 20, message = "驱动名称不能超过20")
     private String driveName;
 
-    @NotBlank(message = "驱动编码不能为空")
     @Length(max = 20, message = "驱动编码不能超过20")
     private String driveCode;
 
