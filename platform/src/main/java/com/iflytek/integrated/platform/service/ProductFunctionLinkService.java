@@ -57,9 +57,13 @@ public class ProductFunctionLinkService extends QuerydslService<TProductFunction
      */
     public TProductFunctionLink getObjByProductAndFunctionByNoId(String productId, String functionId, String productFunctionId) {
         ArrayList<Predicate> list = new ArrayList<>();
-        list.add(qTProductFunctionLink.productId.eq(productId));
-        list.add(qTProductFunctionLink.functionId.eq(functionId));
-        if(StringUtils.isNotEmpty(productFunctionId)){
+        if (StringUtils.isNotEmpty(productId)) {
+            list.add(qTProductFunctionLink.productId.eq(productId));
+        }
+        if (StringUtils.isNotEmpty(functionId)) {
+            list.add(qTProductFunctionLink.functionId.eq(functionId));
+        }
+        if (StringUtils.isNotEmpty(productFunctionId)) {
             list.add(qTProductFunctionLink.id.notEqualsIgnoreCase(productFunctionId));
         }
         TProductFunctionLink obj = sqlQueryFactory.select(qTProductFunctionLink).from(qTProductFunctionLink)
@@ -87,7 +91,7 @@ public class ProductFunctionLinkService extends QuerydslService<TProductFunction
         }
         QueryResults<TProductFunctionLink> queryResults = sqlQueryFactory.select(Projections.bean(TProductFunctionLink.class,
                     qTProductFunctionLink.id, qTProductFunctionLink.productId, qTProductFunctionLink.functionId, qTProductFunctionLink.createdTime,
-                    qTProductFunctionLink.updatedTime,qTProduct.productName.as("productName"), qTFunction.functionName.as("functionName")))
+                    qTProductFunctionLink.updatedTime, qTProduct.productName.as("productName"), qTFunction.functionName.as("functionName"), qTProduct.productCode.as("productCode")))
                     .from(qTProductFunctionLink)
                     .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
                     .leftJoin(qTFunction).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
@@ -109,7 +113,7 @@ public class ProductFunctionLinkService extends QuerydslService<TProductFunction
                 .set(qTProductFunctionLink.productId, productId)
                 .set(qTProductFunctionLink.functionId, functionId)
                 .set(qTProductFunctionLink.updatedTime, new Date())
-                .set(qTProductFunctionLink.updatedBy, loginUserName)
+                .set(qTProductFunctionLink.updatedBy, loginUserName!=null?loginUserName:"")
                 .where(qTProductFunctionLink.id.eq(id)).execute();
     }
 

@@ -157,12 +157,16 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
     @ApiOperation(value = "删除厂商", notes = "删除厂商")
     @PostMapping("/delVendorById")
     public ResultDto delVendorById(@ApiParam(value = "厂商id") @RequestParam(value = "id", required = true) String id) {
+        //厂商配置关联数据校验
         List<TVendorConfig> tvcList = vendorConfigService.getObjByVendorId(id);
         if (CollectionUtils.isNotEmpty(tvcList)) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该厂商已有厂商配置数据相关联,暂无法删除!", "该厂商已有厂商配置数据相关联,暂无法删除!");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该厂商已有厂商配置数据相关联,无法删除!", "该厂商已有厂商配置数据相关联,无法删除!");
         }
         //删除厂商
-        this.delete(id);
+        long count = this.delete(id);
+        if (count < 1) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "删除厂商失败!", id);
+        }
         //删除厂商与驱动关联
         vendorDriveLinkService.deleteVendorDriveLinkById(id);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "厂商删除成功!", null);
@@ -222,6 +226,8 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
                 List<Map<String, String>> hospitalConfigList = new ArrayList<>();
                 for (int i= 0; i < hvlvcList.size(); i++) {
                     Map<String, String> map = new HashMap<>();
+                    //厂商医院配置
+                    map.put("id", hvlvcList.get(i).getId());
                     //厂商医院id
                     map.put("vendorHospitalId", hvlvcList.get(i).getVendorHospitalId());
                     //医院信息
@@ -347,6 +353,35 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
         }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"", toolsGenerate.joltDebugger(dto));
     }
+
+    @ApiOperation(value = "根据厂商配置id删除厂商配置信息")
+    @PostMapping("/delVendorConfigById")
+    public ResultDto delVendorConfigById(@ApiParam(value = "厂商配置id") @RequestParam(value = "id", required = true) String id) {
+        TVendorConfig tvc = vendorConfigService.getOne(id);
+        if (tvc == null) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据id查询不到该厂商配置信息!", id);
+        }
+        long count = vendorConfigService.delete(id);
+        if (count < 1) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "删除失败!", id);
+        }
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"删除成功!", "删除成功!");
+    }
+
+    @ApiOperation(value = "根据厂商医院配置id删除厂商医院配置信息")
+    @PostMapping("/delHospitalVendorById")
+    public ResultDto delHospitalVendorById(@ApiParam(value = "厂商医院配置id") @RequestParam(value = "id", required = true) String id) {
+        THospitalVendorLink thvl = hospitalVendorLinkService.getOne(id);
+        if (thvl == null) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据id查询不到该厂商医院配置信息!", id);
+        }
+        long count = hospitalVendorLinkService.delete(id);
+        if (count < 1) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "删除失败!", id);
+        }
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"删除成功!", "删除成功!");
+    }
+
 
     /**
      * 根据厂商名称获取厂商信息

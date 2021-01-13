@@ -29,6 +29,8 @@ public class TProductFunctionLink implements Serializable {
 
     private String functionName;
 
+    private String productCode;
+
 
     public String getId() {
         return id;
@@ -100,6 +102,14 @@ public class TProductFunctionLink implements Serializable {
 
     public void setFunctionName(String functionName) {
         this.functionName = functionName;
+    }
+
+    public String getProductCode() {
+        return productCode;
+    }
+
+    public void setProductCode(String productCode) {
+        this.productCode = productCode;
     }
 
 }

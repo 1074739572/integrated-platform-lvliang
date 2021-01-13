@@ -66,10 +66,24 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
             ArrayList<Predicate> list = new ArrayList<>();
             list.add(qTHospital.status.eq(Constant.Status.YES));
             //如果区域id不为空，关联区域表查询所属区域下的医院
-            String supCode = Utils.subAreaCode(areaCode);
-            if(StringUtils.isNotEmpty(supCode)){
-                list.add(qTArea.areaCode.like(Utils.rightCreateFuzzyText(supCode)));
+//            String supCode = Utils.subAreaCode(areaCode);
+//            if(StringUtils.isNotEmpty(supCode)){
+//                list.add(qTArea.areaCode.like(Utils.rightCreateFuzzyText(supCode)));
+//            }
+            if (StringUtils.isNotBlank(areaCode)) {
+                String[] arr = areaCode.split(",");
+                List<String> codeList = new ArrayList<>();
+                for (int i = 0; i < arr.length; i++) {
+                    String supCode = Utils.subAreaCode(arr[i]);
+                    if(StringUtils.isNotEmpty(supCode)){
+                        codeList.add(supCode);
+                    }
+                }
+                if (codeList.size() > 0) {
+                    list.add(qTArea.areaCode.in(codeList));
+                }
             }
+
             if(StringUtils.isNotEmpty(hospitalName)){
                 list.add(qTHospital.hospitalName.like(Utils.createFuzzyText(hospitalName)));
             }

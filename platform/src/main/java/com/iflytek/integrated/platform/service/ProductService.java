@@ -138,9 +138,9 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     public ResultDto saveAndUpdateProduct(@RequestBody JSONObject jsonObj) {
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
-        if(StringUtils.isBlank(loginUserName)){
-            throw new RuntimeException("没有获取到登录用户");
-        }
+//        if(StringUtils.isBlank(loginUserName)){
+//            throw new RuntimeException("没有获取到登录用户");
+//        }
         String id = jsonObj.getString("id");
 //        TProductFunctionLink tpfl = addOrGetLink(jsonObj.getString("productName"), jsonObj.getString("functionName"));
 //        boolean existence = isExistence(id, link.getProductId(), link.getFunctionId());
@@ -154,13 +154,16 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         if (existence) {
 //            throw new RuntimeException("产品和功能关系已存在");
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "产品和功能关系已存在!", null);
-        }else {
-            if (StringUtils.isBlank(id)) {
-                return saveProduct(jsonObj,loginUserName);
-            }else {
-                return updateProduct(jsonObj,loginUserName);
-            }
         }
+        //新增编辑标识 1新增 2编辑
+        String addOrUpdate = jsonObj.getString("addOrUpdate");
+        if ("1".equals(addOrUpdate)) {
+            return saveProduct(jsonObj,loginUserName);
+        }
+        if ("2".equals(addOrUpdate)) {
+            return updateProduct(jsonObj,loginUserName);
+        }
+        return new ResultDto(Constant.ResultCode.ERROR_CODE, "addOrUpdate参数有误!", jsonObj);
     }
 
     /** 新增产品 */
@@ -178,8 +181,8 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             tp.setUpdatedBy(loginUserName);
             this.put(productId, tp);
         }else {
-            productId = batchUidService.getUid(qTProduct.getTableName()) + "";
             //新增产品
+            productId = batchUidService.getUid(qTProduct.getTableName()) + "";
             tp = new TProduct();
             tp.setId(productId);
             tp.setProductCode(utils.generateCode(qTProduct, qTProduct.productCode, productName));
@@ -223,10 +226,13 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         String productId = jsonObj.getString("productId");
         String productName = jsonObj.getString("productName");
         String functionId = jsonObj.getString("functionId");
-        //新增产品
-        if (StringUtils.isBlank(productId)) {
+
+        //判断输入产品是否是新产品
+        TProduct tp = getObjByProductName(productName.trim());
+        if (tp == null) {
+            //新增产品
             productId = batchUidService.getUid(qTProduct.getTableName()) + "";
-            TProduct tp = new TProduct();
+            tp = new TProduct();
             tp.setId(productId);
             tp.setProductCode(utils.generateCode(qTProduct, qTProduct.productCode, productName));
             tp.setProductName(productName);
@@ -234,7 +240,32 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             tp.setCreatedTime(new Date());
             tp.setCreatedBy(loginUserName);
             this.post(tp);
+            //校验之前的产品功能是否有关联,没有则删除该产品功能
+            String oldProductId = jsonObj.getString("oldProductId");
+            TProductFunctionLink tpflObj = productFunctionLinkService.getObjByProductAndFunctionByNoId(oldProductId, null, id);
+            if (tpflObj == null) {
+                this.delete(oldProductId);
+            }
+            String oldFunctionId = jsonObj.getString("oldFunctionId");
+            tpflObj = productFunctionLinkService.getObjByProductAndFunctionByNoId(null, oldFunctionId, id);
+            if (tpflObj == null) {
+                functionService.delete(oldFunctionId);
+            }
         }
+//        productId = tp.getId();
+
+        //新增产品
+//        if (StringUtils.isBlank(productId)) {
+//            productId = batchUidService.getUid(qTProduct.getTableName()) + "";
+//            TProduct tp = new TProduct();
+//            tp.setId(productId);
+//            tp.setProductCode(utils.generateCode(qTProduct, qTProduct.productCode, productName));
+//            tp.setProductName(productName);
+//            tp.setIsValid(Constant.IsValid.ON);
+//            tp.setCreatedTime(new Date());
+//            tp.setCreatedBy(loginUserName);
+//            this.post(tp);
+//        }
         //功能
         String functionName = jsonObj.getString("functionName");
         TFunction tf = functionService.getObjByName(functionName);
@@ -255,7 +286,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             }
         }
         //更新产品与功能关联
-        productFunctionLinkService.updateObjById(id, productId, functionId,loginUserName);
+        productFunctionLinkService.updateObjById(id, productId, functionId, loginUserName);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"编辑产品功能关联成功", id);
     }
 
@@ -361,6 +392,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
                     .leftJoin(qTProductFunctionLink).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
                     .leftJoin(qTProjectProductLink).on(qTProjectProductLink.productFunctionLinkId.eq(qTProductFunctionLink.id))
                     .where(qTProductFunctionLink.productId.eq(productId).and(qTProjectProductLink.projectId.eq(projectId)))
+                    .groupBy(qTFunction.id)
                     .orderBy(qTFunction.createdTime.desc()).fetch();
             tp.setFunctions(functions);
             rtnList.add(tp);
