@@ -36,9 +36,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
 import static com.iflytek.integrated.platform.entity.QTType.qTType;
@@ -197,7 +195,10 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
             throw new RuntimeException("没有获取到登录用户");
         }
         //校验是否存在重复驱动，驱动代码格式是否正确
-        isExistence(drive.getId(),drive.getDriveName(),drive.getDriveCode(),drive.getDriveContent());
+        Map<String, Object> isExist = this.isExistence(drive.getId(), drive.getDriveName(), drive.getDriveCode(), drive.getDriveContent());
+        if ((boolean)isExist.get("isExist")) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, isExist.get("message")+"", isExist.get("message")+"");
+        }
         if(StringUtils.isEmpty(drive.getId())){
             //新增驱动
             drive.setId(batchUidService.getUid(qTDrive.getTableName())+"");
@@ -250,7 +251,11 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
      * @param driveCode
      * @param driveContent
      */
-    private void isExistence(String id, String driveName, String driveCode, String driveContent){
+    private Map<String, Object> isExistence(String id, String driveName, String driveCode, String driveContent){
+        Map<String, Object> rtnMap = new HashMap<>();
+        //默认false
+        rtnMap.put("isExist", false);
+
         //校验是否存在重复驱动
         ArrayList<Predicate> list = new ArrayList<>();
         list.add(qTDrive.driveName.eq(driveName));
@@ -265,12 +270,15 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
         List<String> plugins = sqlQueryFactory.select(qTDrive.id).from(qTDrive)
                 .where(list.toArray(new Predicate[list.size()])).fetch();
         if(CollectionUtils.isNotEmpty(plugins)){
-            throw new RuntimeException("驱动名称或编码已存在");
+            rtnMap.put("isExist", true);
+            rtnMap.put("message", "驱动名称已存在!");
         }
         GroovyValidateDto result = toolsGenerate.groovyUrl(driveContent);
-        if(!GroovyValidateDto.RESULT.SUCCESS.getType().equals(result.getValidResult())){
-            throw new RuntimeException("驱动内容格式错误");
+        if(!GroovyValidateDto.RESULT.SUCCESS.getType().equals(result.getValidResult())) {
+            rtnMap.put("isExist", true);
+            rtnMap.put("message", "驱动内容格式错误!");
         }
+        return rtnMap;
     }
 
     /**
