@@ -96,7 +96,7 @@ public class AnonymousService {
         String mockResult = Mock.mock(JSONObject.toJSONString(mockDto));
         MockDto mock = JSONObject.parseObject(mockResult,MockDto.class);
         return StringUtils.isBlank(mock.getTemplate())?"":
-            mock.getTemplate().replaceAll("\n","").replaceAll("\r","").replaceAll("  "," ");
+            mock.getTemplate().replaceAll("\n","").replaceAll("\r","").replaceAll(" ","");
     }
 
 }
