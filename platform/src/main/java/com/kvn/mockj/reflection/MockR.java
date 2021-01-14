@@ -1,7 +1,7 @@
 package com.kvn.mockj.reflection;
 
+import com.alibaba.fastjson.util.ParameterizedTypeImpl;
 import org.apache.commons.lang3.RandomStringUtils;
-import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
@@ -17,7 +17,6 @@ import java.util.*;
  */
 public class MockR {
     /************************************** 随机实例化 **************************************/
-    private static final RandomStringUtils STRING_RANDOM = new RandomStringUtils();
     private static final Random RANDOM = new Random();
 
     public static <T> T random(TypeReference<T> typeReference) {
@@ -145,7 +144,7 @@ public class MockR {
         }
         // 字符串
         if (targetClass == String.class) {
-            return STRING_RANDOM.randomAlphabetic(4);
+            return RandomStringUtils.randomAlphabetic(4);
         }
         // BigDecimal
         if (targetClass == BigDecimal.class) {

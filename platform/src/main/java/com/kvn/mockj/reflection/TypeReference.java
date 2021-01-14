@@ -1,6 +1,7 @@
 package com.kvn.mockj.reflection;
 
-import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
+
+import com.alibaba.fastjson.util.ParameterizedTypeImpl;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
