@@ -94,7 +94,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
                         qTHospital.id,
                         qTHospital.hospitalName,
                         qTHospital.hospitalCode,
-                        qTHospital.updatedTime,
+                        qTHospital.createdTime,
                         qTHospital.areaId
                     )
                 ).from(qTHospital)

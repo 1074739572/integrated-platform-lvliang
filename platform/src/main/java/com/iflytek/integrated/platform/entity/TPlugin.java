@@ -30,11 +30,12 @@ public class TPlugin implements Serializable {
 
     private String createdBy;
 
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone="GMT+8")
     private java.util.Date createdTime;
 
     private String updatedBy;
 
-    @JsonFormat(pattern="yyyy/MM/dd HH:mm:ss",timezone="GMT+8")
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone="GMT+8")
     private java.util.Date updatedTime;
 
     private String pluginTypeName;

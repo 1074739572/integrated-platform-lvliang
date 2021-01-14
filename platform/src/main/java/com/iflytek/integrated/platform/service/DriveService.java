@@ -124,7 +124,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
                             qTDrive.driveName,
                             qTDrive.driveContent,
                             qTDrive.driveInstruction,
-                            qTDrive.updatedTime,
+                            qTDrive.createdTime,
                             qTDrive.typeId,
                             qTType.typeName.as("driveTypeName")
                     ))

@@ -120,7 +120,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
                             qTPlugin.pluginCode,
                             qTPlugin.pluginContent,
                             qTPlugin.pluginInstruction,
-                            qTPlugin.updatedTime,
+                            qTPlugin.createdTime,
                             qTPlugin.typeId,
                             qTType.typeName.as("pluginTypeName")
                     ))
