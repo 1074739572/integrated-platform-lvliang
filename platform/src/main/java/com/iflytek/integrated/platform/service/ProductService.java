@@ -172,8 +172,19 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         if (StringUtils.isBlank(productName)) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "产品名称未填!", jsonObj);
         }
+        String functionId = jsonObj.getString("functionId");
+        String functionName = jsonObj.getString("functionName");
         //判断输入产品是否是新产品
         TProduct tp = getObjByProductName(productName.trim());
+        //判断输入功能是否是新功能
+        TFunction tf = functionService.getObjByName(functionName.trim());
+        if (tp != null && tf != null) {
+            TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(tp.getId(), tf.getId());
+            if (tpfl != null) {
+                return new ResultDto(Constant.ResultCode.ERROR_CODE, "该产品功能已有关联!", "该产品功能已有关联!");
+            }
+        }
+
         String productId;
         if (tp != null) {
             productId = tp.getId();
@@ -193,12 +204,10 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             this.post(tp);
         }
 
-        String functionId = jsonObj.getString("functionId");
         //新增功能
         if (StringUtils.isBlank(functionId)) {
             functionId = batchUidService.getUid(qTFunction.getTableName()) + "";
-            String functionName = jsonObj.getString("functionName");
-            TFunction tf = new TFunction();
+            tf = new TFunction();
             tf.setId(functionId);
             tf.setFunctionCode(utils.generateCode(qTFunction, qTFunction.functionCode, functionName));
             tf.setFunctionName(functionName);
