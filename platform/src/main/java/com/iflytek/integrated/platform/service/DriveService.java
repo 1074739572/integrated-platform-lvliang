@@ -197,7 +197,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
         //校验是否存在重复驱动，驱动代码格式是否正确
         Map<String, Object> isExist = this.isExistence(drive.getId(), drive.getDriveName(), drive.getDriveCode(), drive.getDriveContent());
         if ((boolean)isExist.get("isExist")) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, isExist.get("message")+"", isExist.get("message")+"");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, isExist.get("message")+"", isExist.get("message"));
         }
         if(StringUtils.isEmpty(drive.getId())){
             //新增驱动

@@ -97,7 +97,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
 
     /** 新增厂商 */
     private ResultDto saveVendor(String vendorName, String driveIds, String loginUserName) {
-        if (null != this.getTVendorByName(vendorName)) {
+        if (null != this.getTVendorByName(null, vendorName)) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "厂商名未填写或该厂商名已存在!", "厂商名未填写或该厂商名已存在!");
         }
         String vendorId = batchUidService.getUid(qTVendor.getTableName()) + "";
@@ -126,7 +126,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
 
     /** 修改厂商 */
     private ResultDto updateVendor(String vendorId, String vendorName, String driveIds, String loginUserName) {
-        if (null != this.getTVendorByName(vendorName)) {
+        if (null != this.getTVendorByName(vendorId, vendorName)) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "厂商名未填写或该厂商名已存在!", "厂商名未填写或该厂商名已存在!");
         }
         //更新厂商信息
@@ -385,14 +385,20 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
 
     /**
      * 根据厂商名称获取厂商信息
+     * @param vendorId
      * @param vendorName
      * @return
      */
-    private TVendor getTVendorByName(String vendorName) {
+    private TVendor getTVendorByName(String vendorId, String vendorName) {
         if (StringUtils.isBlank(vendorName)) {
             return null;
         }
-        return sqlQueryFactory.select(qTVendor).from(qTVendor).where(qTVendor.vendorName.eq(vendorName)).fetchFirst();
+        ArrayList<Predicate> list = new ArrayList<>();
+        list.add(qTVendor.vendorName.eq(vendorName));
+        if (StringUtils.isNotBlank(vendorId)) {
+            list.add(qTVendor.id.notEqualsIgnoreCase(vendorId));
+        }
+        return sqlQueryFactory.select(qTVendor).from(qTVendor).where(list.toArray(new Predicate[list.size()])).fetchFirst();
     }
 
 }
