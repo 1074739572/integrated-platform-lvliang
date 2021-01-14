@@ -96,7 +96,7 @@ public class ProductFunctionLinkService extends QuerydslService<TProductFunction
                     .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
                     .leftJoin(qTFunction).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
                     .where(list.toArray(new Predicate[list.size()]))
-                    .orderBy(qTProduct.createdTime.desc())
+                    .orderBy(qTProductFunctionLink.createdTime.desc())
                     .limit(pageSize)
                     .offset((pageNo - 1) * pageSize)
                     .fetchResults();

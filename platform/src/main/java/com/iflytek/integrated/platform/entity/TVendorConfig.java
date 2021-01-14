@@ -154,7 +154,8 @@ public class TVendorConfig implements Serializable {
     }
 
     public void setUserPassword(String userPassword) {
-        this.userPassword = AesUtil.encrypt(userPassword);
+//        this.userPassword = AesUtil.encrypt(userPassword);
+        this.userPassword = userPassword;
     }
 
     public String getCreatedBy() {

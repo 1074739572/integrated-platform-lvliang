@@ -212,11 +212,12 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
     private void isExistence(String id, String pluginName, String pluginCode, String pluginContent){
         //校验是否存在重复插件
         ArrayList<Predicate> list = new ArrayList<>();
-        if (StringUtils.isBlank(pluginCode)) {
-            list.add(qTPlugin.pluginName.eq(pluginName));
-        }else {
-            list.add(qTPlugin.pluginName.eq(pluginName).or(qTPlugin.pluginCode.eq(pluginCode)));
-        }
+        list.add(qTPlugin.pluginName.eq(pluginName));
+//        if (StringUtils.isBlank(pluginCode)) {
+//            list.add(qTPlugin.pluginName.eq(pluginName));
+//        }else {
+//            list.add(qTPlugin.pluginName.eq(pluginName).or(qTPlugin.pluginCode.eq(pluginCode)));
+//        }
         if(StringUtils.isNotEmpty(id)){
             list.add(qTPlugin.id.notEqualsIgnoreCase(id));
         }
