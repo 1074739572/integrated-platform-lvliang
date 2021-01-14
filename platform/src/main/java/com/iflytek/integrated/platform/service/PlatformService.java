@@ -118,8 +118,6 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
     @ApiOperation(value = "新增or修改平台", notes = "新增or修改平台")
     @PostMapping("/saveAndUpdatePlatform")
     public ResultDto saveAndUpdatePlatform(@RequestBody JSONObject jsonObj) {
-        System.out.println("==============================");
-        System.out.println(jsonObj.toJSONString());
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){

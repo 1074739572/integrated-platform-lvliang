@@ -253,11 +253,12 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
     private void isExistence(String id, String driveName, String driveCode, String driveContent){
         //校验是否存在重复驱动
         ArrayList<Predicate> list = new ArrayList<>();
-        if (StringUtils.isBlank(driveCode)) {
-            list.add(qTDrive.driveName.eq(driveName));
-        }else {
-            list.add(qTDrive.driveName.eq(driveName).or(qTDrive.driveCode.eq(driveCode)));
-        }
+        list.add(qTDrive.driveName.eq(driveName));
+//        if (StringUtils.isBlank(driveCode)) {
+//            list.add(qTDrive.driveName.eq(driveName));
+//        }else {
+//            list.add(qTDrive.driveName.eq(driveName).or(qTDrive.driveCode.eq(driveCode)));
+//        }
         if(StringUtils.isNotEmpty(id)){
             list.add(qTDrive.id.notEqualsIgnoreCase(id));
         }
