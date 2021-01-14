@@ -36,9 +36,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static com.iflytek.integrated.platform.entity.QTPlugin.qTPlugin;
 import static com.iflytek.integrated.platform.entity.QTType.qTType;
@@ -181,7 +179,10 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
             throw new RuntimeException("没有获取到登录用户");
         }
         //校验是否存在重复插件
-        isExistence(plugin.getId(),plugin.getPluginName(),plugin.getPluginCode(),plugin.getPluginContent());
+        Map<String, Object> isExist = this.isExistence(plugin.getId(),plugin.getPluginName(),plugin.getPluginCode(),plugin.getPluginContent());
+        if ((boolean)isExist.get("isExist")) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, isExist.get("message")+"", isExist.get("message"));
+        }
         if(StringUtils.isEmpty(plugin.getId())){
             //新增插件
             plugin.setId(batchUidService.getUid(qTPlugin.getTableName())+"");
@@ -209,7 +210,11 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
      * @param pluginCode
      * @param pluginContent
      */
-    private void isExistence(String id, String pluginName, String pluginCode, String pluginContent){
+    private Map<String, Object> isExistence(String id, String pluginName, String pluginCode, String pluginContent){
+        Map<String, Object> rtnMap = new HashMap<>();
+        //默认false
+        rtnMap.put("isExist", false);
+
         //校验是否存在重复插件
         ArrayList<Predicate> list = new ArrayList<>();
         list.add(qTPlugin.pluginName.eq(pluginName));
@@ -224,12 +229,15 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
         List<String> plugins = sqlQueryFactory.select(qTPlugin.id).from(qTPlugin)
                 .where(list.toArray(new Predicate[list.size()])).fetch();
         if(CollectionUtils.isNotEmpty(plugins)){
-            throw new RuntimeException("插件名称或编码已存在");
+            rtnMap.put("isExist", true);
+            rtnMap.put("message", "插件名称或编码已存在!");
         }
         GroovyValidateDto result = toolsGenerate.groovyUrl(pluginContent);
         if(!GroovyValidateDto.RESULT.SUCCESS.getType().equals(result.getValidResult())){
-            throw new RuntimeException("插件内容格式错误");
+            rtnMap.put("isExist", true);
+            rtnMap.put("message", "插件内容格式错误!");
         }
+        return rtnMap;
     }
 
     /**
