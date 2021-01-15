@@ -86,7 +86,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
-            throw new RuntimeException("没有获取到登录用户");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         if (StringUtils.isBlank(id)) {
             return saveVendor(vendorName, driveIds, loginUserName);
@@ -259,7 +259,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
         if (tvc != null) {
             List<TBusinessInterface> tbiList = businessInterfaceService.getListByVendorConfigId(tvc.getId());
             if (CollectionUtils.isNotEmpty(tbiList)) {
-                return new ResultDto(Constant.ResultCode.ERROR_CODE, "该厂商已有接口配置数据相关联,暂无法删除!", "该厂商已有接口配置数据相关联,暂无法删除!");
+                return new ResultDto(Constant.ResultCode.ERROR_CODE, "该厂商已有接口配置数据相关联,无法删除!", "该厂商已有接口配置数据相关联,无法删除!");
             }
             //删除厂商配置
             vendorConfigService.delete(tvc.getId());

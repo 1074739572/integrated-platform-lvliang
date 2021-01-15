@@ -107,7 +107,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         //删除产品和功能的关联关系
         long lon = productFunctionLinkService.delete(id);
         if(lon <= 0){
-            throw new RuntimeException("产品功能删除失败!");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "产品功能删除失败!", "产品功能删除失败!");
         }
         //如果该产品下没有其它功能关联,则删除该产品
         String productId = functionLink.getProductId();
@@ -138,9 +138,9 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     public ResultDto saveAndUpdateProduct(@RequestBody JSONObject jsonObj) {
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
-//        if(StringUtils.isBlank(loginUserName)){
-//            throw new RuntimeException("没有获取到登录用户");
-//        }
+        if(StringUtils.isBlank(loginUserName)){
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+        }
         String id = jsonObj.getString("id");
 //        TProductFunctionLink tpfl = addOrGetLink(jsonObj.getString("productName"), jsonObj.getString("functionName"));
 //        boolean existence = isExistence(id, link.getProductId(), link.getFunctionId());
@@ -152,8 +152,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
 
         boolean existence = isExistence(id, productId, functionId);
         if (existence) {
-//            throw new RuntimeException("产品和功能关系已存在");
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "产品和功能关系已存在!", null);
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "产品和功能关系已存在!", "产品和功能关系已存在!");
         }
         //新增编辑标识 1新增 2编辑
         String addOrUpdate = jsonObj.getString("addOrUpdate");

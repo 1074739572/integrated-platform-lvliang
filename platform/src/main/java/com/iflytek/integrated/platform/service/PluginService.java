@@ -153,15 +153,15 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
         //删除插件前校验是否有接口配置相关联
         List<TBusinessInterface> tbiList = businessInterfaceService.getListByPluginId(id);
         if (CollectionUtils.isNotEmpty(tbiList)) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该插件有接口配置相关联,暂无法删除!", "该插件有接口配置相关联,暂无法删除!");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该插件有接口配置相关联,无法删除!", "该插件有接口配置相关联,无法删除!");
         }
         //删除插件
         Long lon = sqlQueryFactory.delete(qTPlugin).where(qTPlugin.id.eq(plugin.getId())).execute();
         if(lon <= 0){
-            throw new RuntimeException("插件管理,插件删除失败");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "插件删除失败!", "插件删除失败!");
         }
         delRedis(id);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "插件管理,插件删除成功", "插件管理,插件删除成功");
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "插件删除成功", "插件删除成功");
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -176,7 +176,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
-            throw new RuntimeException("没有获取到登录用户");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         //校验是否存在重复插件
         Map<String, Object> isExist = this.isExistence(plugin.getId(),plugin.getPluginName(),plugin.getPluginCode(),plugin.getPluginContent());
@@ -197,7 +197,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
         plugin.setUpdatedBy(loginUserName);
         Long lon = this.put(plugin.getId(), plugin);
         if(lon <= 0){
-            throw new RuntimeException("插件编辑失败");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "插件编辑失败!", "插件编辑失败!");
         }
         setRedis(plugin.getId());
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"","插件编辑成功");
@@ -230,7 +230,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
                 .where(list.toArray(new Predicate[list.size()])).fetch();
         if(CollectionUtils.isNotEmpty(plugins)){
             rtnMap.put("isExist", true);
-            rtnMap.put("message", "插件名称或编码已存在!");
+            rtnMap.put("message", "插件名称已存在!");
         }
         GroovyValidateDto result = toolsGenerate.groovyUrl(pluginContent);
         if(!GroovyValidateDto.RESULT.SUCCESS.getType().equals(result.getValidResult())){

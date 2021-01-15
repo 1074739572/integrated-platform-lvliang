@@ -157,10 +157,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "驱动管理删除")
     @PostMapping("/delDriveById")
-    public ResultDto delDriveById(String id){
-        if(StringUtils.isEmpty(id)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "id不能为空");
-        }
+    public ResultDto delDriveById(@ApiParam(value = "驱动id") @RequestParam(value = "id", required = true) String id){
         //查看驱动是否存在
         TDrive drive = sqlQueryFactory.select(qTDrive).from(qTDrive).where(qTDrive.id.eq(id)).fetchFirst();
         if(drive == null || StringUtils.isEmpty(drive.getId())){
@@ -174,10 +171,10 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
         //删除驱动
         Long lon = sqlQueryFactory.delete(qTDrive).where(qTDrive.id.eq(drive.getId())).execute();
         if(lon <= 0){
-            throw new RuntimeException("驱动管理,驱动删除失败");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "驱动删除失败!", "驱动删除失败!");
         }
         delRedis(id);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "驱动管理,驱动删除成功", "驱动管理,驱动删除成功");
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "驱动删除成功!", "驱动删除成功!");
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -192,7 +189,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
-            throw new RuntimeException("没有获取到登录用户");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         //校验是否存在重复驱动，驱动代码格式是否正确
         Map<String, Object> isExist = this.isExistence(drive.getId(), drive.getDriveName(), drive.getDriveCode(), drive.getDriveContent());
@@ -213,10 +210,10 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
         drive.setUpdatedTime(new Date());
         Long lon = this.put(drive.getId(), drive);
         if(lon <= 0){
-            throw new RuntimeException("驱动编辑失败");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE,"驱动编辑失败!", drive);
         }
         setRedis(drive.getId());
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"驱动编辑成功", drive);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"驱动编辑成功!", drive);
     }
 
     @ApiOperation(value = "新增厂商弹窗展示的驱动选择信息")
