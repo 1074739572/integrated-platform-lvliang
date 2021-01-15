@@ -3,6 +3,7 @@ package com.iflytek.integrated.platform.service;
 import com.iflytek.integrated.common.*;
 import com.iflytek.integrated.common.bean.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.platform.entity.TArea;
 import com.iflytek.integrated.platform.entity.THospitalVendorLink;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.THospital;
@@ -74,9 +75,18 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
                 String[] arr = areaCode.split(",");
                 List<String> codeList = new ArrayList<>();
                 for (int i = 0; i < arr.length; i++) {
-                    String supCode = Utils.subAreaCode(arr[i]);
-                    if(StringUtils.isNotEmpty(supCode)){
-                        codeList.add(supCode);
+                    String code = arr[i];
+                    TArea ta = sqlQueryFactory.select(qTArea).from(qTArea).where(qTArea.areaCode.eq(code)).fetchFirst();
+                    if (ta != null) {
+                        Integer areaLevel = ta.getAreaLevel();
+                        if (areaLevel == 3) {
+                            String supCode = Utils.subAreaCode(code);
+                            if(StringUtils.isNotEmpty(supCode)){
+                                codeList.add(supCode);
+                            }
+                        }else {
+                            codeList.add(code);
+                        }
                     }
                 }
                 if (codeList.size() > 0) {
@@ -132,7 +142,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         Long lon = sqlQueryFactory.update(qTHospital).set(qTHospital.status, Constant.Status.NO)
                 .where(qTHospital.id.eq(id)).execute();
         if(lon <= 0){
-            throw new RuntimeException("医院管理删除失败");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "医院管理删除失败!", "医院管理删除失败!");
         }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "医院管理删除成功", "医院管理删除成功");
     }
@@ -149,10 +159,13 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
-            throw new RuntimeException("没有获取到登录用户");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         //校验是否有重复医院
-        isExistence(hospital.getId(),hospital.getHospitalName(),hospital.getHospitalCode());
+        boolean isExist = isExistence(hospital.getId(), hospital.getHospitalName(), hospital.getHospitalCode());
+        if (isExist) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "医院名称或编码已存在!", "医院名称或编码已存在!");
+        }
         if(StringUtils.isEmpty(hospital.getId())){
             //没有id，新增医院
             hospital.setId(batchUidService.getUid(qTHospital.getTableName())+"");
@@ -167,7 +180,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
             hospital.setUpdatedBy(loginUserName);
             Long lon = this.put(hospital.getId(),hospital);
             if(lon <= 0){
-                throw new RuntimeException("医院管理编辑失败");
+                return new ResultDto(Constant.ResultCode.ERROR_CODE, "医院管理编辑失败!", "医院管理编辑失败!");
             }
         }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "医院管理新增或编辑成功", "医院管理新增或编辑成功");
@@ -194,7 +207,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
      * @param hospitalCode
      * @return
      */
-    private void isExistence(String id,String hospitalName, String hospitalCode){
+    private boolean isExistence(String id,String hospitalName, String hospitalCode) {
         //校验是否存在重复医院
         ArrayList<Predicate> list = new ArrayList<>();
         list.add(qTHospital.status.eq(Constant.Status.YES));
@@ -206,8 +219,9 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         List<String> hospitals = sqlQueryFactory.select(qTHospital.id).from(qTHospital)
                 .where(list.toArray(new Predicate[list.size()])).fetch();
         if(CollectionUtils.isNotEmpty(hospitals)){
-            throw new RuntimeException("医院名称或编码已存在");
+            return true;
         }
+        return false;
     }
 
 }

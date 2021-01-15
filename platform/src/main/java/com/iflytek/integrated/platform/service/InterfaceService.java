@@ -102,10 +102,9 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
-            throw new RuntimeException("没有获取到登录用户");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
-        businessInterfaceService.updateMockStatus(id, mockStatus, loginUserName);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "更改mock状态成功!", id);
+        return businessInterfaceService.updateMockStatus(id, mockStatus, loginUserName);
     }
 
     @ApiOperation(value = "更改接口配置状态", notes = "更改接口配置状态")
@@ -115,11 +114,10 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                                   @ApiParam(value = "更改后的状态") @RequestParam(value = "status", required = true) String status) {
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
-        if(StringUtils.isBlank(loginUserName)){
-            throw new RuntimeException("没有获取到登录用户");
+        if(StringUtils.isBlank(loginUserName)) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
-        businessInterfaceService.updateStatus(id, status, loginUserName);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "更改接口配置状态成功!", id);
+        return businessInterfaceService.updateStatus(id, status, loginUserName);
     }
 
     @ApiOperation(value = "获取mock模板", notes = "获取mock模板")
@@ -152,26 +150,26 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
-            throw new RuntimeException("没有获取到登录用户");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         if(CollectionUtils.isEmpty(dtoList)){
-            throw new RuntimeException("没有获取到mock模板");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到mock模板!", "没有获取到mock模板!");
         }
         for (MockTemplateDto dto : dtoList){
             //校验参数是否完整
             ValidationResult validationResult = validatorHelper.validate(dto);
             if (validationResult.isHasErrors()) {
-                throw new RuntimeException(validationResult.getErrorMsg());
+                return new ResultDto(Constant.ResultCode.ERROR_CODE, validationResult.getErrorMsg(), validationResult.getErrorMsg());
             }
             //校验mock模板格式是否正确
             Utils.strIsJsonOrXml(dto.getMockTemplate());
             long lon = businessInterfaceService.saveMockTemplate(dto.getId(),
                     dto.getMockTemplate(), dto.getMockIsUse(), loginUserName);
             if(lon <= 0){
-                throw new RuntimeException("保存mock模板失败");
+                return new ResultDto(Constant.ResultCode.ERROR_CODE, "保存mock模板失败!", "保存mock模板失败!");
             }
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "保存mock模板成功!", "");
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "保存mock模板成功!", "保存mock模板成功!");
     }
 
     @ApiOperation(value = "获取接口调试显示数据", notes = "获取接口调试显示数据")
@@ -244,16 +242,16 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             //校验该接口是否有产品关联
 //            List<TProductInterfaceLink> tpilList = productInterfaceLinkService.getObjByInterface(id);
 //            if (CollectionUtils.isNotEmpty(tpilList)) {
-//                return new ResultDto(Constant.ResultCode.ERROR_CODE, "该标准接口已有产品关联,暂无法删除!", "该标准接口已有产品关联,暂无法删除!");
+//                return new ResultDto(Constant.ResultCode.ERROR_CODE, "该标准接口已有产品关联,无法删除!", "该标准接口已有产品关联,无法删除!");
 //            }
             //校验该接口是否有产品关联
             TBusinessInterface tbi = businessInterfaceService.getProductIdByInterfaceId(id);
             if (tbi != null && StringUtils.isNotBlank(tbi.getId())) {
-                return new ResultDto(Constant.ResultCode.ERROR_CODE, "该标准接口已有产品关联,暂无法删除!", "该标准接口已有产品关联,暂无法删除!");
+                return new ResultDto(Constant.ResultCode.ERROR_CODE, "该标准接口已有产品关联,无法删除!", "该标准接口已有产品关联,无法删除!");
             }
             List<TBusinessInterface> list = businessInterfaceService.getListByInterfaceId(id);
             if (CollectionUtils.isNotEmpty(list)) {
-                return new ResultDto(Constant.ResultCode.ERROR_CODE, "该标准接口已有接口配置关联,暂无法删除!", "该标准接口已有接口配置关联,暂无法删除!");
+                return new ResultDto(Constant.ResultCode.ERROR_CODE, "该标准接口已有接口配置关联,无法删除!", "该标准接口已有接口配置关联,无法删除!");
             }
             //删除接口
             this.delete(id);
@@ -275,7 +273,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
-            throw new RuntimeException("没有获取到登录用户");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         String interfaceName = jsonObj.getString("interfaceName");
         if (StringUtils.isBlank(interfaceName)) {
@@ -688,7 +686,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
-            throw new RuntimeException("没有获取到登录用户");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         List<TBusinessInterface> tbiList = dto.getBusinessInterfaceList();
         if ("1".equals(dto.getAddOrUpdate())) {
@@ -822,9 +820,9 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                              @RequestParam(value = "joltType", defaultValue = "request", required = false) String joltType){
         String contentType = Constant.ParamFormatType.getByType(content);
         if(StringUtils.isBlank(contentType) || Constant.ParamFormatType.NONE.getType().equals(contentType)){
-            throw new RuntimeException("参数类型无效");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "参数类型无效!", "参数类型无效!");
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "成功", toolsGenerate.generateJolt(paramFormat, contentType, joltType));
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "jolt获取成功!", toolsGenerate.generateJolt(paramFormat, contentType, joltType));
     }
 
 

@@ -1,5 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
+import com.iflytek.integrated.common.Constant;
+import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.THospitalVendorLink;
 import com.iflytek.medicalboot.core.dto.PageRequest;
@@ -46,7 +48,7 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
      * @param mockStatus
      * @param loginUserName
      */
-    public void updateMockStatus(String id, String mockStatus, String loginUserName) {
+    public ResultDto updateMockStatus(String id, String mockStatus, String loginUserName) {
         //获取多接口，多个接口的id集合
         List<String> idList = busInterfaceIds(id);
         long size = sqlQueryFactory.update(qTBusinessInterface)
@@ -56,8 +58,9 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
             .where(qTBusinessInterface.id.in(idList)).execute();
         //判断编辑是否成功
         if(idList.size() != size){
-            throw new RuntimeException("mock状态编辑失败");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "更改mock状态成功!", id);
     }
 
     /**
@@ -66,7 +69,7 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
      * @param status
      * @param loginUserName
      */
-    public void updateStatus(String id, String status, String loginUserName) {
+    public ResultDto updateStatus(String id, String status, String loginUserName) {
         //获取多接口，多个接口的id集合
         List<String> idList = busInterfaceIds(id);
         long size = sqlQueryFactory.update(qTBusinessInterface)
@@ -76,8 +79,9 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
             .where(qTBusinessInterface.id.in(idList)).execute();
         //判断编辑是否成功
         if(idList.size() != size){
-            throw new RuntimeException("启停用状态编辑失败");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "启停用状态编辑失败!", "启停用状态编辑失败!");
         }
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "更改接口配置状态成功!", id);
     }
 
 

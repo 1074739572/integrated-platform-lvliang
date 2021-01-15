@@ -109,7 +109,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
-            throw new RuntimeException("没有获取到登录用户");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         String projectId = jsonObj.getString("id");
         //检验项目名称是否存在
@@ -256,7 +256,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
-            throw new RuntimeException("没有获取到登录用户");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         try {
             sqlQueryFactory.update(qTProject)

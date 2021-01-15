@@ -121,7 +121,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
-            throw new RuntimeException("没有获取到登录用户");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         //平台名称校验
         String platformId = jsonObj.getString("id");
@@ -304,7 +304,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
-            throw new RuntimeException("没有获取到登录用户");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         //平台id
         String platformId = jsonObj.getString("platformId");
