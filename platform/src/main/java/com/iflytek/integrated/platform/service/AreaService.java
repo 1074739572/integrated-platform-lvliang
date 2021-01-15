@@ -1,7 +1,10 @@
 package com.iflytek.integrated.platform.service;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
+import com.iflytek.integrated.platform.dto.AreaDto;
 import com.iflytek.integrated.platform.entity.TArea;
 import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
@@ -83,6 +86,7 @@ public class AreaService extends QuerydslService<TArea, String, TArea, StringPat
                 province.setChildren(cityMap.get(province.getAreaCode()));
             }
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", provinceList);
+        List<AreaDto> areaDtoList = JSONArray.parseArray(JSON.toJSONString(provinceList),AreaDto.class);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", areaDtoList);
     }
 }
