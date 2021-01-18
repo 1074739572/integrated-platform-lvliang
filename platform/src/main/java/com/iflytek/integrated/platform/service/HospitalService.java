@@ -33,7 +33,6 @@ import java.util.Date;
 import java.util.List;
 
 import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
-import static com.iflytek.integrated.platform.entity.QTArea.qTArea;
 
 /**
  * 医院管理
@@ -66,32 +65,11 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
             //查询条件
             ArrayList<Predicate> list = new ArrayList<>();
             list.add(qTHospital.status.eq(Constant.Status.YES));
+
             //如果区域id不为空，关联区域表查询所属区域下的医院
-//            String supCode = Utils.subAreaCode(areaCode);
-//            if(StringUtils.isNotEmpty(supCode)){
-//                list.add(qTArea.areaCode.like(Utils.rightCreateFuzzyText(supCode)));
-//            }
-            if (StringUtils.isNotBlank(areaCode)) {
-                String[] arr = areaCode.split(",");
-                List<String> codeList = new ArrayList<>();
-                for (int i = 0; i < arr.length; i++) {
-                    String code = arr[i];
-                    TArea ta = sqlQueryFactory.select(qTArea).from(qTArea).where(qTArea.areaCode.eq(code)).fetchFirst();
-                    if (ta != null) {
-                        Integer areaLevel = ta.getAreaLevel();
-                        if (areaLevel == 3) {
-                            String supCode = Utils.subAreaCode(code);
-                            if(StringUtils.isNotEmpty(supCode)){
-                                codeList.add(supCode);
-                            }
-                        }else {
-                            codeList.add(code);
-                        }
-                    }
-                }
-                if (codeList.size() > 0) {
-                    list.add(qTArea.areaCode.in(codeList));
-                }
+            String supCode = Utils.subAreaCode(areaCode);
+            if(StringUtils.isNotEmpty(supCode)){
+                list.add(qTHospital.areaId.like(Utils.rightCreateFuzzyText(supCode)));
             }
 
             if(StringUtils.isNotEmpty(hospitalName)){
@@ -108,7 +86,6 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
                         qTHospital.areaId
                     )
                 ).from(qTHospital)
-                    .leftJoin(qTArea).on(qTArea.id.eq(qTHospital.areaId))
                     .where(list.toArray(new Predicate[list.size()]))
                     .limit(pageSize)
                     .offset((pageNo - 1) * pageSize)
