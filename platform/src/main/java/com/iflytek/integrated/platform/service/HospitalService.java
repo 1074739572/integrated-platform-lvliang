@@ -29,6 +29,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -67,9 +68,9 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
             list.add(qTHospital.status.eq(Constant.Status.YES));
 
             //如果区域id不为空，关联区域表查询所属区域下的医院
-            String supCode = Utils.subAreaCode(areaCode);
-            if(StringUtils.isNotEmpty(supCode)){
-                list.add(qTHospital.areaId.like(Utils.rightCreateFuzzyText(supCode)));
+            if (StringUtils.isNotBlank(areaCode)) {
+                List<String> areaCodeList = Arrays.asList(areaCode.split(","));
+                list.add(qTHospital.areaId.in(areaCodeList));
             }
 
             if(StringUtils.isNotEmpty(hospitalName)){
