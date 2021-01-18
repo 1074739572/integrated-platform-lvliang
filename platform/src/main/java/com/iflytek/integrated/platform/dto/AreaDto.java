@@ -12,8 +12,6 @@ import java.util.List;
 @Data
 public class AreaDto {
 
-    private String id;
-
     private String areaCode;
 
     private String areaName;
