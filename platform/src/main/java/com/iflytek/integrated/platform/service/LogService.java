@@ -5,6 +5,7 @@ import com.iflytek.integrated.common.ResultDto;
 import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.dto.InterfaceMonitorDto;
+import com.iflytek.integrated.platform.entity.QTInterfaceMonitor;
 import com.iflytek.integrated.platform.entity.TLog;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.medicalboot.core.dto.PageRequest;
@@ -12,7 +13,9 @@ import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.SubQueryExpression;
 import com.querydsl.core.types.dsl.*;
+import com.querydsl.sql.SQLExpressions;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -55,38 +58,54 @@ public class LogService extends QuerydslService<TLog, Long, TLog, NumberPath<Lon
             //查询条件
             ArrayList<Predicate> list = new ArrayList<>();
             //判断条件是否为空
-            if(StringUtils.isNotBlank(projectId)){
-                list.add(qTInterfaceMonitor.projectId.eq(projectId));
-            }
-            if(StringUtils.isNotBlank(platFormId)){
-                list.add(qTInterfaceMonitor.platformId.eq(platFormId));
-            }
             if(StringUtils.isNotBlank(productId)){
                 list.add(qTProduct.id.eq(productId));
             }
-            if(StringUtils.isNotBlank(status)){
-                list.add(qTInterfaceMonitor.status.eq(status));
+            //先合并t_interface_monitor，再根据三合一结果进行查询
+            String q = "queryMonitor";
+            StringPath queryLabel = Expressions.stringPath(q);
+            SubQueryExpression query = SQLExpressions.select(
+                    qTInterfaceMonitor.id,
+                    qTInterfaceMonitor.status.max().as("status"),
+                    qTInterfaceMonitor.successCount.sum().as("SUCCESS_COUNT"),
+                    qTInterfaceMonitor.errorCount.sum().as("ERROR_COUNT"),
+                    qTInterfaceMonitor.projectId,
+                    qTInterfaceMonitor.platformId,
+                    qTInterfaceMonitor.productFunctionLinkId,
+                    qTInterfaceMonitor.createdTime
+            ).from(qTInterfaceMonitor)
+                .groupBy(qTInterfaceMonitor.platformId,qTInterfaceMonitor.projectId,qTInterfaceMonitor.productFunctionLinkId);
+            QTInterfaceMonitor monitor = new QTInterfaceMonitor(q);
+            //按条件筛选
+            if(StringUtils.isNotBlank(projectId)){
+                list.add(monitor.projectId.eq(projectId));
             }
+            if(StringUtils.isNotBlank(platFormId)){
+                list.add(monitor.platformId.eq(platFormId));
+            }
+            if(StringUtils.isNotBlank(status)){
+                list.add(monitor.status.eq(status));
+            }
+            //根据结果查询
             QueryResults<InterfaceMonitorDto> queryResults = sqlQueryFactory.select(
                     Projections.bean(InterfaceMonitorDto.class,
-                            qTInterfaceMonitor.id,
-                            qTInterfaceMonitor.status.max().as("status"),
-                            qTInterfaceMonitor.successCount.sum().as("successCount"),
-                            qTInterfaceMonitor.errorCount.sum().as("errorCount"),
+                            monitor.id,
+                            monitor.status,
+                            monitor.successCount,
+                            monitor.errorCount,
                             qTProject.projectName,
                             qTPlatform.platformName,
                             qTProduct.productName,
                             qTFunction.functionName
-                    )).from(qTInterfaceMonitor).leftJoin(qTProject).on(qTProject.id.eq(qTInterfaceMonitor.projectId))
-                    .leftJoin(qTPlatform).on(qTPlatform.id.eq(qTInterfaceMonitor.platformId))
-                    .leftJoin(qTProductFunctionLink).on(qTProductFunctionLink.id.eq(qTInterfaceMonitor.productFunctionLinkId))
+                    )).from(query,queryLabel).leftJoin(qTProject).on(qTProject.id.eq(monitor.projectId))
+                    .leftJoin(qTPlatform).on(qTPlatform.id.eq(monitor.platformId))
+                    .leftJoin(qTProductFunctionLink).on(qTProductFunctionLink.id.eq(monitor.productFunctionLinkId))
                     .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
                     .leftJoin(qTFunction).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
                     .where(list.toArray(new Predicate[list.size()]))
-                    .groupBy(qTInterfaceMonitor.platformId,qTInterfaceMonitor.projectId,qTInterfaceMonitor.productFunctionLinkId)
                     .limit(pageSize)
                     .offset((pageNo - 1) * pageSize)
-                    .orderBy(qTInterfaceMonitor.createdTime.desc())
+                    .orderBy(monitor.createdTime.desc())
                     .fetchResults();
             //分页
             TableData<InterfaceMonitorDto> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
