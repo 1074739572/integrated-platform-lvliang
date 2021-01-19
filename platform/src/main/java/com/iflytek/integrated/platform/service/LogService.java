@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+
+import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
 import static com.iflytek.integrated.platform.entity.QTFunction.qTFunction;
 import static com.iflytek.integrated.platform.entity.QTLog.qTLog;
 import static com.iflytek.integrated.platform.entity.QTInterfaceMonitor.qTInterfaceMonitor;
@@ -32,6 +34,7 @@ import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
 import static com.iflytek.integrated.platform.entity.QTProduct.qTProduct;
 import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.qTProductFunctionLink;
 import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
+import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConfig;
 
 /**
  * @author czzhan
@@ -64,6 +67,7 @@ public class LogService extends QuerydslService<TLog, Long, TLog, NumberPath<Lon
             //先合并t_interface_monitor，再根据三合一结果进行查询
             String q = "queryMonitor";
             StringPath queryLabel = Expressions.stringPath(q);
+            QTInterfaceMonitor monitor = new QTInterfaceMonitor(q);
             SubQueryExpression query = SQLExpressions.select(
                     qTInterfaceMonitor.id,
                     qTInterfaceMonitor.status.max().as("status"),
@@ -74,8 +78,14 @@ public class LogService extends QuerydslService<TLog, Long, TLog, NumberPath<Lon
                     qTInterfaceMonitor.productFunctionLinkId,
                     qTInterfaceMonitor.createdTime
             ).from(qTInterfaceMonitor)
-                .groupBy(qTInterfaceMonitor.platformId,qTInterfaceMonitor.projectId,qTInterfaceMonitor.productFunctionLinkId);
-            QTInterfaceMonitor monitor = new QTInterfaceMonitor(q);
+            .rightJoin(qTBusinessInterface).on(qTBusinessInterface.id.eq(qTInterfaceMonitor.businessInterfaceId)
+                    .and(qTBusinessInterface.productFunctionLinkId.eq(qTInterfaceMonitor.productFunctionLinkId)))
+            .rightJoin(qTVendorConfig).on(qTVendorConfig.id.eq(qTBusinessInterface.vendorConfigId)
+                    .and(qTVendorConfig.platformId.eq(qTInterfaceMonitor.platformId)))
+            .where(qTInterfaceMonitor.id.isNotNull())
+            .groupBy(qTInterfaceMonitor.platformId,qTInterfaceMonitor.projectId,qTInterfaceMonitor.productFunctionLinkId)
+            .orderBy(qTInterfaceMonitor.id.asc());
+
             //按条件筛选
             if(StringUtils.isNotBlank(projectId)){
                 list.add(monitor.projectId.eq(projectId));
