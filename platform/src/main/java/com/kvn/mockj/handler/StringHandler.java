@@ -14,17 +14,17 @@ public class StringHandler implements TypeHandler {
 
     @Override
     public Object handle(Options options) {
-        String sR = "";
+        String sr = "";
 
         if (options.getRule().getCount() == null) {
-            sR += options.getTemplate();
+            sr += options.getTemplate();
         } else {
             for (int i = 0; i < options.getRule().getCount(); i++) {
-                sR += options.getTemplate();
+                sr += options.getTemplate();
             }
         }
 
-        options.setTemplate(sR);
+        options.setTemplate(sr);
         //调取自定义方法
         return PlaceholderHandler.doGenerate(options);
     }

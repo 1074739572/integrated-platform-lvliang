@@ -15,6 +15,10 @@ import java.util.*;
  * 通过反射，随机生成一个 mock 对象。<br/>
  * 支持所有的数据类型。特别注意的是：集合类型（List、Map、Set）的属性必需带泛型参数，否则不处理
  */
+
+/**
+ * @author
+ */
 public class MockR {
     /************************************** 随机实例化 **************************************/
     private static final Random RANDOM = new Random();
@@ -195,7 +199,8 @@ public class MockR {
             if (Collection.class.isAssignableFrom(fieldClass)) {
                 ParameterizedTypeImpl type = findGenericType(targetClass, m);
                 fieldValue = type == null ? null : randomCollection(type, cascadeLayers - 1);
-            } else if (fieldClass.isArray()) { // Array 类型单独处理
+            } else if (fieldClass.isArray()) {
+                // Array 类型单独处理
                 fieldValue = randomArray(fieldClass);
             } else if (Map.class.isAssignableFrom(fieldClass)) {
                 ParameterizedTypeImpl pt = findGenericType(targetClass, m);
@@ -237,7 +242,8 @@ public class MockR {
      */
     @SuppressWarnings("unchecked")
     private static <T> T randomInstancePrimitiveClass(Class<T> clazz) {
-        int numberLength = 100000; // 数字保留5位
+        int numberLength = 100000;
+        // 数字保留5位
 
         String className = clazz.getName();
         switch (className) {

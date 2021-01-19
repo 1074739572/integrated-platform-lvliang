@@ -11,14 +11,14 @@ import java.util.regex.Pattern;
  * @author
  */
 public class PlaceholderHandler {
-    private static final Pattern pattern = Pattern.compile("(@\\w+)(\\(.*?\\))?");
+    private static final Pattern PATTERN = Pattern.compile("(@\\w+)(\\(.*?\\))?");
 
     public static Object doGenerate(Options options) {
 
         String template = options.getTemplate().toString();
         String paramName = template;
 
-        Matcher matcher = pattern.matcher(options.getTemplate().toString());
+        Matcher matcher = PATTERN.matcher(options.getTemplate().toString());
         StringBuffer sbRtn = new StringBuffer();
         boolean hasFind = false;
         while (matcher.find()) {

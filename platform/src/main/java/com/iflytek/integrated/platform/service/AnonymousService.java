@@ -101,7 +101,7 @@ public class AnonymousService {
         }
         else {
             //XML类型
-            mock = XmlJsonUtils.convertXmlIntoJSONObject(mock);
+            mock = XmlJsonUtils.convertXmlToJsonObject(mock);
             String json = Mock.mock(mock);
             return XmlJsonUtils.jsonToXml(json);
         }

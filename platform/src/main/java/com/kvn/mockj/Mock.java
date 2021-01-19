@@ -11,8 +11,8 @@ public class Mock {
 
     public static String mock(String template){
         try {
-            JSONObject jsonT = JSON.parseObject(template);
-            Object rlt = Handler.gen(jsonT, null, new Context());
+            JSONObject jsonObject = JSON.parseObject(template);
+            Object rlt = Handler.gen(jsonObject, null, new Context());
             return JSON.toJSONString(rlt);
         }catch (JSONException e){
             throw new RuntimeException("解析JSON失败，格式有错误");
@@ -20,8 +20,8 @@ public class Mock {
     }
 
     public static String mock(String template, Context context){
-        JSONObject jsonT = JSON.parseObject(template);
-        Object rlt = Handler.gen(jsonT, null, context);
+        JSONObject jsonObject = JSON.parseObject(template);
+        Object rlt = Handler.gen(jsonObject, null, context);
         return JSON.toJSONString(rlt);
     }
 

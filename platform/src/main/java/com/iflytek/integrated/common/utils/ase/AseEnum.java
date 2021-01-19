@@ -1,5 +1,8 @@
 package com.iflytek.integrated.common.utils.ase;
 
+/**
+ * @author
+ */
 public enum AseEnum {
 
     /**

@@ -84,7 +84,7 @@ public class LogService extends QuerydslService<TLog, Long, TLog, NumberPath<Lon
                     .and(qTVendorConfig.platformId.eq(qTInterfaceMonitor.platformId)))
             .where(qTInterfaceMonitor.id.isNotNull())
             .groupBy(qTInterfaceMonitor.platformId,qTInterfaceMonitor.projectId,qTInterfaceMonitor.productFunctionLinkId)
-            .orderBy(qTInterfaceMonitor.id.asc());
+            .orderBy(qTInterfaceMonitor.createdTime.desc());
 
             //按条件筛选
             if(StringUtils.isNotBlank(projectId)){

@@ -61,6 +61,7 @@ public class TemplateHelper {
                 case "double":
                     template.put(fieldName + "|0-" + (Short.MAX_VALUE - 10), 1);
                     continue;
+                default:
             }
 
             if (String.class == field.getType()) {

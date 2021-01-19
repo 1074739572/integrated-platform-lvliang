@@ -22,17 +22,17 @@ public class ArrayHandler implements TypeHandler {
     public Object handle(Options options) {
         //如果是数组形式，随机返回多条
         if (options.getRule().getParameters() == null || options.getRule().getParameters().isEmpty()) {
-            JSONArray jaR = new JSONArray();
+            JSONArray jsonArray = new JSONArray();
 
             Integer length = Function.arraySize != null?Function.$integer(Function.arraySize):1;
             for (int size = 0; size < length;size ++){
                 JSONArray templates = (JSONArray) options.getTemplate();
                 for (int i = 0; i < templates.size(); i++) {
                     Context context = new Context();
-                    jaR.add(Handler.gen(templates.get(i), i + "", context));
+                    jsonArray.add(Handler.gen(templates.get(i), i + "", context));
                 }
             }
-            return jaR;
+            return jsonArray;
         }
 
 
@@ -52,7 +52,7 @@ public class ArrayHandler implements TypeHandler {
 
 
         // 'data|1-10': [{}]
-        JSONArray jaR = new JSONArray();
+        JSONArray jsonArray = new JSONArray();
         for (int i = 0; i < options.getRule().getCount(); i++) {
             // 'data|1-10': [{}, {}]
             JSONArray templates = (JSONArray) options.getTemplate();
@@ -60,9 +60,9 @@ public class ArrayHandler implements TypeHandler {
             for (int j = 0; j < templates.size(); j++) {
                 ja.add(Handler.gen(templates.get(j), ja.size() + "", options.getContext()));
             }
-            jaR.add(ja);
+            jsonArray.add(ja);
         }
 
-        return jaR;
+        return jsonArray;
     }
 }

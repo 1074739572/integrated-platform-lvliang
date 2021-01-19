@@ -33,7 +33,7 @@ public class XmlJsonUtils {
      * 再将xml装换成属性没有带"@"的JSONObject格式
      * @author
      * */
-    public static String convertXmlIntoJSONObject (String xml){
+    public static String convertXmlToJsonObject(String xml){
         try {
             Document xmlDocument = DocumentHelper.parseText(xml);
             OutputFormat format = new OutputFormat();
@@ -43,7 +43,7 @@ public class XmlJsonUtils {
             XMLWriter writer = new XMLWriter(out, format);
             writer.write(xmlDocument);
             writer.flush();
-            return toJSONObject(out.toString()).toString();
+            return toJsonObject(out.toString()).toString();
         } catch (DocumentException e){
             e.printStackTrace();
         } catch (IOException e) {
@@ -104,15 +104,15 @@ public class XmlJsonUtils {
         return buffer.toString();
     }
 
-    private static org.json.JSONObject toJSONObject(String string) throws JSONException {
-        return toJSONObject(string, false);
+    private static org.json.JSONObject toJsonObject(String string) throws JSONException {
+        return toJsonObject(string, false);
     }
 
-    private static org.json.JSONObject toJSONObject(String string, boolean keepStrings) throws JSONException {
-        return toJSONObject((Reader)(new StringReader(string)), keepStrings);
+    private static org.json.JSONObject toJsonObject(String string, boolean keepStrings) throws JSONException {
+        return toJsonObject((Reader)(new StringReader(string)), keepStrings);
     }
 
-    private static org.json.JSONObject toJSONObject(Reader reader, boolean keepStrings) throws JSONException {
+    private static org.json.JSONObject toJsonObject(Reader reader, boolean keepStrings) throws JSONException {
         org.json.JSONObject jo = new org.json.JSONObject();
         XMLTokener x = new XMLTokener(reader);
 
