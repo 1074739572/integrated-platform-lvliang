@@ -372,4 +372,22 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
         return interfaces.stream().map(TBusinessInterface::getId).collect(Collectors.toList());
     }
 
+
+    /**
+     * 根据医院id获取关联接口配置信息
+     * @param hospitalId
+     * @return
+     */
+    public List<TBusinessInterface> getListByHospital(String hospitalId) {
+        List<TBusinessInterface> list =
+                sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
+                .leftJoin(qTVendorConfig).on(qTBusinessInterface.vendorConfigId.eq(qTVendorConfig.id))
+                .leftJoin(qTHospitalVendorLink).on(qTVendorConfig.id.eq(qTHospitalVendorLink.vendorConfigId))
+                .where(qTHospitalVendorLink.hospitalId.eq(hospitalId))
+                .fetch();
+        return list;
+    }
+
+
+
 }

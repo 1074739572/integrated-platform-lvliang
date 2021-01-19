@@ -27,6 +27,8 @@ public class TVendor implements Serializable {
 
     private String driveName;
 
+    private String connectionType;
+
     public String getId() {
         return id;
     }
@@ -89,6 +91,14 @@ public class TVendor implements Serializable {
 
     public void setDriveName(String driveName) {
         this.driveName = driveName;
+    }
+
+    public String getConnectionType() {
+        return connectionType;
+    }
+
+    public void setConnectionType(String connectionType) {
+        this.connectionType = connectionType;
     }
 
     @Override

@@ -17,6 +17,7 @@ import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -320,7 +321,10 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
     @ApiOperation(value = "根据平台id获取厂商信息")
     @GetMapping("/getDisVendorByPlatform")
     public ResultDto getDisVendorByPlatform(@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId) {
-        List<TVendor> vendors = sqlQueryFactory.select(qTVendor).from(qTVendor)
+        List<TVendor> vendors = sqlQueryFactory.select(
+                Projections.bean(TVendor.class,qTVendor.id,qTVendor.vendorName,qTVendor.vendorCode,qTVendor.createdBy,qTVendor.createdTime,
+                        qTVendor.updatedBy,qTVendor.updatedTime,qTVendorConfig.connectionType.as("connectionType")))
+                .from(qTVendor)
                 .leftJoin(qTVendorConfig).on(qTVendorConfig.vendorId.eq(qTVendor.id))
                 .where(qTVendorConfig.platformId.eq(platformId)).fetch();
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", vendors);
@@ -400,5 +404,6 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
         }
         return sqlQueryFactory.select(qTVendor).from(qTVendor).where(list.toArray(new Predicate[list.size()])).fetchFirst();
     }
+
 
 }
