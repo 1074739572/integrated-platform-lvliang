@@ -83,7 +83,7 @@ public class LogService extends QuerydslService<TLog, Long, TLog, NumberPath<Lon
             .rightJoin(qTVendorConfig).on(qTVendorConfig.id.eq(qTBusinessInterface.vendorConfigId)
                     .and(qTVendorConfig.platformId.eq(qTInterfaceMonitor.platformId)))
             .where(qTInterfaceMonitor.id.isNotNull())
-            .groupBy(qTInterfaceMonitor.platformId,qTInterfaceMonitor.projectId,qTInterfaceMonitor.productFunctionLinkId)
+            .groupBy(qTInterfaceMonitor.platformId,qTInterfaceMonitor.productFunctionLinkId)
             .orderBy(qTInterfaceMonitor.createdTime.desc());
 
             //按条件筛选
@@ -158,9 +158,8 @@ public class LogService extends QuerydslService<TLog, Long, TLog, NumberPath<Lon
                         qTLog.venderRep
                 )
             ).from(qTLog)
-            .leftJoin(qTInterfaceMonitor).on(qTInterfaceMonitor.projectId.eq(qTLog.projectId)
-                .and(qTInterfaceMonitor.platformId.eq(qTLog.platformId)
-                .and(qTInterfaceMonitor.productFunctionLinkId.eq(qTLog.productFunctionLinkId))))
+            .leftJoin(qTInterfaceMonitor).on(qTInterfaceMonitor.platformId.eq(qTLog.platformId)
+                .and(qTInterfaceMonitor.productFunctionLinkId.eq(qTLog.productFunctionLinkId)))
             .where(list.toArray(new Predicate[list.size()]))
             .limit(pageSize)
             .offset((pageNo - 1) * pageSize)
