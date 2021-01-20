@@ -2,7 +2,7 @@ package com.iflytek.integrated.platform.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.*;
-import com.iflytek.integrated.common.bean.UserLoginIntercept;
+import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.integrated.platform.utils.Utils;

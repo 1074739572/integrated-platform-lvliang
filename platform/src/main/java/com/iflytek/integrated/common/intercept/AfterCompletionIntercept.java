@@ -1,7 +1,8 @@
-package com.iflytek.integrated.common.bean;
+package com.iflytek.integrated.common.intercept;
 
+import com.iflytek.integrated.common.Constant;
+import com.iflytek.integrated.common.ResultDto;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
@@ -29,12 +30,16 @@ public class AfterCompletionIntercept extends HandlerInterceptorAdapter {
      * @param request
      * @param response
      * @param handler
-     * @param modelAndView
      * @throws Exception
      */
     @Override
-    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception{
-
-        System.out.println("afterCompletion...");
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        //获取返回结果
+        ResultDto result = (ResultDto) request.getAttribute("response");
+        if(result != null) {
+            if(Constant.ResultCode.SUCCESS_CODE == result.getCode() && result.getData() != null){
+                String id = result.getData().toString();
+            }
+        }
     }
 }

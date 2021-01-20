@@ -1,5 +1,7 @@
 package com.iflytek.integrated.common.bean;
 
+import com.iflytek.integrated.common.intercept.AfterCompletionIntercept;
+import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;

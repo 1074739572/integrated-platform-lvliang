@@ -1,4 +1,4 @@
-package com.iflytek.integrated.common.bean;
+package com.iflytek.integrated.common.intercept;
 
 import com.alibaba.fastjson.JSON;
 import com.iflytek.integrated.common.UserDto;
