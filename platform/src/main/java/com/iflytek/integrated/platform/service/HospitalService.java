@@ -6,10 +6,7 @@ import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.common.utils.RedisUtil;
-import com.iflytek.integrated.platform.dto.RedisKeyDto;
 import com.iflytek.integrated.platform.entity.THospitalVendorLink;
-import com.iflytek.integrated.platform.entity.TInterface;
-import com.iflytek.integrated.platform.entity.TProduct;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.THospital;
 import com.iflytek.integrated.common.validator.ValidationResult;
@@ -39,15 +36,6 @@ import java.util.Date;
 import java.util.List;
 
 import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
-import static com.iflytek.integrated.platform.entity.QTHospitalVendorLink.qTHospitalVendorLink;
-import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
-import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
-import static com.iflytek.integrated.platform.entity.QTProduct.qTProduct;
-import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.qTProductFunctionLink;
-import static com.iflytek.integrated.platform.entity.QTProductInterfaceLink.qTProductInterfaceLink;
-import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
-import static com.iflytek.integrated.platform.entity.QTProjectProductLink.qTProjectProductLink;
-import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConfig;
 
 /**
  * 医院管理
@@ -140,9 +128,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         if(lon <= 0){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "医院管理删除失败!", id);
         }
-        //清除缓存
-//        delKey(id, hospital);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "医院管理删除成功", "医院管理删除成功");
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "医院管理删除成功", id);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -171,6 +157,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
             hospital.setCreatedTime(new Date());
             hospital.setCreatedBy(loginUserName);
             this.post(hospital);
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "医院管理新增成功", null);
         }
         else {
             //存在id时，编辑医院
@@ -181,7 +168,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
                 return new ResultDto(Constant.ResultCode.ERROR_CODE, "医院管理编辑失败!", "医院管理编辑失败!");
             }
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "医院管理新增或编辑成功", hospital.getId());
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "医院管理编辑成功", hospital.getId());
     }
 
     @ApiOperation(value = "医院配置")
@@ -220,61 +207,6 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
             return true;
         }
         return false;
-    }
-
-
-    /**
-     * 根据条件删除key
-     * @param object
-     * @return
-     */
-    private List<String> delKey(Object object) {
-        //projectcode_orgid_productcode_funcode
-        List<String> rtnList = new ArrayList<>();
-
-        ArrayList<Predicate> arr = new ArrayList<>();
-        arr.add(qTProject.projectCode.isNotNull().and(qTProduct.productCode.isNotNull().and(qTInterface.interfaceUrl.isNotNull())));
-
-        if (object instanceof TProduct) {
-            TProduct obj = (TProduct)object;
-            arr.add(qTProduct.id.eq(obj.getId()));
-        }
-        if (object instanceof TInterface) {
-            TInterface obj = (TInterface)object;
-            arr.add(qTInterface.id.eq(obj.getId()));
-        }
-        if (object instanceof THospital) {
-            THospital obj = (THospital)object;
-            arr.add(qTHospital.id.eq(obj.getId()));
-        }
-
-        List<RedisKeyDto> list =
-                sqlQueryFactory.select(Projections.bean(RedisKeyDto.class, qTProject.projectCode.as("projectCode"),
-                        qTHospital.hospitalCode.as("orgId"), qTProduct.productCode.as("productCode"), qTInterface.interfaceUrl.as("funCode")))
-                        .from(qTProject)
-                        .leftJoin(qTPlatform).on(qTPlatform.projectId.eq(qTProject.id))
-                        .leftJoin(qTVendorConfig).on(qTVendorConfig.platformId.eq(qTPlatform.id))
-                        .leftJoin(qTHospitalVendorLink).on(qTHospitalVendorLink.vendorConfigId.eq(qTVendorConfig.id))
-                        .leftJoin(qTHospital).on(qTHospital.id.eq(qTHospitalVendorLink.hospitalId))
-                        .leftJoin(qTProjectProductLink).on(qTProjectProductLink.projectId.eq(qTProject.id))
-                        .leftJoin(qTProductFunctionLink).on(qTProductFunctionLink.id.eq(qTProjectProductLink.productFunctionLinkId))
-                        .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
-                        .leftJoin(qTProductInterfaceLink).on(qTProductInterfaceLink.productId.eq(qTProduct.id))
-                        .leftJoin(qTInterface).on(qTInterface.id.eq(qTProductInterfaceLink.interfaceId))
-                        .where(arr.toArray(new Predicate[arr.size()]))
-                        .groupBy(qTProject.projectCode, qTHospital.hospitalCode, qTProduct.productCode, qTInterface.interfaceUrl)
-                        .fetch();
-        if (org.apache.commons.collections.CollectionUtils.isNotEmpty(list)) {
-            String key = "";
-            for (RedisKeyDto obj : list) {
-                key = obj.getProjectCode()+"_"+obj.getOrgId()+"_"+obj.getProductCode()+"_"+obj.getFunCode();
-                Boolean isDel = redisUtil.hmDel("IntegratedPlatform:Configs:", key);
-                if (!isDel) {
-                    rtnList.add(key);
-                }
-            }
-        }
-        return rtnList;
     }
 
 
