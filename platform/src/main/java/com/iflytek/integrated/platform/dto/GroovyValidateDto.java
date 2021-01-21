@@ -9,38 +9,18 @@ import lombok.Data;
 @Data
 public class GroovyValidateDto {
 
+    /**
+     * 成功时的返回
+     */
     private String validResult;
 
     private String validStatus;
 
-    public enum RESULT{
-        //返回成功
-        SUCCESS(Boolean.TRUE,"success"),
-        //返回失败
-        ERROR(Boolean.FALSE,"");
+    /**
+     * 失败时的返回
+     */
+    private String result;
 
-        private Boolean flag;
-        private String type;
+    private String error;
 
-        RESULT(Boolean flag, String type){
-            this.flag = flag;
-            this.type = type;
-        }
-
-        public Boolean getFlag(Boolean flag, String type) {
-            return flag;
-        }
-
-        public void setFlag(Boolean flag) {
-            this.flag = flag;
-        }
-
-        public String getType() {
-            return type;
-        }
-
-        public void setType(String type) {
-            this.type = type;
-        }
-    }
 }

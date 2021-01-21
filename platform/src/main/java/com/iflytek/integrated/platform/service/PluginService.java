@@ -233,7 +233,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
             rtnMap.put("message", "插件名称已存在!");
         }
         GroovyValidateDto result = toolsGenerate.groovyUrl(pluginContent);
-        if(!GroovyValidateDto.RESULT.SUCCESS.getType().equals(result.getValidResult())){
+        if(StringUtils.isNotBlank(result.getError()) || StringUtils.isBlank(result.getValidResult())){
             rtnMap.put("isExist", true);
             rtnMap.put("message", "插件内容格式错误!");
         }
