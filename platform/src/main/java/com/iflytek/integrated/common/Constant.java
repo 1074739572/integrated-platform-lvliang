@@ -211,6 +211,8 @@ public class Constant {
 
         String PLATFORM = "platform";
 
+        String BUSINESSINTERFACE = "businessInterface";
+
     }
 
 

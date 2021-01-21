@@ -9,7 +9,7 @@ import javax.annotation.Resource;
 import java.util.Map;
 
 /**
-* redid 工具类
+* redis 工具类
  * @author
 */
 @Component
@@ -24,7 +24,7 @@ public class RedisUtil<T> {
      * HashSet
      *
      * @param key 键
-     * @param id 对应的hash键kev
+     * @param id 对应的hash键key
      * @param t 对应的键value
      * @return true 成功 false 失败
      */

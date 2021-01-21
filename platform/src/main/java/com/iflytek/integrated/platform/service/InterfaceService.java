@@ -155,6 +155,8 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         if(CollectionUtils.isEmpty(dtoList)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到mock模板!", "没有获取到mock模板!");
         }
+        //返回缓存操作数据
+        String rtnStr = "";
         for (MockTemplateDto dto : dtoList){
             //校验参数是否完整
             ValidationResult validationResult = validatorHelper.validate(dto);
@@ -168,8 +170,10 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             if(lon <= 0){
                 return new ResultDto(Constant.ResultCode.ERROR_CODE, "保存mock模板失败!", "保存mock模板失败!");
             }
+            rtnStr += dto.getId() + ",";
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "保存mock模板成功!", "保存mock模板成功!");
+        rtnStr = StringUtils.isBlank(rtnStr)?null:rtnStr.substring(0,rtnStr.length()-1);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "保存mock模板成功!", rtnStr);
     }
 
     @ApiOperation(value = "获取接口调试显示数据", notes = "获取接口调试显示数据")
@@ -372,7 +376,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         }
         //新增标准接口
         this.post(ti);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "标准接口新增成功!", interfaceId);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "标准接口新增成功!", null);
     }
 
     /** 修改标准接口 */
@@ -725,7 +729,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 //        }
         //根据项目,厂商,标准接口判定是否存在相同配置数据
         List<THospitalVendorLink> thvlList = hospitalVendorLinkService.getTHospitalVendorLinkByVendorConfigId(vendorConfigId);
-        //根据条件判断是否存在该数据???
+        //根据条件判断是否存在该数据
         List<TBusinessInterface> tbiList = businessInterfaceService.getBusinessInterfaceIsExist(thvlList, dto.getProjectId(), dto.getProductId(), dto.getInterfaceId());
         if (CollectionUtils.isNotEmpty(tbiList)) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据项目id,产品id,标准接口id匹配到该条件数据已存在!", dto);
@@ -779,6 +783,9 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 //        }else {
 //            productFunctionLinkId = dto.getProductFunctionLinkId();
 //        }
+        //返回缓存接口配置id
+        String rtnId = "";
+
         List<TBusinessInterface> tbiList = dto.getBusinessInterfaceList();
         for (int i = 0; i < tbiList.size(); i++) {
             TBusinessInterface tbi = tbiList.get(i);
@@ -809,10 +816,12 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                 toolsGenerate.generateSchemaToInterface(tbi);
                 //新增接口配置
                 businessInterfaceService.put(tbi.getId(), tbi);
+                rtnId += tbi.getId() + ",";
             }
             setRedis(tbi.getId());
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "编辑接口配置成功", null);
+        rtnId = StringUtils.isBlank(rtnId)?null:rtnId.substring(0, rtnId.length()-1);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "编辑接口配置成功", rtnId);
     }
 
 
@@ -864,7 +873,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         if (count < 1) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据id删除该接口配置信息失败!", id);
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "单个接口配置信息删除成功!", "单个接口配置信息删除成功!");
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "单个接口配置信息删除成功!", id);
     }
 
 

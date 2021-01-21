@@ -150,7 +150,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
             tvdl.setCreatedBy(loginUserName);
             vendorDriveLinkService.post(tvdl);
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "厂商修改成功!", null);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "厂商修改成功!", vendorId);
     }
 
 
@@ -170,7 +170,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
         }
         //删除厂商与驱动关联
         vendorDriveLinkService.deleteVendorDriveLinkById(id);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "厂商删除成功!", null);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "厂商删除成功!", id);
     }
 
 

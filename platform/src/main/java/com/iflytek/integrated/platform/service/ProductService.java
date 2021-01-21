@@ -111,6 +111,8 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         if(lon <= 0){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "产品功能删除失败!", "产品功能删除失败!");
         }
+        //返回删除产品缓存的id
+        String errProductId = null;
         //如果该产品下没有其它功能关联,则删除该产品
         String productId = functionLink.getProductId();
         List<TProductFunctionLink> fetch = sqlQueryFactory.select(qTProductFunctionLink).from(qTProductFunctionLink)
@@ -119,10 +121,10 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             //删除产品前判断该产品是否有标准接口相关联
             List<TProductInterfaceLink> tpilList = productInterfaceLinkService.getObjByProduct(productId);
             if (CollectionUtils.isEmpty(tpilList)) {
+                errProductId = productId;
                 this.delete(productId);
             }
         }
-
         //如果该功能没有产品相关联,则删除该功能
         String functionId = functionLink.getFunctionId();
         fetch = sqlQueryFactory.select(qTProductFunctionLink).from(qTProductFunctionLink)
@@ -130,7 +132,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         if (CollectionUtils.isEmpty(fetch)) {
             functionService.delete(functionId);
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "产品功能删除成功!", "产品功能删除成功!");
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "产品功能删除成功!", errProductId);
     }
 
 
@@ -227,7 +229,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             tpfl.setCreatedBy(loginUserName);
             productFunctionLinkService.post(tpfl);
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"新增产品功能关联成功", tpfl);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"新增产品功能关联成功", null);
     }
 
     /** 编辑产品 */
@@ -236,6 +238,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         String productId = jsonObj.getString("productId");
         String productName = jsonObj.getString("productName");
         String functionId = jsonObj.getString("functionId");
+        String errProductId = null;
 
         //判断输入产品是否是新产品
         TProduct tp = getObjByProductName(productName.trim());
@@ -261,8 +264,9 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             if (tpflObj == null) {
                 functionService.delete(oldFunctionId);
             }
+        }else {
+            errProductId = tp.getId();
         }
-//        productId = tp.getId();
 
         //新增产品
 //        if (StringUtils.isBlank(productId)) {
@@ -297,7 +301,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         }
         //更新产品与功能关联
         productFunctionLinkService.updateObjById(id, productId, functionId, loginUserName);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"编辑产品功能关联成功", id);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"编辑产品功能关联成功", errProductId);
     }
 
 

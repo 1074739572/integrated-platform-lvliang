@@ -174,7 +174,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "驱动删除失败!", "驱动删除失败!");
         }
         delRedis(id);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "驱动删除成功!", "驱动删除成功!");
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "驱动删除成功!", id);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -213,7 +213,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
             return new ResultDto(Constant.ResultCode.ERROR_CODE,"驱动编辑失败!", drive);
         }
         setRedis(drive.getId());
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"驱动编辑成功!", drive);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"驱动编辑成功!", drive.getId());
     }
 
     @ApiOperation(value = "新增厂商弹窗展示的驱动选择信息")

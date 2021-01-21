@@ -161,7 +161,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "插件删除失败!", "插件删除失败!");
         }
         delRedis(id);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "插件删除成功", "插件删除成功");
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "插件删除成功", id);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -200,7 +200,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "插件编辑失败!", "插件编辑失败!");
         }
         setRedis(plugin.getId());
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"","插件编辑成功");
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"插件编辑成功!", plugin.getId());
     }
 
     /**

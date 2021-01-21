@@ -7,6 +7,8 @@ import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.common.utils.RedisUtil;
+import com.iflytek.integrated.platform.dto.RedisKeyDto;
 import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.medicalboot.core.dto.PageRequest;
@@ -14,6 +16,7 @@ import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -29,8 +32,16 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
+import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
+import static com.iflytek.integrated.platform.entity.QTHospitalVendorLink.qTHospitalVendorLink;
+import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
+import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
+import static com.iflytek.integrated.platform.entity.QTProduct.qTProduct;
+import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.qTProductFunctionLink;
+import static com.iflytek.integrated.platform.entity.QTProductInterfaceLink.qTProductInterfaceLink;
 import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
 import static com.iflytek.integrated.platform.entity.QTProjectProductLink.qTProjectProductLink;
+import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConfig;
 
 /**
 * 项目管理
@@ -62,6 +73,8 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
     private BatchUidService batchUidService;
     @Autowired
     private Utils utils;
+    @Autowired
+    private RedisUtil redisUtil;
 
     private static final Logger logger = LoggerFactory.getLogger(ProjectService.class);
 
@@ -206,7 +219,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
                 projectProductLinkService.post(tppl);
             }
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "项目修改成功!", null);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "项目修改成功!", projectId);
     }
 
 
@@ -245,7 +258,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
 
         //删除项目与产品功能关联
         this.deleteProjectById(id);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "项目删除成功!", null);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "项目删除成功!", id);
     }
 
 
@@ -342,7 +355,6 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
         return false;
     }
 
-
     /**
      * 根据项目id删除其关联信息
      * @param projectId
@@ -354,6 +366,46 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
 //            productFunctionLinkService.delete(productFunctionLinkId);
             projectProductLinkService.delete(obj.getId());
         }
+    }
+
+
+    /**
+     * 根据条件删除key
+     * @param arr
+     * @return
+     */
+    public List<String> delKey(ArrayList<Predicate> arr) {
+        //projectcode_orgid_productcode_funcode
+        List<String> rtnList = new ArrayList<>();
+
+        arr.add(qTProject.projectCode.isNotNull().and(qTProduct.productCode.isNotNull().and(qTInterface.interfaceUrl.isNotNull())));
+
+        List<RedisKeyDto> list =
+                        sqlQueryFactory.select(Projections.bean(RedisKeyDto.class, qTProject.projectCode.as("projectCode"),
+                        qTHospital.hospitalCode.as("orgId"), qTProduct.productCode.as("productCode"), qTInterface.interfaceUrl.as("funCode")))
+                        .leftJoin(qTPlatform).on(qTPlatform.projectId.eq(qTProject.id))
+                        .leftJoin(qTVendorConfig).on(qTVendorConfig.platformId.eq(qTPlatform.id))
+                        .leftJoin(qTHospitalVendorLink).on(qTHospitalVendorLink.vendorConfigId.eq(qTVendorConfig.id))
+                        .leftJoin(qTHospital).on(qTHospital.id.eq(qTHospitalVendorLink.hospitalId))
+                        .leftJoin(qTProjectProductLink).on(qTProjectProductLink.projectId.eq(qTProject.id))
+                        .leftJoin(qTProductFunctionLink).on(qTProductFunctionLink.id.eq(qTProjectProductLink.productFunctionLinkId))
+                        .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
+                        .leftJoin(qTProductInterfaceLink).on(qTProductInterfaceLink.productId.eq(qTProduct.id))
+                        .leftJoin(qTInterface).on(qTInterface.id.eq(qTProductInterfaceLink.interfaceId))
+                        .where(arr.toArray(new Predicate[arr.size()]))
+                        .groupBy(qTProject.projectCode, qTHospital.hospitalCode, qTProduct.productCode, qTInterface.interfaceUrl)
+                        .fetch();
+        if (org.apache.commons.collections.CollectionUtils.isNotEmpty(list)) {
+            String key = "";
+//            for (RedisKeyDto obj : list) {
+//                key = obj.getProjectCode()+"_"+obj.getOrgId()+"_"+obj.getProductCode()+"_"+obj.getFunCode();
+//                Boolean isDel = redisUtil.hmDel("IntegratedPlatform:Configs:", key);
+//                if (!isDel) {
+//                    rtnList.add(key);
+//                }
+//            }
+        }
+        return rtnList;
     }
 
 

@@ -189,7 +189,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
                 hospitalVendorLinkService.post(hvl);
             }
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "新增平台成功!", tp);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "新增平台成功!", null);
     }
 
     /** 修改平台 */
@@ -407,169 +407,6 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "修改厂商信息成功!", platformId);
     }
 
-//    /** 修改平台 */
-//    private ResultDto updatePlatform(JSONObject jsonObj, String loginUserName) {
-//        //删除平台下厂商配置信息  编辑平台 flag=1  编辑厂商信息 flag=2
-//        String flag = jsonObj.getString("flag");
-//
-//        String platformId = jsonObj.getString("id");
-//        sqlQueryFactory.update(qTPlatform).set(qTPlatform.platformName, jsonObj.getString("platformName"))
-//                .set(qTPlatform.platformType, jsonObj.getString("platformType"))
-//                .set(qTPlatform.projectId, jsonObj.getString("projectId"))
-//                .set(qTPlatform.updatedTime, new Date())
-//                .set(qTPlatform.updatedBy, StringUtils.isBlank(loginUserName)?"":loginUserName)
-//                .where(qTPlatform.id.eq(platformId)).execute();
-//        //删除平台下厂商医院配置信息
-//        List<TVendorConfig> tvcList = vendorConfigService.getObjByPlatformId(platformId);
-//        if (!CollectionUtils.isEmpty(tvcList)) {
-//            for (int i = 0; i < tvcList.size(); i++) {
-//                hospitalVendorLinkService.deleteByVendorConfigId(tvcList.get(i).getId());
-//            }
-//        }
-//        if ("2".equals(flag)) {
-//            vendorConfigService.delVendorConfigAll(platformId);
-//        }
-//        JSONArray jsonArr = jsonObj.getJSONArray("vendorInfo");
-//        if (jsonArr.isEmpty()) {
-//            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "修改平台成功!", platformId);
-//        }
-//        for (int i = 0; i < jsonArr.size(); i++) {
-//            JSONObject obj = jsonArr.getJSONObject(i);
-//            TVendorConfig tvc = new TVendorConfig();
-//            //判断厂商配置是新增or修改
-//            String vendorConfigId = obj.getString("id");
-//            if (StringUtils.isBlank(vendorConfigId)) {
-//                //新增厂商
-//                vendorConfigId = batchUidService.getUid(qTVendorConfig.getTableName()) + "";
-//                tvc.setId(vendorConfigId);
-//                tvc.setPlatformId(platformId);
-//                tvc.setVendorId(obj.getString("vendorId"));
-//                tvc.setVersionId(obj.getString("versionId"));
-//                tvc.setConnectionType(obj.getString("connectionType"));
-//                tvc.setAddressUrl(obj.getString("addressUrl"));
-//                tvc.setEndpointUrl(obj.getString("endpointUrl"));
-//                tvc.setNamespaceUrl(obj.getString("namespaceUrl"));
-//                tvc.setDatabaseName(obj.getString("databaseName"));
-//                tvc.setDatabaseUrl(obj.getString("databaseUrl"));
-//                tvc.setDatabaseDriver(obj.getString("databaseDriver"));
-//                tvc.setJsonParams(obj.getString("jsonParams"));
-//                tvc.setUserName(obj.getString("userName"));
-//                tvc.setUserPassword(obj.getString("userPassword"));
-//                tvc.setCreatedTime(new Date());
-//                tvc.setCreatedBy(loginUserName);
-//                vendorConfigService.post(tvc);
-//                JSONArray hospitalArr = obj.getJSONArray("hospitalConfig");
-//                for (int j = 0; j < hospitalArr.size(); j++) {
-//                    JSONObject hObj = hospitalArr.getJSONObject(j);
-//                    THospitalVendorLink hvl = new THospitalVendorLink();
-//                    hvl.setId(batchUidService.getUid(qTHospitalVendorLink.getTableName()) + "");
-//                    hvl.setVendorConfigId(vendorConfigId);
-//                    hvl.setHospitalId(hObj.getString("hospitalId"));
-//                    hvl.setVendorHospitalId(hObj.getString("vendorHospitalId"));
-//                    hvl.setCreatedTime(new Date());
-//                    hvl.setCreatedBy(loginUserName);
-//                    hospitalVendorLinkService.post(hvl);
-//                }
-//            }else {
-//                //编辑厂商
-//                tvc.setId(vendorConfigId);
-//                tvc.setPlatformId(platformId);
-//                tvc.setVendorId(obj.getString("vendorId"));
-//                tvc.setVersionId(obj.getString("versionId"));
-//                tvc.setConnectionType(obj.getString("connectionType"));
-//                tvc.setAddressUrl(obj.getString("addressUrl"));
-//                tvc.setEndpointUrl(obj.getString("endpointUrl"));
-//                tvc.setNamespaceUrl(obj.getString("namespaceUrl"));
-//                tvc.setDatabaseName(obj.getString("databaseName"));
-//                tvc.setDatabaseUrl(obj.getString("databaseUrl"));
-//                tvc.setDatabaseDriver(obj.getString("databaseDriver"));
-//                tvc.setJsonParams(obj.getString("jsonParams"));
-//                tvc.setUserName(obj.getString("userName"));
-//                tvc.setUserPassword(obj.getString("userPassword"));
-//                tvc.setUpdatedTime(new Date());
-//                tvc.setUpdatedBy(loginUserName);
-//                vendorConfigService.put(vendorConfigId, tvc);
-////                vendorConfigService.post(tvc);
-//                JSONArray hospitalArr = obj.getJSONArray("hospitalConfig");
-//                for (int j = 0; j < hospitalArr.size(); j++) {
-//                    JSONObject hObj = hospitalArr.getJSONObject(j);
-//                    THospitalVendorLink hvl = new THospitalVendorLink();
-//                    hvl.setId(batchUidService.getUid(qTHospitalVendorLink.getTableName()) + "");
-//                    hvl.setVendorConfigId(vendorConfigId);
-//                    hvl.setHospitalId(hObj.getString("hospitalId"));
-//                    hvl.setVendorHospitalId(hObj.getString("vendorHospitalId"));
-//                    hvl.setCreatedTime(new Date());
-//                    hvl.setCreatedBy(loginUserName);
-//                    hospitalVendorLinkService.post(hvl);
-//                }
-//            }
-//
-//        }
-//        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "修改平台成功!", platformId);
-//    }
-
-//    private ResultDto updatePlatform(JSONObject jsonObj, String loginUserName) {
-//        String platformId = jsonObj.getString("id");
-//        sqlQueryFactory.update(qTPlatform).set(qTPlatform.platformName, jsonObj.getString("platformName"))
-//                .set(qTPlatform.platformType, jsonObj.getString("platformType"))
-//                .set(qTPlatform.projectId, jsonObj.getString("projectId"))
-//                .set(qTPlatform.updatedTime, new Date())
-//                .set(qTPlatform.updatedBy, StringUtils.isBlank(loginUserName)?"":loginUserName)
-//                .where(qTPlatform.id.eq(platformId)).execute();
-//        //删除平台下厂商医院配置信息
-//        List<TVendorConfig> tvcList = vendorConfigService.getObjByPlatformId(platformId);
-//        if (!CollectionUtils.isEmpty(tvcList)) {
-//            for (int i = 0; i < tvcList.size(); i++) {
-//                hospitalVendorLinkService.deleteByVendorConfigId(tvcList.get(i).getId());
-//            }
-//        }
-//        //删除平台下厂商配置信息  编辑平台 flag=1  编辑厂商信息 flag=2
-//        String flag = jsonObj.getString("flag");
-//        if ("2".equals(flag)) {
-//            vendorConfigService.delVendorConfigAll(platformId);
-//        }
-//
-//        JSONArray jsonArr = jsonObj.getJSONArray("vendorInfo");
-//        if (jsonArr.isEmpty()) {
-//            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "修改平台成功!", platformId);
-//        }
-//        for (int i = 0; i < jsonArr.size(); i++) {
-//            JSONObject obj = jsonArr.getJSONObject(i);
-//            TVendorConfig tvc = new TVendorConfig();
-//            String vendorConfigId = batchUidService.getUid(qTVendorConfig.getTableName()) + "";
-//            tvc.setId(vendorConfigId);
-//            tvc.setPlatformId(platformId);
-//            tvc.setVendorId(obj.getString("vendorId"));
-//            tvc.setVersionId(obj.getString("versionId"));
-//            tvc.setConnectionType(obj.getString("connectionType"));
-//            tvc.setAddressUrl(obj.getString("addressUrl"));
-//            tvc.setEndpointUrl(obj.getString("endpointUrl"));
-//            tvc.setNamespaceUrl(obj.getString("namespaceUrl"));
-//            tvc.setDatabaseName(obj.getString("databaseName"));
-//            tvc.setDatabaseUrl(obj.getString("databaseUrl"));
-//            tvc.setDatabaseDriver(obj.getString("databaseDriver"));
-//            tvc.setJsonParams(obj.getString("jsonParams"));
-//            tvc.setUserName(obj.getString("userName"));
-//            tvc.setUserPassword(obj.getString("userPassword"));
-//            tvc.setCreatedTime(new Date());
-//            tvc.setCreatedBy(loginUserName);
-//            vendorConfigService.post(tvc);
-//            JSONArray hospitalArr = obj.getJSONArray("hospitalConfig");
-//            for (int j = 0; j < hospitalArr.size(); j++) {
-//                JSONObject hObj = hospitalArr.getJSONObject(j);
-//                THospitalVendorLink hvl = new THospitalVendorLink();
-//                hvl.setId(batchUidService.getUid(qTHospitalVendorLink.getTableName()) + "");
-//                hvl.setVendorConfigId(vendorConfigId);
-//                hvl.setHospitalId(hObj.getString("hospitalId"));
-//                hvl.setVendorHospitalId(hObj.getString("vendorHospitalId"));
-//                hvl.setCreatedTime(new Date());
-//                hvl.setCreatedBy(loginUserName);
-//                hospitalVendorLinkService.post(hvl);
-//            }
-//        }
-//        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "修改平台成功!", platformId);
-//    }
-
 
     @ApiOperation(value = "更改启停用状态", notes = "更改启停用状态")
     @PostMapping("/updateStatus")
@@ -616,7 +453,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
         long vcCount = vendorConfigService.delVendorConfigAll(id);
 
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "平台"+tp.getPlatformName()+"删除成功,同时删除该平台下"+vcCount+"条厂商配置,"+count+"条厂商医院配置!",
-                "平台"+tp.getPlatformName()+"删除成功,同时删除该平台下"+vcCount+"条厂商配置,"+count+"条厂商医院配置!");
+                id);
     }
 
     /**
