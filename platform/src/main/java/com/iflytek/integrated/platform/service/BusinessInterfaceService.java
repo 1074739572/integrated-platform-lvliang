@@ -229,6 +229,25 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
     }
 
     /**
+     * 根据平台id获取接口配置信息
+     * @param platformId
+     * @return
+     */
+    public List<TBusinessInterface> getInterfaceConfigureList(String platformId) {
+        ArrayList<Predicate> list = new ArrayList<>();
+        list.add(qTVendorConfig.platformId.eq(platformId));
+        List<TBusinessInterface> queryResults = sqlQueryFactory.select(
+                Projections.bean(TBusinessInterface.class, qTBusinessInterface.id, qTBusinessInterface.productFunctionLinkId,
+                        qTBusinessInterface.interfaceId, qTBusinessInterface.vendorConfigId))
+                .from(qTBusinessInterface)
+                .leftJoin(qTVendorConfig).on(qTVendorConfig.id.eq(qTBusinessInterface.vendorConfigId))
+                .where(list.toArray(new Predicate[list.size()]))
+                .groupBy(qTBusinessInterface.productFunctionLinkId,qTBusinessInterface.interfaceId,qTBusinessInterface.vendorConfigId)
+                .fetch();
+        return queryResults;
+    }
+
+    /**
      * 根据三条件获取
      * @param productFunctionLinkId
      * @param interfaceId
