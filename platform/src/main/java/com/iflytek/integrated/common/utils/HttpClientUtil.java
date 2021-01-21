@@ -3,7 +3,7 @@ package com.iflytek.integrated.common.utils;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.common.collect.Maps;
-import com.iflytek.integrated.common.HttpResult;
+import com.iflytek.integrated.common.dto.HttpResult;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.*;
 import org.apache.http.client.config.RequestConfig;

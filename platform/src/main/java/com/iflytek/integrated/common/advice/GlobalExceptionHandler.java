@@ -1,7 +1,7 @@
-package com.iflytek.integrated.platform.exception;
+package com.iflytek.integrated.common.advice;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.iflytek.integrated.common.ResultDto;
+import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.medicalboot.core.dto.Response;
 import com.iflytek.medicalboot.core.exception.MedicalBusinessException;
 import com.iflytek.medicalboot.core.exception.MedicalFatalException;

@@ -1,7 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
 import com.iflytek.integrated.common.Constant;
-import com.iflytek.integrated.common.ResultDto;
+import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.utils.XmlJsonUtils;
 import com.iflytek.integrated.common.utils.ase.AesUtil;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;

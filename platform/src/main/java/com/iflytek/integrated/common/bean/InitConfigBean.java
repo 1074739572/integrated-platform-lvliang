@@ -1,4 +1,4 @@
-package com.iflytek.integrated.common.config;
+package com.iflytek.integrated.common.bean;
 
 import com.iflytek.integrated.common.utils.ase.AesUtil;
 import com.kvn.mockj.Function;
@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
  * @date 2021/1/11 9:14
  */
 @Configuration
-public class InitConfig {
+public class InitConfigBean {
 
     @Value("${mock.string.len}")
     public String mockStringLen;

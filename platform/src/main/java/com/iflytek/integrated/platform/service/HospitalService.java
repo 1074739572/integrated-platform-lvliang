@@ -1,13 +1,15 @@
 package com.iflytek.integrated.platform.service;
 
 import com.iflytek.integrated.common.*;
+import com.iflytek.integrated.common.dto.ResultDto;
+import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.entity.THospitalVendorLink;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.THospital;
-import com.iflytek.integrated.platform.validator.ValidationResult;
-import com.iflytek.integrated.platform.validator.ValidatorHelper;
+import com.iflytek.integrated.common.validator.ValidationResult;
+import com.iflytek.integrated.common.validator.ValidatorHelper;
 import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;

@@ -1,4 +1,4 @@
-package com.iflytek.integrated.common;
+package com.iflytek.integrated.common.dto;
 
 import io.swagger.annotations.ApiModelProperty;
 

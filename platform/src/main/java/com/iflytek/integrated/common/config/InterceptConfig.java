@@ -1,4 +1,4 @@
-package com.iflytek.integrated.common.bean;
+package com.iflytek.integrated.common.config;
 
 import com.iflytek.integrated.common.intercept.AfterCompletionIntercept;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
@@ -21,7 +21,7 @@ import java.util.Map;
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "cache.redis")
-public class InterceptConfigurerAdapter extends WebMvcConfigurationSupport {
+public class InterceptConfig extends WebMvcConfigurationSupport {
 
     private Map<String, String[]> map;
 

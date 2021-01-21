@@ -3,7 +3,7 @@ package com.iflytek.integrated.platform.utils;
 import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
-import com.iflytek.integrated.common.HttpResult;
+import com.iflytek.integrated.common.dto.HttpResult;
 import com.iflytek.integrated.common.utils.HttpClientUtil;
 import com.iflytek.integrated.platform.dto.JoltDebuggerDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;

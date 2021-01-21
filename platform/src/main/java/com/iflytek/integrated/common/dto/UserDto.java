@@ -1,4 +1,4 @@
-package com.iflytek.integrated.common;
+package com.iflytek.integrated.common.dto;
 
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;

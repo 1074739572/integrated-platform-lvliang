@@ -1,7 +1,7 @@
 package com.iflytek.integrated.common.intercept;
 
 import com.alibaba.fastjson.JSON;
-import com.iflytek.integrated.common.UserDto;
+import com.iflytek.integrated.common.dto.UserDto;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;

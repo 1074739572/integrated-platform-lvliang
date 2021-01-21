@@ -1,7 +1,7 @@
 package com.iflytek.integrated.common.intercept;
 
 import com.iflytek.integrated.common.Constant;
-import com.iflytek.integrated.common.ResultDto;
+import com.iflytek.integrated.common.dto.ResultDto;
 import com.querydsl.sql.SQLQueryFactory;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +35,7 @@ import static com.iflytek.integrated.platform.entity.QTProjectProductLink.qTProj
 import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConfig;
 
 /**
+ * 缓存优化，统一接口返回处理
  * @author czzhan
  * @version 1.0
  * @date 2021/1/20 16:28

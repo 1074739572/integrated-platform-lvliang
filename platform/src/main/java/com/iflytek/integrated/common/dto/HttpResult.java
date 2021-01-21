@@ -1,4 +1,4 @@
-package com.iflytek.integrated.common;
+package com.iflytek.integrated.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.http.HttpStatus;

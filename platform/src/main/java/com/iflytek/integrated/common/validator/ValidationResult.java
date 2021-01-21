@@ -1,4 +1,4 @@
-package com.iflytek.integrated.platform.validator;
+package com.iflytek.integrated.common.validator;
 
 import org.apache.commons.lang.StringUtils;
 
