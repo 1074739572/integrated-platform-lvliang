@@ -3,6 +3,8 @@ package com.iflytek.integrated.common.bean;
 import com.iflytek.integrated.common.intercept.AfterCompletionIntercept;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import lombok.Data;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistration;
@@ -23,6 +25,12 @@ public class InterceptConfigurerAdapter extends WebMvcConfigurationSupport {
 
     private Map<String, String[]> map;
 
+    @Autowired
+    private UserLoginIntercept userLoginIntercept;
+
+    @Autowired
+    private AfterCompletionIntercept afterCompletionIntercept;
+
     /**
      * 配置拦截器
      * @param registry
@@ -30,13 +38,19 @@ public class InterceptConfigurerAdapter extends WebMvcConfigurationSupport {
     @Override
     public void addInterceptors(InterceptorRegistry registry){
         //用户登录拦截器
-        InterceptorRegistration registration1 = registry.addInterceptor(new UserLoginIntercept());
-        registration1.addPathPatterns("/*/pt/**");
+        InterceptorRegistration rationUserLogin = registry.addInterceptor(userLoginIntercept);
+        rationUserLogin.addPathPatterns("/*/pt/**");
 
         //通过获取配置文件，接口处理后执行配置文件
         for (String key: map.keySet()){
-            InterceptorRegistration registration2 = registry.addInterceptor(new AfterCompletionIntercept(key));
-            registration2.addPathPatterns(map.get(key));
+            //创建一个AfterCompletionIntercept拦截器
+            AfterCompletionIntercept completionIntercept = new AfterCompletionIntercept();
+            //给拦截器添加key和调用方法
+            BeanUtils.copyProperties(afterCompletionIntercept,completionIntercept);
+            completionIntercept.setKey(key);
+            //添加拦截器
+            InterceptorRegistration rationAfterCompletion = registry.addInterceptor(completionIntercept);
+            rationAfterCompletion.addPathPatterns(map.get(key));
         }
         super.addInterceptors(registry);
     }

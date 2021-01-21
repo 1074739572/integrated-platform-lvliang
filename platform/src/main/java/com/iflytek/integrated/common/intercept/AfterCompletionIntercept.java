@@ -2,6 +2,9 @@ package com.iflytek.integrated.common.intercept;
 
 import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.ResultDto;
+import com.querydsl.sql.SQLQueryFactory;
+import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
@@ -13,17 +16,14 @@ import javax.servlet.http.HttpServletResponse;
  * @version 1.0
  * @date 2021/1/20 16:28
  */
+@Data
 @Component
 public class AfterCompletionIntercept extends HandlerInterceptorAdapter {
 
     private String key;
 
-    public AfterCompletionIntercept(){
-    }
-
-    public AfterCompletionIntercept(String key){
-        this.key = key;
-    }
+    @Autowired
+    private SQLQueryFactory sqlQueryFactory;
 
     /**
      * 业务处理器请求处理完成之后执行方法
