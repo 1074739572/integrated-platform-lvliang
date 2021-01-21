@@ -203,7 +203,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
             drive.setCreatedBy(loginUserName);
             this.post(drive);
             setRedis(drive.getId());
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"驱动新增成功", drive);
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"驱动新增成功", null);
         }
         //编辑驱动
         drive.setUpdatedBy(loginUserName);

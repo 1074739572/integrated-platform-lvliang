@@ -264,9 +264,9 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         } catch (Exception e) {
             logger.error("厂商删除失败!", ExceptionUtil.dealException(e));
             e.printStackTrace();
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "厂商删除失败!", ExceptionUtil.dealException(e));
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "标准接口删除失败!", ExceptionUtil.dealException(e));
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "厂商删除成功!", null);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "标准接口删除成功!", id);
     }
 
 
@@ -589,56 +589,8 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     }
 
 
-//    @ApiOperation(value = "获取接口配置列表")
-//    @GetMapping("/getInterfaceConfigureList2")
-//    public ResultDto getInterfaceConfigureList2(
-//            @ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId,
-//            @ApiParam(value = "启停用状态") @RequestParam(value = "status", required = false) String status,
-//            @ApiParam(value = "mock状态") @RequestParam(value = "mockStatus", required = false) String mockStatus,
-//            @ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
-//            @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize){
-//        //查询条件
-//        ArrayList<Predicate> list = new ArrayList<>();
-//        list.add(qTPlatform.id.eq(platformId));
-//        if (StringUtils.isNotBlank(status)) {
-//            list.add(qTBusinessInterface.status.eq(status));
-//        }
-//        if (StringUtils.isNotBlank(mockStatus)) {
-//            list.add(qTBusinessInterface.mockStatus.eq(mockStatus));
-//        }
-//        QueryResults<TBusinessInterface> queryResults = sqlQueryFactory.select(
-//                Projections.bean(
-//                        TBusinessInterface.class,
-//                        qTBusinessInterface.id,
-//                        qTBusinessInterface.businessInterfaceName,
-//                        qTBusinessInterface.status,
-//                        qTBusinessInterface.mockStatus,
-//                        qTProduct.productName,
-//                        qTFunction.functionName,
-//                        qTInterface.interfaceName,
-//                        qTVendorConfig.versionId
-//                )
-//            ).from(qTBusinessInterface)
-//                .leftJoin(qTProductFunctionLink).on(qTBusinessInterface.productFunctionLinkId.eq(qTProductFunctionLink.id))
-//                .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
-//                .leftJoin(qTFunction).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
-//                .leftJoin(qTInterface).on(qTInterface.id.eq(qTBusinessInterface.interfaceId))
-//                .leftJoin(qTVendorConfig).on(qTVendorConfig.id.eq(qTBusinessInterface.vendorConfigId))
-//                .leftJoin(qTProjectProductLink).on(qTProjectProductLink.productFunctionLinkId.eq(qTProductFunctionLink.id))
-//                .leftJoin(qTPlatform).on(qTPlatform.projectId.eq(qTProjectProductLink.projectId))
-//                .where(list.toArray(new Predicate[list.size()]))
-//                .limit(pageSize)
-//                .offset((pageNo - 1) * pageSize)
-//                .orderBy(qTBusinessInterface.createdTime.desc())
-//                .fetchResults();
-//        //分页
-//        TableData<TBusinessInterface> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-//        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"获取接口配置列表获取成功", tableData);
-//    }
-
-
     @ApiOperation(value = "获取接口配置详情")
-    @GetMapping("/getInterfaceConfigInfoById")//???
+    @GetMapping("/getInterfaceConfigInfoById")
     public ResultDto getInterfaceConfigInfoById(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
         //返回对象
         BusinessInterfaceDto dto = new BusinessInterfaceDto();
@@ -852,13 +804,17 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         if(count <= 0){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "接口配置删除失败!", "接口配置删除失败!");
         }
+        //获取返回缓存id
+        String rtnStr = "";
         //删除redis记录
         if (CollectionUtils.isNotEmpty(list)) {
             for (TBusinessInterface obj : list) {
                 delRedis(obj.getId());
+                rtnStr += obj.getId() + ",";
             }
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "接口配置删除成功!共删除"+count+"条数据", "接口配置删除成功!共删除"+count+"条数据");
+        rtnStr = StringUtils.isBlank(rtnStr)?null:rtnStr.substring(0,rtnStr.length()-1);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "接口配置删除成功!共删除"+count+"条数据", rtnStr);
     }
 
 
