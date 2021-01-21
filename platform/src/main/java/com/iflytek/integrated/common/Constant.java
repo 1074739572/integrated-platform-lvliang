@@ -1,5 +1,16 @@
 package com.iflytek.integrated.common;
 
+import com.querydsl.core.types.dsl.StringPath;
+
+import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
+import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
+import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
+import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
+import static com.iflytek.integrated.platform.entity.QTProduct.qTProduct;
+import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
+import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConfig;
+import static com.iflytek.integrated.platform.entity.QTVendorDriveLink.qTVendorDriveLink;
+
 /**
  * @author czzhan
  * 公共部分
@@ -189,31 +200,55 @@ public class Constant {
         }
     }
 
-
     /**
-     * redis缓存匹配名称
+     * redis缓存匹配枚举
      */
-    public interface RedisMapName {
+    public enum RedisMap {
+        /**
+         * DRIVE
+         */
+        DRIVE("drive",qTVendorDriveLink.driveId),
 
-        String DRIVE = "drive";
+        PLUGIN("plugin",qTBusinessInterface.pluginId),
 
-        String PLUGIN = "plugin";
+        VENDOR("vendor",qTVendorConfig.vendorId),
 
-        String VENDOR = "vendor";
+        INTERFACE("interface",qTInterface.id),
 
-        String INTERFACE = "interface";
+        PRODUCT("PRODUCT",qTProduct.id),
 
-        String PRODUCT = "product";
+        HOSPITAL("hospital",qTHospital.id),
 
-        String HOSPITAL = "hospital";
+        PROJECT("project",qTProject.id),
 
-        String PROJECT = "project";
+        PLATFORM("platform",qTPlatform.id),
 
-        String PLATFORM = "platform";
+        BUSINESS_INTERFACE("businessInterface",qTBusinessInterface.id);
 
-        String BUSINESSINTERFACE = "businessInterface";
+        private String key;
+        private StringPath id;
 
+        RedisMap(String key, StringPath id){
+            this.id = id;
+            this.key =key;
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+        public StringPath getId() {
+            return id;
+        }
+
+        public static StringPath idByKey(String key){
+            for(RedisMap redisMap : values()) {
+                if(redisMap.getKey().equals(key)) {
+                    return redisMap.getId();
+                }
+            }
+            return null;
+        }
     }
-
 
 }

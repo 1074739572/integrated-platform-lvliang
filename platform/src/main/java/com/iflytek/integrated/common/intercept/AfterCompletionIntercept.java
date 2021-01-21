@@ -2,6 +2,7 @@ package com.iflytek.integrated.common.intercept;
 
 import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.dto.ResultDto;
+import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.SQLQueryFactory;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,40 +89,11 @@ public class AfterCompletionIntercept extends HandlerInterceptorAdapter {
                 if(StringUtils.isNotBlank(ids)) {
                     List<String> conditionList = Arrays.asList(ids.split(","));
                     ArrayList<Predicate> arr = new ArrayList<>();
-                    if (Constant.RedisMapName.HOSPITAL.equals(key)) {
-                        arr.add(qTHospital.id.in(conditionList));
-                        delKey(arr);
-                    }
-                    if (Constant.RedisMapName.INTERFACE.equals(key)) {
-                        arr.add(qTInterface.id.in(conditionList));
-                        delKey(arr);
-                    }
-                    if (Constant.RedisMapName.PLATFORM.equals(key)) {
-                        arr.add(qTPlatform.id.in(conditionList));
-                        delKey(arr);
-                    }
-                    if (Constant.RedisMapName.PLUGIN.equals(key)) {
-                        arr.add(qTBusinessInterface.pluginId.in(conditionList));
-                        delKey(arr);
-                    }
-                    if (Constant.RedisMapName.PRODUCT.equals(key)) {
-                        arr.add(qTProduct.id.in(conditionList));
-                        delKey(arr);
-                    }
-                    if (Constant.RedisMapName.PROJECT.equals(key)) {
-                        arr.add(qTProject.id.in(conditionList));
-                        delKey(arr);
-                    }
-                    if (Constant.RedisMapName.VENDOR.equals(key)) {
-                        arr.add(qTVendorConfig.vendorId.in(conditionList));
-                        delKey(arr);
-                    }
-                    if (Constant.RedisMapName.DRIVE.equals(key)) {
-                        arr.add(qTVendorDriveLink.driveId.in(conditionList));
-                        delKey(arr);
-                    }
-                    if (Constant.RedisMapName.BUSINESSINTERFACE.equals(key)) {
-                        arr.add(qTBusinessInterface.id.in(conditionList));
+
+                    //调取枚举，处理返回结果
+                    StringPath sqlId = Constant.RedisMap.idByKey(key);
+                    if(sqlId != null){
+                        arr.add(sqlId.in(conditionList));
                         delKey(arr);
                     }
                 }
