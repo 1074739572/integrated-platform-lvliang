@@ -664,7 +664,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         //获取厂商配置
         String vendorConfigId = "";
         if (StringUtils.isBlank(dto.getVendorConfigId())) {
-            TVendorConfig tvc = vendorConfigService.getObjByPlatformAndVendor(dto.getPlatformId(), dto.getVendorId());//???
+            TVendorConfig tvc = vendorConfigService.getObjByPlatformAndVendor(dto.getPlatformId(), dto.getVendorId());
             vendorConfigId = tvc!=null?tvc.getId():null;
         }else {
             vendorConfigId = dto.getVendorConfigId();
@@ -694,7 +694,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             tbi.setId(batchUidService.getUid(qTBusinessInterface.getTableName())+"");
             tbi.setInterfaceId(dto.getInterfaceId());
             tbi.setStatus(Constant.Status.START);
-            tbi.setMockStatus(Constant.Status.START);
+            tbi.setMockStatus(Constant.Status.STOP);
             tbi.setCreatedTime(new Date());
             tbi.setCreatedBy(loginUserName);
             tbi.setVendorConfigId(vendorConfigId);
@@ -746,7 +746,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                 tbi.setId(batchUidService.getUid(qTBusinessInterface.getTableName())+"");
                 tbi.setInterfaceId(dto.getInterfaceId());
                 tbi.setStatus(Constant.Status.START);
-                tbi.setMockStatus(Constant.Status.START);
+                tbi.setMockStatus(Constant.Status.STOP);
                 tbi.setCreatedTime(new Date());
                 tbi.setCreatedBy(loginUserName);
                 tbi.setVendorConfigId(vendorConfigId);
