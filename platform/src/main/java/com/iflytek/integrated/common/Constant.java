@@ -215,7 +215,7 @@ public class Constant {
 
         INTERFACE("interface",qTInterface.id),
 
-        PRODUCT("PRODUCT",qTProduct.id),
+        PRODUCT("product",qTProduct.id),
 
         HOSPITAL("hospital",qTHospital.id),
 
