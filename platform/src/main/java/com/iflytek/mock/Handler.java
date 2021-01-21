@@ -1,6 +1,6 @@
-package com.kvn.mockj;
+package com.iflytek.mock;
 
-import com.kvn.mockj.handler.TypeHandlerFactory;
+import com.iflytek.mock.handler.TypeHandlerFactory;
 
 /**
  * @author

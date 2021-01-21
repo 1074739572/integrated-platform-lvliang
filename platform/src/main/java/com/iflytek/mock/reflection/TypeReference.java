@@ -1,4 +1,4 @@
-package com.kvn.mockj.reflection;
+package com.iflytek.mock.reflection;
 
 
 import com.alibaba.fastjson.util.ParameterizedTypeImpl;

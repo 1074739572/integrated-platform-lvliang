@@ -6,7 +6,7 @@ import com.iflytek.integrated.common.utils.XmlJsonUtils;
 import com.iflytek.integrated.common.utils.ase.AesUtil;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.utils.Utils;
-import com.kvn.mockj.Mock;
+import com.iflytek.mock.Mock;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;

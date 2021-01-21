@@ -1,7 +1,7 @@
-package com.kvn.mockj.handler;
+package com.iflytek.mock.handler;
 
-import com.kvn.mockj.Function;
-import com.kvn.mockj.Options;
+import com.iflytek.mock.Function;
+import com.iflytek.mock.Options;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.regex.Matcher;

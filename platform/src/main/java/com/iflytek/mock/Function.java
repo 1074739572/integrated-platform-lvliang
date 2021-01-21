@@ -1,4 +1,4 @@
-package com.kvn.mockj;
+package com.iflytek.mock;
 
 import com.iflytek.integrated.common.utils.DateUtils;
 import org.apache.commons.lang3.RandomStringUtils;

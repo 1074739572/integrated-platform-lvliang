@@ -1,4 +1,4 @@
-package com.kvn.mockj;
+package com.iflytek.mock;
 
 import lombok.Data;
 

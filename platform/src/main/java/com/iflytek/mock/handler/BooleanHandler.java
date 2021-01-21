@@ -1,6 +1,6 @@
-package com.kvn.mockj.handler;
+package com.iflytek.mock.handler;
 
-import com.kvn.mockj.Options;
+import com.iflytek.mock.Options;
 import org.apache.commons.lang3.RandomUtils;
 
 /**

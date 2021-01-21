@@ -1,7 +1,7 @@
 package com.iflytek.integrated.common.bean;
 
 import com.iflytek.integrated.common.utils.ase.AesUtil;
-import com.kvn.mockj.Function;
+import com.iflytek.mock.Function;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
