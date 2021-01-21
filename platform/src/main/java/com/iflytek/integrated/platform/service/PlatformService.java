@@ -8,10 +8,10 @@ import com.iflytek.integrated.common.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
+import com.iflytek.integrated.platform.entity.TVendorConfig;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.THospitalVendorLink;
 import com.iflytek.integrated.platform.entity.TPlatform;
-import com.iflytek.integrated.platform.entity.TVendorConfig;
 import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
@@ -169,6 +169,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
             tvc.setDatabaseName(obj.getString("databaseName"));
             tvc.setDatabaseUrl(obj.getString("databaseUrl"));
             tvc.setDatabaseDriver(obj.getString("databaseDriver"));
+            tvc.setDriverUrl(obj.getString("driverUrl"));
             tvc.setJsonParams(obj.getString("jsonParams"));
             tvc.setUserName(obj.getString("userName"));
             tvc.setUserPassword(obj.getString("userPassword"));
@@ -224,6 +225,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
                 tvc.setDatabaseName(obj.getString("databaseName"));
                 tvc.setDatabaseUrl(obj.getString("databaseUrl"));
                 tvc.setDatabaseDriver(obj.getString("databaseDriver"));
+                tvc.setDriverUrl(obj.getString("driverUrl"));
                 tvc.setJsonParams(obj.getString("jsonParams"));
                 tvc.setUserName(obj.getString("userName"));
                 tvc.setUserPassword(obj.getString("userPassword"));
@@ -258,6 +260,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
                 tvc.setDatabaseName(obj.getString("databaseName"));
                 tvc.setDatabaseUrl(obj.getString("databaseUrl"));
                 tvc.setDatabaseDriver(obj.getString("databaseDriver"));
+                tvc.setDriverUrl(obj.getString("driverUrl"));
                 tvc.setJsonParams(obj.getString("jsonParams"));
                 tvc.setUserName(obj.getString("userName"));
                 tvc.setUserPassword(obj.getString("userPassword"));
@@ -330,6 +333,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
                 tvc.setDatabaseName(obj.getString("databaseName"));
                 tvc.setDatabaseUrl(obj.getString("databaseUrl"));
                 tvc.setDatabaseDriver(obj.getString("databaseDriver"));
+                tvc.setDriverUrl(obj.getString("driverUrl"));
                 tvc.setJsonParams(obj.getString("jsonParams"));
                 tvc.setUserName(obj.getString("userName"));
                 tvc.setUserPassword(obj.getString("userPassword"));
@@ -364,6 +368,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
                 tvc.setDatabaseName(obj.getString("databaseName"));
                 tvc.setDatabaseUrl(obj.getString("databaseUrl"));
                 tvc.setDatabaseDriver(obj.getString("databaseDriver"));
+                tvc.setDriverUrl(obj.getString("driverUrl"));
                 tvc.setJsonParams(obj.getString("jsonParams"));
                 tvc.setUserName(obj.getString("userName"));
                 tvc.setUserPassword(obj.getString("userPassword"));

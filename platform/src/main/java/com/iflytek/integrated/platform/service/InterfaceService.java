@@ -738,6 +738,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             tbi.setId(batchUidService.getUid(qTBusinessInterface.getTableName())+"");
             tbi.setInterfaceId(dto.getInterfaceId());
             tbi.setStatus(Constant.Status.START);
+            tbi.setMockStatus(Constant.Status.START);
             tbi.setCreatedTime(new Date());
             tbi.setCreatedBy(loginUserName);
             tbi.setVendorConfigId(vendorConfigId);
@@ -786,6 +787,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                 tbi.setId(batchUidService.getUid(qTBusinessInterface.getTableName())+"");
                 tbi.setInterfaceId(dto.getInterfaceId());
                 tbi.setStatus(Constant.Status.START);
+                tbi.setMockStatus(Constant.Status.START);
                 tbi.setCreatedTime(new Date());
                 tbi.setCreatedBy(loginUserName);
                 tbi.setVendorConfigId(vendorConfigId);

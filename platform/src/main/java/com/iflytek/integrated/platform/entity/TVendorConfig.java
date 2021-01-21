@@ -1,7 +1,5 @@
 package com.iflytek.integrated.platform.entity;
 
-import com.iflytek.integrated.common.utils.ase.AesUtil;
-
 import java.io.Serializable;
 
 /**
@@ -30,6 +28,8 @@ public class TVendorConfig implements Serializable {
     private String databaseUrl;
 
     private String databaseDriver;
+
+    private String driverUrl;
 
     private String jsonParams;
 
@@ -133,6 +133,14 @@ public class TVendorConfig implements Serializable {
         this.databaseDriver = databaseDriver;
     }
 
+    public String getDriverUrl() {
+        return driverUrl;
+    }
+
+    public void setDriverUrl(String driverUrl) {
+        this.driverUrl = driverUrl;
+    }
+
     public String getJsonParams() {
         return jsonParams;
     }
@@ -154,7 +162,6 @@ public class TVendorConfig implements Serializable {
     }
 
     public void setUserPassword(String userPassword) {
-//        this.userPassword = AesUtil.encrypt(userPassword);
         this.userPassword = userPassword;
     }
 

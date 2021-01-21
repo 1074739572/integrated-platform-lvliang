@@ -360,11 +360,23 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
 
     @ApiOperation(value = "根据厂商配置id删除厂商配置信息")
     @PostMapping("/delVendorConfigById")
-    public ResultDto delVendorConfigById(@ApiParam(value = "厂商配置id") @RequestParam(value = "id", required = true) String id) {
+    public ResultDto delVendorConfigById(@ApiParam(value = "厂商配置id") @RequestParam(value = "id", required = true) String id,
+                                         @ApiParam(value = "平台id") @RequestParam(value = "platformId", required = false) String platformId) {
         TVendorConfig tvc = vendorConfigService.getOne(id);
         if (tvc == null) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据id查询不到该厂商配置信息!", id);
         }
+        //获取接口配置列表信息
+        List<TBusinessInterface> queryResults = businessInterfaceService.getInterfaceConfigureList(platformId);
+        if (CollectionUtils.isNotEmpty(queryResults)) {
+            for (TBusinessInterface tbi : queryResults) {
+                String vendorConfigId = tbi.getVendorConfigId();
+                if (id.equals(vendorConfigId)) {
+                    return new ResultDto(Constant.ResultCode.ERROR_CODE, "该厂商配置已有关联,无法删除!", id);
+                }
+            }
+        }
+
         long count = vendorConfigService.delete(id);
         if (count < 1) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "删除失败!", id);
