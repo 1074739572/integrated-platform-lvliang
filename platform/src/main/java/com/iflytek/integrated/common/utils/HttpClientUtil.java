@@ -53,9 +53,7 @@ import java.util.Map.Entry;
 
 /**
  * httpClient工具类
- *
- * @author JourWon
- * @date Created on 2018年4月19日
+ * @author
  */
 public class HttpClientUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientUtil.class);

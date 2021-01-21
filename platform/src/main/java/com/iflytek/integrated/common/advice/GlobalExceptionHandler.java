@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  */
 @ControllerAdvice
 public class GlobalExceptionHandler {
-    private static final Logger logger = LoggerFactory.getLogger(com.iflytek.medicalboot.core.exception.GlobalExceptionHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     public static final Integer ERROR_CODE = 500;
     public static final String ERROR_MSG = "系统异常，请联系管理员。";
 

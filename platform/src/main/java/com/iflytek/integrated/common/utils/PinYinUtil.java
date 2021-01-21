@@ -9,8 +9,7 @@ import net.sourceforge.pinyin4j.format.HanyuPinyinVCharType;
 import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
 
 /**
- * @author codekiller
- * @date 2020/5/27 14:22
+ * @author
  */
 @Slf4j
 public class PinYinUtil {

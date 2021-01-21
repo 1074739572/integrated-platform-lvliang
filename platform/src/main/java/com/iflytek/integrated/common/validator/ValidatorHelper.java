@@ -10,10 +10,11 @@ import javax.validation.Validator;
 import java.util.Set;
 
 /**
- * @description: InitializingBean接口为bean提供了初始化方法的方式，它只包括afterPropertiesSet方法，
+ * @description:
+ * InitializingBean接口为bean提供了初始化方法的方式，它只包括afterPropertiesSet方法，
  * 凡是继承该接口的类，在初始化bean的时候都会执行该方法。Spring初始化完成后，
  * 会回调ValidatorImpl的afterPropertiesSet()方法
- * @author:
+ * @author
  */
 @Component
 public class ValidatorHelper implements InitializingBean {

@@ -7,8 +7,7 @@ import java.io.Serializable;
 
 /**
  * 封装httpClient响应结果
- * @author JourWon
- * @date Created on 2018年4月19日
+ * @author
  */
 public class HttpResult implements Serializable {
 

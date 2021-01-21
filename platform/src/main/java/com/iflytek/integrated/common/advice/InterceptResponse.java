@@ -26,7 +26,7 @@ public class InterceptResponse implements ResponseBodyAdvice<Object>{
     }
 
     /**
-     * 拦截返回值,保存到拦截器实体中，读取
+     * 拦截返回值,判断是否存在拦截器实体中，有配置请求返回拦截器，则将接口请求传给拦截器
      */
     @Override
     public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType,
