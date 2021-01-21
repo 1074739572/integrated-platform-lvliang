@@ -132,10 +132,7 @@ public class ToolsGenerate {
     public GroovyValidateDto groovyUrl(String content){
         try {
             HttpResult result = HttpClientUtil.doPost(groovyUrl,content);
-//            return JSONObject.parseObject(result.getContent(), GroovyValidateDto.class);
-            GroovyValidateDto dto =  new GroovyValidateDto();
-            dto.setValidResult(GroovyValidateDto.RESULT.SUCCESS.getType());
-            return dto;
+            return JSONObject.parseObject(result.getContent(), GroovyValidateDto.class);
         }
         catch (Exception e){
             throw new RuntimeException("调取校验groovy接口错误");

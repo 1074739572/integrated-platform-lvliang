@@ -146,7 +146,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
     @PostMapping("/groovyValidate")
     public ResultDto groovyValidate(String content){
         GroovyValidateDto result = toolsGenerate.groovyUrl(content);
-        if(GroovyValidateDto.RESULT.SUCCESS.getType().equals(result.getValidResult())){
+        if(StringUtils.isNotBlank(result.getValidResult()) && StringUtils.isBlank(result.getError())){
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", result);
         }
         else {
@@ -271,7 +271,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
             rtnMap.put("message", "驱动名称已存在!");
         }
         GroovyValidateDto result = toolsGenerate.groovyUrl(driveContent);
-        if(!GroovyValidateDto.RESULT.SUCCESS.getType().equals(result.getValidResult())) {
+        if(StringUtils.isNotBlank(result.getError()) || StringUtils.isBlank(result.getValidResult())){
             rtnMap.put("isExist", true);
             rtnMap.put("message", "驱动内容格式错误!");
         }
