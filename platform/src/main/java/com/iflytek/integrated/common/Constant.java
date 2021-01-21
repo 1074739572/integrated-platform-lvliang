@@ -188,4 +188,30 @@ public class Constant {
             return null;
         }
     }
+
+
+    /**
+     * redis缓存匹配名称
+     */
+    public interface RedisMapName {
+
+        String DRIVE = "drive";
+
+        String PLUGIN = "plugin";
+
+        String VENDOR = "vendor";
+
+        String INTERFACE = "interface";
+
+        String PRODUCT = "product";
+
+        String HOSPITAL = "hospital";
+
+        String PROJECT = "project";
+
+        String PLATFORM = "platform";
+
+    }
+
+
 }
