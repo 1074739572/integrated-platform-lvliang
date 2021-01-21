@@ -14,7 +14,9 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.sql.SQLQueryFactory;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
@@ -44,23 +46,45 @@ import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConf
 @Component
 public class AfterCompletionIntercept extends HandlerInterceptorAdapter {
 
+    /**
+     * 附加到request请求的名称
+     */
+    public static String Intercept = "intercept";
+
     private String key;
+
+    private ResultDto resultDto;
+
     @Autowired
     protected SQLQueryFactory sqlQueryFactory;
     @Autowired
     private RedisUtil redisUtil;
 
     /**
-     * 业务处理器请求处理完成之后执行方法
+     * 请求执行前方法
      * @param request
      * @param response
      * @param handler
+     * @return
      * @throws Exception
      */
     @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        request.setAttribute(Intercept, this);
+        return super.preHandle(request, response, handler);
+    }
+
+        /**
+         * 业务处理器请求处理完成之后执行方法
+         * @param request
+         * @param response
+         * @param handler
+         * @throws Exception
+         */
+    @Override
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
         //获取返回结果
-        ResultDto result = (ResultDto) request.getAttribute("response");
+        ResultDto result = resultDto;
         if(result != null) {
             if(Constant.ResultCode.SUCCESS_CODE == result.getCode() && result.getData() != null){
                 String ids = result.getData().toString();
@@ -103,9 +127,22 @@ public class AfterCompletionIntercept extends HandlerInterceptorAdapter {
     }
 
     /**
-     * 删除key操作
-     * @param arr
+     * 回收方法
+     * @param request
+     * @param response
+     * @param handler
+     * @param ex
+     * @throws Exception
      */
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        request.removeAttribute(Intercept);
+    }
+
+        /**
+         * 删除key操作
+         * @param arr
+         */
     private void delKey(ArrayList<Predicate> arr) {
 
         arr.add(qTProject.projectCode.isNotNull().and(qTProduct.productCode.isNotNull().and(qTInterface.interfaceUrl.isNotNull())));

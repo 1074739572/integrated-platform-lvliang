@@ -1,4 +1,6 @@
 package com.iflytek.integrated.common.advice;
+import com.iflytek.integrated.common.dto.ResultDto;
+import com.iflytek.integrated.common.intercept.AfterCompletionIntercept;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -24,14 +26,17 @@ public class InterceptResponse implements ResponseBodyAdvice<Object>{
     }
 
     /**
-     * 拦截返回值,保存到attribute里面，在拦截器中读取
+     * 拦截返回值,保存到拦截器实体中，读取
      */
     @Override
     public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType,
               Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
         ServletServerHttpRequest req=(ServletServerHttpRequest)request;
         HttpServletRequest servletRequest = req.getServletRequest();
-        servletRequest.setAttribute("response", body);
+        AfterCompletionIntercept intercept = (AfterCompletionIntercept) servletRequest.getAttribute(AfterCompletionIntercept.Intercept);
+        if(intercept != null){
+            intercept.setResultDto((ResultDto) body);
+        }
         return body;
     }
 
