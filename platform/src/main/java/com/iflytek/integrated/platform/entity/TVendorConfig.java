@@ -1,7 +1,5 @@
 package com.iflytek.integrated.platform.entity;
 
-import com.iflytek.integrated.common.utils.ase.AesUtil;
-
 import java.io.Serializable;
 
 /**
@@ -165,7 +163,6 @@ public class TVendorConfig implements Serializable {
 
     public void setUserPassword(String userPassword) {
         this.userPassword = userPassword;
-        this.userPassword = AesUtil.encrypt(userPassword);
     }
 
     public String getCreatedBy() {
