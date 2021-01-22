@@ -111,7 +111,14 @@ public class AfterCompletionIntercept extends HandlerInterceptorAdapter {
      */
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-        request.removeAttribute(Intercept);
+        //如果请求中存在拼接的字段，手动去处
+        if(request.getAttribute(Intercept) != null){
+            request.removeAttribute(Intercept);
+        }
+        //如果有保存返回，清空返回
+        if(resultDto != null){
+            resultDto = new ResultDto();
+        }
     }
 
         /**
