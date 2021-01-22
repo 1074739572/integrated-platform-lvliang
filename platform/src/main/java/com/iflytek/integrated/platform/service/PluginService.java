@@ -135,7 +135,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
             TableData<TPlugin> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取插件管理列表成功", tableData);
         }catch (Exception e){
-            logger.error("获取插件管理列表失败!", ExceptionUtil.dealException(e));
+            logger.error("获取插件管理列表失败! MSG:{}", ExceptionUtil.dealException(e));
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "获取插件管理列表失败", ExceptionUtil.dealException(e));
         }
     }

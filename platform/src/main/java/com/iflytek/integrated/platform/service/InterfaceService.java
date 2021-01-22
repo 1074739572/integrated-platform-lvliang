@@ -222,7 +222,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             resDto.setOrgids(hospitals);
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取接口调试显示数据成功!", resDto);
         } catch (Exception e) {
-            logger.error("获取接口调试显示数据失败!", ExceptionUtil.dealException(e));
+            logger.error("获取接口调试显示数据失败! MSG:{}", ExceptionUtil.dealException(e));
             e.printStackTrace();
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "获取接口调试显示数据失败!", ExceptionUtil.dealException(e));
         }
@@ -257,7 +257,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             //产品与标准接口关联
             productInterfaceLinkService.deleteProductInterfaceLinkById(id);
         } catch (Exception e) {
-            logger.error("厂商删除失败!", ExceptionUtil.dealException(e));
+            logger.error("厂商删除失败! MSG:{}", ExceptionUtil.dealException(e));
             e.printStackTrace();
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "标准接口删除失败!", ExceptionUtil.dealException(e));
         }
@@ -882,7 +882,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             iDto.setOutParamList(outParamList);
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取标准接口详情成功!", iDto);
         } catch (Exception e) {
-            logger.error("获取标准接口详情失败!", ExceptionUtil.dealException(e));
+            logger.error("获取标准接口详情失败! MSG:{}", ExceptionUtil.dealException(e));
             e.printStackTrace();
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "获取标准接口详情失败!", ExceptionUtil.dealException(e));
         }

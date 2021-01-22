@@ -122,7 +122,7 @@ public class GlobalExceptionHandler {
 
                 resultDto.setMessage(objectMapper.writeValueAsString(errors));
             } catch (Exception exc) {
-                logger.error("setValidationConstraintViolationMsg", exc);
+                logger.error("setValidationConstraintViolationMsg:{}", exc);
             }
         } else {
             resultDto.setMessage(constraintViolations.stream().map(ConstraintViolation::getMessage).collect(Collectors.joining(", ")));
@@ -138,7 +138,7 @@ public class GlobalExceptionHandler {
 
                 resp.setMessage(objectMapper.writeValueAsString(errors));
             } catch (Exception exc) {
-                logger.error("setValidationErrorsMsg", exc);
+                logger.error("setValidationErrorsMsg:{}", exc);
             }
         } else {
             resp.setMessage(bindingResult.getAllErrors().stream().map(ObjectError::getDefaultMessage).collect(Collectors.joining(", ")));

@@ -137,7 +137,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
             TableData<TDrive> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", tableData);
         }catch (Exception e){
-            logger.error("获取驱动管理列表失败!", ExceptionUtil.dealException(e));
+            logger.error("获取驱动管理列表失败! MSG:{}", ExceptionUtil.dealException(e));
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "", ExceptionUtil.dealException(e));
         }
     }

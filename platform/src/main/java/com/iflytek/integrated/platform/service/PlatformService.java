@@ -108,7 +108,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
             TableData<TPlatform> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "根据项目id获取平台成功!", tableData);
         } catch (Exception e) {
-            logger.error("根据项目id获取平台失败!", ExceptionUtil.dealException(e));
+            logger.error("根据项目id获取平台失败! MSG:{}", ExceptionUtil.dealException(e));
             e.printStackTrace();
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据项目id获取平台失败!", ExceptionUtil.dealException(e));
         }

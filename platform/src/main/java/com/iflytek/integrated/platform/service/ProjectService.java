@@ -263,7 +263,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
                     .set(qTProject.updatedBy, loginUserName)
                     .where(qTProject.id.eq(id)).execute();
         } catch (Exception e) {
-            logger.error("项目状态修改失败!", ExceptionUtil.dealException(e));
+            logger.error("项目状态修改失败! MSG:{}", ExceptionUtil.dealException(e));
             e.printStackTrace();
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "项目状态修改失败!", ExceptionUtil.dealException(e));
         }
@@ -314,7 +314,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
             }
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取项目下的产品及功能信息成功!", rtnArr);
         } catch (Exception e) {
-            logger.error("获取项目下的产品及功能信息失败!", ExceptionUtil.dealException(e));
+            logger.error("获取项目下的产品及功能信息失败! MSG:{}", ExceptionUtil.dealException(e));
             e.printStackTrace();
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "获取项目下的产品及功能信息失败!", ExceptionUtil.dealException(e));
         }

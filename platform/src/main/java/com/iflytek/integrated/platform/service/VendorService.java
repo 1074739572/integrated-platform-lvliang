@@ -244,7 +244,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
             }
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取厂商信息成功!", list);
         } catch (BeansException e) {
-            logger.error("获取厂商信息失败!", ExceptionUtil.dealException(e));
+            logger.error("获取厂商信息失败! MSG:{}", ExceptionUtil.dealException(e));
             e.printStackTrace();
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "获取厂商信息失败!", ExceptionUtil.dealException(e));
         }

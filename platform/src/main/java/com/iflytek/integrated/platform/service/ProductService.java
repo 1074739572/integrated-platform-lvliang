@@ -80,7 +80,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "产品管理列表获取成功", tableData);
         }
         catch (Exception e) {
-            logger.error("获取产品管理列表失败!", ExceptionUtil.dealException(e));
+            logger.error("获取产品管理列表失败! MSG:{}", ExceptionUtil.dealException(e));
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "", ExceptionUtil.dealException(e));
         }
     }

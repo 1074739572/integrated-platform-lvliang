@@ -121,7 +121,7 @@ public class LogService extends QuerydslService<TLog, Long, TLog, NumberPath<Lon
             TableData<InterfaceMonitorDto> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", tableData);
         }catch (Exception e){
-            logger.error("查看服务监控列表失败!", ExceptionUtil.dealException(e));
+            logger.error("查看服务监控列表失败! MSG:{}", ExceptionUtil.dealException(e));
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "服务监控列表获取成功!", ExceptionUtil.dealException(e));
         }
     }
