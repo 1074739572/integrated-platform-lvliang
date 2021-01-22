@@ -7,6 +7,9 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.SQLQueryFactory;
+import org.apache.commons.collections.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +37,7 @@ import static com.iflytek.integrated.platform.entity.QTVendorDriveLink.qTVendorD
 */
 @Service
 public class RedisService {
+    private static final Logger logger = LoggerFactory.getLogger(RedisService.class);
 
     @Autowired
     private RedisUtil redisUtil;
@@ -47,6 +51,8 @@ public class RedisService {
      * @param keyName
      */
     public void delRedisKey(String ids, String keyName) {
+        logger.info("执行清除关联缓存");
+
         List<String> conditionList = Arrays.asList(ids.split(","));
         ArrayList<Predicate> arr = new ArrayList<>();
 
@@ -59,31 +65,32 @@ public class RedisService {
         arr.add(qTProject.projectStatus.eq(Constant.Status.START).and(qTPlatform.platformStatus.eq(Constant.Status.START)));
 
         List<RedisKeyDto> list =
-                sqlQueryFactory.select(Projections.bean(RedisKeyDto.class, qTProject.projectCode.as("projectCode"),
-                        qTHospital.hospitalCode.as("orgId"), qTProduct.productCode.as("productCode"), qTInterface.interfaceUrl.as("funCode")))
-                        .from(qTProject)
-                        .leftJoin(qTPlatform).on(qTPlatform.projectId.eq(qTProject.id))
-                        .leftJoin(qTVendorConfig).on(qTVendorConfig.platformId.eq(qTPlatform.id))
-                        .leftJoin(qTHospitalVendorLink).on(qTHospitalVendorLink.vendorConfigId.eq(qTVendorConfig.id))
-                        .leftJoin(qTHospital).on(qTHospital.id.eq(qTHospitalVendorLink.hospitalId))
-                        .leftJoin(qTProjectProductLink).on(qTProjectProductLink.projectId.eq(qTProject.id))
-                        .leftJoin(qTProductFunctionLink).on(qTProductFunctionLink.id.eq(qTProjectProductLink.productFunctionLinkId))
-                        .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
-                        .leftJoin(qTProductInterfaceLink).on(qTProductInterfaceLink.productId.eq(qTProduct.id))
-                        .leftJoin(qTInterface).on(qTInterface.id.eq(qTProductInterfaceLink.interfaceId))
-                        .leftJoin(qTBusinessInterface).on(qTBusinessInterface.vendorConfigId.eq(qTVendorConfig.id))
-                        .leftJoin(qTVendorDriveLink).on(qTVendorDriveLink.vendorId.eq(qTVendorConfig.vendorId))
-                        .where(arr.toArray(new Predicate[arr.size()]))
-                        .groupBy(qTProject.projectCode, qTHospital.hospitalCode, qTProduct.productCode, qTInterface.interfaceUrl)
-                        .fetch();
-
-        if (org.apache.commons.collections.CollectionUtils.isNotEmpty(list)) {
-            String key = "";
+            sqlQueryFactory.select(Projections.bean(RedisKeyDto.class, qTProject.projectCode.as("projectCode"),
+                    qTHospital.hospitalCode.as("orgId"), qTProduct.productCode.as("productCode"), qTInterface.interfaceUrl.as("funCode")))
+                    .from(qTProject)
+                    .leftJoin(qTPlatform).on(qTPlatform.projectId.eq(qTProject.id))
+                    .leftJoin(qTVendorConfig).on(qTVendorConfig.platformId.eq(qTPlatform.id))
+                    .leftJoin(qTHospitalVendorLink).on(qTHospitalVendorLink.vendorConfigId.eq(qTVendorConfig.id))
+                    .leftJoin(qTHospital).on(qTHospital.id.eq(qTHospitalVendorLink.hospitalId))
+                    .leftJoin(qTProjectProductLink).on(qTProjectProductLink.projectId.eq(qTProject.id))
+                    .leftJoin(qTProductFunctionLink).on(qTProductFunctionLink.id.eq(qTProjectProductLink.productFunctionLinkId))
+                    .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
+                    .leftJoin(qTProductInterfaceLink).on(qTProductInterfaceLink.productId.eq(qTProduct.id))
+                    .leftJoin(qTInterface).on(qTInterface.id.eq(qTProductInterfaceLink.interfaceId))
+                    .leftJoin(qTBusinessInterface).on(qTBusinessInterface.vendorConfigId.eq(qTVendorConfig.id))
+                    .leftJoin(qTVendorDriveLink).on(qTVendorDriveLink.vendorId.eq(qTVendorConfig.vendorId))
+                    .where(arr.toArray(new Predicate[arr.size()]))
+                    .groupBy(qTProject.projectCode, qTHospital.hospitalCode, qTProduct.productCode, qTInterface.interfaceUrl)
+                    .fetch();
+        List<String> keyList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(list)) {
             for (RedisKeyDto obj : list) {
-                key = obj.getProjectCode()+"_"+obj.getOrgId()+"_"+obj.getProductCode()+"_"+obj.getFunCode();
+                String key = obj.getProjectCode()+"_"+obj.getOrgId()+"_"+obj.getProductCode()+"_"+obj.getFunCode();
                 redisUtil.hmDel("IntegratedPlatform:Configs:", key);
+                keyList.add(key);
             }
         }
+        logger.info("缓存删除结束，删除内容：{}" + keyList);
     }
 
 

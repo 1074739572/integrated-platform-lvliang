@@ -34,10 +34,6 @@ public class AfterCompletionIntercept extends HandlerInterceptorAdapter {
     private ResultDto resultDto;
 
     @Autowired
-    protected SQLQueryFactory sqlQueryFactory;
-    @Autowired
-    private RedisUtil redisUtil;
-    @Autowired
     private com.iflytek.integrated.platform.service.RedisService redisService;
 
     /**
