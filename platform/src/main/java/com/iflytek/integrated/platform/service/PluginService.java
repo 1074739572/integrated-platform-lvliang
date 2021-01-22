@@ -163,7 +163,6 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
         if(lon <= 0){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "插件删除失败!", "插件删除失败!");
         }
-        delRedis(id);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "插件删除成功", id);
     }
 
@@ -184,7 +183,8 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
         }
         //校验是否存在重复插件
         Map<String, Object> isExist = this.isExistence(plugin.getId(),plugin.getPluginName(),plugin.getPluginContent());
-        if ((boolean)isExist.get("isExist")) {
+        boolean bool = (boolean) isExist.get("isExist");
+        if (bool) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, isExist.get("message")+"", isExist.get("message"));
         }
         if(StringUtils.isEmpty(plugin.getId())){
@@ -193,7 +193,6 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
             plugin.setCreatedTime(new Date());
             plugin.setCreatedBy(loginUserName);
             this.post(plugin);
-            setRedis(plugin.getId());
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"插件新增成功", plugin);
         }
         //编辑插件
@@ -203,7 +202,6 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
         if(lon <= 0){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "插件编辑失败!", "插件编辑失败!");
         }
-        setRedis(plugin.getId());
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"插件编辑成功!", plugin.getId());
     }
 
@@ -238,27 +236,5 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
         return rtnMap;
     }
 
-    /**
-     * 更新redis记录
-     * @param id
-     */
-    private void setRedis(String id){
-        TPlugin plugin = getOne(id);
-        Boolean flag = redisUtil.hmSet(qTPlugin.getTableName(),plugin.getId(),plugin);
-        if(!flag){
-            throw new RuntimeException("redis新增或更新插件失败");
-        }
-    }
-
-    /**
-     * 删除redis记录
-     * @param id
-     */
-    private void delRedis(String id){
-        Boolean flag = redisUtil.hmDel(qTPlugin.getTableName(),id);
-        if(!flag){
-            throw new RuntimeException("redis删除插件失败");
-        }
-    }
 
 }

@@ -292,7 +292,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
     public ResultDto getDisVendor(@ApiParam(value = "项目id") @RequestParam(value = "projectId", required = false) String projectId,
                 @ApiParam(value = "操作 1获取当前项目下的厂商 2获取非当前项目下的厂商") @RequestParam(defaultValue = "1", value = "status", required = false) String status) {
         List<TVendor> vendors = null;
-        if (StringUtils.isNotBlank(projectId) && "1".equals(status)) {
+        if (StringUtils.isNotBlank(projectId) && Constant.Operation.CURRENT.equals(status)) {
             //返回当前项目下的厂商
             vendors = sqlQueryFactory.select(qTVendor).from(qTVendor)
                     .leftJoin(qTVendorConfig).on(qTVendorConfig.vendorId.eq(qTVendor.id))

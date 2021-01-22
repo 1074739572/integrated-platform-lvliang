@@ -131,7 +131,8 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
         if (isExist) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "平台名称为空或此项目下该名称已存在!", platformName);
         }
-        if (StringUtils.isBlank(jsonObj.getString("id"))) {
+        String id = jsonObj.getString("id");
+        if (StringUtils.isBlank(id)) {
             return savePlatform(jsonObj,loginUserName);
         }
         return updatePlatform(jsonObj,loginUserName);
@@ -354,7 +355,6 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
                     hvl.setCreatedBy(loginUserName);
                     hospitalVendorLinkService.post(hvl);
                 }
-
             } else {
                 TVendorConfig tvc = vendorConfigService.getOne(vendorConfigId);
                 //编辑厂商信息

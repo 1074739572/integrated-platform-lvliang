@@ -157,10 +157,10 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         }
         //新增编辑标识 1新增 2编辑
         String addOrUpdate = jsonObj.getString("addOrUpdate");
-        if ("1".equals(addOrUpdate)) {
+        if (Constant.Operation.ADD.equals(addOrUpdate)) {
             return saveProduct(jsonObj,loginUserName);
         }
-        if ("2".equals(addOrUpdate)) {
+        if (Constant.Operation.UPDATE.equals(addOrUpdate)) {
             return updateProduct(jsonObj,loginUserName);
         }
         return new ResultDto(Constant.ResultCode.ERROR_CODE, "addOrUpdate参数有误!", jsonObj);

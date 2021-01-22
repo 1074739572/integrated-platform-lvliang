@@ -173,7 +173,6 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
         if(lon <= 0){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "驱动删除失败!", "驱动删除失败!");
         }
-        delRedis(id);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "驱动删除成功!", id);
     }
 
@@ -193,7 +192,8 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
         }
         //校验是否存在重复驱动，驱动代码格式是否正确
         Map<String, Object> isExist = this.isExistence(drive.getId(), drive.getDriveName(), drive.getDriveContent());
-        if ((boolean)isExist.get("isExist")) {
+        boolean bool = (boolean) isExist.get("isExist");
+        if (bool) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, isExist.get("message")+"", isExist.get("message"));
         }
         if(StringUtils.isEmpty(drive.getId())){
@@ -202,7 +202,6 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
             drive.setCreatedTime(new Date());
             drive.setCreatedBy(loginUserName);
             this.post(drive);
-            setRedis(drive.getId());
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"驱动新增成功", null);
         }
         //编辑驱动
@@ -212,7 +211,6 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
         if(lon <= 0){
             return new ResultDto(Constant.ResultCode.ERROR_CODE,"驱动编辑失败!", drive);
         }
-        setRedis(drive.getId());
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"驱动编辑成功!", drive.getId());
     }
 
@@ -272,27 +270,5 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
         return rtnMap;
     }
 
-    /**
-     * 更新redis记录
-     * @param id
-     */
-    private void setRedis(String id){
-        TDrive drive = this.getOne(id);
-        Boolean flag = redisUtil.hmSet(qTDrive.getTableName(),drive.getId(),drive);
-        if(!flag){
-            throw new RuntimeException("redis新增或更新驱动失败");
-        }
-    }
-
-    /**
-     * 删除redis记录
-     * @param id
-     */
-    private void delRedis(String id){
-        Boolean flag = redisUtil.hmDel(qTDrive.getTableName(),id);
-        if(!flag){
-            throw new RuntimeException("redis删除驱动失败");
-        }
-    }
 
 }

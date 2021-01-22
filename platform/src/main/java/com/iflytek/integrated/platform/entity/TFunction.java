@@ -1,5 +1,8 @@
 package com.iflytek.integrated.platform.entity;
 
+import org.hibernate.validator.constraints.Length;
+
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 
 /**
@@ -9,6 +12,8 @@ public class TFunction implements Serializable {
 
     private String id;
 
+    @NotBlank(message = "功能名称不能为空")
+    @Length(max = 32, message = "功能名称长度不能超过32")
     private String functionName;
 
     private String functionCode;
