@@ -3,7 +3,6 @@ package com.iflytek.integrated;
 import com.querydsl.sql.Configuration;
 import com.querydsl.sql.MySQLTemplates;
 import com.querydsl.sql.SQLQueryFactory;
-import com.querydsl.sql.SpringSqlCloseListener;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -26,7 +25,9 @@ public class PlatformApplication {
     @Bean
     public SQLQueryFactory queryFactory(DataSource dataSource) {
         Configuration configuration = new Configuration(MySQLTemplates.builder().build());
-        configuration.addListener(new SpringSqlCloseListener(dataSource));
+
+        //开启时日志打印sql，部署时无需打印
+        //* configuration.addListener(new SpringSqlCloseListener(dataSource));
         return new SQLQueryFactory(
                 configuration,
                 () -> DataSourceUtils.getConnection(dataSource));

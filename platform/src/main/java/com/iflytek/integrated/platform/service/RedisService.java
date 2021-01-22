@@ -90,7 +90,7 @@ public class RedisService {
                 keyList.add(key);
             }
         }
-        logger.info("缓存删除结束，删除内容：{}" + keyList);
+        logger.info("缓存删除结束，删除内容{}",keyList);
     }
 
 
