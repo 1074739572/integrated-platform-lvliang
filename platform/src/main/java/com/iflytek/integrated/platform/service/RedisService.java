@@ -82,15 +82,13 @@ public class RedisService {
                     .where(arr.toArray(new Predicate[arr.size()]))
                     .groupBy(qTProject.projectCode, qTHospital.hospitalCode, qTProduct.productCode, qTInterface.interfaceUrl)
                     .fetch();
-        List<String> keyList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(list)) {
             for (RedisKeyDto obj : list) {
                 String key = obj.getProjectCode()+"_"+obj.getOrgId()+"_"+obj.getProductCode()+"_"+obj.getFunCode();
                 redisUtil.hmDel("IntegratedPlatform:Configs:", key);
-                keyList.add(key);
             }
         }
-        logger.info("缓存删除结束，删除内容{}",keyList);
+        logger.info("缓存删除结束，删除数量{}",list.size());
     }
 
 
