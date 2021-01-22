@@ -7,9 +7,9 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.SQLQueryFactory;
-import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +37,7 @@ import static com.iflytek.integrated.platform.entity.QTVendorDriveLink.qTVendorD
 */
 @Service
 public class RedisService {
+
     private static final Logger logger = LoggerFactory.getLogger(RedisService.class);
 
     @Autowired

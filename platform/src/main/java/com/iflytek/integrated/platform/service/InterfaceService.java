@@ -278,7 +278,8 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         if (StringUtils.isBlank(interfaceName)) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "接口名为空!", "接口名为空!");
         }
-        if (StringUtils.isBlank(jsonObj.getString("id"))) {
+        String id = jsonObj.getString("id");
+        if (StringUtils.isBlank(id)) {
             return this.saveInterface(jsonObj, loginUserName);
         }
         return this.updateInterface(jsonObj, loginUserName);
@@ -638,10 +639,10 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         List<TBusinessInterface> tbiList = dto.getBusinessInterfaceList();
-        if ("1".equals(dto.getAddOrUpdate())) {
+        if (Constant.Operation.ADD.equals(dto.getAddOrUpdate())) {
             return this.saveInterfaceConfig(dto, loginUserName);
         }
-        if ("2".equals(dto.getAddOrUpdate())) {
+        if (Constant.Operation.UPDATE.equals(dto.getAddOrUpdate())) {
             return this.updateInterfaceConfig(dto, loginUserName);
         }
         return new ResultDto(Constant.ResultCode.ERROR_CODE, "addOrUpdate 新增编辑标识不正确!", null);
@@ -697,8 +698,6 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             toolsGenerate.generateSchemaToInterface(tbi);
             //新增接口配置
             businessInterfaceService.post(tbi);
-
-            setRedis(tbi.getId());
         }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "新增接口配置成功", null);
     }
@@ -763,7 +762,6 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                 businessInterfaceService.put(tbi.getId(), tbi);
                 rtnId += tbi.getId() + ",";
             }
-            setRedis(tbi.getId());
         }
         rtnId = StringUtils.isBlank(rtnId)?null:rtnId.substring(0, rtnId.length()-1);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "编辑接口配置成功", rtnId);
@@ -799,10 +797,8 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         }
         //获取返回缓存id
         String rtnStr = "";
-        //删除redis记录
         if (CollectionUtils.isNotEmpty(list)) {
             for (TBusinessInterface obj : list) {
-                delRedis(obj.getId());
                 rtnStr += obj.getId() + ",";
             }
         }
@@ -894,7 +890,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     public ResultDto getDisInterface(@ApiParam(value = "项目id") @RequestParam(value = "projectId", required = false) String projectId,
                     @ApiParam(value = "操作 1获取当前项目下的接口 2获取非当前项目下的接口") @RequestParam(defaultValue = "1", value = "status", required = false) String status) {
         List<TInterface> interfaces = null;
-        if (StringUtils.isNotBlank(projectId) && "1".equals(status)) {
+        if (StringUtils.isNotBlank(projectId) && Constant.Operation.CURRENT.equals(status)) {
             //返回当前项目下的接口
             interfaces = sqlQueryFactory.select(qTInterface).from(qTInterface)
                     .leftJoin(qTBusinessInterface).on(qTBusinessInterface.interfaceId.eq(qTInterface.id))
@@ -955,27 +951,5 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         return sqlQueryFactory.select(qTInterface).from(qTInterface).where(qTInterface.interfaceName.eq(interfaceName)).fetchFirst();
     }
 
-    /**
-     * 更新redis记录
-     * @param id
-     */
-    private void setRedis(String id){
-        TBusinessInterface tBusinessInterface = businessInterfaceService.getOne(id);
-        Boolean flag = redisUtil.hmSet(qTBusinessInterface.getTableName(),tBusinessInterface.getId(),tBusinessInterface);
-        if(!flag){
-            throw new RuntimeException("redis新增或更新接口失败");
-        }
-    }
-
-    /**
-     * 删除redis记录
-     * @param id
-     */
-    private void delRedis(String id){
-        Boolean flag = redisUtil.hmDel(qTBusinessInterface.getTableName(),id);
-        if(!flag){
-            throw new RuntimeException("redis删除接口失败");
-        }
-    }
 
 }

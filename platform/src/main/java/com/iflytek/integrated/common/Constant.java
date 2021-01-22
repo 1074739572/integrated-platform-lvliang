@@ -143,6 +143,29 @@ public class Constant {
     }
 
     /**
+     * 操作标识
+     */
+    public interface Operation {
+        /**
+         * 新增
+         */
+        String ADD = "1";
+        /**
+         * 编辑
+         */
+        String UPDATE = "2";
+
+        /**
+         * 当前
+         */
+        String CURRENT = "1";
+        /**
+         * 非当前
+         */
+        String NOTCURRENT = "2";
+    }
+
+    /**
      * 分类类型
      */
     public interface TypeStatus {

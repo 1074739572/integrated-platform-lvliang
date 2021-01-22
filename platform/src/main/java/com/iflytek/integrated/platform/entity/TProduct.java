@@ -1,7 +1,9 @@
 package com.iflytek.integrated.platform.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import org.hibernate.validator.constraints.Length;
 
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.util.List;
 
@@ -12,6 +14,8 @@ public class TProduct implements Serializable {
 
     private String id;
 
+    @NotBlank(message = "产品名称不能为空")
+    @Length(max = 32, message = "产品名称长度不能超过32")
     private String productName;
 
     private String productCode;
@@ -28,7 +32,9 @@ public class TProduct implements Serializable {
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone="GMT+8")
     private java.util.Date updatedTime;
 
-    //查询字段
+    /**
+     * 查询字段
+     */
     private String functionName;
 
     private String funLinkId;
