@@ -122,9 +122,10 @@ public class LogService extends QuerydslService<TLog, Long, TLog, NumberPath<Lon
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", tableData);
         }catch (Exception e){
             logger.error("查看服务监控列表失败!", ExceptionUtil.dealException(e));
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", ExceptionUtil.dealException(e));
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "服务监控列表获取成功!", ExceptionUtil.dealException(e));
         }
     }
+
 
     @ApiOperation(value = "查看日志详细列表")
     @GetMapping("/logInfo")
@@ -167,6 +168,7 @@ public class LogService extends QuerydslService<TLog, Long, TLog, NumberPath<Lon
             .fetchResults();
         //分页
         TableData<TLog> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "",tableData);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "日志详细列表获取成功!",tableData);
     }
+
 }

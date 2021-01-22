@@ -66,6 +66,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
         super(qTPlatform, qTPlatform.id);
     }
 
+
     @ApiOperation(value = "根据项目id获取平台(分页)", notes = "根据项目id获取平台(分页)")
     @GetMapping("/getPlatformListById")
     public ResultDto getPlatformListById(
@@ -200,7 +201,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
                 .set(qTPlatform.platformType, jsonObj.getString("platformType"))
                 .set(qTPlatform.projectId, jsonObj.getString("projectId"))
                 .set(qTPlatform.updatedTime, new Date())
-                .set(qTPlatform.updatedBy, StringUtils.isBlank(loginUserName)?"":loginUserName)
+                .set(qTPlatform.updatedBy, loginUserName)
                 .where(qTPlatform.id.eq(platformId)).execute();
 
         //获取更改前的厂商信息
@@ -417,7 +418,7 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
         sqlQueryFactory.update(qTPlatform)
                 .set(qTPlatform.platformStatus, platformStatus)
                 .set(qTPlatform.updatedTime, new Date())
-                .set(qTPlatform.updatedBy, StringUtils.isBlank(loginUserName)?"":loginUserName)
+                .set(qTPlatform.updatedBy, loginUserName)
                 .where(qTPlatform.id.eq(id)).execute();
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "平台状态更改成功!", id);
     }

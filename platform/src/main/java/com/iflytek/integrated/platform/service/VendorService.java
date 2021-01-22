@@ -330,6 +330,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", vendors);
     }
 
+
     @ApiOperation(value = "厂商接口调试数据获取")
     @PostMapping("/getInterfaceDebugger")
     public ResultDto getInterfaceDebugger(String interfaceId){
@@ -340,12 +341,13 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
             //获取入参列表
             List<String> paramNames = sqlQueryFactory.select(qTInterfaceParam.paramName).from(qTInterfaceParam)
                     .where(qTInterfaceParam.interfaceId.eq(interfaceId).and(qTInterfaceParam.paramInOut.eq(Constant.ParmInOut.IN))).fetch();
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"",paramNames);
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"入参列表获取成功!", paramNames);
         }
         catch (Exception e){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE,"","厂商接口调试数据失败");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE,"厂商接口调试数据失败!","厂商接口调试数据失败!");
         }
     }
+
 
     @ApiOperation(value = "厂商接口调试接口")
     @PostMapping("/interfaceDebugger")
@@ -357,6 +359,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
         }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"", toolsGenerate.joltDebugger(dto));
     }
+
 
     @ApiOperation(value = "根据厂商配置id删除厂商配置信息")
     @PostMapping("/delVendorConfigById")
@@ -383,6 +386,7 @@ public class VendorService extends QuerydslService<TVendor, String, TVendor, Str
         }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"删除成功!", "删除成功!");
     }
+
 
     @ApiOperation(value = "根据厂商医院配置id删除厂商医院配置信息")
     @PostMapping("/delHospitalVendorById")

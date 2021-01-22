@@ -68,6 +68,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
     @Autowired
     private BusinessInterfaceService businessInterfaceService;
 
+
     @ApiOperation(value = "接口配置选择插件下拉")
     @GetMapping("/getDisPlugin")
     public ResultDto getDisPlugin() {
@@ -92,6 +93,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
         }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"选择插件下拉数据获取成功", rtnArr);
     }
+
 
     @ApiOperation(value = "插件管理列表")
     @GetMapping("/getPluginList")
@@ -138,6 +140,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
         }
     }
 
+
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "插件管理删除")
     @PostMapping("/delPluginById")
@@ -164,6 +167,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "插件删除成功", id);
     }
 
+
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "插件新增/编辑")
     @PostMapping("/saveAndUpdatePlugin")
@@ -179,7 +183,7 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         //校验是否存在重复插件
-        Map<String, Object> isExist = this.isExistence(plugin.getId(),plugin.getPluginName(),plugin.getPluginCode(),plugin.getPluginContent());
+        Map<String, Object> isExist = this.isExistence(plugin.getId(),plugin.getPluginName(),plugin.getPluginContent());
         if ((boolean)isExist.get("isExist")) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, isExist.get("message")+"", isExist.get("message"));
         }
@@ -207,10 +211,9 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
      * 校验是否有重复插件
      * @param id
      * @param pluginName
-     * @param pluginCode
      * @param pluginContent
      */
-    private Map<String, Object> isExistence(String id, String pluginName, String pluginCode, String pluginContent){
+    private Map<String, Object> isExistence(String id, String pluginName, String pluginContent){
         Map<String, Object> rtnMap = new HashMap<>();
         //默认false
         rtnMap.put("isExist", false);
@@ -218,11 +221,6 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
         //校验是否存在重复插件
         ArrayList<Predicate> list = new ArrayList<>();
         list.add(qTPlugin.pluginName.eq(pluginName));
-//        if (StringUtils.isBlank(pluginCode)) {
-//            list.add(qTPlugin.pluginName.eq(pluginName));
-//        }else {
-//            list.add(qTPlugin.pluginName.eq(pluginName).or(qTPlugin.pluginCode.eq(pluginCode)));
-//        }
         if(StringUtils.isNotEmpty(id)){
             list.add(qTPlugin.id.notEqualsIgnoreCase(id));
         }
@@ -262,4 +260,5 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
             throw new RuntimeException("redis删除插件失败");
         }
     }
+
 }

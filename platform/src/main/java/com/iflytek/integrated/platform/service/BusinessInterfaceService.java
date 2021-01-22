@@ -60,7 +60,12 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
         if(idList.size() != size){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "更改mock状态成功!", id);
+        String rtnStr = "";
+        for (String idStr : idList) {
+            rtnStr += idStr + ",";
+        }
+        rtnStr = rtnStr.substring(0, rtnStr.length()-1);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "更改mock状态成功!", rtnStr);
     }
 
     /**
@@ -81,7 +86,12 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
         if(idList.size() != size){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "启停用状态编辑失败!", "启停用状态编辑失败!");
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "更改接口配置状态成功!", id);
+        String rtnStr = "";
+        for (String idStr : idList) {
+            rtnStr += idStr + ",";
+        }
+        rtnStr = rtnStr.substring(0, rtnStr.length()-1);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "更改接口配置状态成功!", rtnStr);
     }
 
 
@@ -151,43 +161,6 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
                 .where(qTBusinessInterface.interfaceId.eq(interfaceId)).fetch();
     }
 
-    /**
-     * 获取接口配置信息列表
-     * @param platformId
-     * @param status
-     * @param mockStatus
-     * @param pageNo
-     * @param pageSize
-     * @return
-     */
-//    public QueryResults<TBusinessInterface> getInterfaceConfigureList(String platformId, String status, String mockStatus, Integer pageNo, Integer pageSize) {
-//        ArrayList<Predicate> list = new ArrayList<>();
-//        list.add(qTVendorConfig.platformId.eq(platformId));
-//        if(StringUtils.isNotEmpty(status)) {
-//            list.add(qTBusinessInterface.status.eq(status));
-//        }
-//        if(StringUtils.isNotEmpty(mockStatus)) {
-//            list.add(qTBusinessInterface.mockStatus.eq(mockStatus));
-//        }
-//        QueryResults<TBusinessInterface> queryResults = sqlQueryFactory.select(
-//                Projections.bean(TBusinessInterface.class, qTBusinessInterface.id, qTBusinessInterface.productFunctionLinkId,
-//                        qTBusinessInterface.interfaceId, qTBusinessInterface.vendorConfigId, qTBusinessInterface.businessInterfaceName,
-//                        qTBusinessInterface.requestType, qTBusinessInterface.requestConstant, qTBusinessInterface.interfaceType,
-//                        qTBusinessInterface.pluginId, qTBusinessInterface.frontInterface, qTBusinessInterface.afterInterface,
-//                        qTBusinessInterface.inParamFormat, qTBusinessInterface.inParamSchema, qTBusinessInterface.inParamTemplate,
-//                        qTBusinessInterface.inParamFormatType, qTBusinessInterface.outParamFormat, qTBusinessInterface.outParamSchema,
-//                        qTBusinessInterface.outParamTemplate, qTBusinessInterface.outParamFormatType, qTBusinessInterface.mockStatus,
-//                        qTBusinessInterface.status, qTBusinessInterface.createdBy, qTBusinessInterface.createdTime,
-//                        qTBusinessInterface.updatedBy, qTBusinessInterface.updatedTime, qTVendorConfig.versionId.as("versionId")))
-//                .from(qTBusinessInterface)
-//                .leftJoin(qTVendorConfig).on(qTVendorConfig.id.eq(qTBusinessInterface.vendorConfigId))
-//                .where(list.toArray(new Predicate[list.size()]))
-//                .orderBy(qTBusinessInterface.createdTime.desc())
-//                .limit(pageSize)
-//                .offset((pageNo - 1) * pageSize)
-//                .fetchResults();
-//        return queryResults;
-//    }
 
     /**
      * 获取接口配置信息列表
@@ -390,23 +363,6 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
         List<TBusinessInterface> interfaces = busInterfaces(id);
         return interfaces.stream().map(TBusinessInterface::getId).collect(Collectors.toList());
     }
-
-
-    /**
-     * 根据医院id获取关联接口配置信息
-     * @param hospitalId
-     * @return
-     */
-    public List<TBusinessInterface> getListByHospital(String hospitalId) {
-        List<TBusinessInterface> list =
-                sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
-                .leftJoin(qTVendorConfig).on(qTBusinessInterface.vendorConfigId.eq(qTVendorConfig.id))
-                .leftJoin(qTHospitalVendorLink).on(qTVendorConfig.id.eq(qTHospitalVendorLink.vendorConfigId))
-                .where(qTHospitalVendorLink.hospitalId.eq(hospitalId))
-                .fetch();
-        return list;
-    }
-
 
 
 }

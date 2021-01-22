@@ -62,6 +62,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
     @Autowired
     private RedisUtil redisUtil;
 
+
     @ApiOperation(value = "获取医院管理列表")
     @GetMapping("/getHospitalList")
     public ResultDto getHospitalListPage(@RequestParam(value = "hospitalName", required = false) String hospitalName,
@@ -107,6 +108,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         }
     }
 
+
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "医院管理删除")
     @PostMapping("/delHospitalById")
@@ -130,6 +132,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "医院管理删除成功", id);
     }
+
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "医院管理新增/编辑")
@@ -170,6 +173,7 @@ public class HospitalService extends QuerydslService<THospital, String, THospita
         }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "医院管理编辑成功", hospital.getId());
     }
+
 
     @ApiOperation(value = "医院配置")
     @GetMapping("/getAllHospital")

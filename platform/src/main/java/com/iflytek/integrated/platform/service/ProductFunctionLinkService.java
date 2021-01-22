@@ -116,28 +116,5 @@ public class ProductFunctionLinkService extends QuerydslService<TProductFunction
                 .where(qTProductFunctionLink.id.eq(id)).execute();
     }
 
-    /**
-     * 查询某产品下所有关联(排除当前)
-     * @param productId
-     * @param id
-     * @return
-     */
-//    public List<TProductFunctionLink> getListByProductIdAndNoId(String productId, String id) {
-//        List<TProductFunctionLink> list = sqlQueryFactory.select(qTProductFunctionLink).from(qTProductFunctionLink)
-//                .where(qTProductFunctionLink.productId.eq(productId).and(qTProductFunctionLink.id.notEqualsIgnoreCase(id)))
-//                .fetch();
-//        return list;
-//    }
-
-    /**
-     * 根据项目id获取所有产品id
-     * @param projectId
-     */
-//    public List<String> getProductIdByProjectId(String projectId) {
-//         return sqlQueryFactory.selectDistinct(qTProductFunctionLink.productId).from(qTProductFunctionLink)
-//                .leftJoin(qTProjectProductLink).on(qTProjectProductLink.productFunctionLinkId.eq(qTProductFunctionLink.id))
-//                .where(qTProjectProductLink.projectId.eq(projectId))
-//                .fetch();
-//    }
 
 }

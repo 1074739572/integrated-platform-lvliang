@@ -192,7 +192,7 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         //校验是否存在重复驱动，驱动代码格式是否正确
-        Map<String, Object> isExist = this.isExistence(drive.getId(), drive.getDriveName(), drive.getDriveCode(), drive.getDriveContent());
+        Map<String, Object> isExist = this.isExistence(drive.getId(), drive.getDriveName(), drive.getDriveContent());
         if ((boolean)isExist.get("isExist")) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, isExist.get("message")+"", isExist.get("message"));
         }
@@ -245,10 +245,9 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
      * 校验是否有重复驱动，代码格式是否正确
      * @param id
      * @param driveName
-     * @param driveCode
      * @param driveContent
      */
-    private Map<String, Object> isExistence(String id, String driveName, String driveCode, String driveContent){
+    private Map<String, Object> isExistence(String id, String driveName, String driveContent){
         Map<String, Object> rtnMap = new HashMap<>();
         //默认false
         rtnMap.put("isExist", false);
@@ -256,11 +255,6 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
         //校验是否存在重复驱动
         ArrayList<Predicate> list = new ArrayList<>();
         list.add(qTDrive.driveName.eq(driveName));
-//        if (StringUtils.isBlank(driveCode)) {
-//            list.add(qTDrive.driveName.eq(driveName));
-//        }else {
-//            list.add(qTDrive.driveName.eq(driveName).or(qTDrive.driveCode.eq(driveCode)));
-//        }
         if(StringUtils.isNotEmpty(id)){
             list.add(qTDrive.id.notEqualsIgnoreCase(id));
         }
@@ -300,4 +294,5 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
             throw new RuntimeException("redis删除驱动失败");
         }
     }
+
 }

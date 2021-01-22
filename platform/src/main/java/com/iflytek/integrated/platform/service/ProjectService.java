@@ -157,16 +157,10 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
             String productId = pObj.getString("productId");
             JSONArray jsonArr = pObj.getJSONArray("functionList");
             for (int j = 0; j < jsonArr.size(); j++) {
-                TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(productId, jsonArr.getJSONObject(j).getString("functionId"));
-                /**产品与功能关联*/
-//                String productFunLinkId = batchUidService.getUid(qTProductFunctionLink.getTableName()) + "";
-//                tpfl = new TProductFunctionLink();
-//                tpfl.setId(productFunLinkId);
-//                tpfl.setProductId(productId);
-//                tpfl.setFunctionId(jsonArr.getJSONObject(j).getString("functionId"));
-//                tpfl.setCreatedTime(new Date());
-//                productFunctionLinkService.post(tpfl);
-                /**项目与产品关联*/
+                //产品与功能关联
+                String functionId = jsonArr.getJSONObject(j).getString("functionId");
+                TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(productId, functionId);
+                //项目与产品关联
                 TProjectProductLink tppl = new TProjectProductLink();
                 tppl.setId(batchUidService.getUid(qTProjectProductLink.getTableName())+"");
                 tppl.setProjectId(projectId);
@@ -197,17 +191,10 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
             String productId = pObj.getString("productId");
             JSONArray jsonArr = pObj.getJSONArray("functionList");
             for (int j = 0; j < jsonArr.size(); j++) {
-                /**产品与功能关联*/
-//                String productFunLinkId = batchUidService.getUid(qTProductFunctionLink.getTableName()) + "";
-//                TProductFunctionLink tpfl = new TProductFunctionLink();
-//                tpfl.setId(productFunLinkId);
-//                tpfl.setProductId(productId);
-//                tpfl.setFunctionId(jsonArr.getJSONObject(j).getString("functionId"));
-//                tpfl.setCreatedTime(new Date());
-//                productFunctionLinkService.post(tpfl);
+                //产品与功能关联
                 String functionId = jsonArr.getJSONObject(j).getString("functionId");
                 TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(productId, functionId);
-                /**项目与产品关联*/
+                //项目与产品关联
                 TProjectProductLink tppl = new TProjectProductLink();
                 tppl.setId(batchUidService.getUid(qTProjectProductLink.getTableName())+"");
                 tppl.setProjectId(projectId);
@@ -246,7 +233,6 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
                 //删除医院与厂商配置关联信息
                 hospitalVendorLinkService.deleteByVendorConfigId(tvc.getId());
             }
-
             //删除平台下所有关联的接口配置
             List<TBusinessInterface> tbiList = businessInterfaceService.getListByPlatform(platformId);
             for (TBusinessInterface tbi : tbiList) {
@@ -274,7 +260,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
         try {
             sqlQueryFactory.update(qTProject)
                     .set(qTProject.projectStatus, projectStatus)
-                    .set(qTProject.updatedBy, StringUtils.isBlank(loginUserName)?"":loginUserName)
+                    .set(qTProject.updatedBy, loginUserName)
                     .where(qTProject.id.eq(id)).execute();
         } catch (Exception e) {
             logger.error("项目状态修改失败!", ExceptionUtil.dealException(e));
@@ -362,50 +348,8 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
     private void deleteProjectById(String projectId) {
         List<TProjectProductLink> list = projectProductLinkService.findProjectProductLinkByProjectId(projectId);
         for (TProjectProductLink obj : list) {
-//            String productFunctionLinkId = obj.getProductFunctionLinkId();
-//            productFunctionLinkService.delete(productFunctionLinkId);
             projectProductLinkService.delete(obj.getId());
         }
-    }
-
-
-    /**
-     * 根据条件删除key
-     * @param arr
-     * @return
-     */
-    public List<String> delKey(ArrayList<Predicate> arr) {
-        //projectcode_orgid_productcode_funcode
-        List<String> rtnList = new ArrayList<>();
-
-        arr.add(qTProject.projectCode.isNotNull().and(qTProduct.productCode.isNotNull().and(qTInterface.interfaceUrl.isNotNull())));
-
-        List<RedisKeyDto> list =
-                        sqlQueryFactory.select(Projections.bean(RedisKeyDto.class, qTProject.projectCode.as("projectCode"),
-                        qTHospital.hospitalCode.as("orgId"), qTProduct.productCode.as("productCode"), qTInterface.interfaceUrl.as("funCode")))
-                        .leftJoin(qTPlatform).on(qTPlatform.projectId.eq(qTProject.id))
-                        .leftJoin(qTVendorConfig).on(qTVendorConfig.platformId.eq(qTPlatform.id))
-                        .leftJoin(qTHospitalVendorLink).on(qTHospitalVendorLink.vendorConfigId.eq(qTVendorConfig.id))
-                        .leftJoin(qTHospital).on(qTHospital.id.eq(qTHospitalVendorLink.hospitalId))
-                        .leftJoin(qTProjectProductLink).on(qTProjectProductLink.projectId.eq(qTProject.id))
-                        .leftJoin(qTProductFunctionLink).on(qTProductFunctionLink.id.eq(qTProjectProductLink.productFunctionLinkId))
-                        .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
-                        .leftJoin(qTProductInterfaceLink).on(qTProductInterfaceLink.productId.eq(qTProduct.id))
-                        .leftJoin(qTInterface).on(qTInterface.id.eq(qTProductInterfaceLink.interfaceId))
-                        .where(arr.toArray(new Predicate[arr.size()]))
-                        .groupBy(qTProject.projectCode, qTHospital.hospitalCode, qTProduct.productCode, qTInterface.interfaceUrl)
-                        .fetch();
-        if (org.apache.commons.collections.CollectionUtils.isNotEmpty(list)) {
-            String key = "";
-//            for (RedisKeyDto obj : list) {
-//                key = obj.getProjectCode()+"_"+obj.getOrgId()+"_"+obj.getProductCode()+"_"+obj.getFunCode();
-//                Boolean isDel = redisUtil.hmDel("IntegratedPlatform:Configs:", key);
-//                if (!isDel) {
-//                    rtnList.add(key);
-//                }
-//            }
-        }
-        return rtnList;
     }
 
 

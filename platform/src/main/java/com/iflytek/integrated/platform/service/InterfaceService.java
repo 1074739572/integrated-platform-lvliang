@@ -244,11 +244,6 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     public ResultDto delInterfaceById(@ApiParam(value = "标准接口id") @RequestParam(value = "id", required = true) String id) {
         try {
             //校验该接口是否有产品关联
-//            List<TProductInterfaceLink> tpilList = productInterfaceLinkService.getObjByInterface(id);
-//            if (CollectionUtils.isNotEmpty(tpilList)) {
-//                return new ResultDto(Constant.ResultCode.ERROR_CODE, "该标准接口已有产品关联,无法删除!", "该标准接口已有产品关联,无法删除!");
-//            }
-            //校验该接口是否有产品关联
             TBusinessInterface tbi = businessInterfaceService.getProductIdByInterfaceId(id);
             if (tbi != null && StringUtils.isNotBlank(tbi.getId())) {
                 return new ResultDto(Constant.ResultCode.ERROR_CODE, "该标准接口已有产品关联,无法删除!", "该标准接口已有产品关联,无法删除!");
@@ -402,8 +397,6 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "出参不能为空!", "出参不能为空!");
         }
 
-//        String id = jsonObj.getString("id");
-//        String interfaceName = jsonObj.getString("interfaceName");
         String interfaceTypeId = jsonObj.getString("typeId");
         String interfaceUrl = jsonObj.getString("interfaceUrl");
         //校验出入参格式字符串是否为json或者xml
@@ -424,7 +417,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
                 .set(qTInterface.updatedTime, new Date())
                 .set(qTInterface.paramOutStatus, "")
                 .set(qTInterface.paramOutStatusSuccess, "")
-                .set(qTInterface.updatedBy, StringUtils.isBlank(loginUserName)?"":loginUserName)
+                .set(qTInterface.updatedBy, loginUserName)
                 .where(qTInterface.id.eq(id)).execute();
         //替换产品与接口关联
         productInterfaceLinkService.deleteProductInterfaceLinkById(id);
@@ -925,6 +918,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
         interfaces.removeAll(tiList);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", interfaces);
     }
+
 
     @ApiOperation(value = "根据参数模板（json）获取key-value", notes = "根据参数模板（json）获取key-value")
     @PostMapping("/jsonFormat")

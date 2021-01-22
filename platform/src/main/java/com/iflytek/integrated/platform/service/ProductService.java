@@ -146,9 +146,6 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         String id = jsonObj.getString("id");
-//        TProductFunctionLink tpfl = addOrGetLink(jsonObj.getString("productName"), jsonObj.getString("functionName"));
-//        boolean existence = isExistence(id, link.getProductId(), link.getFunctionId());
-
         TProduct tp = this.getObjByProductName(jsonObj.getString("productName"));
         TFunction tf = functionService.getObjByName(jsonObj.getString("functionName"));
         String productId = tp!=null?tp.getId():null;
@@ -267,19 +264,6 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         }else {
             errProductId = tp.getId();
         }
-
-        //新增产品
-//        if (StringUtils.isBlank(productId)) {
-//            productId = batchUidService.getUid(qTProduct.getTableName()) + "";
-//            TProduct tp = new TProduct();
-//            tp.setId(productId);
-//            tp.setProductCode(utils.generateCode(qTProduct, qTProduct.productCode, productName));
-//            tp.setProductName(productName);
-//            tp.setIsValid(Constant.IsValid.ON);
-//            tp.setCreatedTime(new Date());
-//            tp.setCreatedBy(loginUserName);
-//            this.post(tp);
-//        }
         //功能
         String functionName = jsonObj.getString("functionName");
         TFunction tf = functionService.getObjByName(functionName);
@@ -293,7 +277,6 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             tf.setCreatedBy(loginUserName);
             functionService.post(tf);
         }else {
-//            TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(productId, functionId);
             TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunctionByNoId(productId, functionId, id);
             if (tpfl != null) {
                 return new ResultDto(Constant.ResultCode.ERROR_CODE, "该产品与功能已有关联!",tpfl);
@@ -333,34 +316,6 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
         }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"选择产品下拉及其功能获取成功!", products);
     }
-
-
-//    @ApiOperation(value = "新增接口-选择产品下拉及其功能")
-//    @GetMapping("/getDisProAndFun")
-//    public ResultDto getDisProAndFun(@ApiParam(value = "项目id") @RequestParam(value = "projectId", required = false) String projectId) {
-//        //获取该项目下所有产品id
-//        List<String> productIdList = productFunctionLinkService.getProductIdByProjectId(projectId);
-//        List<TProduct> productList = new ArrayList<>();
-//        for (String productId : productIdList) {
-//            productList.add(this.getOne(productId));
-//        }
-//        //拼接方法列表
-//        for (TProduct product : productList){
-//            List<TFunction> functions = sqlQueryFactory.select(
-//                    Projections.bean(
-//                            TFunction.class,
-//                            qTFunction.id,
-//                            qTFunction.functionCode,
-//                            qTFunction.functionName
-//                    )
-//            ).from(qTFunction)
-//                    .leftJoin(qTProductFunctionLink).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
-//                    .where(qTProductFunctionLink.productId.eq(product.getId()))
-//                    .orderBy(qTFunction.createdTime.desc()).fetch();
-//            product.setFunctions(functions);
-//        }
-//        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"选择产品下拉及其功能获取成功!", productList);
-//    }
 
 
     @ApiOperation(value = "根据产品获取功能")
@@ -411,85 +366,9 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             tp.setFunctions(functions);
             rtnList.add(tp);
         }
-
-//        //获取指定项目下所有产品
-//        List<String> productList = sqlQueryFactory.selectDistinct(qTProduct.id)
-//                .from(qTProduct)
-//                .leftJoin(qTProductFunctionLink).on(qTProductFunctionLink.productId.eq(qTProduct.id))
-//                .leftJoin(qTProjectProductLink).on(qTProjectProductLink.productFunctionLinkId.eq(qTProductFunctionLink.id))
-//                .where(list.toArray(new Predicate[list.size()]))
-//                .fetch();
-//
-//        List<TProduct> rtnList = new ArrayList<>();
-//        for (String productId : productList) {
-//            TProduct tp = this.getOne(productId);
-//            //拼接方法列表
-//            List<TFunction> functions = sqlQueryFactory.select(
-//                    Projections.bean(
-//                            TFunction.class,
-//                            qTFunction.id,
-//                            qTFunction.functionCode,
-//                            qTFunction.functionName
-//                    )
-//            ).from(qTFunction)
-//                    .leftJoin(qTProductFunctionLink).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
-//                    .where(qTProductFunctionLink.productId.eq(productId))
-//                    .orderBy(qTFunction.createdTime.desc()).fetch();
-//            tp.setFunctions(functions);
-//            rtnList.add(tp);
-//        }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"选择产品下拉及其功能获取成功!", rtnList);
     }
 
-
-    /**
-     * 获取或新增产品，功能，并保存关系
-     * @param productName
-     * @param functionName
-     * @return
-     */
-//    private TProductFunctionLink addOrGetLink(String productName, String functionName){
-////        return productFunctionLinkService.getObjByPNameAndFName(productName, functionName);
-//
-//        TProductFunctionLink functionLink = new TProductFunctionLink();
-//        //查询是否已经存在产品Id
-//        functionLink.setProductId(sqlQueryFactory.select(qTProduct.id)
-//                .from(qTProduct).where(qTProduct.productName.eq(productName)).fetchOne());
-//
-//        functionLink.setFunctionId(sqlQueryFactory.select(qTFunction.id)
-//                .from(qTFunction).where(qTFunction.functionName.eq(functionName)).fetchOne());
-//
-//        if(StringUtils.isEmpty(functionLink.getProductId())){
-//            //如果是新的产品名称，新建一个产品
-//            functionLink.setProductId(batchUidService.getUid(qTProduct.getTableName()) + "");
-//            Long lon = sqlQueryFactory.insert(qTProduct)
-//                    .set(qTProduct.id,functionLink.getProductId())
-//                    .set(qTProduct.productName,productName)
-//                    .set(qTProduct.productCode,utils.generateCode(qTProduct,qTProduct.productCode,productName))
-//                    .set(qTProduct.isValid,Constant.IsValid.ON)
-//                    .set(qTProduct.createdBy,"")
-//                    .set(qTProduct.createdTime,new Date()).execute();
-//            if(lon <= 0){
-//                throw new RuntimeException("创建产品失败");
-//            }
-//        }
-////        查询是否存在功能
-//
-//        if(StringUtils.isEmpty(functionLink.getFunctionId())){
-//            //如果是新的产品名称，新建一个功能
-//            functionLink.setFunctionId(batchUidService.getUid(qTFunction.getTableName()) + "");
-//            Long lon = sqlQueryFactory.insert(qTFunction)
-//                    .set(qTFunction.id,functionLink.getFunctionId())
-//                    .set(qTFunction.functionName,functionName)
-//                    .set(qTFunction.functionCode,utils.generateCode(qTFunction,qTFunction.functionCode,functionName))
-//                    .set(qTFunction.createdBy,"")
-//                    .set(qTFunction.createdTime,new Date()).execute();
-//            if(lon <= 0){
-//                throw new RuntimeException("创建功能失败");
-//            }
-//        }
-//        return functionLink;
-//    }
 
     /**
      * 校验是否已经存在
