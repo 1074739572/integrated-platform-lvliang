@@ -673,6 +673,7 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 //        }else {
 //            productFunctionLinkId = dto.getProductFunctionLinkId();
 //        }
+
         //根据项目,厂商,标准接口判定是否存在相同配置数据
         List<THospitalVendorLink> thvlList = hospitalVendorLinkService.getTHospitalVendorLinkByVendorConfigId(vendorConfigId);
         //根据条件判断是否存在该数据
@@ -709,14 +710,12 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
      * @return
      */
     private ResultDto updateInterfaceConfig(BusinessInterfaceDto dto, String loginUserName) {
-        //获取厂商配置
-        String vendorConfigId = "";
-        if (StringUtils.isBlank(dto.getVendorConfigId())) {
-            TVendorConfig tvc = vendorConfigService.getObjByPlatformAndVendor(dto.getPlatformId(), dto.getVendorId());
-            vendorConfigId = tvc!=null?tvc.getId():null;
-        }else {
-            vendorConfigId = dto.getVendorConfigId();
+        if (StringUtils.isBlank(dto.getPlatformId()) || StringUtils.isBlank(dto.getVendorId())) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "平台id或厂商id不能为空!", "平台id或厂商id不能为空!");
         }
+        //获取厂商配置
+        TVendorConfig tvc = vendorConfigService.getObjByPlatformAndVendor(dto.getPlatformId(), dto.getVendorId());
+        String vendorConfigId = tvc!=null?tvc.getId():dto.getVendorConfigId();
         //产品与功能关联
         TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(dto.getProductId(), dto.getFunctionId());
         String productFunctionLinkId = tpfl!=null?tpfl.getId():null;
@@ -727,9 +726,9 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
 //        }else {
 //            productFunctionLinkId = dto.getProductFunctionLinkId();
 //        }
+
         //返回缓存接口配置id
         String rtnId = "";
-
         List<TBusinessInterface> tbiList = dto.getBusinessInterfaceList();
         for (int i = 0; i < tbiList.size(); i++) {
             TBusinessInterface tbi = tbiList.get(i);
