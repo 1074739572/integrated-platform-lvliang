@@ -1,8 +1,8 @@
 package com.iflytek.mock;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONException;
-import com.alibaba.fastjson.JSONObject;
+import com.iflytek.integrated.common.utils.JackSonUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * @author
@@ -11,18 +11,24 @@ public class Mock {
 
     public static String mock(String template){
         try {
-            JSONObject jsonObject = JSON.parseObject(template);
+            JSONObject jsonObject = new JSONObject(template);
             Object rlt = Handler.gen(jsonObject, null, new Context());
-            return JSON.toJSONString(rlt);
+            if(rlt instanceof JSONObject){
+                return rlt.toString();
+            }
+            return JackSonUtils.transferToJson(rlt);
         }catch (JSONException e){
             throw new RuntimeException("解析JSON失败，格式有错误");
         }
     }
 
     public static String mock(String template, Context context){
-        JSONObject jsonObject = JSON.parseObject(template);
+        JSONObject jsonObject = new JSONObject(template);
         Object rlt = Handler.gen(jsonObject, null, context);
-        return JSON.toJSONString(rlt);
+        if(rlt instanceof JSONObject){
+            return rlt.toString();
+        }
+        return JackSonUtils.transferToJson(rlt);
     }
 
     /**
@@ -30,8 +36,12 @@ public class Mock {
      * @return 返回 mock 对象
      */
     public static <T> T mock(String template, Class<T> rtnClass) {
-        String mockStr = mock(template);
-        return JSON.parseObject(mockStr, rtnClass);
+        try {
+            String mockStr = mock(template);
+            return JackSonUtils.jsonToTransfer(mockStr, rtnClass);
+        }catch (Exception e){
+            throw new RuntimeException("解析JSON失败，格式有错误");
+        }
     }
 
 

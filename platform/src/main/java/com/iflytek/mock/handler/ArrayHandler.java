@@ -1,6 +1,6 @@
 package com.iflytek.mock.handler;
 
-import com.alibaba.fastjson.JSONArray;
+import org.json.JSONArray;
 import com.iflytek.mock.Context;
 import com.iflytek.mock.Function;
 import com.iflytek.mock.Handler;
@@ -27,9 +27,9 @@ public class ArrayHandler implements TypeHandler {
             Integer length = Function.arraySize != null?Function.$integer(Function.arraySize):1;
             for (int size = 0; size < length;size ++){
                 JSONArray templates = (JSONArray) options.getTemplate();
-                for (int i = 0; i < templates.size(); i++) {
+                for (int i = 0; i < templates.length(); i++) {
                     Context context = new Context();
-                    jsonArray.add(Handler.gen(templates.get(i), i + "", context));
+                    jsonArray.put(Handler.gen(templates.get(i), i + "", context));
                 }
             }
             return jsonArray;
@@ -39,13 +39,13 @@ public class ArrayHandler implements TypeHandler {
         // 'method|1': ['GET', 'POST', 'HEAD', 'DELETE']
         if (options.getRule().getMin() != null && options.getRule().getMin() == 1 && options.getRule().getMax() == null) {
             JSONArray ja = (JSONArray) Handler.gen(options.getTemplate(), null, options.getContext());
-            return ja.get(RandomUtils.nextInt(0, ja.size()));
+            return ja.get(RandomUtils.nextInt(0, ja.length()));
         }
 
         // 'data|+1': [{}, {}]
         if (StringUtils.isNotEmpty(options.getRule().getParameters().get(1))) {
             JSONArray ja = (JSONArray) Handler.gen(options.getTemplate(), null, options.getContext());
-            int index = options.getContext().getOrderIndex() >= ja.size() ? 0 : options.getContext().getOrderIndex();
+            int index = options.getContext().getOrderIndex() >= ja.length() ? 0 : options.getContext().getOrderIndex();
             options.getContext().setOrderIndex(index + 1);
             return ja.get(index);
         }
@@ -57,10 +57,10 @@ public class ArrayHandler implements TypeHandler {
             // 'data|1-10': [{}, {}]
             JSONArray templates = (JSONArray) options.getTemplate();
             JSONArray ja = new JSONArray();
-            for (int j = 0; j < templates.size(); j++) {
-                ja.add(Handler.gen(templates.get(j), ja.size() + "", options.getContext()));
+            for (int j = 0; j < templates.length(); j++) {
+                ja.put(Handler.gen(templates.get(j), ja.length() + "", options.getContext()));
             }
-            jsonArray.add(ja);
+            jsonArray.put(ja);
         }
 
         return jsonArray;

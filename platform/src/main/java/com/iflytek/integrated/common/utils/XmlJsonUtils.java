@@ -4,13 +4,9 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
@@ -60,7 +56,7 @@ public class XmlJsonUtils {
      */
     public static String jsonToXml(String json){
         StringBuffer buffer = new StringBuffer();
-        JSONObject jObj = JSON.parseObject(json);
+        JSONObject jObj = new JSONObject(json);
         jsonToXmlStr(jObj,buffer);
         return buffer.toString();
     }
@@ -72,33 +68,32 @@ public class XmlJsonUtils {
      * @return the string
      */
     private static String jsonToXmlStr(JSONObject jObj, StringBuffer buffer ){
-        Set<Map.Entry<String, Object>> se = jObj.entrySet();
-        for(Iterator<Map.Entry<String, Object>> it = se.iterator(); it.hasNext(); )
-        {
-            Map.Entry<String, Object> en = it.next();
-            if(en.getValue() instanceof JSONObject){
-                buffer.append("<"+en.getKey()+">");
-                JSONObject jo = jObj.getJSONObject(en.getKey());
+
+        for (String key: jObj.keySet()){
+            Object value = jObj.get(key);
+            if(value instanceof JSONObject){
+                buffer.append("<"+key+">");
+                JSONObject jo = jObj.getJSONObject(key);
                 jsonToXmlStr(jo,buffer);
-                buffer.append("</"+en.getKey()+">");
+                buffer.append("</"+key+">");
             }
-            else if(en.getValue() instanceof JSONArray){
-                JSONArray jsonArray = jObj.getJSONArray(en.getKey());
-                for (int i = 0; i < jsonArray.size(); i++) {
-                    buffer.append("<"+en.getKey()+">");
+            else if(value instanceof JSONArray){
+                JSONArray jsonArray = jObj.getJSONArray(key);
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    buffer.append("<"+key+">");
                     if(jsonArray.get(i) instanceof JSONObject){
                         jsonToXmlStr(jsonArray.getJSONObject(i),buffer);
                     }
                     else {
                         buffer.append(jsonArray.get(i));
                     }
-                    buffer.append("</"+en.getKey()+">");
+                    buffer.append("</"+key+">");
                 }
             }
             else{
-                buffer.append("<"+en.getKey()+">"
-                        +en.getValue());
-                buffer.append("</"+en.getKey()+">");
+                buffer.append("<"+key+">");
+                buffer.append(value);
+                buffer.append("</"+key+">");
             }
 
         }

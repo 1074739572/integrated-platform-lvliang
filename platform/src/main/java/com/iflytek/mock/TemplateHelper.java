@@ -1,6 +1,6 @@
 package com.iflytek.mock;
 
-import com.alibaba.fastjson.JSONObject;
+import org.json.JSONObject;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -21,7 +21,7 @@ public class TemplateHelper {
      * @return
      */
     public static String randomTemplate(Class mockClass, String... exceptField) {
-        return random(mockClass, exceptField).template.toJSONString();
+        return random(mockClass, exceptField).template.toString();
     }
 
     public static TemplateHelper random(Class mockClass, String... exceptField) {
@@ -117,6 +117,6 @@ public class TemplateHelper {
     }
 
     public String toTemplate(){
-        return this.template.toJSONString();
+        return this.template.toString();
     }
 }
