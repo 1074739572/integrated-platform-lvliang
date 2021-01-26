@@ -1,14 +1,14 @@
 package com.iflytek.integrated.platform.service;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.common.utils.RedisUtil;
-import com.iflytek.integrated.platform.dto.RedisKeyDto;
+import com.iflytek.integrated.platform.dto.FunctionDto;
+import com.iflytek.integrated.platform.dto.ProductDto;
+import com.iflytek.integrated.platform.dto.ProjectDto;
 import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.medicalboot.core.dto.PageRequest;
@@ -16,7 +16,6 @@ import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -32,16 +31,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
-import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
-import static com.iflytek.integrated.platform.entity.QTHospitalVendorLink.qTHospitalVendorLink;
-import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
-import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
-import static com.iflytek.integrated.platform.entity.QTProduct.qTProduct;
-import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.qTProductFunctionLink;
-import static com.iflytek.integrated.platform.entity.QTProductInterfaceLink.qTProductInterfaceLink;
 import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
 import static com.iflytek.integrated.platform.entity.QTProjectProductLink.qTProjectProductLink;
-import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConfig;
 
 /**
 * 项目管理
@@ -114,8 +105,8 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增or修改项目", notes = "新增or修改项目")
     @PostMapping("/saveAndUpdateProject")
-    public ResultDto saveAndUpdateProject(@ApiParam(value = "保存项目-产品-功能信息") @RequestBody JSONObject jsonObj) {
-        String projectName = jsonObj.getString("projectName");
+    public ResultDto saveAndUpdateProject(@ApiParam(value = "保存项目-产品-功能信息") @RequestBody ProjectDto dto) {
+        String projectName = dto.getProjectName();
         if (StringUtils.isBlank(projectName)) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "项目名称为空!", null);
         }
@@ -124,41 +115,42 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
         if(StringUtils.isBlank(loginUserName)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
-        String projectId = jsonObj.getString("id");
+        String projectId = dto.getId();
         //检验项目名称是否存在
         if (isExistence(projectName, projectId)) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "项目名称已经存在!", null);
         }
         //项目新增
         if (StringUtils.isBlank(projectId)) {
-            return saveProject(jsonObj,loginUserName);
+            return saveProject(dto, loginUserName);
         }else { //项目修改
-            return updateProject(jsonObj,loginUserName);
+            return updateProject(dto, loginUserName);
         }
     }
 
     /** 新增项目 */
-    private ResultDto saveProject(JSONObject jsonObj, String loginUserName) {
+    private ResultDto saveProject(ProjectDto dto, String loginUserName) {
         String projectId = batchUidService.getUid(qTProject.getTableName())+"";
+        String projectName = dto.getProjectName();
 
         TProject project = new TProject();
         project.setId(projectId);
-        project.setProjectName(jsonObj.getString("projectName"));
-        project.setProjectCode(utils.generateCode(qTProject, qTProject.projectCode, jsonObj.getString("projectName")));
+        project.setProjectName(projectName);
+        project.setProjectCode(utils.generateCode(qTProject, qTProject.projectCode, projectName));
         project.setProjectStatus(Constant.Status.START);
-        project.setProjectType(jsonObj.getString("projectType"));
+        project.setProjectType(dto.getProjectType());
         project.setCreatedTime(new Date());
         project.setCreatedBy(loginUserName);
         projectService.post(project);
 
-        JSONArray productList = jsonObj.getJSONArray("productList");
+        List<ProductDto> productList = dto.getProductList();
         for (int i = 0; i < productList.size(); i++) {
-            JSONObject pObj = productList.getJSONObject(i);
-            String productId = pObj.getString("productId");
-            JSONArray jsonArr = pObj.getJSONArray("functionList");
+            ProductDto pObj = productList.get(i);
+            String productId = pObj.getProductId();
+            List<FunctionDto> jsonArr = pObj.getFunctionList();
             for (int j = 0; j < jsonArr.size(); j++) {
                 //产品与功能关联
-                String functionId = jsonArr.getJSONObject(j).getString("functionId");
+                String functionId = jsonArr.get(j).getFunctionId();
                 TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(productId, functionId);
                 //项目与产品关联
                 TProjectProductLink tppl = new TProjectProductLink();
@@ -174,25 +166,25 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
     }
 
     /** 修改项目 */
-    private ResultDto updateProject(JSONObject jsonObj, String loginUserName) {
-        String projectId = jsonObj.getString("id");
+    private ResultDto updateProject(ProjectDto dto, String loginUserName) {
+        String projectId = dto.getId();
         this.deleteProjectById(projectId);
 
         TProject project = new TProject();
-        project.setProjectName(jsonObj.getString("projectName"));
-        project.setProjectType(jsonObj.getString("projectType"));
+        project.setProjectName(dto.getProjectName());
+        project.setProjectType(dto.getProjectType());
         project.setUpdatedTime(new Date());
         project.setUpdatedBy(loginUserName);
         projectService.put(projectId, project);
 
-        JSONArray productList = jsonObj.getJSONArray("productList");
+        List<ProductDto> productList = dto.getProductList();
         for (int i = 0; i < productList.size(); i++) {
-            JSONObject pObj = productList.getJSONObject(i);
-            String productId = pObj.getString("productId");
-            JSONArray jsonArr = pObj.getJSONArray("functionList");
+            ProductDto pObj = productList.get(i);
+            String productId = pObj.getProductId();
+            List<FunctionDto> jsonArr = pObj.getFunctionList();
             for (int j = 0; j < jsonArr.size(); j++) {
                 //产品与功能关联
-                String functionId = jsonArr.getJSONObject(j).getString("functionId");
+                String functionId = jsonArr.get(j).getFunctionId();
                 TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(productId, functionId);
                 //项目与产品关联
                 TProjectProductLink tppl = new TProjectProductLink();
@@ -241,7 +233,6 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
             //删除平台下的所有厂商配置信息
             vendorConfigService.delVendorConfigAll(platformId);
         }
-
         //删除项目与产品功能关联
         this.deleteProjectById(id);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "项目删除成功!", id);
@@ -298,7 +289,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
                 }
             }
             //返回数据
-            JSONArray rtnArr = new JSONArray();
+            List<Map<String, Object>> rtnArr = new ArrayList<>();
             if (map.size() > 0) {
                 for(String key : map.keySet()) {
                     String[] fIdArr = map.get(key).split(",");
@@ -306,7 +297,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
                     for(int i = 0; i<fIdArr.length; i++) {
                         arr.add(fIdArr[i]);
                     }
-                    JSONObject obj = new JSONObject();
+                    Map<String, Object> obj = new HashMap<>();
                     obj.put("id", key);
                     obj.put("function", arr);
                     rtnArr.add(obj);

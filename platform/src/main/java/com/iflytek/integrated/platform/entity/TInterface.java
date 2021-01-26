@@ -19,6 +19,8 @@ public class TInterface implements Serializable {
 
     private String typeId;
 
+    @NotBlank(message = "接口方法不能为空")
+    @Length(max = 100, message = "接口方法长度不能超过100")
     private String interfaceUrl;
 
     private String inParamFormat;

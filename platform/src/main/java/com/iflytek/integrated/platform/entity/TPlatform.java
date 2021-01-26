@@ -1,7 +1,9 @@
 package com.iflytek.integrated.platform.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import org.hibernate.validator.constraints.Length;
 
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 
 /**
@@ -13,6 +15,8 @@ public class TPlatform implements Serializable {
 
     private String projectId;
 
+    @NotBlank(message = "平台名称不能为空")
+    @Length(max = 32, message = "平台名称长度不能超过32")
     private String platformName;
 
     private String platformCode;

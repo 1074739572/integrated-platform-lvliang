@@ -119,8 +119,8 @@ public class BusinessInterfaceService extends QuerydslService<TBusinessInterface
     public List<TBusinessInterface> getListByCondition(String productFunctionLinkId, String interfaceId, String vendorConfigId) {
         List<TBusinessInterface> list = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
                                         .where(qTBusinessInterface.productFunctionLinkId.eq(productFunctionLinkId)
-                                                .and(qTBusinessInterface.interfaceId.eq(interfaceId)
-                                                        .and(qTBusinessInterface.vendorConfigId.eq(vendorConfigId))))
+                                        .and(qTBusinessInterface.interfaceId.eq(interfaceId)
+                                        .and(qTBusinessInterface.vendorConfigId.eq(vendorConfigId))))
                                         .fetch();
         return list;
     }

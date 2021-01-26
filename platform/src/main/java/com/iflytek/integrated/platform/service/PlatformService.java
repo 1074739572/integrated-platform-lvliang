@@ -1,12 +1,12 @@
 package com.iflytek.integrated.platform.service;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.platform.dto.PlatformDto;
+import com.iflytek.integrated.platform.dto.VendorConfigDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TVendorConfig;
 import com.iflytek.integrated.platform.utils.Utils;
@@ -23,6 +23,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import static com.iflytek.integrated.platform.entity.QTHospitalVendorLink.qTHospitalVendorLink;
 import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
@@ -118,74 +120,74 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增or修改平台", notes = "新增or修改平台")
     @PostMapping("/saveAndUpdatePlatform")
-    public ResultDto saveAndUpdatePlatform(@RequestBody JSONObject jsonObj) {
+    public ResultDto saveAndUpdatePlatform(@RequestBody PlatformDto dto) {
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         //平台名称校验
-        String platformId = jsonObj.getString("id");
-        String platformName = jsonObj.getString("platformName");
-        boolean isExist = getPlatformNameIsExistByProjectId(platformId, jsonObj.getString("projectId"), platformName);
+        String platformId = dto.getId();
+        String platformName = dto.getPlatformName();
+        boolean isExist = getPlatformNameIsExistByProjectId(platformId, dto.getProjectId(), platformName);
         if (isExist) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "平台名称为空或此项目下该名称已存在!", platformName);
         }
-        String id = jsonObj.getString("id");
-        if (StringUtils.isBlank(id)) {
-            return savePlatform(jsonObj,loginUserName);
+//        String id = jsonObj.getString("id");
+        if (StringUtils.isBlank(platformId)) {
+            return savePlatform(dto, loginUserName);
         }
-        return updatePlatform(jsonObj,loginUserName);
+        return updatePlatform(dto, loginUserName);
     }
 
     /** 新增平台 */
-    private ResultDto savePlatform(JSONObject jsonObj, String loginUserName) {
+    private ResultDto savePlatform(PlatformDto dto, String loginUserName) {
         TPlatform tp = new TPlatform();
         String platformId = batchUidService.getUid(qTPlatform.getTableName()) + "";
         tp.setId(platformId);
-        tp.setPlatformCode(utils.generateCode(qTPlatform, qTPlatform.platformCode, jsonObj.getString("platformName")));
-        tp.setProjectId(jsonObj.getString("projectId"));
-        tp.setPlatformName(jsonObj.getString("platformName"));
-        tp.setPlatformType(jsonObj.getString("platformType"));
+        tp.setPlatformCode(utils.generateCode(qTPlatform, qTPlatform.platformCode, dto.getPlatformName()));
+        tp.setProjectId(dto.getProjectId());
+        tp.setPlatformName(dto.getPlatformName());
+        tp.setPlatformType(dto.getPlatformType());
         tp.setPlatformStatus(Constant.Status.START);
         tp.setCreatedTime(new Date());
         tp.setCreatedBy(loginUserName);
         this.post(tp);
         //关联厂商
-        JSONArray jsonArr = jsonObj.getJSONArray("vendorInfo");
-        if (jsonArr.isEmpty()) {
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "新增平台成功!", tp);
+        List<VendorConfigDto> jsonArr = dto.getVendorInfo();
+        if (CollectionUtils.isEmpty(jsonArr)) {
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "新增平台成功!", null);
         }
         for (int i = 0; i < jsonArr.size(); i++) {
-            JSONObject obj = jsonArr.getJSONObject(i);
+            VendorConfigDto obj = jsonArr.get(i);
             TVendorConfig tvc = new TVendorConfig();
             String vendorConfigId = batchUidService.getUid(qTVendorConfig.getTableName()) + "";
             tvc.setId(vendorConfigId);
             tvc.setPlatformId(platformId);
-            tvc.setVendorId(obj.getString("vendorId"));
-            tvc.setVersionId(obj.getString("versionId"));
-            tvc.setConnectionType(obj.getString("connectionType"));
-            tvc.setAddressUrl(obj.getString("addressUrl"));
-            tvc.setEndpointUrl(obj.getString("endpointUrl"));
-            tvc.setNamespaceUrl(obj.getString("namespaceUrl"));
-            tvc.setDatabaseName(obj.getString("databaseName"));
-            tvc.setDatabaseUrl(obj.getString("databaseUrl"));
-            tvc.setDatabaseDriver(obj.getString("databaseDriver"));
-            tvc.setDriverUrl(obj.getString("driverUrl"));
-            tvc.setJsonParams(obj.getString("jsonParams"));
-            tvc.setUserName(obj.getString("userName"));
-            tvc.setUserPassword(obj.getString("userPassword"));
+            tvc.setVendorId(obj.getVendorId());
+            tvc.setVersionId(obj.getVersionId());
+            tvc.setConnectionType(obj.getConnectionType());
+            tvc.setAddressUrl(obj.getAddressUrl());
+            tvc.setEndpointUrl(obj.getEndpointUrl());
+            tvc.setNamespaceUrl(obj.getNamespaceUrl());
+            tvc.setDatabaseName(obj.getDatabaseName());
+            tvc.setDatabaseUrl(obj.getDatabaseUrl());
+            tvc.setDatabaseDriver(obj.getDatabaseDriver());
+            tvc.setDriverUrl(obj.getDriverUrl());
+            tvc.setJsonParams(obj.getJsonParams());
+            tvc.setUserName(obj.getUserName());
+            tvc.setUserPassword(obj.getUserPassword());
             tvc.setCreatedTime(new Date());
             tvc.setCreatedBy(loginUserName);
             vendorConfigService.post(tvc);
-            JSONArray hospitalArr = obj.getJSONArray("hospitalConfig");
+            List<Map<String, String>> hospitalArr = obj.getHospitalConfig();
             for (int j = 0; j < hospitalArr.size(); j++) {
-                JSONObject hObj = hospitalArr.getJSONObject(j);
+                Map<String, String> hObj = hospitalArr.get(j);
                 THospitalVendorLink hvl = new THospitalVendorLink();
                 hvl.setId(batchUidService.getUid(qTHospitalVendorLink.getTableName()) + "");
                 hvl.setVendorConfigId(vendorConfigId);
-                hvl.setHospitalId(hObj.getString("hospitalId"));
-                hvl.setVendorHospitalId(hObj.getString("vendorHospitalId"));
+                hvl.setHospitalId(hObj.get("hospitalId"));
+                hvl.setVendorHospitalId(hObj.get("vendorHospitalId"));
                 hvl.setCreatedTime(new Date());
                 hvl.setCreatedBy(loginUserName);
                 hospitalVendorLinkService.post(hvl);
@@ -195,12 +197,12 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
     }
 
     /** 修改平台 */
-    private ResultDto updatePlatform(JSONObject jsonObj, String loginUserName) {
+    private ResultDto updatePlatform(PlatformDto dto, String loginUserName) {
         //平台id
-        String platformId = jsonObj.getString("id");
-        sqlQueryFactory.update(qTPlatform).set(qTPlatform.platformName, jsonObj.getString("platformName"))
-                .set(qTPlatform.platformType, jsonObj.getString("platformType"))
-                .set(qTPlatform.projectId, jsonObj.getString("projectId"))
+        String platformId = dto.getId();
+        sqlQueryFactory.update(qTPlatform).set(qTPlatform.platformName, dto.getPlatformName())
+                .set(qTPlatform.platformType, dto.getPlatformType())
+                .set(qTPlatform.projectId, dto.getProjectId())
                 .set(qTPlatform.updatedTime, new Date())
                 .set(qTPlatform.updatedBy, loginUserName)
                 .where(qTPlatform.id.eq(platformId)).execute();
@@ -208,41 +210,41 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
         //获取更改前的厂商信息
         List<TVendorConfig> tvcList = vendorConfigService.getObjByPlatformId(platformId);
         //前台传递的新厂商信息
-        JSONArray jsonArr = jsonObj.getJSONArray("vendorInfo");
+        List<VendorConfigDto> jsonArr = dto.getVendorInfo();
         for (int i = 0; i < jsonArr.size(); i++) {
-            JSONObject obj = jsonArr.getJSONObject(i);
-            String vendorConfigId = obj.getString("id");
+            VendorConfigDto obj = jsonArr.get(i);
+            String vendorConfigId = obj.getId();
             //新增厂商信息
             if (StringUtils.isBlank(vendorConfigId)) {
                 TVendorConfig tvc = new TVendorConfig();
                 vendorConfigId = batchUidService.getUid(qTVendorConfig.getTableName()) + "";
                 tvc.setId(vendorConfigId);
                 tvc.setPlatformId(platformId);
-                tvc.setVendorId(obj.getString("vendorId"));
-                tvc.setVersionId(obj.getString("versionId"));
-                tvc.setConnectionType(obj.getString("connectionType"));
-                tvc.setAddressUrl(obj.getString("addressUrl"));
-                tvc.setEndpointUrl(obj.getString("endpointUrl"));
-                tvc.setNamespaceUrl(obj.getString("namespaceUrl"));
-                tvc.setDatabaseName(obj.getString("databaseName"));
-                tvc.setDatabaseUrl(obj.getString("databaseUrl"));
-                tvc.setDatabaseDriver(obj.getString("databaseDriver"));
-                tvc.setDriverUrl(obj.getString("driverUrl"));
-                tvc.setJsonParams(obj.getString("jsonParams"));
-                tvc.setUserName(obj.getString("userName"));
-                tvc.setUserPassword(obj.getString("userPassword"));
+                tvc.setVendorId(obj.getVendorId());
+                tvc.setVersionId(obj.getVersionId());
+                tvc.setConnectionType(obj.getConnectionType());
+                tvc.setAddressUrl(obj.getAddressUrl());
+                tvc.setEndpointUrl(obj.getEndpointUrl());
+                tvc.setNamespaceUrl(obj.getNamespaceUrl());
+                tvc.setDatabaseName(obj.getDatabaseName());
+                tvc.setDatabaseUrl(obj.getDatabaseUrl());
+                tvc.setDatabaseDriver(obj.getDatabaseDriver());
+                tvc.setDriverUrl(obj.getDriverUrl());
+                tvc.setJsonParams(obj.getJsonParams());
+                tvc.setUserName(obj.getUserName());
+                tvc.setUserPassword(obj.getUserPassword());
                 tvc.setCreatedTime(new Date());
                 tvc.setCreatedBy(loginUserName);
                 vendorConfigService.post(tvc);
                 //医院配置
-                JSONArray hospitalArr = obj.getJSONArray("hospitalConfig");
+                List<Map<String, String>> hospitalArr = obj.getHospitalConfig();
                 for (int j = 0; j < hospitalArr.size(); j++) {
-                    JSONObject hObj = hospitalArr.getJSONObject(j);
+                    Map<String, String> hObj = hospitalArr.get(j);
                     THospitalVendorLink hvl = new THospitalVendorLink();
                     hvl.setId(batchUidService.getUid(qTHospitalVendorLink.getTableName()) + "");
                     hvl.setVendorConfigId(vendorConfigId);
-                    hvl.setHospitalId(hObj.getString("hospitalId"));
-                    hvl.setVendorHospitalId(hObj.getString("vendorHospitalId"));
+                    hvl.setHospitalId(hObj.get("hospitalId"));
+                    hvl.setVendorHospitalId(hObj.get("vendorHospitalId"));
                     hvl.setCreatedTime(new Date());
                     hvl.setCreatedBy(loginUserName);
                     hospitalVendorLinkService.post(hvl);
@@ -253,34 +255,34 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
                 //编辑厂商信息
                 tvc.setId(vendorConfigId);
                 tvc.setPlatformId(platformId);
-                tvc.setVendorId(obj.getString("vendorId"));
-                tvc.setVersionId(obj.getString("versionId"));
-                tvc.setConnectionType(obj.getString("connectionType"));
-                tvc.setAddressUrl(obj.getString("addressUrl"));
-                tvc.setEndpointUrl(obj.getString("endpointUrl"));
-                tvc.setNamespaceUrl(obj.getString("namespaceUrl"));
-                tvc.setDatabaseName(obj.getString("databaseName"));
-                tvc.setDatabaseUrl(obj.getString("databaseUrl"));
-                tvc.setDatabaseDriver(obj.getString("databaseDriver"));
-                tvc.setDriverUrl(obj.getString("driverUrl"));
-                tvc.setJsonParams(obj.getString("jsonParams"));
-                tvc.setUserName(obj.getString("userName"));
-                tvc.setUserPassword(obj.getString("userPassword"));
+                tvc.setVendorId(obj.getVendorId());
+                tvc.setVersionId(obj.getVersionId());
+                tvc.setConnectionType(obj.getConnectionType());
+                tvc.setAddressUrl(obj.getAddressUrl());
+                tvc.setEndpointUrl(obj.getEndpointUrl());
+                tvc.setNamespaceUrl(obj.getNamespaceUrl());
+                tvc.setDatabaseName(obj.getDatabaseName());
+                tvc.setDatabaseUrl(obj.getDatabaseUrl());
+                tvc.setDatabaseDriver(obj.getDatabaseDriver());
+                tvc.setDriverUrl(obj.getDriverUrl());
+                tvc.setJsonParams(obj.getJsonParams());
+                tvc.setUserName(obj.getUserName());
+                tvc.setUserPassword(obj.getUserPassword());
                 tvc.setUpdatedTime(new Date());
                 tvc.setUpdatedBy(loginUserName);
                 vendorConfigService.put(vendorConfigId, tvc);
                 //医院配置
-                JSONArray hospitalArr = obj.getJSONArray("hospitalConfig");
+                List<Map<String, String>> hospitalArr = obj.getHospitalConfig();
                 for (int j = 0; j < hospitalArr.size(); j++) {
-                    JSONObject hObj = hospitalArr.getJSONObject(j);
-                    String hvlId = hObj.getString("id");
+                    Map<String, String> hObj = hospitalArr.get(j);
+                    String hvlId = hObj.get("id");
                     if (StringUtils.isBlank(hvlId)) {
                         //新增医院配置
                         THospitalVendorLink hvl = new THospitalVendorLink();
                         hvl.setId(batchUidService.getUid(qTHospitalVendorLink.getTableName()) + "");
                         hvl.setVendorConfigId(vendorConfigId);
-                        hvl.setHospitalId(hObj.getString("hospitalId"));
-                        hvl.setVendorHospitalId(hObj.getString("vendorHospitalId"));
+                        hvl.setHospitalId(hObj.get("hospitalId"));
+                        hvl.setVendorHospitalId(hObj.get("vendorHospitalId"));
                         hvl.setCreatedTime(new Date());
                         hvl.setCreatedBy(loginUserName);
                         hospitalVendorLinkService.post(hvl);
@@ -289,8 +291,8 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
                         THospitalVendorLink hvl = hospitalVendorLinkService.getOne(hvlId);
                         hvl.setId(hvlId);
                         hvl.setVendorConfigId(vendorConfigId);
-                        hvl.setHospitalId(hObj.getString("hospitalId"));
-                        hvl.setVendorHospitalId(hObj.getString("vendorHospitalId"));
+                        hvl.setHospitalId(hObj.get("hospitalId"));
+                        hvl.setVendorHospitalId(hObj.get("vendorHospitalId"));
                         hvl.setUpdatedTime(new Date());
                         hvl.setUpdatedBy(loginUserName);
                         hospitalVendorLinkService.put(hvlId, hvl);
@@ -305,52 +307,52 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "修改厂商信息接口", notes = "修改厂商信息接口")
     @PostMapping("/updateVendorConfig")
-    public ResultDto updateVendorConfig(@RequestBody JSONObject jsonObj) {
+    public ResultDto updateVendorConfig(@RequestBody VendorConfigDto dto) {
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         //平台id
-        String platformId = jsonObj.getString("platformId");
+        String platformId = dto.getPlatformId();
         //获取更改前的厂商信息
         List<TVendorConfig> tvcList = vendorConfigService.getObjByPlatformId(platformId);
         //前台传递的新厂商信息
-        JSONArray jsonArr = jsonObj.getJSONArray("vendorInfo");
+        List<VendorConfigDto> jsonArr = dto.getVendorInfo();
         for (int i = 0; i < jsonArr.size(); i++) {
-            JSONObject obj = jsonArr.getJSONObject(i);
-            String vendorConfigId = obj.getString("id");
+            VendorConfigDto obj = jsonArr.get(i);
+            String vendorConfigId = obj.getId();
             //新增厂商信息
             if (StringUtils.isBlank(vendorConfigId)) {
                 TVendorConfig tvc = new TVendorConfig();
                 vendorConfigId = batchUidService.getUid(qTVendorConfig.getTableName()) + "";
                 tvc.setId(vendorConfigId);
                 tvc.setPlatformId(platformId);
-                tvc.setVendorId(obj.getString("vendorId"));
-                tvc.setVersionId(obj.getString("versionId"));
-                tvc.setConnectionType(obj.getString("connectionType"));
-                tvc.setAddressUrl(obj.getString("addressUrl"));
-                tvc.setEndpointUrl(obj.getString("endpointUrl"));
-                tvc.setNamespaceUrl(obj.getString("namespaceUrl"));
-                tvc.setDatabaseName(obj.getString("databaseName"));
-                tvc.setDatabaseUrl(obj.getString("databaseUrl"));
-                tvc.setDatabaseDriver(obj.getString("databaseDriver"));
-                tvc.setDriverUrl(obj.getString("driverUrl"));
-                tvc.setJsonParams(obj.getString("jsonParams"));
-                tvc.setUserName(obj.getString("userName"));
-                tvc.setUserPassword(obj.getString("userPassword"));
+                tvc.setVendorId(obj.getVendorId());
+                tvc.setVersionId(obj.getVersionId());
+                tvc.setConnectionType(obj.getConnectionType());
+                tvc.setAddressUrl(obj.getAddressUrl());
+                tvc.setEndpointUrl(obj.getEndpointUrl());
+                tvc.setNamespaceUrl(obj.getNamespaceUrl());
+                tvc.setDatabaseName(obj.getDatabaseName());
+                tvc.setDatabaseUrl(obj.getDatabaseUrl());
+                tvc.setDatabaseDriver(obj.getDatabaseDriver());
+                tvc.setDriverUrl(obj.getDriverUrl());
+                tvc.setJsonParams(obj.getJsonParams());
+                tvc.setUserName(obj.getUserName());
+                tvc.setUserPassword(obj.getUserPassword());
                 tvc.setCreatedTime(new Date());
                 tvc.setCreatedBy(loginUserName);
                 vendorConfigService.post(tvc);
                 //医院配置
-                JSONArray hospitalArr = obj.getJSONArray("hospitalConfig");
+                List<Map<String, String>> hospitalArr = obj.getHospitalConfig();
                 for (int j = 0; j < hospitalArr.size(); j++) {
-                    JSONObject hObj = hospitalArr.getJSONObject(j);
+                    Map<String, String> hObj = hospitalArr.get(j);
                     THospitalVendorLink hvl = new THospitalVendorLink();
                     hvl.setId(batchUidService.getUid(qTHospitalVendorLink.getTableName()) + "");
                     hvl.setVendorConfigId(vendorConfigId);
-                    hvl.setHospitalId(hObj.getString("hospitalId"));
-                    hvl.setVendorHospitalId(hObj.getString("vendorHospitalId"));
+                    hvl.setHospitalId(hObj.get("hospitalId"));
+                    hvl.setVendorHospitalId(hObj.get("vendorHospitalId"));
                     hvl.setCreatedTime(new Date());
                     hvl.setCreatedBy(loginUserName);
                     hospitalVendorLinkService.post(hvl);
@@ -360,34 +362,34 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
                 //编辑厂商信息
                 tvc.setId(vendorConfigId);
                 tvc.setPlatformId(platformId);
-                tvc.setVendorId(obj.getString("vendorId"));
-                tvc.setVersionId(obj.getString("versionId"));
-                tvc.setConnectionType(obj.getString("connectionType"));
-                tvc.setAddressUrl(obj.getString("addressUrl"));
-                tvc.setEndpointUrl(obj.getString("endpointUrl"));
-                tvc.setNamespaceUrl(obj.getString("namespaceUrl"));
-                tvc.setDatabaseName(obj.getString("databaseName"));
-                tvc.setDatabaseUrl(obj.getString("databaseUrl"));
-                tvc.setDatabaseDriver(obj.getString("databaseDriver"));
-                tvc.setDriverUrl(obj.getString("driverUrl"));
-                tvc.setJsonParams(obj.getString("jsonParams"));
-                tvc.setUserName(obj.getString("userName"));
-                tvc.setUserPassword(obj.getString("userPassword"));
+                tvc.setVendorId(obj.getVendorId());
+                tvc.setVersionId(obj.getVersionId());
+                tvc.setConnectionType(obj.getConnectionType());
+                tvc.setAddressUrl(obj.getAddressUrl());
+                tvc.setEndpointUrl(obj.getEndpointUrl());
+                tvc.setNamespaceUrl(obj.getNamespaceUrl());
+                tvc.setDatabaseName(obj.getDatabaseName());
+                tvc.setDatabaseUrl(obj.getDatabaseUrl());
+                tvc.setDatabaseDriver(obj.getDatabaseDriver());
+                tvc.setDriverUrl(obj.getDriverUrl());
+                tvc.setJsonParams(obj.getJsonParams());
+                tvc.setUserName(obj.getUserName());
+                tvc.setUserPassword(obj.getUserPassword());
                 tvc.setUpdatedTime(new Date());
                 tvc.setUpdatedBy(loginUserName);
                 vendorConfigService.put(vendorConfigId, tvc);
                 //医院配置
-                JSONArray hospitalArr = obj.getJSONArray("hospitalConfig");
+                List<Map<String, String>> hospitalArr = obj.getHospitalConfig();
                 for (int j = 0; j < hospitalArr.size(); j++) {
-                    JSONObject hObj = hospitalArr.getJSONObject(j);
-                    String hvlId = hObj.getString("id");
+                    Map<String, String> hObj = hospitalArr.get(j);
+                    String hvlId = hObj.get("id");
                     if (StringUtils.isBlank(hvlId)) {
                         //新增医院配置
                         THospitalVendorLink hvl = new THospitalVendorLink();
                         hvl.setId(batchUidService.getUid(qTHospitalVendorLink.getTableName()) + "");
                         hvl.setVendorConfigId(vendorConfigId);
-                        hvl.setHospitalId(hObj.getString("hospitalId"));
-                        hvl.setVendorHospitalId(hObj.getString("vendorHospitalId"));
+                        hvl.setHospitalId(hObj.get("hospitalId"));
+                        hvl.setVendorHospitalId(hObj.get("vendorHospitalId"));
                         hvl.setCreatedTime(new Date());
                         hvl.setCreatedBy(loginUserName);
                         hospitalVendorLinkService.post(hvl);
@@ -396,8 +398,8 @@ public class PlatformService extends QuerydslService<TPlatform, String, TPlatfor
                         THospitalVendorLink hvl = hospitalVendorLinkService.getOne(hvlId);
                         hvl.setId(hvlId);
                         hvl.setVendorConfigId(vendorConfigId);
-                        hvl.setHospitalId(hObj.getString("hospitalId"));
-                        hvl.setVendorHospitalId(hObj.getString("vendorHospitalId"));
+                        hvl.setHospitalId(hObj.get("hospitalId"));
+                        hvl.setVendorHospitalId(hObj.get("vendorHospitalId"));
                         hvl.setUpdatedTime(new Date());
                         hvl.setUpdatedBy(loginUserName);
                         hospitalVendorLinkService.put(hvlId, hvl);

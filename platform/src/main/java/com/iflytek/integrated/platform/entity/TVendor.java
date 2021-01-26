@@ -1,7 +1,9 @@
 package com.iflytek.integrated.platform.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import org.hibernate.validator.constraints.Length;
 
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 
 /**
@@ -13,6 +15,8 @@ public class TVendor implements Serializable {
 
     private String vendorCode;
 
+    @NotBlank(message = "厂商名称不能为空")
+    @Length(max = 20, message = "厂商名称长度不能超过20")
     private String vendorName;
 
     private String createdBy;

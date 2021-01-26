@@ -1,11 +1,11 @@
 package com.iflytek.integrated.platform.service;
 
-import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.*;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.platform.dto.ProductDto;
 import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.medicalboot.core.dto.PageRequest;
@@ -139,15 +139,15 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "产品管理新增/编辑")
     @PostMapping("/saveAndUpdateProduct")
-    public ResultDto saveAndUpdateProduct(@RequestBody JSONObject jsonObj) {
+    public ResultDto saveAndUpdateProduct(@RequestBody ProductDto dto) {
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
-        String id = jsonObj.getString("id");
-        TProduct tp = this.getObjByProductName(jsonObj.getString("productName"));
-        TFunction tf = functionService.getObjByName(jsonObj.getString("functionName"));
+        String id = dto.getId();
+        TProduct tp = this.getObjByProductName(dto.getProductName());
+        TFunction tf = functionService.getObjByName(dto.getFunctionName());
         String productId = tp!=null?tp.getId():null;
         String functionId = tf!=null?tf.getId():null;
 
@@ -156,24 +156,24 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "产品和功能关系已存在!", "产品和功能关系已存在!");
         }
         //新增编辑标识 1新增 2编辑
-        String addOrUpdate = jsonObj.getString("addOrUpdate");
+        String addOrUpdate = dto.getAddOrUpdate();
         if (Constant.Operation.ADD.equals(addOrUpdate)) {
-            return saveProduct(jsonObj,loginUserName);
+            return saveProduct(dto, loginUserName);
         }
         if (Constant.Operation.UPDATE.equals(addOrUpdate)) {
-            return updateProduct(jsonObj,loginUserName);
+            return updateProduct(dto, loginUserName);
         }
-        return new ResultDto(Constant.ResultCode.ERROR_CODE, "addOrUpdate参数有误!", jsonObj);
+        return new ResultDto(Constant.ResultCode.ERROR_CODE, "addOrUpdate参数有误!", null);
     }
 
     /** 新增产品 */
-    private ResultDto saveProduct(JSONObject jsonObj, String loginUserName) {
-        String productName = jsonObj.getString("productName");
+    private ResultDto saveProduct(ProductDto dto, String loginUserName) {
+        String productName = dto.getProductName();
         if (StringUtils.isBlank(productName)) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "产品名称未填!", jsonObj);
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "产品名称未填!", dto);
         }
-        String functionId = jsonObj.getString("functionId");
-        String functionName = jsonObj.getString("functionName");
+        String functionId = dto.getFunctionId();
+        String functionName = dto.getFunctionName();
         //判断输入产品是否是新产品
         TProduct tp = getObjByProductName(productName.trim());
         //判断输入功能是否是新功能
@@ -230,11 +230,11 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
     }
 
     /** 编辑产品 */
-    private ResultDto updateProduct(JSONObject jsonObj, String loginUserName) {
-        String id = jsonObj.getString("id");
-        String productId = jsonObj.getString("productId");
-        String productName = jsonObj.getString("productName");
-        String functionId = jsonObj.getString("functionId");
+    private ResultDto updateProduct(ProductDto dto, String loginUserName) {
+        String id = dto.getId();
+        String productId = dto.getProductId();
+        String productName = dto.getProductName();
+        String functionId = dto.getFunctionId();
         String errProductId = null;
 
         //判断输入产品是否是新产品
@@ -251,12 +251,12 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             tp.setCreatedBy(loginUserName);
             this.post(tp);
             //校验之前的产品功能是否有关联,没有则删除该产品功能
-            String oldProductId = jsonObj.getString("oldProductId");
+            String oldProductId = dto.getOldProductId();
             TProductFunctionLink tpflObj = productFunctionLinkService.getObjByProductAndFunctionByNoId(oldProductId, null, id);
             if (tpflObj == null) {
                 this.delete(oldProductId);
             }
-            String oldFunctionId = jsonObj.getString("oldFunctionId");
+            String oldFunctionId = dto.getOldFunctionId();
             tpflObj = productFunctionLinkService.getObjByProductAndFunctionByNoId(null, oldFunctionId, id);
             if (tpflObj == null) {
                 functionService.delete(oldFunctionId);
@@ -265,7 +265,7 @@ public class ProductService extends QuerydslService<TProduct, String, TProduct, 
             errProductId = tp.getId();
         }
         //功能
-        String functionName = jsonObj.getString("functionName");
+        String functionName = dto.getFunctionName();
         TFunction tf = functionService.getObjByName(functionName);
         if (tf == null) {
             functionId = batchUidService.getUid(qTFunction.getTableName()) + "";

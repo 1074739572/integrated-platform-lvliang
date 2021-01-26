@@ -20,4 +20,8 @@ public class VendorConfigDto extends TVendorConfig {
 
     private List<Map<String, String>> hospitalConfig;
 
+    private String platformId;
+
+    private List<VendorConfigDto> vendorInfo;
+
 }
