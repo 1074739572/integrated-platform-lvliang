@@ -4,6 +4,8 @@ import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.common.utils.SensitiveUtils;
+import com.iflytek.integrated.common.utils.ase.AesUtil;
 import com.iflytek.integrated.platform.dto.InterfaceMonitorDto;
 import com.iflytek.integrated.platform.entity.QTInterfaceMonitor;
 import com.iflytek.integrated.platform.entity.TLog;
@@ -25,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
 import static com.iflytek.integrated.platform.entity.QTFunction.qTFunction;
@@ -167,8 +170,28 @@ public class LogService extends QuerydslService<TLog, Long, TLog, NumberPath<Lon
             .orderBy(qTLog.createdTime.desc())
             .fetchResults();
         //分页
-        TableData<TLog> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
+        List<TLog> logList = queryResults.getResults();
+        //脱敏处理
+        logList.stream().forEach(tLog -> {
+            tLog.setBusinessRep(decryptAndFilterSensitive(tLog.getBusinessRep()));
+            tLog.setBusinessReq(decryptAndFilterSensitive(tLog.getBusinessReq()));
+            tLog.setVenderRep(decryptAndFilterSensitive(tLog.getVenderRep()));
+            tLog.setVenderReq(decryptAndFilterSensitive(tLog.getVenderReq()));
+        });
+        TableData<TLog> tableData = new TableData<>(queryResults.getTotal(), logList);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "日志详细列表获取成功!",tableData);
     }
 
+    /**
+     * 先解密，再脱敏处理
+     * @param aes
+     * @return
+     */
+    private String decryptAndFilterSensitive(String aes){
+        try {
+            return SensitiveUtils.filterSensitive(AesUtil.decrypt(aes));
+        }catch (Exception e){
+            return "";
+        }
+    }
 }
