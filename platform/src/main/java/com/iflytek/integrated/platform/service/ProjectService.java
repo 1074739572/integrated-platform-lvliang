@@ -267,7 +267,7 @@ public class ProjectService extends QuerydslService<TProject, String, TProject, 
             e.printStackTrace();
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "项目状态修改失败!", ExceptionUtil.dealException(e));
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "项目状态修改成功!", null);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "项目状态修改成功!", id);
     }
 
 
