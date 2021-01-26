@@ -2,10 +2,9 @@ package com.iflytek.integrated.common.intercept;
 
 import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.dto.ResultDto;
-import com.querydsl.sql.SQLQueryFactory;
+import com.iflytek.integrated.platform.service.RedisService;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.iflytek.integrated.common.utils.RedisUtil;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.ModelAndView;
@@ -34,7 +33,7 @@ public class AfterCompletionIntercept extends HandlerInterceptorAdapter {
     private ResultDto resultDto;
 
     @Autowired
-    private com.iflytek.integrated.platform.service.RedisService redisService;
+    private RedisService redisService;
 
     /**
      * 请求执行前方法

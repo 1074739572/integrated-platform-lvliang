@@ -1,11 +1,7 @@
 package com.iflytek.integrated.platform.utils;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONException;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.parser.Feature;
 import com.iflytek.integrated.common.Constant;
+import com.iflytek.integrated.common.utils.JackSonUtils;
 import com.iflytek.integrated.common.utils.PinYinUtil;
 import com.iflytek.integrated.platform.dto.ParamsDto;
 import com.querydsl.core.types.dsl.StringPath;
@@ -14,14 +10,18 @@ import com.querydsl.sql.SQLQueryFactory;
 import org.apache.commons.lang.StringUtils;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -119,17 +119,23 @@ public class Utils {
             throw new RuntimeException("不能为空！");
         }
         try {
-            //判断是否是json类型
-            JSONObject.parseObject(mock);
+            //判断是否是JSONObject类型
+            new JSONObject(mock);
             return Constant.ParamFormatType.JSON.getType();
         } catch (JSONException e) {
-            //判断是否是xml结构
             try {
-                //如果是xml结构
-                DocumentHelper.parseText(mock);
-                return Constant.ParamFormatType.XML.getType();
-            } catch (DocumentException i) {
-                throw new RuntimeException("格式错误，非标准json或者xml格式！");
+                //判断是否是JSONArray类型
+                new JSONArray(mock);
+                return Constant.ParamFormatType.JSON.getType();
+            } catch (JSONException f) {
+                //判断是否是xml结构
+                try {
+                    //如果是xml结构
+                    DocumentHelper.parseText(mock);
+                    return Constant.ParamFormatType.XML.getType();
+                } catch (DocumentException i) {
+                    throw new RuntimeException("格式错误，非标准json或者xml格式！");
+                }
             }
         }
     }
@@ -141,54 +147,73 @@ public class Utils {
      */
     public static List<ParamsDto> jsonFormat(String paramJson){
         List<ParamsDto> dtoList = new ArrayList<>();
-        JSON json = null;
+        Object object;
         try{
-            json = JSONObject.parseObject(paramJson, Feature.OrderedField);
+            object = JackSonUtils.jsonToTransfer(paramJson, LinkedHashMap.class);
         }
-        catch (ClassCastException e){
-            json = JSONArray.parseArray(paramJson);
+        catch (IOException e){
+            object = JackSonUtils.jsonToTransferList(paramJson, LinkedHashMap.class);
         }
-        format(json,dtoList);
+        format(object, dtoList,new ParamsDto());
         return dtoList;
     }
 
     /**
      * 根据参数模板（json）获取key-value
-     * @param json
+     * @param object
      * @param dtoList
      */
-    private static void format(Object json, List<ParamsDto> dtoList){
-        //jsonObject类型
-        if(json instanceof JSONObject) {
-            JSONObject object = (JSONObject) json;
-            for (Map.Entry<String, Object> entry: object.entrySet()) {
-                Object o = entry.getValue();
-
+    private static void format(Object object, List<ParamsDto> dtoList, ParamsDto paramsDto){
+        //LinkedHashMap类型
+        if(object instanceof LinkedHashMap) {
+            LinkedHashMap hashMap = (LinkedHashMap) object;
+            for (Object key: hashMap.keySet()) {
+                Object o = hashMap.get(key);
                 ParamsDto dto = new ParamsDto();
-                dto.setParamKey(entry.getKey());
-                dto.setParamType(o != null ? o.getClass().getSimpleName(): "");
-                if(o instanceof JSONArray || o instanceof JSONObject) {
-                    //如果还是JSON继续循环
+                dto.setParamKey((String) key);
+                if(o instanceof LinkedHashMap) {
                     dto.setParamValue("");
-                    dtoList.add(dto);
-                    format(o,dtoList);
+                    dto.setParamType("object");
                 }
                 else {
-                    //去掉已经存在的key
-                    List<String> keyList = dtoList.stream().map(ParamsDto::getParamKey).collect(Collectors.toList());
-                    if(keyList.contains(entry.getKey()) || StringUtils.isBlank(entry.getKey())){
-                        continue;
-                    }
+                    dto.setParamType(o != null ? o.getClass().getSimpleName(): "");
                     dto.setParamValue(o);
-                    dtoList.add(dto);
                 }
+                //继续循环，直到所有字段都取到最后一层
+                format(o,dtoList, dto);
             }
         }
-        //jsonArray
-        else if(json instanceof JSONArray){
-            JSONArray jsonArray = (JSONArray) json;
-            for(int i = 0; i < jsonArray.size(); i ++) {
-                format(jsonArray.get(i),dtoList);
+        else if(object instanceof List){
+            List list = (List) object;
+            for(int i = 0; i < list.size(); i ++) {
+                if(list.get(i) instanceof LinkedHashMap){
+                    paramsDto.setParamType("object[]");
+                    paramsDto.setParamValue("");
+                    dtoListAddParamsDto(dtoList,paramsDto);
+                }else {
+                    paramsDto.setParamType("List");
+                    paramsDto.setParamValue(list.get(i));
+                }
+                format(list.get(i),dtoList, paramsDto);
+            }
+        }
+        else {
+            dtoListAddParamsDto(dtoList,paramsDto);
+        }
+    }
+
+    /**
+     * 保存键值对到实体列表
+     * @param dtoList
+     * @param paramsDto
+     */
+    private static void dtoListAddParamsDto(List<ParamsDto> dtoList, ParamsDto paramsDto){
+        //保存键值对，并去掉已经存在的key
+        if(paramsDto != null && StringUtils.isNotBlank(paramsDto.getParamKey())){
+            List<String> keyList = dtoList.stream().map(ParamsDto::getParamKey).collect(Collectors.toList());
+            String paramsKey = paramsDto.getParamKey();
+            if(!keyList.contains(paramsKey)){
+                dtoList.add(paramsDto);
             }
         }
     }

@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,13 +77,9 @@ public class JackSonUtils {
      * @param valueType
      * @return
      */
-    public static <T> T jsonToTransfer(String str, Class<T> valueType) {
+    public static <T> T jsonToTransfer(String str, Class<T> valueType) throws IOException {
         T data = null;
-        try {
-            data = mapper.readValue(str, valueType);
-        } catch (Exception e) {
-            logger.error("json字符串转为对象出错，错误信息：{}",e.getMessage());
-        }
+        data = mapper.readValue(str, valueType);
         return data;
     }
 

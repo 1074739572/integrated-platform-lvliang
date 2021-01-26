@@ -1,7 +1,7 @@
 package com.iflytek.integrated.platform.utils;
 
-import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.Constant;
+import com.iflytek.integrated.common.utils.JackSonUtils;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.common.dto.HttpResult;
 import com.iflytek.integrated.common.utils.HttpClientUtil;
@@ -9,11 +9,13 @@ import com.iflytek.integrated.platform.dto.JoltDebuggerDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.querydsl.sql.SQLQueryFactory;
 import org.apache.commons.lang.StringUtils;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.text.MessageFormat;
+import java.util.Map;
 
 /**
  * @author czzhan
@@ -78,16 +80,19 @@ public class ToolsGenerate {
      * @param dto
      * @return
      */
-    public Object joltDebugger(JoltDebuggerDto dto){
+    public Map joltDebugger(JoltDebuggerDto dto){
         try {
             String type = Utils.strIsJsonOrXml(dto.getOriginObj());
             String url = joltDebuggerUrl + "?contenttype=" + type;
-            String param = JSONObject.toJSONString(dto);
+            String param = JackSonUtils.transferToJson(dto);
             HttpResult result = HttpClientUtil.doPost(url,param);
-            return JSONObject.parseObject(result.getContent());
+            if(result != null && StringUtils.isNotBlank(result.getContent())){
+                return JackSonUtils.jsonToTransfer(result.getContent(),Map.class);
+            }
         }catch (Exception e){
             throw new RuntimeException("jolt调试接口调取失败");
         }
+        return null;
     }
 
     /**
@@ -132,7 +137,7 @@ public class ToolsGenerate {
     public GroovyValidateDto groovyUrl(String content){
         try {
             HttpResult result = HttpClientUtil.doPost(groovyUrl,content);
-            return JSONObject.parseObject(result.getContent(), GroovyValidateDto.class);
+            return JackSonUtils.jsonToTransfer(result.getContent(), GroovyValidateDto.class);
         }
         catch (Exception e){
             throw new RuntimeException("调取校验groovy接口错误");

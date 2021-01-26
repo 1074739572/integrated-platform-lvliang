@@ -1,8 +1,8 @@
 package com.iflytek.mock.handler;
 
-import com.alibaba.fastjson.JSONObject;
 import com.iflytek.mock.Handler;
 import com.iflytek.mock.Options;
+import org.json.JSONObject;
 
 import java.util.*;
 import java.util.stream.Collectors;

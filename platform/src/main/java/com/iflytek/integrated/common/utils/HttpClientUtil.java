@@ -1,7 +1,5 @@
 package com.iflytek.integrated.common.utils;
 
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.common.collect.Maps;
 import com.iflytek.integrated.common.dto.HttpResult;
 import org.apache.commons.lang3.StringUtils;
@@ -478,7 +476,7 @@ public class HttpClientUtil {
                 // 设置到请求的http对象中
                 httpMethod.setEntity(new UrlEncodedFormEntity(nameValuePairs, ENCODING));
             } else {
-                String object = JSONObject.toJSONString(params, SerializerFeature.PrettyFormat, SerializerFeature.WriteMapNullValue);
+                String object = JackSonUtils.transferToJson(params);
                 httpMethod.setHeader("Content-Type", "application/json;charset=UTF-8");
                 // 设置到请求的http对象中
                 httpMethod.setEntity(new StringEntity(object, ENCODING));

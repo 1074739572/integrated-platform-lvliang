@@ -1,6 +1,5 @@
 package com.iflytek.integrated.platform.dto;
 
-import com.alibaba.fastjson.JSONArray;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -18,5 +17,5 @@ public class JoltDebuggerDto {
     private String originObj;
 
     @NotNull(message = "jolt不能为空")
-    private JSONArray jolt;
+    private Object jolt;
 }

@@ -30,6 +30,11 @@ public class AesUtil {
         AesUtil.KEY = key;
     }
 
+    /**
+     * 加密
+     * @param content
+     * @return
+     */
     public static String encrypt(String content) {
         try {
             if(StringUtils.isEmpty(content)){
@@ -46,6 +51,12 @@ public class AesUtil {
         }
     }
 
+    /**
+     * 解密
+     * @param content
+     * @return
+     * @throws Exception
+     */
     public static String decrypt(String content) throws Exception {
         if(StringUtils.isEmpty(content)){
             return content;
