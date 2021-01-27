@@ -18,6 +18,6 @@ public class UserDto {
     String name;
 
     public String getLoginUserName() {
-        return StringUtils.isNotEmpty(loginUserName)?loginUserName:"1";
+        return StringUtils.isNotEmpty(name)?name:loginUserName;
     }
 }
