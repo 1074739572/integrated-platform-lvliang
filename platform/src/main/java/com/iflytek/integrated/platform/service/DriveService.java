@@ -94,7 +94,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
 
     @ApiOperation(value = "驱动管理列表")
     @GetMapping("/getDriveList")
-    public ResultDto getDriveList(@ApiParam(value = "驱动名称") @RequestParam(value = "driveName", required = false) String driveName,
+    public ResultDto<TableData<TDrive>> getDriveList(@ApiParam(value = "驱动名称") @RequestParam(value = "driveName", required = false) String driveName,
                                   @ApiParam(value = "驱动分类id") @RequestParam(value = "typeId", required = false) String typeId,
                                   @RequestParam(defaultValue = "1")Integer pageNo,
                                   @RequestParam(defaultValue = "10")Integer pageSize) {

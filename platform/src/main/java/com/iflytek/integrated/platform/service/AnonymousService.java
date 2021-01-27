@@ -9,6 +9,7 @@ import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.mock.Mock;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -30,9 +31,9 @@ public class AnonymousService {
     @Autowired
     private BusinessInterfaceService businessInterfaceService;
 
-    @ApiOperation(value = "mock测试")
     @GetMapping("/getMock")
-    public ResultDto getMock(String id) {
+    public ResultDto<String> getMock(
+            @ApiParam(value = "标准接口id", name = "id" , required = true) @RequestParam String id) {
         try {
             //获取mock
             TBusinessInterface businessInterface = businessInterfaceService.getOne(id);
@@ -62,14 +63,16 @@ public class AnonymousService {
 
     @ApiOperation(value = "mock")
     @PostMapping("/mock")
-    public ResultDto mock(@RequestBody String mock) {
+    public ResultDto<String> mock(
+            @ApiParam(value = "mock模板", name = "mock" , required = true) @RequestBody String mock) {
         String type = Utils.strIsJsonOrXml(mock);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", resultMock(mock, type));
     }
 
     @ApiOperation(value = "encrypt")
     @PostMapping("/encrypt")
-    public ResultDto encrypt(String content){
+    public ResultDto<String> encrypt(
+            @ApiParam(value = "明文", name = "content" , required = true) @RequestParam String content){
         try {
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", AesUtil.encrypt(content));
         }catch (Exception e){
@@ -79,7 +82,8 @@ public class AnonymousService {
 
     @ApiOperation(value = "decrypt")
     @PostMapping("/decrypt")
-    public ResultDto decrypt(String content){
+    public ResultDto<String> decrypt(
+            @ApiParam(value = "密文", name = "content" , required = true) @RequestParam String content){
         try {
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", AesUtil.decrypt(content));
         }catch (Exception e){

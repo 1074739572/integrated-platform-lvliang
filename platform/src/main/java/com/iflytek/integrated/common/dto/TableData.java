@@ -3,7 +3,7 @@ package com.iflytek.integrated.common.dto;
 import java.util.List;
 
 /**
- * @author 
+ * @author czzhan
  * 描述: 表格分页
  */
 public class TableData<T> {

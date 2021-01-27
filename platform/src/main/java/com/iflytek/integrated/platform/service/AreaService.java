@@ -36,7 +36,7 @@ public class AreaService extends BaseService<TArea, String, StringPath> {
 
     @ApiOperation(value = "省市区分层显示")
     @GetMapping("/getAreaInfo")
-    public ResultDto getAreaInfo() {
+    public ResultDto<List<AreaDto>> getAreaInfo() {
         List<TArea> areaList = sqlQueryFactory.select(qTArea).from(qTArea).fetch();
         //省市区转换分层
         List<TArea> provinceList = new ArrayList<>();
