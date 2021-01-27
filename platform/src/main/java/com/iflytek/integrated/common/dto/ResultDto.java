@@ -7,8 +7,8 @@ import lombok.Data;
 /**
  * @author czzhan
  */
-@ApiModel
 @Data
+@ApiModel("接口返回模板")
 public class ResultDto<T> {
     @ApiModelProperty(
             value = "HttpStatus",
@@ -17,14 +17,14 @@ public class ResultDto<T> {
     private Integer code;
 
     @ApiModelProperty(
-            value = "错误提示",
+            value = "message",
             name = "提示信息",
             example ="xxx"
     )
     private String message;
 
     @ApiModelProperty(
-            value = "业务数据",
+            value = "data",
             name = "业务数据"
     )
     private T data;

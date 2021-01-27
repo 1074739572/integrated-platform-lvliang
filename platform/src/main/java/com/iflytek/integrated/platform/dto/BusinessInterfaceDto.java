@@ -1,6 +1,7 @@
 package com.iflytek.integrated.platform.dto;
 
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
+import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.List;
  * @author
  */
 @Data
+@ApiModel("接口配置实体")
 public class BusinessInterfaceDto {
 
     /**

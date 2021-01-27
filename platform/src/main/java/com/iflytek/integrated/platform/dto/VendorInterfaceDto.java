@@ -1,5 +1,6 @@
 package com.iflytek.integrated.platform.dto;
 
+import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
 /**
@@ -8,6 +9,7 @@ import lombok.Data;
 * @date 2020/12/24 17:19
 */
 @Data
+@ApiModel("厂商接口")
 public class VendorInterfaceDto {
 
     /**

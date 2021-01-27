@@ -2,6 +2,7 @@ package com.iflytek.integrated.platform.dto;
 
 import com.iflytek.integrated.platform.entity.TInterface;
 import com.iflytek.integrated.platform.entity.TInterfaceParam;
+import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.List;
 * @date 2020/12/14 17:43
 */
 @Data
+@ApiModel("标准接口信息")
 public class InterfaceDto extends TInterface {
 
     private String productId;

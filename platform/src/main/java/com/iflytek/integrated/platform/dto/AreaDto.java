@@ -1,5 +1,6 @@
 package com.iflytek.integrated.platform.dto;
 
+import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.List;
  * @date 2021/1/15 17:26
  */
 @Data
+@ApiModel("区域实体")
 public class AreaDto {
 
     private String areaCode;

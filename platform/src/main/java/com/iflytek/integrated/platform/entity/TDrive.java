@@ -1,6 +1,7 @@
 package com.iflytek.integrated.platform.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.annotations.ApiModel;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotBlank;
@@ -9,6 +10,7 @@ import java.io.Serializable;
 /**
  * TDrive is a Querydsl bean type
  */
+@ApiModel("驱动")
 public class TDrive implements Serializable {
 
     private String id;

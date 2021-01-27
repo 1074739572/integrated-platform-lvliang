@@ -1,6 +1,7 @@
 package com.iflytek.integrated.platform.dto;
 
 import com.iflytek.integrated.platform.entity.TProduct;
+import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.List;
 * @date 2021/1/26 14:22
 */
 @Data
+@ApiModel("产品")
 public class ProductDto extends TProduct {
 
     private String functionId;

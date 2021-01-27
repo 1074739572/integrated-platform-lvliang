@@ -1,5 +1,6 @@
 package com.iflytek.integrated.platform.entity;
 
+import io.swagger.annotations.ApiModel;
 import org.springframework.data.annotation.Transient;
 
 import java.io.Serializable;
@@ -7,6 +8,7 @@ import java.io.Serializable;
 /**
  * TBusinessInterface is a Querydsl bean type
  */
+@ApiModel("接口配置")
 public class TBusinessInterface implements Serializable {
 
     private String id;

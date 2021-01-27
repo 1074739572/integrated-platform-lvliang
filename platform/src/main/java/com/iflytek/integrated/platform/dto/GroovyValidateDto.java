@@ -1,5 +1,6 @@
 package com.iflytek.integrated.platform.dto;
 
+import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
 /**
@@ -7,6 +8,7 @@ import lombok.Data;
  * 校验groovy脚本格式是否正确
  */
 @Data
+@ApiModel("校验groovy脚本")
 public class GroovyValidateDto {
 
     /**

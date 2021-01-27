@@ -1,5 +1,6 @@
 package com.iflytek.integrated.platform.dto;
 
+import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
 /**
@@ -8,6 +9,7 @@ import lombok.Data;
  * @date 2020/12/20 16:54
  */
 @Data
+@ApiModel("接口监控")
 public class InterfaceMonitorDto {
 
     /**

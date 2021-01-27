@@ -1,6 +1,7 @@
 package com.iflytek.integrated.platform.dto;
 
 import com.iflytek.integrated.platform.entity.TPlatform;
+import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.List;
 * @date 2021/1/26 14:11
 */
 @Data
+@ApiModel("平台")
 public class PlatformDto extends TPlatform {
 
 

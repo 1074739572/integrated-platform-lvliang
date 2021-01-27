@@ -1,5 +1,6 @@
 package com.iflytek.integrated.platform.entity;
 
+import io.swagger.annotations.ApiModel;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotBlank;
@@ -8,6 +9,7 @@ import java.io.Serializable;
 /**
  * TFunction is a Querydsl bean type
  */
+@ApiModel("方法")
 public class TFunction implements Serializable {
 
     private String id;

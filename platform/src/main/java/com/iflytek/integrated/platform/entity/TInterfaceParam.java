@@ -1,5 +1,6 @@
 package com.iflytek.integrated.platform.entity;
 
+import io.swagger.annotations.ApiModel;
 import org.springframework.data.annotation.Transient;
 
 import java.io.Serializable;
@@ -7,6 +8,7 @@ import java.io.Serializable;
 /**
  * TInterfaceParam is a Querydsl bean type
  */
+@ApiModel("接口出入参")
 public class TInterfaceParam implements Serializable {
 
     private String id;

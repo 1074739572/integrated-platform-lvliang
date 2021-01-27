@@ -1,5 +1,6 @@
 package com.iflytek.integrated.platform.dto;
 
+import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -11,6 +12,7 @@ import javax.validation.constraints.NotNull;
  * @date 2021/1/11 16:57
  */
 @Data
+@ApiModel("mock模板")
 public class MockTemplateDto {
 
     @NotBlank(message = "接口配置id不能为空")
