@@ -1,8 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
+import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.entity.TInterfaceParam;
-import com.iflytek.medicalboot.core.dto.PageRequest;
-import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 import org.slf4j.Logger;
@@ -13,13 +12,14 @@ import java.util.List;
 
 import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
 import static com.iflytek.integrated.platform.entity.QTInterfaceParam.qTInterfaceParam;
+
 /**
 * 标准接口参数
 * @author weihe9
 * @date 2020/12/14 10:59
 */
 @Service
-public class InterfaceParamService extends QuerydslService<TInterfaceParam, String, TInterfaceParam, StringPath, PageRequest<TInterfaceParam>> {
+public class InterfaceParamService extends BaseService<TInterfaceParam, String, StringPath> {
 
     private static final Logger logger = LoggerFactory.getLogger(InterfaceParamService.class);
 

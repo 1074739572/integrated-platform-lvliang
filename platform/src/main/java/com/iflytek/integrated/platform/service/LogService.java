@@ -1,6 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
-import com.iflytek.integrated.common.Constant;
+import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
@@ -10,8 +11,6 @@ import com.iflytek.integrated.platform.dto.InterfaceMonitorDto;
 import com.iflytek.integrated.platform.entity.QTInterfaceMonitor;
 import com.iflytek.integrated.platform.entity.TLog;
 import com.iflytek.integrated.platform.utils.Utils;
-import com.iflytek.medicalboot.core.dto.PageRequest;
-import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
@@ -48,7 +47,7 @@ import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConf
 @Api(tags = "服务监控")
 @RestController
 @RequestMapping("/{version}/pt/interfaceMonitor")
-public class LogService extends QuerydslService<TLog, Long, TLog, NumberPath<Long>, PageRequest<TLog>> {
+public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
     private static final Logger logger = LoggerFactory.getLogger(LogService.class);
 
     public LogService(){

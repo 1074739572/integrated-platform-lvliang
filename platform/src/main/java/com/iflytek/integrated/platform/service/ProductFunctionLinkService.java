@@ -1,10 +1,9 @@
 package com.iflytek.integrated.platform.service;
 
-import com.iflytek.integrated.common.Constant;
+import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.entity.TProductFunctionLink;
 import com.iflytek.integrated.platform.utils.Utils;
-import com.iflytek.medicalboot.core.dto.PageRequest;
-import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
@@ -27,7 +26,7 @@ import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.qTPro
 * @date 2020/12/12 14:16
 */
 @Service
-public class ProductFunctionLinkService extends QuerydslService<TProductFunctionLink, String, TProductFunctionLink, StringPath, PageRequest<TProductFunctionLink>> {
+public class ProductFunctionLinkService extends BaseService<TProductFunctionLink, String, StringPath> {
 
     private static final Logger logger = LoggerFactory.getLogger(ProductFunctionLinkService.class);
 

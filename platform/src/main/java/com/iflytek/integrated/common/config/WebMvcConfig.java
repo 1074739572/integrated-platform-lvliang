@@ -9,11 +9,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 
 import java.util.Map;
 
 /**
+ * WebMvcConfig，对url配置
  * @author czzhan
  * @version 1.0
  * @date 2021/1/12 9:55
@@ -21,7 +23,7 @@ import java.util.Map;
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "cache.redis")
-public class InterceptConfig extends WebMvcConfigurationSupport {
+public class WebMvcConfig extends WebMvcConfigurationSupport {
 
     private Map<String, String[]> map;
 
@@ -55,4 +57,16 @@ public class InterceptConfig extends WebMvcConfigurationSupport {
         super.addInterceptors(registry);
     }
 
+    /**
+     * swagger访问配置
+     * @param registry
+     */
+    @Override
+    public  void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("swagger-ui.html")
+                .addResourceLocations("classpath:/META-INF/resources/");
+
+        registry.addResourceHandler("/webjars/**")
+                .addResourceLocations("classpath:/META-INF/resources/webjars/");
+    }
 }

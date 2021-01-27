@@ -1,6 +1,6 @@
 package com.iflytek.integrated.platform.utils;
 
-import com.iflytek.integrated.common.Constant;
+import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.common.utils.JackSonUtils;
 import com.iflytek.integrated.common.utils.PinYinUtil;
 import com.iflytek.integrated.platform.dto.ParamsDto;

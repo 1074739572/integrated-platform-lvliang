@@ -1,8 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
+import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.entity.TProjectProductLink;
-import com.iflytek.medicalboot.core.dto.PageRequest;
-import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.types.dsl.StringPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +16,7 @@ import static com.iflytek.integrated.platform.entity.QTProjectProductLink.qTProj
 * @date 2020/12/12 14:16
 */
 @Service
-public class ProjectProductLinkService extends QuerydslService<TProjectProductLink, String, TProjectProductLink, StringPath, PageRequest<TProjectProductLink>> {
+public class ProjectProductLinkService extends BaseService<TProjectProductLink, String, StringPath> {
 
     private static final Logger logger = LoggerFactory.getLogger(ProjectProductLinkService.class);
 

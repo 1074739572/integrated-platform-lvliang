@@ -1,6 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
-import com.iflytek.integrated.common.Constant;
+import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
@@ -12,9 +13,7 @@ import com.iflytek.integrated.platform.entity.TVendorConfig;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.THospitalVendorLink;
 import com.iflytek.integrated.platform.entity.TPlatform;
-import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.id.BatchUidService;
-import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
@@ -49,7 +48,7 @@ import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConf
 @Api(tags = "平台管理")
 @RestController
 @RequestMapping("/{version}/pt/platformManage")
-public class PlatformService extends QuerydslService<TPlatform, String, TPlatform, StringPath, PageRequest<TPlatform>> {
+public class PlatformService extends BaseService<TPlatform, String, StringPath> {
 
     @Autowired
     private VendorConfigService vendorConfigService;

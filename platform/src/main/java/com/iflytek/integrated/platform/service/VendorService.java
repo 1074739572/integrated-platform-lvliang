@@ -1,6 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
-import com.iflytek.integrated.common.Constant;
+import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
@@ -12,9 +13,7 @@ import com.iflytek.integrated.platform.dto.VendorConfigDto;
 import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.integrated.common.validator.ValidationResult;
 import com.iflytek.integrated.common.validator.ValidatorHelper;
-import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.id.BatchUidService;
-import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
@@ -50,7 +49,7 @@ import static com.iflytek.integrated.platform.entity.QTVendorDriveLink.qTVendorD
 @Api(tags = "厂商管理")
 @RestController
 @RequestMapping("/{version}/pt/vendorManage")
-public class VendorService extends QuerydslService<TVendor, String, TVendor, StringPath, PageRequest<TVendor>> {
+public class VendorService extends BaseService<TVendor, String, StringPath> {
 
     @Autowired
     private VendorDriveLinkService vendorDriveLinkService;

@@ -1,10 +1,9 @@
 package com.iflytek.integrated.platform.service;
 
-import com.iflytek.integrated.common.Constant;
+import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.platform.entity.TFunction;
-import com.iflytek.medicalboot.core.dto.PageRequest;
-import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 import io.swagger.annotations.Api;
@@ -27,7 +26,7 @@ import static com.iflytek.integrated.platform.entity.QTFunction.qTFunction;
 @Api(tags = "产品功能")
 @RestController
 @RequestMapping("/{version}/pt/functionManage")
-public class FunctionService extends QuerydslService<TFunction, String, TFunction, StringPath, PageRequest<TFunction>> {
+public class FunctionService extends BaseService<TFunction, String, StringPath> {
 
     private static final Logger logger = LoggerFactory.getLogger(FunctionService.class);
 

@@ -1,4 +1,4 @@
-package com.iflytek.integrated.common;
+package com.iflytek.integrated.platform.common;
 
 import com.querydsl.core.types.dsl.StringPath;
 

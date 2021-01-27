@@ -1,11 +1,11 @@
 package com.iflytek.integrated.platform.service;
 
-import com.iflytek.integrated.common.Constant;
+import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
-import com.iflytek.integrated.common.utils.RedisUtil;
 import com.iflytek.integrated.platform.dto.BusinessInterfaceDto;
 import com.iflytek.integrated.platform.dto.InDebugResDto;
 import com.iflytek.integrated.platform.dto.MockTemplateDto;
@@ -15,9 +15,7 @@ import com.iflytek.integrated.platform.dto.InterfaceDto;
 import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.integrated.common.validator.ValidationResult;
 import com.iflytek.integrated.common.validator.ValidatorHelper;
-import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.id.BatchUidService;
-import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
@@ -35,7 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import java.util.*;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
@@ -63,7 +60,7 @@ import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConf
 @Api(tags = "接口管理")
 @RestController
 @RequestMapping("/{version}/pt/interfaceManage")
-public class InterfaceService extends QuerydslService<TInterface, String, TInterface, StringPath, PageRequest<TInterface>> {
+public class InterfaceService extends BaseService<TInterface, String, StringPath> {
 
     @Autowired
     private BusinessInterfaceService businessInterfaceService;
@@ -81,8 +78,6 @@ public class InterfaceService extends QuerydslService<TInterface, String, TInter
     private BatchUidService batchUidService;
     @Autowired
     private ToolsGenerate toolsGenerate;
-    @Resource
-    private RedisUtil redisUtil;
     @Autowired
     private ValidatorHelper validatorHelper;
 

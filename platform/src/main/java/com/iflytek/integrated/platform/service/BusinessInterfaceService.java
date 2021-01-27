@@ -1,11 +1,10 @@
 package com.iflytek.integrated.platform.service;
 
-import com.iflytek.integrated.common.Constant;
+import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.THospitalVendorLink;
-import com.iflytek.medicalboot.core.dto.PageRequest;
-import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
@@ -34,7 +33,7 @@ import static com.querydsl.sql.SQLExpressions.groupConcat;
 * @date 2020/12/13 20:40
 */
 @Service
-public class BusinessInterfaceService extends QuerydslService<TBusinessInterface, String, TBusinessInterface, StringPath, PageRequest<TBusinessInterface>> {
+public class BusinessInterfaceService extends BaseService<TBusinessInterface,String,StringPath> {
 
     private static final Logger logger = LoggerFactory.getLogger(BusinessInterfaceService.class);
 

@@ -1,6 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
-import com.iflytek.integrated.common.Constant;
+import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
@@ -11,9 +12,7 @@ import com.iflytek.integrated.platform.dto.ProductDto;
 import com.iflytek.integrated.platform.dto.ProjectDto;
 import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.integrated.platform.utils.Utils;
-import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.id.BatchUidService;
-import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringPath;
@@ -44,7 +43,7 @@ import static com.iflytek.integrated.platform.entity.QTProjectProductLink.qTProj
 
 @RestController
 @RequestMapping("/{version}/pt/projectManage")
-public class ProjectService extends QuerydslService<TProject, String, TProject, StringPath, PageRequest<TProject>> {
+public class ProjectService extends BaseService<TProject, String, StringPath> {
 
     @Autowired
     private ProjectProductLinkService projectProductLinkService;

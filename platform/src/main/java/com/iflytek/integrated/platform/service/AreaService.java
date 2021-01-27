@@ -1,12 +1,11 @@
 package com.iflytek.integrated.platform.service;
 
-import com.iflytek.integrated.common.Constant;
+import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.utils.JackSonUtils;
 import com.iflytek.integrated.platform.dto.AreaDto;
 import com.iflytek.integrated.platform.entity.TArea;
-import com.iflytek.medicalboot.core.dto.PageRequest;
-import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.types.dsl.StringPath;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -28,12 +27,12 @@ import static com.iflytek.integrated.platform.entity.QTArea.qTArea;
 @Api(tags = "地区数据表")
 @RestController
 @RequestMapping("/{version}/pt/sysManage")
-public class AreaService extends QuerydslService<TArea, String, TArea, StringPath, PageRequest<TArea>> {
-    public AreaService(){
-            super(qTArea, qTArea.id);
-    }
-
+public class AreaService extends BaseService<TArea, String, StringPath> {
     private static final Logger logger = LoggerFactory.getLogger(AreaService.class);
+
+    public AreaService() {
+        super(qTArea, qTArea.id);
+    }
 
     @ApiOperation(value = "省市区分层显示")
     @GetMapping("/getAreaInfo")

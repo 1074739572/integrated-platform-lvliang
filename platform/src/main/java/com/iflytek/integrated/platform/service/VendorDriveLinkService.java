@@ -1,8 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
+import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.entity.TVendorDriveLink;
-import com.iflytek.medicalboot.core.dto.PageRequest;
-import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 import org.slf4j.Logger;
@@ -19,7 +18,7 @@ import static com.iflytek.integrated.platform.entity.QTVendorDriveLink.qTVendorD
 * @date 2020/12/12 14:16
 */
 @Service
-public class VendorDriveLinkService extends QuerydslService<TVendorDriveLink, String, TVendorDriveLink, StringPath, PageRequest<TVendorDriveLink>> {
+public class VendorDriveLinkService extends BaseService<TVendorDriveLink, String, StringPath> {
 
     private static final Logger logger = LoggerFactory.getLogger(VendorDriveLinkService.class);
 

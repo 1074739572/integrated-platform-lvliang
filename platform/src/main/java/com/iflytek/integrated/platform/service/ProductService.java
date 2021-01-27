@@ -1,16 +1,15 @@
 package com.iflytek.integrated.platform.service;
 
-import com.iflytek.integrated.common.*;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.ProductDto;
 import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.integrated.platform.utils.Utils;
-import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.id.BatchUidService;
-import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
@@ -42,7 +41,7 @@ import static com.iflytek.integrated.platform.entity.QTProjectProductLink.qTProj
 @Api(tags = "产品管理")
 @RestController
 @RequestMapping("/{version}/pt/productManage")
-public class ProductService extends QuerydslService<TProduct, String, TProduct, StringPath, PageRequest<TProduct>> {
+public class ProductService extends BaseService<TProduct, String, StringPath> {
 
     public ProductService(){
         super(qTProduct,qTProduct.id);

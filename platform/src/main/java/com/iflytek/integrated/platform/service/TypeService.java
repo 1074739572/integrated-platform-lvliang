@@ -1,10 +1,9 @@
 package com.iflytek.integrated.platform.service;
 
-import com.iflytek.integrated.common.Constant;
+import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.platform.entity.TType;
-import com.iflytek.medicalboot.core.dto.PageRequest;
-import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
@@ -27,10 +26,10 @@ import static com.iflytek.integrated.platform.entity.QTType.qTType;
 * @date 2020/12/20 17:02
 */
 @Slf4j
-@Api(tags = "分类")
+@Api(tags = "分类管理")
 @RestController
 @RequestMapping("/{version}/pt/typeManage")
-public class TypeService extends QuerydslService<TType, String, TType, StringPath, PageRequest<TType>> {
+public class TypeService extends BaseService<TType, String, StringPath> {
 
     private static final Logger logger = LoggerFactory.getLogger(TypeService.class);
 

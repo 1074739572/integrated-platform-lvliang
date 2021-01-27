@@ -1,6 +1,6 @@
 package com.iflytek.integrated.platform.service;
 
-import com.iflytek.integrated.common.Constant;
+import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.utils.XmlJsonUtils;
 import com.iflytek.integrated.common.utils.ase.AesUtil;
@@ -21,8 +21,8 @@ import org.springframework.web.bind.annotation.*;
  * 匿名访问service，无需登录
  */
 @Slf4j
-@Api(tags = "匿名访问接口")
 @RestController
+@Api(tags = "匿名访问接口类")
 @RequestMapping("/{version}/pb/anonymous")
 public class AnonymousService {
     private static final Logger logger = LoggerFactory.getLogger(AnonymousService.class);

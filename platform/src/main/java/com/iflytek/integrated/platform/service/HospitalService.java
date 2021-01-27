@@ -1,19 +1,18 @@
 package com.iflytek.integrated.platform.service;
 
-import com.iflytek.integrated.common.*;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.common.utils.RedisUtil;
+import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.entity.THospitalVendorLink;
 import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.THospital;
 import com.iflytek.integrated.common.validator.ValidationResult;
 import com.iflytek.integrated.common.validator.ValidatorHelper;
-import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.id.BatchUidService;
-import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
@@ -45,7 +44,7 @@ import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
 @Api(tags = "医院管理")
 @RestController
 @RequestMapping("/{version}/pt/hospitalManage")
-public class HospitalService extends QuerydslService<THospital, String, THospital, StringPath, PageRequest<THospital>> {
+public class HospitalService extends BaseService<THospital, String, StringPath> {
     public HospitalService(){
         super(qTHospital,qTHospital.id);
     }

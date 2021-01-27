@@ -2,12 +2,12 @@ package com.iflytek.integrated.platform.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.iflytek.integrated.common.Constant;
+import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
-import com.iflytek.integrated.common.utils.RedisUtil;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TType;
@@ -16,9 +16,7 @@ import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.TPlugin;
 import com.iflytek.integrated.common.validator.ValidationResult;
 import com.iflytek.integrated.common.validator.ValidatorHelper;
-import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.id.BatchUidService;
-import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
@@ -35,7 +33,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import java.util.*;
 
 import static com.iflytek.integrated.platform.entity.QTPlugin.qTPlugin;
@@ -49,7 +46,7 @@ import static com.iflytek.integrated.platform.entity.QTType.qTType;
 @Api(tags = "插件管理")
 @RestController
 @RequestMapping("/{version}/pt/pluginManage")
-public class PluginService extends QuerydslService<TPlugin, String, TPlugin, StringPath, PageRequest<TPlugin>> {
+public class PluginService extends BaseService<TPlugin, String, StringPath> {
 
     public PluginService(){
         super(qTPlugin,qTPlugin.id);
@@ -61,8 +58,6 @@ public class PluginService extends QuerydslService<TPlugin, String, TPlugin, Str
     private BatchUidService batchUidService;
     @Autowired
     private ValidatorHelper validatorHelper;
-    @Resource
-    private RedisUtil redisUtil;
     @Autowired
     private ToolsGenerate toolsGenerate;
     @Autowired

@@ -1,8 +1,8 @@
 package com.iflytek.integrated.common.intercept;
 
-import com.iflytek.integrated.common.Constant;
+import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.common.dto.ResultDto;
-import com.iflytek.integrated.platform.service.RedisService;
+import com.iflytek.integrated.platform.common.RedisService;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.apache.commons.lang.StringUtils;

@@ -2,9 +2,9 @@ package com.iflytek.integrated.platform.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.iflytek.integrated.common.Constant;
+import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
-import com.iflytek.integrated.common.utils.RedisUtil;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
@@ -16,9 +16,7 @@ import com.iflytek.integrated.platform.utils.Utils;
 import com.iflytek.integrated.platform.entity.TDrive;
 import com.iflytek.integrated.common.validator.ValidationResult;
 import com.iflytek.integrated.common.validator.ValidatorHelper;
-import com.iflytek.medicalboot.core.dto.PageRequest;
 import com.iflytek.medicalboot.core.id.BatchUidService;
-import com.iflytek.medicalboot.core.querydsl.QuerydslService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
@@ -35,7 +33,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import java.util.*;
 
 import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
@@ -50,7 +47,7 @@ import static com.iflytek.integrated.platform.entity.QTVendorDriveLink.qTVendorD
 @Api(tags = "驱动管理")
 @RestController
 @RequestMapping("/{version}/pt/driveManage")
-public class DriveService extends QuerydslService<TDrive, String, TDrive, StringPath, PageRequest<TDrive>> {
+public class DriveService extends BaseService<TDrive, String, StringPath> {
     public DriveService(){
         super(qTDrive,qTDrive.id);
     }
@@ -65,8 +62,6 @@ public class DriveService extends QuerydslService<TDrive, String, TDrive, String
     private ValidatorHelper validatorHelper;
     @Autowired
     private ToolsGenerate toolsGenerate;
-    @Resource
-    private RedisUtil redisUtil;
 
     @ApiOperation(value = "获取驱动下拉")
     @GetMapping("/getAllDrive")

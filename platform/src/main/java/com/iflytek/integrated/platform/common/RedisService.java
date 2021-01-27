@@ -1,6 +1,5 @@
-package com.iflytek.integrated.platform.service;
+package com.iflytek.integrated.platform.common;
 
-import com.iflytek.integrated.common.Constant;
 import com.iflytek.integrated.common.utils.RedisUtil;
 import com.iflytek.integrated.platform.dto.RedisKeyDto;
 import com.querydsl.core.types.Predicate;
@@ -12,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,6 +36,7 @@ import static com.iflytek.integrated.platform.entity.QTVendorDriveLink.qTVendorD
 * @date 2021/1/22 10:01
 */
 @Service
+@ApiIgnore
 public class RedisService {
 
     private static final Logger logger = LoggerFactory.getLogger(RedisService.class);
