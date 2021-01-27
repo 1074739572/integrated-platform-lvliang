@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 /**
  * @author czzhan
@@ -32,6 +33,7 @@ public class AnonymousService {
     private BusinessInterfaceService businessInterfaceService;
 
     @GetMapping("/getMock")
+    @ApiOperation(value = "标准接口mock返回")
     public ResultDto<String> getMock(
             @ApiParam(value = "标准接口id", name = "id" , required = true) @RequestParam String id) {
         try {
@@ -61,7 +63,7 @@ public class AnonymousService {
         }
     }
 
-    @ApiOperation(value = "mock")
+    @ApiIgnore
     @PostMapping("/mock")
     public ResultDto<String> mock(
             @ApiParam(value = "mock模板", name = "mock" , required = true) @RequestBody String mock) {
@@ -69,7 +71,7 @@ public class AnonymousService {
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", resultMock(mock, type));
     }
 
-    @ApiOperation(value = "encrypt")
+    @ApiIgnore
     @PostMapping("/encrypt")
     public ResultDto<String> encrypt(
             @ApiParam(value = "明文", name = "content" , required = true) @RequestParam String content){
@@ -80,7 +82,7 @@ public class AnonymousService {
         }
     }
 
-    @ApiOperation(value = "decrypt")
+    @ApiIgnore
     @PostMapping("/decrypt")
     public ResultDto<String> decrypt(
             @ApiParam(value = "密文", name = "content" , required = true) @RequestParam String content){

@@ -24,8 +24,7 @@
                     <groupId>com.baomidou</groupId>
                     <artifactId>mybatis-plus-boot-starter</artifactId>
                 </exclusion>
-
-                <!-- 因为swagger-models1.5.20 存在问题，不使用medicalBoot的swagger-->
+                <!-- swagger2:2.9.2版本中依赖的swagger-models的1.5.20版本 存在问题，不使用medicalBoot的swagger-->
                 <exclusion>
                     <groupId>io.springfox</groupId>
                     <artifactId>springfox-swagger2</artifactId>
