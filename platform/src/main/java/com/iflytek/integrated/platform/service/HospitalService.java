@@ -64,7 +64,7 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
 
     @ApiOperation(value = "获取医院管理列表")
     @GetMapping("/getHospitalList")
-    public ResultDto getHospitalListPage(@RequestParam(value = "hospitalName", required = false) String hospitalName,
+    public ResultDto<TableData<THospital>> getHospitalListPage(@RequestParam(value = "hospitalName", required = false) String hospitalName,
                                          @RequestParam(value = "areaCode", required = false) String areaCode,
                                          @RequestParam(defaultValue = "1")Integer pageNo,
                                          @RequestParam(defaultValue = "10")Integer pageSize){
@@ -111,7 +111,7 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "医院管理删除")
     @PostMapping("/delHospitalById")
-    public ResultDto delHospitalById(@ApiParam(value = "医院id") @RequestParam(value = "id", required = true) String id){
+    public ResultDto<String> delHospitalById(@ApiParam(value = "医院id") @RequestParam(value = "id", required = true) String id){
         //判断是否存在医院
         THospital hospital = sqlQueryFactory.select(qTHospital).from(qTHospital)
                 .where(qTHospital.id.eq(id).and(qTHospital.status.eq(Constant.Status.YES))).fetchFirst();
@@ -136,7 +136,10 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "医院管理新增/编辑")
     @PostMapping("/saveAndUpdateHospital")
-    public ResultDto saveAndUpdateHospital(@RequestBody THospital hospital){
+    public ResultDto<String> saveAndUpdateHospital(@RequestBody THospital hospital){
+        if (hospital == null) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "传入数据不正确!", "传入数据不正确!");
+        }
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(hospital);
         if (validationResult.isHasErrors()) {
@@ -176,7 +179,7 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
 
     @ApiOperation(value = "医院配置")
     @GetMapping("/getAllHospital")
-    public ResultDto getAllHospital(){
+    public ResultDto<List<THospital>> getAllHospital(){
         List<THospital> hospitals = sqlQueryFactory.select(
                 Projections.bean(
                         THospital.class,
@@ -195,12 +198,11 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
      * @param hospitalCode
      * @return
      */
-    private boolean isExistence(String id,String hospitalName, String hospitalCode) {
+    private boolean isExistence(String id, String hospitalName, String hospitalCode) {
         //校验是否存在重复医院
         ArrayList<Predicate> list = new ArrayList<>();
         list.add(qTHospital.status.eq(Constant.Status.YES));
-        list.add(qTHospital.hospitalCode.eq(hospitalCode)
-                .or(qTHospital.hospitalName.eq(hospitalName)));
+        list.add(qTHospital.hospitalCode.eq(hospitalCode).or(qTHospital.hospitalName.eq(hospitalName)));
         if(StringUtils.isNotEmpty(id)){
             list.add(qTHospital.id.notEqualsIgnoreCase(id));
         }

@@ -63,7 +63,7 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface,Str
         for (String idStr : idList) {
             rtnStr += idStr + ",";
         }
-        rtnStr = rtnStr.substring(0, rtnStr.length()-1);
+        rtnStr = StringUtils.isBlank(rtnStr)?"":rtnStr.substring(0, rtnStr.length()-1);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "更改mock状态成功!", rtnStr);
     }
 
@@ -89,7 +89,7 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface,Str
         for (String idStr : idList) {
             rtnStr += idStr + ",";
         }
-        rtnStr = rtnStr.substring(0, rtnStr.length()-1);
+        rtnStr = StringUtils.isBlank(rtnStr)?"":rtnStr.substring(0, rtnStr.length()-1);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "更改接口配置状态成功!", rtnStr);
     }
 
@@ -116,12 +116,19 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface,Str
      * @param vendorConfigId
      */
     public List<TBusinessInterface> getListByCondition(String productFunctionLinkId, String interfaceId, String vendorConfigId) {
-        List<TBusinessInterface> list = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
-                                        .where(qTBusinessInterface.productFunctionLinkId.eq(productFunctionLinkId)
-                                        .and(qTBusinessInterface.interfaceId.eq(interfaceId)
-                                        .and(qTBusinessInterface.vendorConfigId.eq(vendorConfigId))))
-                                        .fetch();
-        return list;
+        ArrayList<Predicate> list = new ArrayList<>();
+        if (StringUtils.isNotBlank(productFunctionLinkId)) {
+            list.add(qTBusinessInterface.productFunctionLinkId.eq(productFunctionLinkId));
+        }
+        if (StringUtils.isNotBlank(interfaceId)) {
+            list.add(qTBusinessInterface.interfaceId.eq(interfaceId));
+        }
+        if (StringUtils.isNotBlank(vendorConfigId)) {
+            list.add(qTBusinessInterface.vendorConfigId.eq(vendorConfigId));
+        }
+        List<TBusinessInterface> tbiList = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
+                                        .where(list.toArray(new Predicate[list.size()])).fetch();
+        return tbiList;
     }
 
 

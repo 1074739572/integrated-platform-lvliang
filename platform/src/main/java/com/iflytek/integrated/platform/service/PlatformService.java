@@ -70,7 +70,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 
     @ApiOperation(value = "根据项目id获取平台(分页)", notes = "根据项目id获取平台(分页)")
     @GetMapping("/getPlatformListById")
-    public ResultDto getPlatformListById(
+    public ResultDto<TableData<TPlatform>> getPlatformListById(
             @ApiParam(value = "项目id") @RequestParam(value = "projectId", required = true) String projectId,
             @ApiParam(value = "平台状态") @RequestParam(value = "platformStatus", required = false) String platformStatus,
             @ApiParam(value = "平台名称") @RequestParam(value = "platformName", required = false) String platformName,
@@ -119,7 +119,10 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增or修改平台", notes = "新增or修改平台")
     @PostMapping("/saveAndUpdatePlatform")
-    public ResultDto saveAndUpdatePlatform(@RequestBody PlatformDto dto) {
+    public ResultDto<String> saveAndUpdatePlatform(@RequestBody PlatformDto dto) {
+        if (dto == null) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
+        }
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
@@ -132,7 +135,6 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
         if (isExist) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "平台名称为空或此项目下该名称已存在!", platformName);
         }
-//        String id = jsonObj.getString("id");
         if (StringUtils.isBlank(platformId)) {
             return savePlatform(dto, loginUserName);
         }
@@ -192,7 +194,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
                 hospitalVendorLinkService.post(hvl);
             }
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "新增平台成功!", null);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "新增平台成功!", "新增平台成功!");
     }
 
     /** 修改平台 */
@@ -306,7 +308,10 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "修改厂商信息接口", notes = "修改厂商信息接口")
     @PostMapping("/updateVendorConfig")
-    public ResultDto updateVendorConfig(@RequestBody VendorConfigDto dto) {
+    public ResultDto<String> updateVendorConfig(@RequestBody VendorConfigDto dto) {
+        if (dto == null) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "数据传入有误!", "数据传入有误!");
+        }
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
@@ -412,7 +417,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 
     @ApiOperation(value = "更改启停用状态", notes = "更改启停用状态")
     @PostMapping("/updateStatus")
-    public ResultDto updateStatus(
+    public ResultDto<String> updateStatus(
             @ApiParam(value = "平台id") @RequestParam(value = "id", required = true) String id,
             @ApiParam(value = "平台状态 1启用 2停用") @RequestParam(value = "platformStatus", required = true) String platformStatus) {
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
@@ -428,7 +433,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "删除平台", notes = "删除平台")
     @PostMapping("/deletePlatform")
-    public ResultDto deletePlatform(@ApiParam(value = "平台id") @RequestParam(value = "id", required = true) String id) {
+    public ResultDto<String> deletePlatform(@ApiParam(value = "平台id") @RequestParam(value = "id", required = true) String id) {
         TPlatform tp = this.getOne(id);
         if (tp == null) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "该平台不存在!", "该平台不存在!");
@@ -445,7 +450,6 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
             //删除医院与厂商配置关联信息
             count += hospitalVendorLinkService.deleteByVendorConfigId(tvc.getId());
         }
-
         //删除平台下所有关联的接口配置
         List<TBusinessInterface> tbiList = businessInterfaceService.getListByPlatform(id);
         for (TBusinessInterface tbi : tbiList) {

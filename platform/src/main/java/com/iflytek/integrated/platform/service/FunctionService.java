@@ -37,7 +37,7 @@ public class FunctionService extends BaseService<TFunction, String, StringPath> 
 
     @ApiOperation(value = "获取产品功能下拉")
     @GetMapping("/getDisFunction")
-    public ResultDto getDisFunction() {
+    public ResultDto<List<TFunction>> getDisFunction() {
         List<TFunction> functions = sqlQueryFactory.select(
                 Projections.bean(
                         TFunction.class,

@@ -6,12 +6,9 @@ import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
-import com.iflytek.integrated.platform.dto.BusinessInterfaceDto;
-import com.iflytek.integrated.platform.dto.InDebugResDto;
-import com.iflytek.integrated.platform.dto.MockTemplateDto;
+import com.iflytek.integrated.platform.dto.*;
 import com.iflytek.integrated.platform.utils.ToolsGenerate;
 import com.iflytek.integrated.platform.utils.Utils;
-import com.iflytek.integrated.platform.dto.InterfaceDto;
 import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.integrated.common.validator.ValidationResult;
 import com.iflytek.integrated.common.validator.ValidatorHelper;
@@ -90,7 +87,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @ApiOperation(value = "更改mock状态", notes = "更改mock状态")
     @PostMapping("/updateMockStatus")
     @Transactional(rollbackFor = Exception.class)
-    public ResultDto updateMockStatus(@ApiParam(value = "接口配置") @RequestParam(value = "id", required = true) String id,
+    public ResultDto<String> updateMockStatus(@ApiParam(value = "接口配置") @RequestParam(value = "id", required = true) String id,
                                       @ApiParam(value = "更改后的状态") @RequestParam(value = "mockStatus", required = true) String mockStatus) {
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
@@ -103,7 +100,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @ApiOperation(value = "更改接口配置状态", notes = "更改接口配置状态")
     @PostMapping("/updateStatus")
     @Transactional(rollbackFor = Exception.class)
-    public ResultDto updateStatus(@ApiParam(value = "接口配置") @RequestParam(value = "id", required = true) String id,
+    public ResultDto<String> updateStatus(@ApiParam(value = "接口配置") @RequestParam(value = "id", required = true) String id,
                                   @ApiParam(value = "更改后的状态") @RequestParam(value = "status", required = true) String status) {
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
@@ -115,10 +112,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
     @ApiOperation(value = "获取mock模板", notes = "获取mock模板")
     @GetMapping("/getMockTemplate")
-    public ResultDto getMockTemplate(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
+    public ResultDto<List<TInterfaceType>> getMockTemplate(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
         List<TBusinessInterface> interfaces = businessInterfaceService.busInterfaces(id);
         if(CollectionUtils.isEmpty(interfaces)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有找到接口配置", id);
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据id没有找到接口配置", null);
         }
         List<MockTemplateDto> dtoList = new ArrayList<>();
         for(TBusinessInterface businessInterface : interfaces){
@@ -139,7 +136,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @ApiOperation(value = "保存mock模板", notes = "保存mock模板")
     @PostMapping("/saveMockTemplate")
     @Transactional(rollbackFor = Exception.class)
-    public ResultDto saveMockTemplate(@RequestBody List<MockTemplateDto> dtoList) {
+    public ResultDto<String> saveMockTemplate(@RequestBody List<MockTemplateDto> dtoList) {
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
@@ -171,7 +168,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
     @ApiOperation(value = "获取接口调试显示数据", notes = "获取接口调试显示数据")
     @GetMapping("/getInterfaceDebug")
-    public ResultDto getInterfaceDebug(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
+    public ResultDto<InDebugResDto> getInterfaceDebug(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
         try {
             TBusinessInterface businessInterface = sqlQueryFactory.select(
                 Projections.bean(
@@ -223,7 +220,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
     @PostMapping("/interfaceDebug")
     @ApiOperation(value = "接口调试", notes = "接口调试")
-    public ResultDto interfaceDebug(String format){
+    public ResultDto<String> interfaceDebug(String format){
         String result = toolsGenerate.interfaceDebug(format);
         if(StringUtils.isBlank(result)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE,"接口调试失败");
@@ -234,7 +231,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "标准接口删除", notes = "标准接口删除")
     @PostMapping("/delInterfaceById")
-    public ResultDto delInterfaceById(@ApiParam(value = "标准接口id") @RequestParam(value = "id", required = true) String id) {
+    public ResultDto<String> delInterfaceById(@ApiParam(value = "标准接口id") @RequestParam(value = "id", required = true) String id) {
         try {
             //校验该接口是否有产品关联
             TBusinessInterface tbi = businessInterfaceService.getProductIdByInterfaceId(id);
@@ -261,7 +258,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "标准接口新增/编辑", notes = "标准接口新增/编辑")
     @PostMapping("/saveAndUpdateInterface")
-    public ResultDto saveAndUpdateInterface(@RequestBody InterfaceDto dto) {
+    public ResultDto<String> saveAndUpdateInterface(@RequestBody InterfaceDto dto) {
+        if (dto == null) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
+        }
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
@@ -346,7 +346,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             TInterfaceParam tip = new TInterfaceParam();
             tip.setId(batchUidService.getUid(qTInterfaceParam.getTableName()) + "");
             tip.setInterfaceId(interfaceId);
-
             TInterfaceParam obj = outParamList.get(i);
             tip.setParamName(obj.getParamName());
             tip.setParamType(obj.getParamType());
@@ -475,7 +474,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
     @ApiOperation(value = "获取接口分类")
     @GetMapping("/getInterfaceType")
-    public ResultDto getInterfaceType() {
+    public ResultDto<List<TInterfaceType>> getInterfaceType() {
         List<TInterfaceType> vendors = sqlQueryFactory.select(
                 Projections.bean(
                         TInterfaceType.class,
@@ -490,7 +489,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
     @ApiOperation(value = "标准接口列表")
     @GetMapping("/getInterfaceList")
-    public ResultDto getInterfaceList(
+    public ResultDto<TableData<TInterface>> getInterfaceList(
               @ApiParam(value = "接口分类id") @RequestParam(value = "typeId", required = false) String typeId,
               @ApiParam(value = "接口名称") @RequestParam(value = "name", required = false) String name,
               @ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
@@ -537,7 +536,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
     @ApiOperation(value = "获取接口配置列表")
     @GetMapping("/getInterfaceConfigureList")
-    public ResultDto getInterfaceConfigureList(
+    public ResultDto<TableData<TBusinessInterface>> getInterfaceConfigureList(
             @ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId,
             @ApiParam(value = "启停用状态") @RequestParam(value = "status", required = false) String status,
             @ApiParam(value = "mock状态") @RequestParam(value = "mockStatus", required = false) String mockStatus,
@@ -577,7 +576,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
     @ApiOperation(value = "获取接口配置详情")
     @GetMapping("/getInterfaceConfigInfoById")
-    public ResultDto getInterfaceConfigInfoById(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
+    public ResultDto<BusinessInterfaceDto> getInterfaceConfigInfoById(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
         //返回对象
         BusinessInterfaceDto dto = new BusinessInterfaceDto();
         dto.setId(id);
@@ -621,14 +620,14 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增/编辑接口配置", notes = "新增/编辑接口配置")
     @PostMapping("/saveAndUpdateInterfaceConfig")
-    public ResultDto saveAndUpdateInterfaceConfig(@RequestBody BusinessInterfaceDto dto) {
+    public ResultDto<String> saveAndUpdateInterfaceConfig(@RequestBody BusinessInterfaceDto dto) {
         if (dto == null) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "请求参数不能为空!", null);
         }
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", null);
         }
         List<TBusinessInterface> tbiList = dto.getBusinessInterfaceList();
         if (Constant.Operation.ADD.equals(dto.getAddOrUpdate())) {
@@ -671,7 +670,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         //根据条件判断是否存在该数据
         List<TBusinessInterface> tbiList = businessInterfaceService.getBusinessInterfaceIsExist(thvlList, dto.getProjectId(), dto.getProductId(), dto.getInterfaceId());
         if (CollectionUtils.isNotEmpty(tbiList)) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据项目id,产品id,标准接口id匹配到该条件数据已存在!", dto);
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据项目id,产品id,标准接口id匹配到该条件数据已存在!", null);
         }
 
         tbiList = dto.getBusinessInterfaceList();
@@ -703,7 +702,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
      */
     private ResultDto updateInterfaceConfig(BusinessInterfaceDto dto, String loginUserName) {
         if (StringUtils.isBlank(dto.getPlatformId()) || StringUtils.isBlank(dto.getVendorId())) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "平台id或厂商id不能为空!", "平台id或厂商id不能为空!");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "平台id或厂商id不能为空!", null);
         }
         //获取厂商配置
         TVendorConfig tvc = vendorConfigService.getObjByPlatformAndVendor(dto.getPlatformId(), dto.getVendorId());
@@ -761,7 +760,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
     @ApiOperation(value = "根据参数格式获取jolt", notes = "根据参数格式获取jolt")
     @PostMapping("/paramFormatJolt")
-    public ResultDto paramFormatJolt(String paramFormat, String content,
+    public ResultDto<String> paramFormatJolt(String paramFormat, String content,
                              @RequestParam(value = "joltType", defaultValue = "request", required = false) String joltType){
         String contentType = Constant.ParamFormatType.getByType(content);
         if(StringUtils.isBlank(contentType) || Constant.ParamFormatType.NONE.getType().equals(contentType)){
@@ -773,7 +772,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
     @ApiOperation(value = "接口配置删除", notes = "接口配置删除")
     @PostMapping("/deleteInterfaceConfigure")
-    public ResultDto deleteInterfaceConfigure(
+    public ResultDto<String> deleteInterfaceConfigure(
             @ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
         TBusinessInterface tbi = businessInterfaceService.getOne(id);
         if (tbi == null) {
@@ -800,7 +799,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
     @ApiOperation(value = "根据id删除单个接口配置信息", notes = "根据id删除单个接口配置信息")
     @PostMapping("/deleteBusinessInterfaceById")
-    public ResultDto deleteBusinessInterfaceById(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
+    public ResultDto<String> deleteBusinessInterfaceById(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
         TBusinessInterface tbi = businessInterfaceService.getOne(id);
         if (tbi == null) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据id未查出该接口配置信息!", id);
@@ -815,7 +814,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
     @ApiOperation(value = "获取标准接口详情", notes = "获取标准接口详情")
     @GetMapping("/getInterfaceInfoById")
-    public ResultDto getInterfaceInfoById(@ApiParam(value = "标准接口id") @RequestParam(value = "id", required = true) String id) {
+    public ResultDto<InterfaceDto> getInterfaceInfoById(@ApiParam(value = "标准接口id") @RequestParam(value = "id", required = true) String id) {
         TInterface ti = this.getOne(id);
         if (ti == null) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据id未查出该标准接口!", id);
@@ -878,7 +877,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
     @ApiOperation(value = "选择接口下拉(可根据当前项目操作选择)")
     @GetMapping("/getDisInterface")
-    public ResultDto getDisInterface(@ApiParam(value = "项目id") @RequestParam(value = "projectId", required = false) String projectId,
+    public ResultDto<List<TInterface>> getDisInterface(@ApiParam(value = "项目id") @RequestParam(value = "projectId", required = false) String projectId,
                     @ApiParam(value = "操作 1获取当前项目下的接口 2获取非当前项目下的接口") @RequestParam(defaultValue = "1", value = "status", required = false) String status) {
         List<TInterface> interfaces = null;
         if (StringUtils.isNotBlank(projectId) && Constant.Operation.CURRENT.equals(status)) {
@@ -891,7 +890,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", interfaces);
         }
         //获取所有接口
-        interfaces = sqlQueryFactory.select(qTInterface).from(qTInterface) .orderBy(qTInterface.createdTime.desc()).fetch();
+        interfaces = sqlQueryFactory.select(qTInterface).from(qTInterface).orderBy(qTInterface.createdTime.desc()).fetch();
         if (StringUtils.isBlank(projectId)) {
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", interfaces);
         }
@@ -909,9 +908,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
     @ApiOperation(value = "根据参数模板（json）获取key-value", notes = "根据参数模板（json）获取key-value")
     @PostMapping("/jsonFormat")
-    public ResultDto jsonFormat(String paramJson){
+    public ResultDto<List<ParamsDto>> jsonFormat(String paramJson){
         if(StringUtils.isBlank(paramJson)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "参数为空");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "参数为空", "参数为空");
         }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"", Utils.jsonFormat(paramJson));
     }
@@ -919,7 +918,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
     @ApiOperation(value = "根据产品获取标准接口(新增接口)")
     @GetMapping("/getInterByPro")
-    public ResultDto getInterByPro(@ApiParam(value = "产品id") @RequestParam(value = "productId", required = false) String productId) {
+    public ResultDto<List<TInterface>> getInterByPro(@ApiParam(value = "产品id") @RequestParam(value = "productId", required = false) String productId) {
         ArrayList<Predicate> list = new ArrayList<>();
         if(StringUtils.isNotEmpty(productId)){
             list.add(qTProductInterfaceLink.productId.eq(productId));

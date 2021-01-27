@@ -1,10 +1,8 @@
 package com.iflytek.integrated.platform.service;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
-import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
@@ -65,7 +63,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
 
     @ApiOperation(value = "获取驱动下拉")
     @GetMapping("/getAllDrive")
-    public ResultDto getAllDrive() {
+    public ResultDto<List<TDrive>> getAllDrive() {
         List<TDrive> drives = sqlQueryFactory.select(
                 Projections.bean(
                         TDrive.class,
@@ -74,19 +72,21 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
                         qTDrive.driveName
                 )
         ).from(qTDrive).orderBy(qTDrive.createdTime.desc()).fetch();
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"",drives);
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"驱动下拉数据获取成功!", drives);
     }
 
     @ApiOperation(value = "根据厂商获取驱动")
     @GetMapping("/getAllDriveByVendorId")
-    public ResultDto getAllDriveByVendorId(@ApiParam(value = "厂商id") @RequestParam(value = "vendorId", required = true) String vendorId) {
+    public ResultDto<List<TDrive>> getAllDriveByVendorId(@ApiParam(value = "厂商id") @RequestParam(value = "vendorId", required = true) String vendorId) {
         List<TDrive> list = sqlQueryFactory.select(qTDrive).from(qTVendorDriveLink)
                 .leftJoin(qTDrive).on(qTDrive.id.eq(qTVendorDriveLink.driveId))
                 .where(qTVendorDriveLink.vendorId.eq(vendorId)).fetch();
         List<TDrive> drives = new ArrayList<>();
-        for (TDrive td : list) {
-            if (StringUtils.isNotBlank(td.getId())) {
-                drives.add(td);
+        if (CollectionUtils.isNotEmpty(list)) {
+            for (TDrive td : list) {
+                if (StringUtils.isNotBlank(td.getId())) {
+                    drives.add(td);
+                }
             }
         }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"根据厂商获取驱动成功", drives);
@@ -130,16 +130,16 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
                     .fetchResults();
             //分页
             TableData<TDrive> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", tableData);
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "驱动管理列表获取成功!", tableData);
         }catch (Exception e){
             logger.error("获取驱动管理列表失败! MSG:{}", ExceptionUtil.dealException(e));
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", ExceptionUtil.dealException(e));
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "驱动管理列表获取失败!", ExceptionUtil.dealException(e));
         }
     }
 
     @ApiOperation(value = "校验groovy脚本格式是否正确")
     @PostMapping("/groovyValidate")
-    public ResultDto groovyValidate(String content){
+    public ResultDto<GroovyValidateDto> groovyValidate(String content){
         GroovyValidateDto result = toolsGenerate.groovyUrl(content);
         if(StringUtils.isNotBlank(result.getValidResult()) && StringUtils.isBlank(result.getError())){
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", result);
@@ -152,7 +152,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "驱动管理删除")
     @PostMapping("/delDriveById")
-    public ResultDto delDriveById(@ApiParam(value = "驱动id") @RequestParam(value = "id", required = true) String id){
+    public ResultDto<String> delDriveById(@ApiParam(value = "驱动id") @RequestParam(value = "id", required = true) String id){
         //查看驱动是否存在
         TDrive drive = sqlQueryFactory.select(qTDrive).from(qTDrive).where(qTDrive.id.eq(id)).fetchFirst();
         if(drive == null || StringUtils.isEmpty(drive.getId())){
@@ -174,7 +174,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "驱动新增/编辑")
     @PostMapping("/saveAndUpdateDrive")
-    public ResultDto saveAndUpdateDrive(@RequestBody TDrive drive){
+    public ResultDto<String> saveAndUpdateDrive(@RequestBody TDrive drive){
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(drive);
         if (validationResult.isHasErrors()) {
@@ -204,26 +204,27 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
         drive.setUpdatedTime(new Date());
         Long lon = this.put(drive.getId(), drive);
         if(lon <= 0){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE,"驱动编辑失败!", drive);
+            return new ResultDto(Constant.ResultCode.ERROR_CODE,"驱动编辑失败!", null);
         }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"驱动编辑成功!", drive.getId());
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增厂商弹窗展示的驱动选择信息")
     @GetMapping("/getDriveChoiceList")
-    public ResultDto getDriveChoiceList() {
+    public ResultDto<List<Map<String, Object>>> getDriveChoiceList() {
         //获取驱动类型list
         List<TType> typeList = sqlQueryFactory.select(qTType).from(qTType).where(qTType.type.eq(Constant.TypeStatus.DRIVE)).orderBy(qTType.createdTime.desc()).fetch();
 
-        JSONArray rtnArr = new JSONArray();
+        List<Map<String, Object>> rtnArr = new ArrayList<>();
         for (TType tt : typeList) {
-            JSONObject jsonObj = new JSONObject();
+            Map<String, Object> jsonObj = new HashMap<>();
             jsonObj.put("id", tt.getId());
             jsonObj.put("name", tt.getTypeName());
             List<TDrive> driveList = sqlQueryFactory.select(qTDrive).from(qTDrive).where(qTDrive.typeId.eq(tt.getId())).orderBy(qTDrive.createdTime.desc()).fetch();
-            JSONArray arr = new JSONArray();
+            List<Map<String, Object>> arr = new ArrayList<>();
             for (TDrive td : driveList) {
-                JSONObject obj = new JSONObject();
+                Map<String, Object> obj = new HashMap<>();
                 obj.put("id", td.getId());
                 obj.put("name", td.getDriveName());
                 arr.add(obj);

@@ -1,13 +1,11 @@
 package com.iflytek.integrated.platform.service;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.iflytek.integrated.platform.common.BaseService;
-import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TType;
@@ -66,19 +64,19 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
 
     @ApiOperation(value = "接口配置选择插件下拉")
     @GetMapping("/getDisPlugin")
-    public ResultDto getDisPlugin() {
+    public ResultDto<List<Map<String, Object>>> getDisPlugin() {
         //获取插件类型list
         List<TType> typeList = sqlQueryFactory.select(qTType).from(qTType).where(qTType.type.eq(Constant.TypeStatus.PLUGIN)).orderBy(qTType.createdTime.desc()).fetch();
 
-        JSONArray rtnArr = new JSONArray();
+        List<Map<String, Object>> rtnArr = new ArrayList<>();
         for (TType tt : typeList) {
-            JSONObject jsonObj = new JSONObject();
+            Map<String, Object> jsonObj = new HashMap<>();
             jsonObj.put("typeId", tt.getId());
             jsonObj.put("name", tt.getTypeName());
             List<TPlugin> pluginList = sqlQueryFactory.select(qTPlugin).from(qTPlugin).where(qTPlugin.typeId.eq(tt.getId())).orderBy(qTPlugin.createdTime.desc()).fetch();
-            JSONArray arr = new JSONArray();
+            List<Map<String, Object>> arr = new ArrayList();
             for (TPlugin tp : pluginList) {
-                JSONObject obj = new JSONObject();
+                Map<String, Object> obj = new HashMap();
                 obj.put("pluginId", tp.getId());
                 obj.put("name", tp.getPluginName());
                 arr.add(obj);
@@ -92,10 +90,10 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
 
     @ApiOperation(value = "插件管理列表")
     @GetMapping("/getPluginList")
-    public ResultDto getPluginList(@ApiParam(value = "插件名称") @RequestParam(value = "pluginName", required = false) String pluginName,
+    public ResultDto<TableData<TPlugin>> getPluginList(@ApiParam(value = "插件名称") @RequestParam(value = "pluginName", required = false) String pluginName,
                                    @ApiParam(value = "插件分类id") @RequestParam(value = "typeId", required = false) String typeId,
-                                   @RequestParam(defaultValue = "1")Integer pageNo,
-                                   @RequestParam(defaultValue = "10")Integer pageSize){
+                                   @ApiParam(value = "页码") @RequestParam(defaultValue = "1")Integer pageNo,
+                                   @ApiParam(value = "每页大小") @RequestParam(defaultValue = "10")Integer pageSize){
         try {
             //查询条件
             ArrayList<Predicate> list = new ArrayList<>();
@@ -139,7 +137,7 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "插件管理删除")
     @PostMapping("/delPluginById")
-    public ResultDto delPluginById(@ApiParam(value = "插件id") @RequestParam(value = "id", required = true) String id){
+    public ResultDto<String> delPluginById(@ApiParam(value = "插件id") @RequestParam(value = "id", required = true) String id){
         if(StringUtils.isEmpty(id)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "id不能为空", "id不能为空");
         }
@@ -165,7 +163,10 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "插件新增/编辑")
     @PostMapping("/saveAndUpdatePlugin")
-    public ResultDto saveAndUpdatePlugin(@RequestBody TPlugin plugin){
+    public ResultDto<String> saveAndUpdatePlugin(@RequestBody TPlugin plugin){
+        if (plugin == null) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
+        }
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(plugin);
         if (validationResult.isHasErrors()) {
@@ -188,7 +189,7 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
             plugin.setCreatedTime(new Date());
             plugin.setCreatedBy(loginUserName);
             this.post(plugin);
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"插件新增成功", plugin);
+            return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"插件新增成功", null);
         }
         //编辑插件
         plugin.setUpdatedTime(new Date());

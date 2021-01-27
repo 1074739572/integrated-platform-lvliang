@@ -86,11 +86,11 @@ public class RedisService {
                     .fetch();
         if (CollectionUtils.isNotEmpty(list)) {
             for (RedisKeyDto obj : list) {
-                String key = obj.getProjectCode()+"_"+obj.getOrgId()+"_"+obj.getProductCode()+"_"+obj.getFunCode();
-                redisUtil.hmDel("IntegratedPlatform:Configs:", key);
+                String key = "IntegratedPlatform:Configs:_"+obj.getProjectCode()+"_"+obj.getOrgId()+"_"+obj.getProductCode()+"_"+obj.getFunCode();
+                redisUtil.del(key);
             }
+            logger.info("缓存删除结束，删除数量{}", list.size());
         }
-        logger.info("缓存删除结束，删除数量{}",list.size());
     }
 
 

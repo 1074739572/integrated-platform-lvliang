@@ -56,7 +56,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 
     @ApiOperation(value = "查看服务监控列表")
     @GetMapping("/getListPage")
-    public ResultDto getListPage(String projectId, String platFormId, String productId, String status,
+    public ResultDto<TableData<InterfaceMonitorDto>> getListPage(String projectId, String platFormId, String productId, String status,
                                   @RequestParam(defaultValue = "1")Integer pageNo,
                                   @RequestParam(defaultValue = "10")Integer pageSize) {
         try {
@@ -131,7 +131,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 
     @ApiOperation(value = "查看日志详细列表")
     @GetMapping("/logInfo")
-    public ResultDto logInfo(String interfaceMonitorId,String status,String visitAddr,
+    public ResultDto<TableData<TLog>> logInfo(String interfaceMonitorId,String status,String visitAddr,
                              @RequestParam(defaultValue = "1")Integer pageNo,
                              @RequestParam(defaultValue = "10")Integer pageSize){
         //查询条件

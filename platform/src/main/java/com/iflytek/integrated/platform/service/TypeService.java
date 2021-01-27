@@ -40,7 +40,7 @@ public class TypeService extends BaseService<TType, String, StringPath> {
 
     @ApiOperation(value = "获取分类")
     @GetMapping("/getType")
-    public ResultDto getType(@ApiParam(value = "分类类型 0其它 1接口 2驱动 3插件") @RequestParam(value = "type", required = true) Integer type) {
+    public ResultDto<List<TType>> getType(@ApiParam(value = "分类类型 0其它 1接口 2驱动 3插件") @RequestParam(value = "type", required = true) Integer type) {
         ArrayList<Predicate> list = new ArrayList<>();
         if(type != null) {
             list.add(qTType.type.eq(type));

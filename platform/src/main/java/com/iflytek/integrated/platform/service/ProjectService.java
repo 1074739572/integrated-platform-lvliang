@@ -75,7 +75,7 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
 
     @ApiOperation(value = "获取项目信息", notes = "获取项目信息")
     @GetMapping("/getProject")
-    public ResultDto getProject(
+    public ResultDto<TableData<TProject>> getProject(
             @ApiParam(value = "项目类型 1区域 2医院") @RequestParam(required = false) String projectType,
             @ApiParam(value = "项目状态 1启用 2停用") @RequestParam(required = false) String projectStatus,
             @ApiParam(value = "项目名称") @RequestParam(required = false) String projectName,
@@ -104,7 +104,7 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增or修改项目", notes = "新增or修改项目")
     @PostMapping("/saveAndUpdateProject")
-    public ResultDto saveAndUpdateProject(@ApiParam(value = "保存项目-产品-功能信息") @RequestBody ProjectDto dto) {
+    public ResultDto<String> saveAndUpdateProject(@ApiParam(value = "保存项目-产品-功能信息") @RequestBody ProjectDto dto) {
         String projectName = dto.getProjectName();
         if (StringUtils.isBlank(projectName)) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "项目名称为空!", null);
@@ -204,7 +204,7 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "删除项目", notes = "删除项目")
     @PostMapping("/deleteProject")
-    public ResultDto deleteProject(@ApiParam(value = "项目id") @RequestParam(value = "id", required = true) String id) {
+    public ResultDto<String> deleteProject(@ApiParam(value = "项目id") @RequestParam(value = "id", required = true) String id) {
         TProject tp = this.getOne(id);
         if (tp == null) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "该项目不存在!", "该项目不存在!");
@@ -240,7 +240,7 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
 
     @ApiOperation(value = "更改项目启用状态", notes = "更改项目启用状态")
     @PostMapping("/updateProjectStatus")
-    public ResultDto updateProjectStatus(@ApiParam(value = "项目id") @RequestParam(value = "id", required = true) String id,
+    public ResultDto<String> updateProjectStatus(@ApiParam(value = "项目id") @RequestParam(value = "id", required = true) String id,
                                  @ApiParam(value = "项目状态 1启用 2停用") @RequestParam(value = "projectStatus", required = true) String projectStatus) {
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
@@ -264,7 +264,7 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "获取某项目下的产品及功能信息", notes = "获取某项目下的产品及功能信息")
     @GetMapping("/getInfoByProjectId")
-    public ResultDto getInfoByProjectId(@ApiParam(value = "项目id") @RequestParam(value = "id", required = true) String id) {
+    public ResultDto<List<Map<String, Object>>> getInfoByProjectId(@ApiParam(value = "项目id") @RequestParam(value = "id", required = true) String id) {
         try {
             List<TProjectProductLink> list = projectProductLinkService.findProjectProductLinkByProjectId(id);
             Map<String, String> map = new HashMap<>();

@@ -67,7 +67,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
 
     @ApiOperation(value = "产品功能列表")
     @GetMapping("/getProductList")
-    public ResultDto getProductList(@ApiParam(value = "产品编码") @RequestParam(value = "productCode", required = false) String productCode,
+    public ResultDto<TableData<TProductFunctionLink>> getProductList(@ApiParam(value = "产品编码") @RequestParam(value = "productCode", required = false) String productCode,
                                     @ApiParam(value = "产品名称") @RequestParam(value = "productName", required = false) String productName,
                                     @ApiParam(value = "页码",example = "1") @RequestParam(defaultValue = "1", required = false)Integer pageNo,
                                     @ApiParam(value = "每页大小",example = "10") @RequestParam(defaultValue = "10", required = false)Integer pageSize){
@@ -88,7 +88,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "产品管理删除")
     @PostMapping("/delProductById")
-    public ResultDto delProductById(@ApiParam(value = "产品功能关联表id") @RequestParam(value = "id", required = true) String id){
+    public ResultDto<String> delProductById(@ApiParam(value = "产品功能关联表id") @RequestParam(value = "id", required = true) String id){
         //查看产品功能关联是否存在
         TProductFunctionLink functionLink = productFunctionLinkService.getOne(id);
         if(functionLink == null){
@@ -104,7 +104,6 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
         if (CollectionUtils.isNotEmpty(tpplList)) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "该产品功能已与项目关联,无法删除!", "该产品功能已与项目关联,无法删除!");
         }
-
         //删除产品和功能的关联关系
         long lon = productFunctionLinkService.delete(id);
         if(lon <= 0){
@@ -138,7 +137,10 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "产品管理新增/编辑")
     @PostMapping("/saveAndUpdateProduct")
-    public ResultDto saveAndUpdateProduct(@RequestBody ProductDto dto) {
+    public ResultDto<String> saveAndUpdateProduct(@RequestBody ProductDto dto) {
+        if (dto == null) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
+        }
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
         if(StringUtils.isBlank(loginUserName)){
@@ -263,6 +265,20 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
         }else {
             errProductId = tp.getId();
         }
+        //更新所有相同产品名称
+        String oldProductId = dto.getOldProductId();
+        if (StringUtils.isNotBlank(oldProductId)) {
+            //查询原来产品名称
+            TProduct obj = this.getOne(oldProductId);
+            if (obj != null) {
+                long l = sqlQueryFactory.update(qTProduct)
+                        .set(qTProduct.productName, productName)
+                        .set(qTProduct.updatedBy, loginUserName)
+                        .set(qTProduct.updatedTime, new Date())
+                        .where(qTProduct.productName.eq(obj.getProductName()))
+                        .execute();
+            }
+        }
         //功能
         String functionName = dto.getFunctionName();
         TFunction tf = functionService.getObjByName(functionName);
@@ -276,6 +292,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
             tf.setCreatedBy(loginUserName);
             functionService.post(tf);
         }else {
+            functionId = tf.getId();
             TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunctionByNoId(productId, functionId, id);
             if (tpfl != null) {
                 return new ResultDto(Constant.ResultCode.ERROR_CODE, "该产品与功能已有关联!",tpfl);
@@ -289,7 +306,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
 
     @ApiOperation(value = "选择产品下拉及其功能")
     @GetMapping("/getDisProduct")
-    public ResultDto getDisProduct() {
+    public ResultDto<List<TProduct>> getDisProduct() {
         List<TProduct> products = sqlQueryFactory.select(
                 Projections.bean(
                         TProduct.class,
@@ -297,7 +314,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
                         qTProduct.productName,
                         qTProduct.productCode
                 )
-            ).from(qTProduct).orderBy(qTProduct.createdTime.desc()).fetch();
+            ).from(qTProduct).groupBy(qTProduct.productName).orderBy(qTProduct.createdTime.desc()).fetch();
         //拼接方法列表
         for (TProduct product : products){
             List<TFunction> functions = sqlQueryFactory.select(
@@ -309,7 +326,8 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
                     )
             ).from(qTFunction)
             .leftJoin(qTProductFunctionLink).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
-            .where(qTProductFunctionLink.productId.eq(product.getId()))
+//            .where(qTProductFunctionLink.productId.eq(product.getId()))
+            .groupBy(qTFunction.functionName)
             .orderBy(qTFunction.createdTime.desc()).fetch();
             product.setFunctions(functions);
         }
@@ -319,7 +337,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
 
     @ApiOperation(value = "根据产品获取功能")
     @GetMapping("/getFuncByPro")
-    public ResultDto getFuncByPro(@ApiParam(value = "产品id") @RequestParam(value = "productId", required = true) String productId) {
+    public ResultDto<List<TFunction>> getFuncByPro(@ApiParam(value = "产品id") @RequestParam(value = "productId", required = true) String productId) {
         List<TFunction> functions = sqlQueryFactory.select(
                 Projections.bean(
                         TFunction.class,
@@ -336,7 +354,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
 
     @ApiOperation(value = "新增接口时选择产品及其功能下拉")
     @GetMapping("/getDisProductAndFunByProject")
-    public ResultDto getDisProductAndFunByProject(@ApiParam(value = "项目id") @RequestParam(value = "projectId", required = true) String projectId) {
+    public ResultDto<List<TProduct>> getDisProductAndFunByProject(@ApiParam(value = "项目id") @RequestParam(value = "projectId", required = true) String projectId) {
         //获取指定项目下所有产品
         List<String> productList = sqlQueryFactory.selectDistinct(qTProduct.id)
         .from(qTProduct)

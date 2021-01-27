@@ -79,7 +79,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增or修改厂商", notes = "新增or修改厂商")
     @PostMapping("/saveAndUpdateVendor")
-    public ResultDto saveAndUpdateVendor(
+    public ResultDto<String> saveAndUpdateVendor(
             @ApiParam(value = "厂商id") @RequestParam(value = "id", required = false) String id,
             @ApiParam(value = "厂商名") @RequestParam(value = "vendorName", required = true) String vendorName,
             @ApiParam(value = "驱动-多个用,分隔") @RequestParam(value = "driveIds", required = true) String driveIds) {
@@ -130,11 +130,14 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "厂商名未填写或该厂商名已存在!", "厂商名未填写或该厂商名已存在!");
         }
         //更新厂商信息
-        sqlQueryFactory.update(qTVendor)
+        long l = sqlQueryFactory.update(qTVendor)
                 .set(qTVendor.vendorName, vendorName)
                 .set(qTVendor.updatedTime, new Date())
                 .set(qTVendor.updatedBy, loginUserName)
                 .where(qTVendor.id.eq(vendorId)).execute();
+        if (l <= 0) {
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "厂商信息更新失败!", vendorId);
+        }
         //删除关联
         vendorDriveLinkService.deleteVendorDriveLinkById(vendorId);
         //添加新关联
@@ -156,7 +159,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "删除厂商", notes = "删除厂商")
     @PostMapping("/delVendorById")
-    public ResultDto delVendorById(@ApiParam(value = "厂商id") @RequestParam(value = "id", required = true) String id) {
+    public ResultDto<String> delVendorById(@ApiParam(value = "厂商id") @RequestParam(value = "id", required = true) String id) {
         //厂商配置关联数据校验
         List<TVendorConfig> tvcList = vendorConfigService.getObjByVendorId(id);
         if (CollectionUtils.isNotEmpty(tvcList)) {
@@ -175,7 +178,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
 
     @ApiOperation(value = "获取厂商管理列表", notes = "获取厂商管理列表")
     @GetMapping("/getVendorList")
-    public ResultDto getVendorList(
+    public ResultDto<TableData<TVendor>> getVendorList(
             @ApiParam(value = "厂商名") @RequestParam(value = "vendorName", required = false) String vendorName,
             @ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
             @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
@@ -194,9 +197,12 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
             List<TVendorDriveLink> tvdList = vendorDriveLinkService.getVendorDriveLinkByVendorId(tv.getId());
             String driveNameStr = "";
             for (int i = 0; i < tvdList.size(); i++) {
-                driveNameStr += tvdList.get(i).getDriveName();
-                if (i <tvdList.size()- 1) {
-                    driveNameStr += " | ";
+                TVendorDriveLink tvdl = tvdList.get(i);
+                if (StringUtils.isNotBlank(tvdl.getDriveName())) {
+                    driveNameStr += tvdList.get(i).getDriveName();
+                    if (i <tvdList.size()- 1) {
+                        driveNameStr += " | ";
+                    }
                 }
             }
             tv.setDriveName(driveNameStr);
@@ -208,7 +214,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
 
     @ApiOperation(value = "获取厂商信息", notes = "获取厂商信息")
     @GetMapping("/getVendorInfoList")
-    public ResultDto getVendorInfoList(@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId) {
+    public ResultDto<List<VendorConfigDto>> getVendorInfoList(@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId) {
         try {
             List<TVendorConfig> VCList = sqlQueryFactory.select(qTVendorConfig).from(qTVendorConfig)
                     .where(qTVendorConfig.platformId.eq(platformId)).fetch();
@@ -253,7 +259,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "删除平台下厂商配置信息", notes = "删除平台下厂商配置信息")
     @PostMapping("/delVendorConfig")
-    public ResultDto delVendorConfig(@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId,
+    public ResultDto<String> delVendorConfig(@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId,
                                      @ApiParam(value = "厂商id") @RequestParam(value = "vendorId", required = true) String vendorId) {
         TVendorConfig tvc = vendorConfigService.getObjByPlatformAndVendor(platformId, vendorId);
         if (tvc != null) {
@@ -273,7 +279,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
 
     @ApiOperation(value = "删除厂商下医院配置信息", notes = "删除厂商下医院配置信息")
     @PostMapping("/delHospitalVendorByVendorConfig")
-    public ResultDto delHospitalVendorByVendorConfig(
+    public ResultDto<String> delHospitalVendorByVendorConfig(
             @ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId,
             @ApiParam(value = "厂商id") @RequestParam(value = "vendorId", required = true) String vendorId) {
         TVendorConfig tvc = vendorConfigService.getObjByPlatformAndVendor(platformId, vendorId);
@@ -288,7 +294,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
 
     @ApiOperation(value = "选择厂商下拉(可根据当前项目操作选择)")
     @GetMapping("/getDisVendor")
-    public ResultDto getDisVendor(@ApiParam(value = "项目id") @RequestParam(value = "projectId", required = false) String projectId,
+    public ResultDto<List<TVendor>> getDisVendor(@ApiParam(value = "项目id") @RequestParam(value = "projectId", required = false) String projectId,
                 @ApiParam(value = "操作 1获取当前项目下的厂商 2获取非当前项目下的厂商") @RequestParam(defaultValue = "1", value = "status", required = false) String status) {
         List<TVendor> vendors = null;
         if (StringUtils.isNotBlank(projectId) && Constant.Operation.CURRENT.equals(status)) {
@@ -319,7 +325,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
 
     @ApiOperation(value = "根据平台id获取厂商信息")
     @GetMapping("/getDisVendorByPlatform")
-    public ResultDto getDisVendorByPlatform(@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId) {
+    public ResultDto<List<TVendor>> getDisVendorByPlatform(@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId) {
         List<TVendor> vendors = sqlQueryFactory.select(
                 Projections.bean(TVendor.class,qTVendor.id,qTVendor.vendorName,qTVendor.vendorCode,qTVendor.createdBy,qTVendor.createdTime,
                         qTVendor.updatedBy,qTVendor.updatedTime,qTVendorConfig.connectionType.as("connectionType")))
@@ -332,7 +338,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
 
     @ApiOperation(value = "厂商接口调试数据获取")
     @PostMapping("/getInterfaceDebugger")
-    public ResultDto getInterfaceDebugger(String interfaceId){
+    public ResultDto<String> getInterfaceDebugger(String interfaceId){
         if(StringUtils.isBlank(interfaceId)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE,"","标准接口id必传");
         }
@@ -350,7 +356,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
 
     @ApiOperation(value = "厂商接口调试接口")
     @PostMapping("/interfaceDebugger")
-    public ResultDto interfaceDebugger(@RequestBody JoltDebuggerDto dto){
+    public ResultDto<Map> interfaceDebugger(@RequestBody JoltDebuggerDto dto){
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(dto);
         if (validationResult.isHasErrors()) {
@@ -360,9 +366,10 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
     }
 
 
+    @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "根据厂商配置id删除厂商配置信息")
     @PostMapping("/delVendorConfigById")
-    public ResultDto delVendorConfigById(@ApiParam(value = "厂商配置id") @RequestParam(value = "id", required = true) String id,
+    public ResultDto<String> delVendorConfigById(@ApiParam(value = "厂商配置id") @RequestParam(value = "id", required = true) String id,
                                          @ApiParam(value = "平台id") @RequestParam(value = "platformId", required = false) String platformId) {
         TVendorConfig tvc = vendorConfigService.getOne(id);
         if (tvc == null) {
@@ -378,18 +385,19 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
                 }
             }
         }
-
         long count = vendorConfigService.delete(id);
         if (count < 1) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "删除失败!", id);
         }
+        //删除厂商与医院关联
+        hospitalVendorLinkService.deleteByVendorConfigId(id);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"删除成功!", "删除成功!");
     }
 
 
     @ApiOperation(value = "根据厂商医院配置id删除厂商医院配置信息")
     @PostMapping("/delHospitalVendorById")
-    public ResultDto delHospitalVendorById(@ApiParam(value = "厂商医院配置id") @RequestParam(value = "id", required = true) String id) {
+    public ResultDto<String> delHospitalVendorById(@ApiParam(value = "厂商医院配置id") @RequestParam(value = "id", required = true) String id) {
         THospitalVendorLink thvl = hospitalVendorLinkService.getOne(id);
         if (thvl == null) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据id查询不到该厂商医院配置信息!", id);
