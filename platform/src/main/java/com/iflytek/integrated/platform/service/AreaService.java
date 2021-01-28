@@ -89,19 +89,4 @@ public class AreaService extends BaseService<TArea, String, StringPath> {
     }
 
 
-    @ApiOperation(value = "省市区分层获取")
-    @GetMapping("/getAreaInfoByAreaCode")
-    public ResultDto getAreaInfoByAreaCode(String areaCode) {
-        ArrayList<Predicate> list = new ArrayList<>();
-        if (StringUtils.isNotBlank(areaCode)) {
-            list.add(qTArea.superId.eq(areaCode));
-        }else {
-            list.add(qTArea.areaLevel.eq(1));
-        }
-        List<TArea> areaList = sqlQueryFactory.select(qTArea).from(qTArea)
-                .where(list.toArray(new Predicate[list.size()])).fetch();
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取成功!", areaList);
-    }
-
-
 }

@@ -42,6 +42,10 @@ public class TPlugin implements Serializable {
 
     private String pluginTypeName;
 
+    private String pluginId;
+
+    private String name;
+
     public String getId() {
         return id;
     }
@@ -128,6 +132,22 @@ public class TPlugin implements Serializable {
 
     public void setPluginTypeName(String pluginTypeName) {
         this.pluginTypeName = pluginTypeName;
+    }
+
+    public String getPluginId() {
+        return pluginId;
+    }
+
+    public void setPluginId(String pluginId) {
+        this.pluginId = pluginId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override

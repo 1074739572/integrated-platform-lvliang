@@ -42,6 +42,8 @@ public class TDrive implements Serializable {
 
     private String driveTypeName;
 
+    private String name;
+
     public String getId() {
         return id;
     }
@@ -128,6 +130,14 @@ public class TDrive implements Serializable {
 
     public void setDriveTypeName(String driveTypeName) {
         this.driveTypeName = driveTypeName;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override

@@ -107,12 +107,13 @@ public class ProductFunctionLinkService extends BaseService<TProductFunctionLink
      * @return
      */
     public long updateObjById(String id, String productId, String functionId, String loginUserName) {
-        return sqlQueryFactory.update(qTProductFunctionLink)
+        long l = sqlQueryFactory.update(qTProductFunctionLink)
                 .set(qTProductFunctionLink.productId, productId)
                 .set(qTProductFunctionLink.functionId, functionId)
                 .set(qTProductFunctionLink.updatedTime, new Date())
-                .set(qTProductFunctionLink.updatedBy, loginUserName!=null?loginUserName:"")
+                .set(qTProductFunctionLink.updatedBy, loginUserName != null ? loginUserName : "")
                 .where(qTProductFunctionLink.id.eq(id)).execute();
+        return l;
     }
 
 

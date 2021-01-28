@@ -319,8 +319,8 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
 
     @ApiOperation(value = "选择产品下拉及所有功能")
     @GetMapping("/getDisProductAndAllFunc")
-    public ResultDto<Map<String, Object>> getDisProductAndAllFunc() {
-        Map<String, Object> map = new HashMap<>();
+    public ResultDto<ProductDto> getDisProductAndAllFunc() {
+        ProductDto map = new ProductDto();
         List<TProduct> products = sqlQueryFactory.select(
                 Projections.bean(
                         TProduct.class,
@@ -329,7 +329,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
                         qTProduct.productCode
                 )
             ).from(qTProduct).groupBy(qTProduct.productName).orderBy(qTProduct.createdTime.desc()).fetch();
-        map.put("products", products);
+        map.setProducts(products);
         //拼接方法列表
         List<TFunction> functions = sqlQueryFactory.select(
                 Projections.bean(
@@ -342,7 +342,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
                 .leftJoin(qTProductFunctionLink).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
                 .groupBy(qTFunction.functionName)
                 .orderBy(qTFunction.createdTime.desc()).fetch();
-        map.put("functions", functions);
+        map.setFunctions(functions);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"选择产品下拉及所有功能获取成功!", map);
     }
 

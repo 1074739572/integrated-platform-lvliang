@@ -273,10 +273,13 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         try {
-            sqlQueryFactory.update(qTProject)
+            long l = sqlQueryFactory.update(qTProject)
                     .set(qTProject.projectStatus, projectStatus)
                     .set(qTProject.updatedBy, loginUserName)
                     .where(qTProject.id.eq(id)).execute();
+            if (l < 1) {
+                throw new RuntimeException("更改项目启用状态失败!");
+            }
         } catch (Exception e) {
             logger.error("项目状态修改失败! MSG:{}", ExceptionUtil.dealException(e));
             e.printStackTrace();
@@ -288,7 +291,7 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
 
     @ApiOperation(value = "获取某项目下的产品及功能信息", notes = "获取某项目下的产品及功能信息")
     @GetMapping("/getInfoByProjectId")
-    public ResultDto<List<Map<String, Object>>> getInfoByProjectId(@ApiParam(value = "项目id") @RequestParam(value = "id", required = true) String id) {
+    public ResultDto<List<ProductDto>> getInfoByProjectId(@ApiParam(value = "项目id") @RequestParam(value = "id", required = true) String id) {
         try {
             List<TProjectProductLink> list = projectProductLinkService.findProjectProductLinkByProjectId(id);
             Map<String, String> map = new HashMap<>();
@@ -314,7 +317,7 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
                 }
             }
             //返回数据
-            List<Map<String, Object>> rtnArr = new ArrayList<>();
+            List<ProductDto> rtnArr = new ArrayList<>();
             if (map.size() > 0) {
                 for(String key : map.keySet()) {
                     String[] fIdArr = map.get(key).split(",");
@@ -322,9 +325,9 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
                     for(int i = 0; i<fIdArr.length; i++) {
                         arr.add(fIdArr[i]);
                     }
-                    Map<String, Object> obj = new HashMap<>();
-                    obj.put("id", key);
-                    obj.put("function", arr);
+                    ProductDto obj = new ProductDto();
+                    obj.setId(key);
+                    obj.setFunction(arr);
                     rtnArr.add(obj);
                 }
             }

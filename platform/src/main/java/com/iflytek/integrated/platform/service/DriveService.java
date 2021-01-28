@@ -3,6 +3,7 @@ package com.iflytek.integrated.platform.service;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
+import com.iflytek.integrated.platform.dto.DriveDto;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
@@ -211,24 +212,23 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
 
     @ApiOperation(value = "新增厂商弹窗展示的驱动选择信息")
     @GetMapping("/getDriveChoiceList")
-    public ResultDto<List<Map<String, Object>>> getDriveChoiceList() {
+    public ResultDto<List<DriveDto>> getDriveChoiceList() {
         //获取驱动类型list
         List<TType> typeList = sqlQueryFactory.select(qTType).from(qTType).where(qTType.type.eq(Constant.TypeStatus.DRIVE)).orderBy(qTType.createdTime.desc()).fetch();
 
-        List<Map<String, Object>> rtnArr = new ArrayList<>();
+        List<DriveDto> rtnArr = new ArrayList<>();
         for (TType tt : typeList) {
-            Map<String, Object> jsonObj = new HashMap<>();
-            jsonObj.put("id", tt.getId());
-            jsonObj.put("name", tt.getTypeName());
+            DriveDto jsonObj = new DriveDto();
+            jsonObj.setId(tt.getId());
+            jsonObj.setName(tt.getTypeName());
             List<TDrive> driveList = sqlQueryFactory.select(qTDrive).from(qTDrive).where(qTDrive.typeId.eq(tt.getId())).orderBy(qTDrive.createdTime.desc()).fetch();
-            List<Map<String, Object>> arr = new ArrayList<>();
+            List<TDrive> arr = new ArrayList<>();
             for (TDrive td : driveList) {
-                Map<String, Object> obj = new HashMap<>();
-                obj.put("id", td.getId());
-                obj.put("name", td.getDriveName());
-                arr.add(obj);
+                td.setId(td.getId());
+                td.setName(td.getDriveName());
+                arr.add(td);
             }
-            jsonObj.put("children", arr);
+            jsonObj.setChildren(arr);
             rtnArr.add(jsonObj);
         }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"获取驱动选择信息成功", rtnArr);

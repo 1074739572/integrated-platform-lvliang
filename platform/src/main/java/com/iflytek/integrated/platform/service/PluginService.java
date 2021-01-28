@@ -7,6 +7,7 @@ import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
+import com.iflytek.integrated.platform.dto.PluginDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TType;
 import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
@@ -64,24 +65,23 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
 
     @ApiOperation(value = "接口配置选择插件下拉")
     @GetMapping("/getDisPlugin")
-    public ResultDto<List<Map<String, Object>>> getDisPlugin() {
+    public ResultDto<List<PluginDto>> getDisPlugin() {
         //获取插件类型list
         List<TType> typeList = sqlQueryFactory.select(qTType).from(qTType).where(qTType.type.eq(Constant.TypeStatus.PLUGIN)).orderBy(qTType.createdTime.desc()).fetch();
 
-        List<Map<String, Object>> rtnArr = new ArrayList<>();
+        List<PluginDto> rtnArr = new ArrayList<>();
         for (TType tt : typeList) {
-            Map<String, Object> jsonObj = new HashMap<>();
-            jsonObj.put("typeId", tt.getId());
-            jsonObj.put("name", tt.getTypeName());
+            PluginDto jsonObj = new PluginDto();
+            jsonObj.setTypeId(tt.getId());
+            jsonObj.setName(tt.getTypeName());
             List<TPlugin> pluginList = sqlQueryFactory.select(qTPlugin).from(qTPlugin).where(qTPlugin.typeId.eq(tt.getId())).orderBy(qTPlugin.createdTime.desc()).fetch();
-            List<Map<String, Object>> arr = new ArrayList();
+            List<TPlugin> arr = new ArrayList();
             for (TPlugin tp : pluginList) {
-                Map<String, Object> obj = new HashMap();
-                obj.put("pluginId", tp.getId());
-                obj.put("name", tp.getPluginName());
-                arr.add(obj);
+                tp.setPluginId(tp.getId());
+                tp.setName(tp.getPluginName());
+                arr.add(tp);
             }
-            jsonObj.put("children", arr);
+            jsonObj.setChildren(arr);
             rtnArr.add(jsonObj);
         }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"选择插件下拉数据获取成功", rtnArr);

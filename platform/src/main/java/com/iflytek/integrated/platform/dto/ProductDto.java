@@ -1,5 +1,6 @@
 package com.iflytek.integrated.platform.dto;
 
+import com.iflytek.integrated.platform.entity.TFunction;
 import com.iflytek.integrated.platform.entity.TProduct;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
@@ -30,5 +31,11 @@ public class ProductDto extends TProduct {
     private String addOrUpdate;
 
     private List<FunctionDto> functionList;
+
+    private List<TProduct> products;
+
+    private List<TFunction> functions;
+
+    private List<String> function;
 
 }
