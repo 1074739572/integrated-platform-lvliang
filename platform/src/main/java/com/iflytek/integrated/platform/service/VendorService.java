@@ -84,7 +84,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         if (StringUtils.isBlank(id)) {
             return saveVendor(vendorName, driveIds, loginUserName);
@@ -94,9 +94,9 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
 
 
     /** 新增厂商 */
-    private ResultDto saveVendor(String vendorName, String driveIds, String loginUserName) {
+    private ResultDto<String> saveVendor(String vendorName, String driveIds, String loginUserName) {
         if (null != this.getTVendorByName(null, vendorName)) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "厂商名未填写或该厂商名已存在!", "厂商名未填写或该厂商名已存在!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "厂商名未填写或该厂商名已存在!", "厂商名未填写或该厂商名已存在!");
         }
         String vendorId = batchUidService.getUid(qTVendor.getTableName()) + "";
         TVendor tv = new TVendor();
@@ -119,13 +119,13 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
                 vendorDriveLinkService.post(tvdl);
             }
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "厂商新增成功!", null);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "厂商新增成功!", null);
     }
 
     /** 修改厂商 */
-    private ResultDto updateVendor(String vendorId, String vendorName, String driveIds, String loginUserName) {
+    private ResultDto<String> updateVendor(String vendorId, String vendorName, String driveIds, String loginUserName) {
         if (null != this.getTVendorByName(vendorId, vendorName)) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "厂商名未填写或该厂商名已存在!", "厂商名未填写或该厂商名已存在!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "厂商名未填写或该厂商名已存在!", "厂商名未填写或该厂商名已存在!");
         }
         //更新厂商信息
         long l = sqlQueryFactory.update(qTVendor)
@@ -134,7 +134,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
                 .set(qTVendor.updatedBy, loginUserName)
                 .where(qTVendor.id.eq(vendorId)).execute();
         if (l <= 0) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "厂商信息更新失败!", vendorId);
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "厂商信息更新失败!", vendorId);
         }
         //删除关联
         vendorDriveLinkService.deleteVendorDriveLinkById(vendorId);
@@ -150,7 +150,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
             tvdl.setCreatedBy(loginUserName);
             vendorDriveLinkService.post(tvdl);
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "厂商修改成功!", vendorId);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "厂商修改成功!", vendorId);
     }
 
 
@@ -161,16 +161,16 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
         //厂商配置关联数据校验
         List<TVendorConfig> tvcList = vendorConfigService.getObjByVendorId(id);
         if (CollectionUtils.isNotEmpty(tvcList)) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该厂商已有厂商配置数据相关联,无法删除!", "该厂商已有厂商配置数据相关联,无法删除!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该厂商已有厂商配置数据相关联,无法删除!", "该厂商已有厂商配置数据相关联,无法删除!");
         }
         //删除厂商
         long count = this.delete(id);
         if (count < 1) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "删除厂商失败!", id);
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "删除厂商失败!", id);
         }
         //删除厂商与驱动关联
         vendorDriveLinkService.deleteVendorDriveLinkById(id);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "厂商删除成功!", id);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "厂商删除成功!", id);
     }
 
 
@@ -207,7 +207,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
             tv.setDriveName(driveNameStr);
         }
         TableData<TVendor> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取厂商管理列表!", tableData);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取厂商管理列表!", tableData);
     }
 
 
@@ -246,11 +246,11 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
                 vcd.setHospitalConfig(hospitalConfigList);
                 list.add(vcd);
             }
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取厂商信息成功!", list);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取厂商信息成功!", list);
         } catch (BeansException e) {
             logger.error("获取厂商信息失败! MSG:{}", ExceptionUtil.dealException(e));
             e.printStackTrace();
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "获取厂商信息失败!", ExceptionUtil.dealException(e));
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取厂商信息失败!");
         }
     }
 
@@ -264,15 +264,15 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
         if (tvc != null) {
             List<TBusinessInterface> tbiList = businessInterfaceService.getListByVendorConfigId(tvc.getId());
             if (CollectionUtils.isNotEmpty(tbiList)) {
-                return new ResultDto(Constant.ResultCode.ERROR_CODE, "该厂商已有接口配置数据相关联,无法删除!", "该厂商已有接口配置数据相关联,无法删除!");
+                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该厂商已有接口配置数据相关联,无法删除!", "该厂商已有接口配置数据相关联,无法删除!");
             }
             //删除厂商配置
             vendorConfigService.delete(tvc.getId());
             //删除厂商配置关联的医院
             hospitalVendorLinkService.deleteByVendorConfigId(tvc.getId());
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "厂商配置删除成功!", "厂商配置删除成功!");
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "厂商配置删除成功!", "厂商配置删除成功!");
         }
-        return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据平台id与厂商id未查到该厂商配置信息!", "根据平台id与厂商id未查到该厂商配置信息!");
+        return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据平台id与厂商id未查到该厂商配置信息!", "根据平台id与厂商id未查到该厂商配置信息!");
     }
 
 
@@ -285,9 +285,9 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
         if (tvc != null) {
             //删除厂商配置关联的医院
             hospitalVendorLinkService.deleteByVendorConfigId(tvc.getId());
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "厂商下医院配置信息删除成功!", null);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "厂商下医院配置信息删除成功!", null);
         }
-        return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据平台与厂商id未查到该厂商配置信息!", null);
+        return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据平台与厂商id未查到该厂商配置信息!", null);
     }
 
 
@@ -303,12 +303,12 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
                     .leftJoin(qTPlatform).on(qTPlatform.id.eq(qTVendorConfig.platformId))
                     .where(qTPlatform.projectId.eq(projectId))
                     .orderBy(qTVendor.createdTime.desc()).fetch();
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", vendors);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", vendors);
         }
         //获取所有厂商
         vendors = sqlQueryFactory.select(qTVendor).from(qTVendor) .orderBy(qTVendor.createdTime.desc()).fetch();
         if (StringUtils.isBlank(projectId)) {
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", vendors);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", vendors);
         }
         //获取当前项目下的厂商
         List<TVendor> tvList = sqlQueryFactory.select(qTVendor).from(qTVendor)
@@ -318,7 +318,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
                             .orderBy(qTVendor.createdTime.desc()).fetch();
         //去除当前项目下的厂商
         vendors.removeAll(tvList);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", vendors);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", vendors);
     }
 
 
@@ -331,24 +331,24 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
                 .from(qTVendor)
                 .leftJoin(qTVendorConfig).on(qTVendorConfig.vendorId.eq(qTVendor.id))
                 .where(qTVendorConfig.platformId.eq(platformId)).fetch();
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", vendors);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", vendors);
     }
 
 
     @ApiOperation(value = "厂商接口调试数据获取")
     @PostMapping("/getInterfaceDebugger")
-    public ResultDto<String> getInterfaceDebugger(String interfaceId){
+    public ResultDto<List<String>> getInterfaceDebugger(String interfaceId){
         if(StringUtils.isBlank(interfaceId)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE,"","标准接口id必传");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE,"标准接口id必传");
         }
         try {
             //获取入参列表
             List<String> paramNames = sqlQueryFactory.select(qTInterfaceParam.paramName).from(qTInterfaceParam)
                     .where(qTInterfaceParam.interfaceId.eq(interfaceId).and(qTInterfaceParam.paramInOut.eq(Constant.ParmInOut.IN))).fetch();
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"入参列表获取成功!", paramNames);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"入参列表获取成功!", paramNames);
         }
         catch (Exception e){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE,"厂商接口调试数据失败!","厂商接口调试数据失败!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE,"厂商接口调试数据失败!");
         }
     }
 
@@ -359,9 +359,9 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(dto);
         if (validationResult.isHasErrors()) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", validationResult.getErrorMsg());
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, validationResult.getErrorMsg());
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"", niFiRequestUtil.joltDebugger(dto));
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"", niFiRequestUtil.joltDebugger(dto));
     }
 
 
@@ -372,7 +372,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
                                          @ApiParam(value = "平台id") @RequestParam(value = "platformId", required = false) String platformId) {
         TVendorConfig tvc = vendorConfigService.getOne(id);
         if (tvc == null) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据id查询不到该厂商配置信息!", id);
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据id查询不到该厂商配置信息!", id);
         }
         //获取接口配置列表信息
         List<TBusinessInterface> queryResults = businessInterfaceService.getInterfaceConfigureList(platformId);
@@ -380,17 +380,17 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
             for (TBusinessInterface tbi : queryResults) {
                 String vendorConfigId = tbi.getVendorConfigId();
                 if (id.equals(vendorConfigId)) {
-                    return new ResultDto(Constant.ResultCode.ERROR_CODE, "该厂商配置已有关联,无法删除!", id);
+                    return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该厂商配置已有关联,无法删除!", id);
                 }
             }
         }
         long count = vendorConfigService.delete(id);
         if (count < 1) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "删除失败!", id);
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "删除失败!", id);
         }
         //删除厂商与医院关联
         hospitalVendorLinkService.deleteByVendorConfigId(id);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"删除成功!", "删除成功!");
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"删除成功!", "删除成功!");
     }
 
 
@@ -399,13 +399,13 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
     public ResultDto<String> delHospitalVendorById(@ApiParam(value = "厂商医院配置id") @RequestParam(value = "id", required = true) String id) {
         THospitalVendorLink thvl = hospitalVendorLinkService.getOne(id);
         if (thvl == null) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据id查询不到该厂商医院配置信息!", id);
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据id查询不到该厂商医院配置信息!", id);
         }
         long count = hospitalVendorLinkService.delete(id);
         if (count < 1) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "删除失败!", id);
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "删除失败!", id);
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"删除成功!", "删除成功!");
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"删除成功!", "删除成功!");
     }
 
 

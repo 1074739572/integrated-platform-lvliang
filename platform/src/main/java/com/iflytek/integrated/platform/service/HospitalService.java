@@ -95,10 +95,10 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
                     .fetchResults();
             //分页
             TableData<THospital> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取医院管理列表成功", tableData);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取医院管理列表成功", tableData);
         }catch (Exception e){
             logger.error("获取医院管理列表失败! MSG:{}", ExceptionUtil.dealException(e));
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "获取医院管理列表失败", ExceptionUtil.dealException(e));
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取医院管理列表失败");
         }
     }
 
@@ -111,20 +111,20 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
         THospital hospital = sqlQueryFactory.select(qTHospital).from(qTHospital)
                 .where(qTHospital.id.eq(id).and(qTHospital.status.eq(Constant.Status.YES))).fetchFirst();
         if(hospital == null) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "不存在该医院", "不存在该医院");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "不存在该医院", "不存在该医院");
         }
         //删除前校验该医院是否关联厂商
         List<THospitalVendorLink> thvlList = hospitalVendorLinkService.getThvlListByHospitalId(id);
         if (CollectionUtils.isNotEmpty(thvlList)) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该医院已有厂商相关联,无法删除!", "该医院已有厂商相关联,无法删除!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该医院已有厂商相关联,无法删除!", "该医院已有厂商相关联,无法删除!");
         }
         //逻辑删除
         Long lon = sqlQueryFactory.update(qTHospital).set(qTHospital.status, Constant.Status.NO)
                 .where(qTHospital.id.eq(id)).execute();
         if(lon <= 0){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "医院管理删除失败!", id);
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "医院管理删除失败!", id);
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "医院管理删除成功", id);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "医院管理删除成功", id);
     }
 
 
@@ -133,22 +133,22 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
     @PostMapping("/saveAndUpdateHospital")
     public ResultDto<String> saveAndUpdateHospital(@RequestBody THospital hospital){
         if (hospital == null) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "传入数据不正确!", "传入数据不正确!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "传入数据不正确!", "传入数据不正确!");
         }
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(hospital);
         if (validationResult.isHasErrors()) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, validationResult.getErrorMsg(), validationResult.getErrorMsg());
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, validationResult.getErrorMsg(), validationResult.getErrorMsg());
         }
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         //校验是否有重复医院
         boolean isExist = isExistence(hospital.getId(), hospital.getHospitalName(), hospital.getHospitalCode());
         if (isExist) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "医院名称或编码已存在!", "医院名称或编码已存在!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "医院名称或编码已存在!", "医院名称或编码已存在!");
         }
         if(StringUtils.isEmpty(hospital.getId())){
             //没有id，新增医院
@@ -157,18 +157,18 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
             hospital.setCreatedTime(new Date());
             hospital.setCreatedBy(loginUserName);
             this.post(hospital);
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "医院管理新增成功", null);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "医院管理新增成功", null);
         }
         else {
             //存在id时，编辑医院
             hospital.setUpdatedTime(new Date());
             hospital.setUpdatedBy(loginUserName);
-            Long lon = this.put(hospital.getId(),hospital);
+            long lon = this.put(hospital.getId(),hospital);
             if(lon <= 0){
-                return new ResultDto(Constant.ResultCode.ERROR_CODE, "医院管理编辑失败!", "医院管理编辑失败!");
+                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "医院管理编辑失败!");
             }
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "医院管理编辑成功", hospital.getId());
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "医院管理编辑成功", hospital.getId());
     }
 
 
@@ -183,7 +183,7 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
                         qTHospital.hospitalCode
                 )
             ).from(qTHospital).where(qTHospital.status.eq(Constant.Status.YES)).orderBy(qTHospital.createdTime.desc()).fetch();
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"医院配置信息获取成功", hospitals);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"医院配置信息获取成功", hospitals);
     }
 
     /**

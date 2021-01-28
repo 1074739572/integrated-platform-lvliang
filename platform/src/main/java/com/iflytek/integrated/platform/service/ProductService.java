@@ -73,11 +73,11 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
                     productCode, productName, pageNo, pageSize);
             //分页
             TableData<TProductFunctionLink> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "产品管理列表获取成功", tableData);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "产品管理列表获取成功", tableData);
         }
         catch (Exception e) {
             logger.error("获取产品管理列表失败! MSG:{}", ExceptionUtil.dealException(e));
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", ExceptionUtil.dealException(e));
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取产品管理列表失败");
         }
     }
 
@@ -89,22 +89,22 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
         //查看产品功能关联是否存在
         TProductFunctionLink functionLink = productFunctionLinkService.getOne(id);
         if(functionLink == null){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有找到该产品功能,删除失败!", "没有找到该产品功能,删除失败!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有找到该产品功能,删除失败!", "没有找到该产品功能,删除失败!");
         }
         //删除产品功能关联关系前先查询该关联数据是否有接口配置相关联
         List<TBusinessInterface> tbiList = businessInterfaceService.getListByProductFunctionLinkId(id);
         if (CollectionUtils.isNotEmpty(tbiList)) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该产品功能已与接口配置关联,无法删除!", "该产品功能已与接口配置关联,无法删除!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该产品功能已与接口配置关联,无法删除!", "该产品功能已与接口配置关联,无法删除!");
         }
         //删除产品功能关联关系前先查询该关联数据是否有项目相关联
         List<TProjectProductLink> tpplList = projectProductLinkService.findProjectProductLinkByPflId(id);
         if (CollectionUtils.isNotEmpty(tpplList)) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该产品功能已与项目关联,无法删除!", "该产品功能已与项目关联,无法删除!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该产品功能已与项目关联,无法删除!", "该产品功能已与项目关联,无法删除!");
         }
         //删除产品和功能的关联关系
         long lon = productFunctionLinkService.delete(id);
         if(lon <= 0){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "产品功能删除失败!", "产品功能删除失败!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "产品功能删除失败!", "产品功能删除失败!");
         }
         //返回删除产品缓存的id
         String errProductId = null;
@@ -127,7 +127,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
         if (CollectionUtils.isEmpty(fetch)) {
             functionService.delete(functionId);
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "产品功能删除成功!", errProductId);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "产品功能删除成功!", errProductId);
     }
 
 
@@ -136,12 +136,12 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
     @PostMapping("/saveAndUpdateProduct")
     public ResultDto<String> saveAndUpdateProduct(@RequestBody ProductDto dto) {
         if (dto == null) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
         }
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         String id = dto.getId();
         TProduct tp = this.getObjByProductName(dto.getProductName());
@@ -151,7 +151,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
 
         boolean existence = isExistence(id, productId, functionId);
         if (existence) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "产品和功能关系已存在!", "产品和功能关系已存在!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "产品和功能关系已存在!", "产品和功能关系已存在!");
         }
         //新增编辑标识 1新增 2编辑
         String addOrUpdate = dto.getAddOrUpdate();
@@ -161,14 +161,14 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
         if (Constant.Operation.UPDATE.equals(addOrUpdate)) {
             return updateProduct(dto, loginUserName);
         }
-        return new ResultDto(Constant.ResultCode.ERROR_CODE, "addOrUpdate参数有误!", null);
+        return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "addOrUpdate参数有误!", null);
     }
 
     /** 新增产品 */
     private ResultDto saveProduct(ProductDto dto, String loginUserName) {
         String productName = dto.getProductName();
         if (StringUtils.isBlank(productName)) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "产品名称未填!", dto);
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "产品名称未填!", dto);
         }
         String functionId = dto.getFunctionId();
         String functionName = dto.getFunctionName();
@@ -179,7 +179,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
         if (tp != null && tf != null) {
             TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(tp.getId(), tf.getId());
             if (tpfl != null) {
-                return new ResultDto(Constant.ResultCode.ERROR_CODE, "该产品功能已有关联!", "该产品功能已有关联!");
+                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该产品功能已有关联!", "该产品功能已有关联!");
             }
         }
 
@@ -224,7 +224,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
             tpfl.setCreatedBy(loginUserName);
             productFunctionLinkService.post(tpfl);
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"新增产品功能关联成功", null);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"新增产品功能关联成功", null);
     }
 
     /** 编辑产品 */
@@ -278,12 +278,12 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
             functionId = tf.getId();
             TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunctionByNoId(productId, functionId, id);
             if (tpfl != null) {
-                return new ResultDto(Constant.ResultCode.ERROR_CODE, "该产品与功能已有关联!",tpfl);
+                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该产品与功能已有关联!",tpfl);
             }
         }
         //更新产品与功能关联
         productFunctionLinkService.updateObjById(id, productId, functionId, loginUserName);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"编辑产品功能关联成功", errProductId);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"编辑产品功能关联成功", errProductId);
     }
 
 
@@ -313,7 +313,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
             .orderBy(qTFunction.createdTime.desc()).fetch();
             product.setFunctions(functions);
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"选择产品下拉及其功能获取成功!", products);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"选择产品下拉及其功能获取成功!", products);
     }
 
 
@@ -343,7 +343,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
                 .groupBy(qTFunction.functionName)
                 .orderBy(qTFunction.createdTime.desc()).fetch();
         map.put("functions", functions);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"选择产品下拉及所有功能获取成功!", map);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"选择产品下拉及所有功能获取成功!", map);
     }
 
 
@@ -360,7 +360,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
             ).from(qTFunction)
                 .leftJoin(qTProductFunctionLink).on(qTProductFunctionLink.functionId.eq(qTFunction.id))
                 .where(qTProductFunctionLink.productId.eq(productId)).fetch();
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"根据产品获取功能成功", functions);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"根据产品获取功能成功", functions);
     }
 
 
@@ -395,7 +395,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
             tp.setFunctions(functions);
             rtnList.add(tp);
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"选择产品下拉及其功能获取成功!", rtnList);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"选择产品下拉及其功能获取成功!", rtnList);
     }
 
 

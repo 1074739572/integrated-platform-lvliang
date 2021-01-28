@@ -92,7 +92,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
         }
         return businessInterfaceService.updateMockStatus(id, mockStatus, loginUserName);
     }
@@ -105,17 +105,17 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
         }
         return businessInterfaceService.updateStatus(id, status, loginUserName);
     }
 
     @ApiOperation(value = "获取mock模板", notes = "获取mock模板")
     @GetMapping("/getMockTemplate")
-    public ResultDto<List<TInterfaceType>> getMockTemplate(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
+    public ResultDto<List<MockTemplateDto>> getMockTemplate(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
         List<TBusinessInterface> interfaces = businessInterfaceService.busInterfaces(id);
         if(CollectionUtils.isEmpty(interfaces)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据id没有找到接口配置", null);
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据id没有找到接口配置");
         }
         List<MockTemplateDto> dtoList = new ArrayList<>();
         for(TBusinessInterface businessInterface : interfaces){
@@ -130,7 +130,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             );
             dtoList.add(dto);
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取mock模板成功!", dtoList);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取mock模板成功!", dtoList);
     }
 
     @ApiOperation(value = "保存mock模板", notes = "保存mock模板")
@@ -140,10 +140,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
         }
         if(CollectionUtils.isEmpty(dtoList)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到mock模板!", "没有获取到mock模板!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到mock模板!");
         }
         //返回缓存操作数据
         String rtnStr = "";
@@ -151,19 +151,19 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             //校验参数是否完整
             ValidationResult validationResult = validatorHelper.validate(dto);
             if (validationResult.isHasErrors()) {
-                return new ResultDto(Constant.ResultCode.ERROR_CODE, validationResult.getErrorMsg(), validationResult.getErrorMsg());
+                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, validationResult.getErrorMsg(), validationResult.getErrorMsg());
             }
             //校验mock模板格式是否正确
             PlatformUtil.strIsJsonOrXml(dto.getMockTemplate());
             long lon = businessInterfaceService.saveMockTemplate(dto.getId(),
                     dto.getMockTemplate(), dto.getMockIsUse(), loginUserName);
             if(lon <= 0){
-                return new ResultDto(Constant.ResultCode.ERROR_CODE, "保存mock模板失败!", "保存mock模板失败!");
+                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "保存mock模板失败!");
             }
             rtnStr += dto.getId() + ",";
         }
         rtnStr = StringUtils.isBlank(rtnStr)?null:rtnStr.substring(0,rtnStr.length()-1);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "保存mock模板成功!", rtnStr);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存mock模板成功!", rtnStr);
     }
 
     @ApiOperation(value = "获取接口调试显示数据", notes = "获取接口调试显示数据")
@@ -189,7 +189,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                     .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
                     .where(qTBusinessInterface.id.eq(id)).fetchFirst();
             if(businessInterface == null || StringUtils.isEmpty(businessInterface.getId())){
-                return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "没有查询到接口配置信息");
+                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有查询到接口配置信");
             }
             //获取入参列表
             String interfaceId = StringUtils.isNotEmpty(businessInterface.getInterfaceId())?businessInterface.getInterfaceId():"";
@@ -210,11 +210,11 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             resDto.setProjectcode(businessInterface.getProjectCode());
             resDto.setInParams(paramNames);
             resDto.setOrgids(hospitals);
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取接口调试显示数据成功!", resDto);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取接口调试显示数据成功!", resDto);
         } catch (Exception e) {
             logger.error("获取接口调试显示数据失败! MSG:{}", ExceptionUtil.dealException(e));
             e.printStackTrace();
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "获取接口调试显示数据失败!", ExceptionUtil.dealException(e));
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取接口调试显示数据失败!");
         }
     }
 
@@ -223,9 +223,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     public ResultDto<String> interfaceDebug(String format){
         String result = niFiRequestUtil.interfaceDebug(format);
         if(StringUtils.isBlank(result)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE,"接口调试失败");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE,"接口调试失败");
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", result);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "", result);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -236,11 +236,11 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             //校验该接口是否有产品关联
             TBusinessInterface tbi = businessInterfaceService.getProductIdByInterfaceId(id);
             if (tbi != null && StringUtils.isNotBlank(tbi.getId())) {
-                return new ResultDto(Constant.ResultCode.ERROR_CODE, "该标准接口已有产品关联,无法删除!", "该标准接口已有产品关联,无法删除!");
+                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该标准接口已有产品关联,无法删除!");
             }
             List<TBusinessInterface> list = businessInterfaceService.getListByInterfaceId(id);
             if (CollectionUtils.isNotEmpty(list)) {
-                return new ResultDto(Constant.ResultCode.ERROR_CODE, "该标准接口已有接口配置关联,无法删除!", "该标准接口已有接口配置关联,无法删除!");
+                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该标准接口已有接口配置关联,无法删除!");
             }
             //删除接口
             this.delete(id);
@@ -249,9 +249,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         } catch (Exception e) {
             logger.error("厂商删除失败! MSG:{}", ExceptionUtil.dealException(e));
             e.printStackTrace();
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "标准接口删除失败!", ExceptionUtil.dealException(e));
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "标准接口删除失败!");
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "标准接口删除成功!", id);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准接口删除成功!", id);
     }
 
 
@@ -260,16 +260,16 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @PostMapping("/saveAndUpdateInterface")
     public ResultDto<String> saveAndUpdateInterface(@RequestBody InterfaceDto dto) {
         if (dto == null) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
         }
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         String interfaceName = dto.getInterfaceName();
         if (StringUtils.isBlank(interfaceName)) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "接口名为空!", "接口名为空!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "接口名为空!", "接口名为空!");
         }
         String id = dto.getId();
         if (StringUtils.isBlank(id)) {
@@ -282,12 +282,12 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     private ResultDto saveInterface(InterfaceDto dto, String loginUserName) {
         String interfaceName = dto.getInterfaceName();
         if (null != this.getInterfaceByName(interfaceName)) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该接口名已存在!", "该接口名已存在!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该接口名已存在!", "该接口名已存在!");
         }
         //出参
         List<TInterfaceParam> outParamList = dto.getOutParamList();
         if (CollectionUtils.isEmpty(outParamList)) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "出参不能为空!", "出参不能为空!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "出参不能为空!", "出参不能为空!");
         }
 
         //校验出入参格式字符串是否为json或者xml
@@ -363,7 +363,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         }
         //新增标准接口
         this.post(ti);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "标准接口新增成功!", null);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准接口新增成功!", null);
     }
 
     /** 修改标准接口 */
@@ -371,7 +371,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         String id = dto.getId();
         TInterface tf = this.getOne(id);
         if (tf == null) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据传入id未查出对应标准接口,检查是否传入错误!", "根据传入id未查出对应标准接口,检查是否传入错误!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据传入id未查出对应标准接口,检查是否传入错误!", "根据传入id未查出对应标准接口,检查是否传入错误!");
         }
         //传入标准接口名
         String interfaceName = dto.getInterfaceName();
@@ -380,12 +380,12 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 .where(qTInterface.interfaceName.eq(interfaceName).and(qTInterface.id.notEqualsIgnoreCase(id)))
                 .fetchOne();
         if (tf != null) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该接口名已存在!", "该接口名已存在!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该接口名已存在!", "该接口名已存在!");
         }
         //出参
         List<TInterfaceParam> outParamList = dto.getOutParamList();
         if (CollectionUtils.isEmpty(outParamList)) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "出参不能为空!", "出参不能为空!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "出参不能为空!", "出参不能为空!");
         }
 
         String interfaceTypeId = dto.getTypeId();
@@ -411,7 +411,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                     .set(qTInterface.updatedBy, loginUserName)
                     .where(qTInterface.id.eq(id)).execute();
         if (execute < 1) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "修改标准接口信息失败!", "修改标准接口信息失败!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "修改标准接口信息失败!", "修改标准接口信息失败!");
         }
         //替换产品与接口关联
         productInterfaceLinkService.deleteProductInterfaceLinkById(id);
@@ -468,7 +468,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                         .where(qTInterface.id.eq(id)).execute();
             }
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "标准接口修改成功!", id);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准接口修改成功!", id);
     }
 
 
@@ -483,7 +483,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                         qTInterfaceType.interfaceTypeName
                 )
         ).from(qTInterfaceType).orderBy(qTInterfaceType.createdTime.desc()).fetch();
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", vendors);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", vendors);
     }
 
 
@@ -530,7 +530,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                     .fetchResults();
         //分页
         TableData<TInterface> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"标准接口列表获取成功!", tableData);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"标准接口列表获取成功!", tableData);
     }
 
 
@@ -570,7 +570,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         }
         //分页
         TableData<TBusinessInterface> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"获取接口配置列表获取成功", tableData);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"获取接口配置列表获取成功", tableData);
     }
 
 
@@ -613,7 +613,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
         dto.setBusinessInterfaceList(tbiList);
 
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"获取接口配置详情成功", dto);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"获取接口配置详情成功", dto);
     }
 
 
@@ -622,12 +622,12 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @PostMapping("/saveAndUpdateInterfaceConfig")
     public ResultDto<String> saveAndUpdateInterfaceConfig(@RequestBody BusinessInterfaceDto dto) {
         if (dto == null) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "请求参数不能为空!", null);
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求参数不能为空!");
         }
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", null);
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
         }
         List<TBusinessInterface> tbiList = dto.getBusinessInterfaceList();
         if (Constant.Operation.ADD.equals(dto.getAddOrUpdate())) {
@@ -636,7 +636,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         if (Constant.Operation.UPDATE.equals(dto.getAddOrUpdate())) {
             return this.updateInterfaceConfig(dto, loginUserName);
         }
-        return new ResultDto(Constant.ResultCode.ERROR_CODE, "addOrUpdate 新增编辑标识不正确!", null);
+        return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "addOrUpdate 新增编辑标识不正确!", null);
     }
 
     /**
@@ -670,7 +670,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         //根据条件判断是否存在该数据
         List<TBusinessInterface> tbiList = businessInterfaceService.getBusinessInterfaceIsExist(thvlList, dto.getProjectId(), dto.getProductId(), dto.getInterfaceId());
         if (CollectionUtils.isNotEmpty(tbiList)) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据项目id,产品id,标准接口id匹配到该条件数据已存在!", null);
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据项目id,产品id,标准接口id匹配到该条件数据已存在!", null);
         }
 
         tbiList = dto.getBusinessInterfaceList();
@@ -691,7 +691,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             //新增接口配置
             businessInterfaceService.post(tbi);
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "新增接口配置成功", null);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "新增接口配置成功", null);
     }
 
     /**
@@ -702,7 +702,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
      */
     private ResultDto updateInterfaceConfig(BusinessInterfaceDto dto, String loginUserName) {
         if (StringUtils.isBlank(dto.getPlatformId()) || StringUtils.isBlank(dto.getVendorId())) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "平台id或厂商id不能为空!", null);
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "平台id或厂商id不能为空!", null);
         }
         //获取厂商配置
         TVendorConfig tvc = vendorConfigService.getObjByPlatformAndVendor(dto.getPlatformId(), dto.getVendorId());
@@ -754,7 +754,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             }
         }
         rtnId = StringUtils.isBlank(rtnId)?null:rtnId.substring(0, rtnId.length()-1);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "编辑接口配置成功", rtnId);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "编辑接口配置成功", rtnId);
     }
 
 
@@ -764,9 +764,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                              @RequestParam(value = "joltType", defaultValue = "request", required = false) String joltType){
         String contentType = Constant.ParamFormatType.getByType(content);
         if(StringUtils.isBlank(contentType) || Constant.ParamFormatType.NONE.getType().equals(contentType)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "参数类型无效!", "参数类型无效!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "参数类型无效!", "参数类型无效!");
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "jolt获取成功!", niFiRequestUtil.generateJolt(paramFormat, contentType, joltType));
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "jolt获取成功!", niFiRequestUtil.generateJolt(paramFormat, contentType, joltType));
     }
 
 
@@ -776,14 +776,14 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             @ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
         TBusinessInterface tbi = businessInterfaceService.getOne(id);
         if (tbi == null) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该接口id查询不到接口配置信息!", "该接口id查询不到接口配置信息!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该接口id查询不到接口配置信息!", "该接口id查询不到接口配置信息!");
         }
         List<TBusinessInterface> list = businessInterfaceService.getListByCondition(tbi.getProductFunctionLinkId(), tbi.getInterfaceId(), tbi.getVendorConfigId());
         //删除相同条件接口配置
         long count = businessInterfaceService.delObjByCondition(
                 tbi.getProductFunctionLinkId(), tbi.getInterfaceId(), tbi.getVendorConfigId());
         if(count <= 0){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "接口配置删除失败!", "接口配置删除失败!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "接口配置删除失败!", "接口配置删除失败!");
         }
         //获取返回缓存id
         String rtnStr = "";
@@ -793,7 +793,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             }
         }
         rtnStr = StringUtils.isBlank(rtnStr)?null:rtnStr.substring(0,rtnStr.length()-1);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "接口配置删除成功!共删除"+count+"条数据", rtnStr);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "接口配置删除成功!共删除"+count+"条数据", rtnStr);
     }
 
 
@@ -802,13 +802,13 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     public ResultDto<String> deleteBusinessInterfaceById(@ApiParam(value = "接口配置id") @RequestParam(value = "id", required = true) String id) {
         TBusinessInterface tbi = businessInterfaceService.getOne(id);
         if (tbi == null) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据id未查出该接口配置信息!", id);
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据id未查出该接口配置信息!", id);
         }
         long count = businessInterfaceService.delete(id);
         if (count < 1) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据id删除该接口配置信息失败!", id);
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据id删除该接口配置信息失败!", id);
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "单个接口配置信息删除成功!", id);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "单个接口配置信息删除成功!", id);
     }
 
 
@@ -817,7 +817,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     public ResultDto<InterfaceDto> getInterfaceInfoById(@ApiParam(value = "标准接口id") @RequestParam(value = "id", required = true) String id) {
         TInterface ti = this.getOne(id);
         if (ti == null) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据id未查出该标准接口!", id);
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据id未查出该标准接口!");
         }
         try {
             InterfaceDto iDto = new InterfaceDto();
@@ -866,11 +866,11 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             }
             iDto.setInParamList(inParamList);
             iDto.setOutParamList(outParamList);
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取标准接口详情成功!", iDto);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取标准接口详情成功!", iDto);
         } catch (Exception e) {
             logger.error("获取标准接口详情失败! MSG:{}", ExceptionUtil.dealException(e));
             e.printStackTrace();
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "获取标准接口详情失败!", ExceptionUtil.dealException(e));
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取标准接口详情失败!");
         }
     }
 
@@ -887,12 +887,12 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                     .leftJoin(qTProjectProductLink).on(qTProjectProductLink.productFunctionLinkId.eq(qTBusinessInterface.productFunctionLinkId))
                     .where(qTProjectProductLink.projectId.eq(projectId))
                     .orderBy(qTInterface.createdTime.desc()).fetch();
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", interfaces);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", interfaces);
         }
         //获取所有接口
         interfaces = sqlQueryFactory.select(qTInterface).from(qTInterface).orderBy(qTInterface.createdTime.desc()).fetch();
         if (StringUtils.isBlank(projectId)) {
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", interfaces);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", interfaces);
         }
         //返回当前项目下的接口
         List<TInterface> tiList = sqlQueryFactory.select(qTInterface).from(qTInterface)
@@ -902,7 +902,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                     .orderBy(qTInterface.createdTime.desc()).fetch();
         //去除当前项目下的接口
         interfaces.removeAll(tiList);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", interfaces);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", interfaces);
     }
 
 
@@ -910,9 +910,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @PostMapping("/jsonFormat")
     public ResultDto<List<ParamsDto>> jsonFormat(String paramJson){
         if(StringUtils.isBlank(paramJson)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "参数为空", "参数为空");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "参数为空");
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"", PlatformUtil.jsonFormat(paramJson));
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"", PlatformUtil.jsonFormat(paramJson));
     }
 
 
@@ -926,7 +926,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         List<TInterface> interfaces = sqlQueryFactory.select(qTInterface).from(qTInterface)
                 .leftJoin(qTProductInterfaceLink).on(qTProductInterfaceLink.interfaceId.eq(qTInterface.id))
                 .where(list.toArray(new Predicate[list.size()])).fetch();
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"根据产品获取功能成功", interfaces);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"根据产品获取功能成功", interfaces);
     }
 
     /**

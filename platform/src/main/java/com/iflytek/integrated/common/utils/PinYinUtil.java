@@ -66,7 +66,7 @@ public class PinYinUtil {
                 pybf.append(arr[i]);
             }
         }
-        return pybf.toString().replaceAll("\\W", "").trim();
+        return pybf.toString().replaceAll("\\W", "").trim().toLowerCase();
     }
 
 }

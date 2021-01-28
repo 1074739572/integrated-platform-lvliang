@@ -57,14 +57,14 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface,Str
             .where(qTBusinessInterface.id.in(idList)).execute();
         //判断编辑是否成功
         if(idList.size() != size){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         String rtnStr = "";
         for (String idStr : idList) {
             rtnStr += idStr + ",";
         }
         rtnStr = StringUtils.isBlank(rtnStr)?"":rtnStr.substring(0, rtnStr.length()-1);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "更改mock状态成功!", rtnStr);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "更改mock状态成功!", rtnStr);
     }
 
     /**
@@ -83,14 +83,14 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface,Str
             .where(qTBusinessInterface.id.in(idList)).execute();
         //判断编辑是否成功
         if(idList.size() != size){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "启停用状态编辑失败!", "启停用状态编辑失败!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "启停用状态编辑失败!", "启停用状态编辑失败!");
         }
         String rtnStr = "";
         for (String idStr : idList) {
             rtnStr += idStr + ",";
         }
         rtnStr = StringUtils.isBlank(rtnStr)?"":rtnStr.substring(0, rtnStr.length()-1);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "更改接口配置状态成功!", rtnStr);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "更改接口配置状态成功!", rtnStr);
     }
 
 

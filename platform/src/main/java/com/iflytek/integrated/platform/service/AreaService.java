@@ -85,7 +85,7 @@ public class AreaService extends BaseService<TArea, String, StringPath> {
         }
 
         List<AreaDto> areaDtoList = JackSonUtils.jsonToTransferList(provinceList,AreaDto.class);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", areaDtoList);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "", areaDtoList);
     }
 
 

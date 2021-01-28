@@ -40,7 +40,7 @@ public class AnonymousService {
             //获取mock
             TBusinessInterface businessInterface = businessInterfaceService.getOne(id);
             if(businessInterface == null || StringUtils.isEmpty(businessInterface.getId())){
-                return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "没有找到接口配置");
+                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "", "没有找到接口配置");
             }
             //获取参数类型
             String type = Constant.ParamFormatType.getByType(businessInterface.getOutParamFormatType());
@@ -53,13 +53,13 @@ public class AnonymousService {
 
             //如果无需模拟
             if(businessInterface.getMockIsUse() == 0){
-                return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", template);
+                return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "", template);
             }
             //根据模板类型处理
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", resultMock(template, type));
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "", resultMock(template, type));
         }catch (Exception e){
             logger.error(e.getMessage());
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "获取mock数值错误："+e.getMessage());
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "");
         }
     }
 
@@ -68,7 +68,7 @@ public class AnonymousService {
     public ResultDto<String> mock(
             @ApiParam(value = "mock模板", name = "mock" , required = true) @RequestBody String mock) {
         String type = PlatformUtil.strIsJsonOrXml(mock);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", resultMock(mock, type));
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "", resultMock(mock, type));
     }
 
     @ApiIgnore
@@ -76,9 +76,9 @@ public class AnonymousService {
     public ResultDto<String> encrypt(
             @ApiParam(value = "明文", name = "content" , required = true) @RequestParam String content){
         try {
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", AesUtil.encrypt(content));
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "", AesUtil.encrypt(content));
         }catch (Exception e){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "加密失败");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "", "加密失败");
         }
     }
 
@@ -87,9 +87,9 @@ public class AnonymousService {
     public ResultDto<String> decrypt(
             @ApiParam(value = "密文", name = "content" , required = true) @RequestParam String content){
         try {
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", AesUtil.decrypt(content));
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "", AesUtil.decrypt(content));
         }catch (Exception e){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", "解密失败");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "", "解密失败");
         }
     }
 

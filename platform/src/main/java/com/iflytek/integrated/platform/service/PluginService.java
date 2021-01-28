@@ -84,7 +84,7 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
             jsonObj.put("children", arr);
             rtnArr.add(jsonObj);
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"选择插件下拉数据获取成功", rtnArr);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"选择插件下拉数据获取成功", rtnArr);
     }
 
 
@@ -126,10 +126,10 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
                     .fetchResults();
             //分页
             TableData<TPlugin> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取插件管理列表成功", tableData);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取插件管理列表成功", tableData);
         }catch (Exception e){
             logger.error("获取插件管理列表失败! MSG:{}", ExceptionUtil.dealException(e));
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "获取插件管理列表失败", ExceptionUtil.dealException(e));
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取插件管理列表失败");
         }
     }
 
@@ -139,24 +139,24 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
     @PostMapping("/delPluginById")
     public ResultDto<String> delPluginById(@ApiParam(value = "插件id") @RequestParam(value = "id", required = true) String id){
         if(StringUtils.isEmpty(id)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "id不能为空", "id不能为空");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "id不能为空", "id不能为空");
         }
         //查看插件是否存在
         TPlugin plugin = sqlQueryFactory.select(qTPlugin).from(qTPlugin).where(qTPlugin.id.eq(id)).fetchFirst();
         if(plugin == null || StringUtils.isEmpty(plugin.getId())){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有找到该插件,删除失败!", "没有找到该插件,删除失败!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有找到该插件,删除失败!");
         }
         //删除插件前校验是否有接口配置相关联
         List<TBusinessInterface> tbiList = businessInterfaceService.getListByPluginId(id);
         if (CollectionUtils.isNotEmpty(tbiList)) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该插件有接口配置相关联,无法删除!", "该插件有接口配置相关联,无法删除!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该插件有接口配置相关联,无法删除!", "该插件有接口配置相关联,无法删除!");
         }
         //删除插件
         Long lon = sqlQueryFactory.delete(qTPlugin).where(qTPlugin.id.eq(plugin.getId())).execute();
         if(lon <= 0){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "插件删除失败!", "插件删除失败!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "插件删除失败!", "插件删除失败!");
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "插件删除成功", id);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "插件删除成功", id);
     }
 
 
@@ -165,23 +165,23 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
     @PostMapping("/saveAndUpdatePlugin")
     public ResultDto<String> saveAndUpdatePlugin(@RequestBody TPlugin plugin){
         if (plugin == null) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
         }
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(plugin);
         if (validationResult.isHasErrors()) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "参数校验不通过", validationResult.getErrorMsg());
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "参数校验不通过", validationResult.getErrorMsg());
         }
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         //校验是否存在重复插件
         Map<String, Object> isExist = this.isExistence(plugin.getId(),plugin.getPluginName(),plugin.getPluginContent());
         boolean bool = (boolean) isExist.get("isExist");
         if (bool) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, isExist.get("message")+"", isExist.get("message"));
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, isExist.get("message")+"");
         }
         if(StringUtils.isEmpty(plugin.getId())){
             //新增插件
@@ -189,16 +189,16 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
             plugin.setCreatedTime(new Date());
             plugin.setCreatedBy(loginUserName);
             this.post(plugin);
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"插件新增成功", null);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"插件新增成功", null);
         }
         //编辑插件
         plugin.setUpdatedTime(new Date());
         plugin.setUpdatedBy(loginUserName);
-        Long lon = this.put(plugin.getId(), plugin);
+        long lon = this.put(plugin.getId(), plugin);
         if(lon <= 0){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "插件编辑失败!", "插件编辑失败!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "插件编辑失败!", "插件编辑失败!");
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"插件编辑成功!", plugin.getId());
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"插件编辑成功!", plugin.getId());
     }
 
     /**

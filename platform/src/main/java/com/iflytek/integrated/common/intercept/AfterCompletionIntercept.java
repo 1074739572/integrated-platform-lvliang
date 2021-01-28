@@ -1,11 +1,9 @@
 package com.iflytek.integrated.common.intercept;
 
-import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.platform.common.RedisService;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -49,24 +47,19 @@ public class AfterCompletionIntercept extends HandlerInterceptorAdapter {
         return super.preHandle(request, response, handler);
     }
 
-        /**
-         * 业务处理器请求处理完成之后执行方法
-         * @param request
-         * @param response
-         * @param handler
-         * @throws Exception
-         */
+    /**
+     * 业务处理器请求处理完成之后执行方法
+     * @param request
+     * @param response
+     * @param handler
+     * @throws Exception
+     */
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
         //获取返回结果
         ResultDto result = resultDto;
-        if(result != null) {
-            if(Constant.ResultCode.SUCCESS_CODE == result.getCode() && result.getData() != null) {
-                String ids = result.getData().toString();
-                if(StringUtils.isNotBlank(ids)) {
-                    redisService.delRedisKey(ids, key);
-                }
-            }
+        if(result.getData() != null){
+            redisService.delRedisKey(result.getCode(),result.getData().toString(), key);
         }
     }
 
@@ -86,7 +79,7 @@ public class AfterCompletionIntercept extends HandlerInterceptorAdapter {
         }
         //如果有保存返回，清空返回
         if(resultDto != null){
-            resultDto = new ResultDto();
+            resultDto = null;
         }
     }
 

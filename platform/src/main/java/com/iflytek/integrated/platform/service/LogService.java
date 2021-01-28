@@ -121,10 +121,10 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
                     .fetchResults();
             //分页
             TableData<InterfaceMonitorDto> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", tableData);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "", tableData);
         }catch (Exception e){
             logger.error("查看服务监控列表失败! MSG:{}", ExceptionUtil.dealException(e));
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "服务监控列表获取成功!", ExceptionUtil.dealException(e));
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "服务监控列表获取成功!");
         }
     }
 
@@ -137,7 +137,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
         //查询条件
         ArrayList<Predicate> list = new ArrayList<>();
         if(StringUtils.isEmpty(interfaceMonitorId)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE,"","获取日志详细列表，id必传");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE,"获取日志详细列表，id必传");
         }
         list.add(qTInterfaceMonitor.id.eq(Long.valueOf(interfaceMonitorId)));
         if(StringUtils.isNotBlank(status)){
@@ -178,7 +178,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
             tLog.setVenderReq(decryptAndFilterSensitive(tLog.getVenderReq()));
         });
         TableData<TLog> tableData = new TableData<>(queryResults.getTotal(), logList);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "日志详细列表获取成功!",tableData);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志详细列表获取成功!",tableData);
     }
 
     /**
