@@ -6,12 +6,11 @@ import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
-import com.iflytek.integrated.common.utils.RedisUtil;
 import com.iflytek.integrated.platform.dto.FunctionDto;
 import com.iflytek.integrated.platform.dto.ProductDto;
 import com.iflytek.integrated.platform.dto.ProjectDto;
 import com.iflytek.integrated.platform.entity.*;
-import com.iflytek.integrated.platform.utils.Utils;
+import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
@@ -61,8 +60,6 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
     private BusinessInterfaceService businessInterfaceService;
     @Autowired
     private BatchUidService batchUidService;
-    @Autowired
-    private Utils utils;
 
     private static final Logger logger = LoggerFactory.getLogger(ProjectService.class);
 
@@ -87,7 +84,7 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
             list.add(qTProject.projectStatus.eq(projectStatus));
         }
         if (StringUtils.isNotBlank(projectName)) {
-            list.add(qTProject.projectName.like(Utils.createFuzzyText(projectName)));
+            list.add(qTProject.projectName.like(PlatformUtil.createFuzzyText(projectName)));
         }
         QueryResults<TProject> queryResults = sqlQueryFactory.select(qTProject).from(qTProject)
                 .where(list.toArray(new Predicate[list.size()]))
@@ -133,7 +130,7 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
         TProject project = new TProject();
         project.setId(projectId);
         project.setProjectName(projectName);
-        project.setProjectCode(utils.generateCode(qTProject, qTProject.projectCode, projectName));
+        project.setProjectCode(generateCode(qTProject.projectCode, projectName));
         project.setProjectStatus(Constant.Status.START);
         project.setProjectType(dto.getProjectType());
         project.setCreatedTime(new Date());

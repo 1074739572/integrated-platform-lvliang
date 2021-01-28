@@ -7,8 +7,8 @@ import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.dto.JoltDebuggerDto;
-import com.iflytek.integrated.platform.utils.ToolsGenerate;
-import com.iflytek.integrated.platform.utils.Utils;
+import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
+import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.integrated.platform.dto.VendorConfigDto;
 import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.integrated.common.validator.ValidationResult;
@@ -64,11 +64,9 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
     @Autowired
     private BatchUidService batchUidService;
     @Autowired
-    private Utils utils;
-    @Autowired
     private ValidatorHelper validatorHelper;
     @Autowired
-    private ToolsGenerate toolsGenerate;
+    private NiFiRequestUtil niFiRequestUtil;
 
     private static final Logger logger = LoggerFactory.getLogger(VendorService.class);
 
@@ -103,7 +101,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
         String vendorId = batchUidService.getUid(qTVendor.getTableName()) + "";
         TVendor tv = new TVendor();
         tv.setId(vendorId);
-        tv.setVendorCode(utils.generateCode(qTVendor, qTVendor.vendorCode, vendorName));
+        tv.setVendorCode(generateCode(qTVendor.vendorCode, vendorName));
         tv.setVendorName(vendorName);
         tv.setCreatedTime(new Date());
         tv.setCreatedBy(loginUserName);
@@ -184,7 +182,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
             @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
         ArrayList<Predicate> list = new ArrayList<>();
         if (StringUtils.isNotBlank(vendorName)) {
-            list.add(qTVendor.vendorName.like(Utils.createFuzzyText(vendorName)));
+            list.add(qTVendor.vendorName.like(PlatformUtil.createFuzzyText(vendorName)));
         }
         QueryResults<TVendor> queryResults = sqlQueryFactory.select(qTVendor).from(qTVendor)
                 .where(list.toArray(new Predicate[list.size()]))
@@ -363,7 +361,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
         if (validationResult.isHasErrors()) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "", validationResult.getErrorMsg());
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"", toolsGenerate.joltDebugger(dto));
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"", niFiRequestUtil.joltDebugger(dto));
     }
 
 

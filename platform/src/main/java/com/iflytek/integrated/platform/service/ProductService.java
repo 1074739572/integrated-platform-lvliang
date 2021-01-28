@@ -8,7 +8,7 @@ import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.ProductDto;
 import com.iflytek.integrated.platform.entity.*;
-import com.iflytek.integrated.platform.utils.Utils;
+import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
@@ -61,8 +61,6 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
     private BusinessInterfaceService businessInterfaceService;
     @Autowired
     private BatchUidService batchUidService;
-    @Autowired
-    private Utils utils;
 
 
     @ApiOperation(value = "产品功能列表")
@@ -197,7 +195,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
             productId = batchUidService.getUid(qTProduct.getTableName()) + "";
             tp = new TProduct();
             tp.setId(productId);
-            tp.setProductCode(utils.generateCode(qTProduct, qTProduct.productCode, productName));
+            tp.setProductCode(generateCode(qTProduct.productCode, productName));
             tp.setProductName(productName);
             tp.setIsValid(Constant.IsValid.ON);
             tp.setCreatedTime(new Date());
@@ -210,7 +208,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
             functionId = batchUidService.getUid(qTFunction.getTableName()) + "";
             tf = new TFunction();
             tf.setId(functionId);
-            tf.setFunctionCode(utils.generateCode(qTFunction, qTFunction.functionCode, functionName));
+            tf.setFunctionCode(generateCode(qTFunction.functionCode, functionName));
             tf.setFunctionName(functionName);
             tf.setCreatedBy(loginUserName);
             tf.setCreatedTime(new Date());
@@ -245,7 +243,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
             productId = batchUidService.getUid(qTProduct.getTableName()) + "";
             tp = new TProduct();
             tp.setId(productId);
-            tp.setProductCode(utils.generateCode(qTProduct, qTProduct.productCode, productName));
+            tp.setProductCode(generateCode(qTProduct.productCode, productName));
             tp.setProductName(productName);
             tp.setIsValid(Constant.IsValid.ON);
             tp.setCreatedTime(new Date());
@@ -286,7 +284,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
             functionId = batchUidService.getUid(qTFunction.getTableName()) + "";
             tf = new TFunction();
             tf.setId(functionId);
-            tf.setFunctionCode(utils.generateCode(qTFunction, qTFunction.functionCode, functionName));
+            tf.setFunctionCode(generateCode(qTFunction.functionCode, functionName));
             tf.setFunctionName(functionName);
             tf.setCreatedTime(new Date());
             tf.setCreatedBy(loginUserName);

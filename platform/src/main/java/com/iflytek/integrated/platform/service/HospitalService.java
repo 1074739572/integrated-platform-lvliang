@@ -4,11 +4,10 @@ import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
-import com.iflytek.integrated.common.utils.RedisUtil;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.entity.THospitalVendorLink;
-import com.iflytek.integrated.platform.utils.Utils;
+import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.integrated.platform.entity.THospital;
 import com.iflytek.integrated.common.validator.ValidationResult;
 import com.iflytek.integrated.common.validator.ValidatorHelper;
@@ -76,7 +75,7 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
             }
 
             if(StringUtils.isNotEmpty(hospitalName)){
-                list.add(qTHospital.hospitalName.like(Utils.createFuzzyText(hospitalName)));
+                list.add(qTHospital.hospitalName.like(PlatformUtil.createFuzzyText(hospitalName)));
             }
             //根据查询条件获取医院列表
             QueryResults<THospital> queryResults = sqlQueryFactory.select(

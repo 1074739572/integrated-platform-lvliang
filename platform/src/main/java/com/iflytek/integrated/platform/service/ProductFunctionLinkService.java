@@ -3,7 +3,7 @@ package com.iflytek.integrated.platform.service;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.entity.TProductFunctionLink;
-import com.iflytek.integrated.platform.utils.Utils;
+import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
@@ -85,7 +85,7 @@ public class ProductFunctionLinkService extends BaseService<TProductFunctionLink
             list.add(qTProduct.productCode.eq(productCode));
         }
         if(StringUtils.isNotEmpty(productName)){
-            list.add(qTProduct.productName.like(Utils.createFuzzyText(productName)));
+            list.add(qTProduct.productName.like(PlatformUtil.createFuzzyText(productName)));
         }
         QueryResults<TProductFunctionLink> queryResults = sqlQueryFactory.select(Projections.bean(TProductFunctionLink.class,
                     qTProductFunctionLink.id, qTProductFunctionLink.productId, qTProductFunctionLink.functionId, qTProductFunctionLink.createdTime,

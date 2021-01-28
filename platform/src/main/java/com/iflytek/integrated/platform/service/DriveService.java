@@ -9,8 +9,8 @@ import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.entity.TType;
 import com.iflytek.integrated.platform.entity.TVendorDriveLink;
-import com.iflytek.integrated.platform.utils.ToolsGenerate;
-import com.iflytek.integrated.platform.utils.Utils;
+import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
+import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.integrated.platform.entity.TDrive;
 import com.iflytek.integrated.common.validator.ValidationResult;
 import com.iflytek.integrated.common.validator.ValidatorHelper;
@@ -59,7 +59,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
     @Autowired
     private ValidatorHelper validatorHelper;
     @Autowired
-    private ToolsGenerate toolsGenerate;
+    private NiFiRequestUtil niFiRequestUtil;
 
     @ApiOperation(value = "获取驱动下拉")
     @GetMapping("/getAllDrive")
@@ -103,7 +103,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
             ArrayList<Predicate> list = new ArrayList<>();
             //判断条件是否为空
             if(StringUtils.isNotEmpty(driveName)) {
-                list.add(qTDrive.driveName.like(Utils.createFuzzyText(driveName)));
+                list.add(qTDrive.driveName.like(PlatformUtil.createFuzzyText(driveName)));
             }
             if(StringUtils.isNotEmpty(typeId)) {
                 list.add(qTDrive.typeId.eq(typeId));
@@ -140,7 +140,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
     @ApiOperation(value = "校验groovy脚本格式是否正确")
     @PostMapping("/groovyValidate")
     public ResultDto<GroovyValidateDto> groovyValidate(String content){
-        GroovyValidateDto result = toolsGenerate.groovyUrl(content);
+        GroovyValidateDto result = niFiRequestUtil.groovyUrl(content);
         if(StringUtils.isNotBlank(result.getValidResult()) && StringUtils.isBlank(result.getError())){
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", result);
         }
@@ -258,7 +258,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
             rtnMap.put("isExist", true);
             rtnMap.put("message", "驱动名称已存在!");
         }
-        GroovyValidateDto result = toolsGenerate.groovyUrl(driveContent);
+        GroovyValidateDto result = niFiRequestUtil.groovyUrl(driveContent);
         if(StringUtils.isNotBlank(result.getError()) || StringUtils.isBlank(result.getValidResult())){
             rtnMap.put("isExist", true);
             rtnMap.put("message", "驱动内容格式错误!");

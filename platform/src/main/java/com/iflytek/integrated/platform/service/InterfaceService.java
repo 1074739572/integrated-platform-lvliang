@@ -7,8 +7,8 @@ import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.dto.*;
-import com.iflytek.integrated.platform.utils.ToolsGenerate;
-import com.iflytek.integrated.platform.utils.Utils;
+import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
+import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.integrated.common.validator.ValidationResult;
 import com.iflytek.integrated.common.validator.ValidatorHelper;
@@ -74,7 +74,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @Autowired
     private BatchUidService batchUidService;
     @Autowired
-    private ToolsGenerate toolsGenerate;
+    private NiFiRequestUtil niFiRequestUtil;
     @Autowired
     private ValidatorHelper validatorHelper;
 
@@ -154,7 +154,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 return new ResultDto(Constant.ResultCode.ERROR_CODE, validationResult.getErrorMsg(), validationResult.getErrorMsg());
             }
             //校验mock模板格式是否正确
-            Utils.strIsJsonOrXml(dto.getMockTemplate());
+            PlatformUtil.strIsJsonOrXml(dto.getMockTemplate());
             long lon = businessInterfaceService.saveMockTemplate(dto.getId(),
                     dto.getMockTemplate(), dto.getMockIsUse(), loginUserName);
             if(lon <= 0){
@@ -221,7 +221,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @PostMapping("/interfaceDebug")
     @ApiOperation(value = "接口调试", notes = "接口调试")
     public ResultDto<String> interfaceDebug(String format){
-        String result = toolsGenerate.interfaceDebug(format);
+        String result = niFiRequestUtil.interfaceDebug(format);
         if(StringUtils.isBlank(result)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE,"接口调试失败");
         }
@@ -296,9 +296,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         //出参格式必填
         String outParamFormat = dto.getOutParamFormat();
         if (StringUtils.isNotBlank(inParamFormat)) {
-            Utils.strIsJsonOrXml(inParamFormat);
+            PlatformUtil.strIsJsonOrXml(inParamFormat);
         }
-        Utils.strIsJsonOrXml(outParamFormat);
+        PlatformUtil.strIsJsonOrXml(outParamFormat);
         //新增标准接口
         String interfaceId = batchUidService.getUid(qTInterface.getTableName()) + "";
         TInterface ti = new TInterface();
@@ -394,9 +394,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         String inParamFormat = dto.getInParamFormat();
         String outParamFormat = dto.getOutParamFormat();
         if (StringUtils.isNotBlank(inParamFormat)) {
-            Utils.strIsJsonOrXml(inParamFormat);
+            PlatformUtil.strIsJsonOrXml(inParamFormat);
         }
-        Utils.strIsJsonOrXml(outParamFormat);
+        PlatformUtil.strIsJsonOrXml(outParamFormat);
 
         //修改标准接口信息
         long execute = sqlQueryFactory.update(qTInterface)
@@ -500,7 +500,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             list.add(qTInterface.typeId.eq(typeId));
         }
         if(StringUtils.isNotEmpty(name)){
-            list.add(qTInterface.interfaceName.like(Utils.createFuzzyText(name)));
+            list.add(qTInterface.interfaceName.like(PlatformUtil.createFuzzyText(name)));
         }
         QueryResults<TInterface> queryResults = sqlQueryFactory.select(
             Projections.bean(
@@ -687,7 +687,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             tbi.setProductFunctionLinkId(productFunctionLinkId);
             tbi.setExcErrOrder(i);
             //获取schema
-            toolsGenerate.generateSchemaToInterface(tbi);
+            niFiRequestUtil.generateSchemaToInterface(tbi);
             //新增接口配置
             businessInterfaceService.post(tbi);
         }
@@ -735,7 +735,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 tbi.setProductFunctionLinkId(productFunctionLinkId);
                 tbi.setExcErrOrder(i);
                 //获取schema
-                toolsGenerate.generateSchemaToInterface(tbi);
+                niFiRequestUtil.generateSchemaToInterface(tbi);
                 //新增接口配置
                 businessInterfaceService.post(tbi);
             }else {
@@ -747,7 +747,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 tbi.setProductFunctionLinkId(productFunctionLinkId);
                 tbi.setExcErrOrder(i);
                 //获取schema
-                toolsGenerate.generateSchemaToInterface(tbi);
+                niFiRequestUtil.generateSchemaToInterface(tbi);
                 //新增接口配置
                 businessInterfaceService.put(tbi.getId(), tbi);
                 rtnId += tbi.getId() + ",";
@@ -766,7 +766,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         if(StringUtils.isBlank(contentType) || Constant.ParamFormatType.NONE.getType().equals(contentType)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "参数类型无效!", "参数类型无效!");
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "jolt获取成功!", toolsGenerate.generateJolt(paramFormat, contentType, joltType));
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "jolt获取成功!", niFiRequestUtil.generateJolt(paramFormat, contentType, joltType));
     }
 
 
@@ -912,7 +912,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         if(StringUtils.isBlank(paramJson)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "参数为空", "参数为空");
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"", Utils.jsonFormat(paramJson));
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"", PlatformUtil.jsonFormat(paramJson));
     }
 
 

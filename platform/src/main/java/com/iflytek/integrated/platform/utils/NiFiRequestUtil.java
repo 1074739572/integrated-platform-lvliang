@@ -18,10 +18,10 @@ import java.util.Map;
 
 /**
  * @author czzhan
- * 调取接口生成schema，jolt
+ * 调取接nifi接口
  */
 @Component
-public class ToolsGenerate {
+public class NiFiRequestUtil {
 
     @Value("${param.schema.url}")
     private String schemaUrl;
@@ -81,7 +81,7 @@ public class ToolsGenerate {
      */
     public Map joltDebugger(JoltDebuggerDto dto){
         try {
-            String type = Utils.strIsJsonOrXml(dto.getOriginObj());
+            String type = PlatformUtil.strIsJsonOrXml(dto.getOriginObj());
             String url = joltDebuggerUrl + "?contenttype=" + type;
             String param = JackSonUtils.transferToJson(dto);
             HttpResult result = HttpClientUtil.doPost(url,param);

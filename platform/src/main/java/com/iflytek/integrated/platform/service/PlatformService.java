@@ -10,7 +10,7 @@ import com.iflytek.integrated.platform.dto.PlatformDto;
 import com.iflytek.integrated.platform.dto.VendorConfigDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TVendorConfig;
-import com.iflytek.integrated.platform.utils.Utils;
+import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.integrated.platform.entity.THospitalVendorLink;
 import com.iflytek.integrated.platform.entity.TPlatform;
 import com.iflytek.medicalboot.core.id.BatchUidService;
@@ -58,8 +58,6 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
     private BusinessInterfaceService businessInterfaceService;
     @Autowired
     private BatchUidService batchUidService;
-    @Autowired
-    private Utils utils;
 
     private static final Logger logger = LoggerFactory.getLogger(PlatformService.class);
 
@@ -146,7 +144,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
         TPlatform tp = new TPlatform();
         String platformId = batchUidService.getUid(qTPlatform.getTableName()) + "";
         tp.setId(platformId);
-        tp.setPlatformCode(utils.generateCode(qTPlatform, qTPlatform.platformCode, dto.getPlatformName()));
+        tp.setPlatformCode(generateCode(qTPlatform.platformCode, dto.getPlatformName()));
         tp.setProjectId(dto.getProjectId());
         tp.setPlatformName(dto.getPlatformName());
         tp.setPlatformType(dto.getPlatformType());

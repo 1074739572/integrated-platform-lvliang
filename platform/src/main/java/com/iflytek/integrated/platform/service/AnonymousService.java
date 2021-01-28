@@ -5,7 +5,7 @@ import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.utils.XmlJsonUtils;
 import com.iflytek.integrated.common.utils.ase.AesUtil;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
-import com.iflytek.integrated.platform.utils.Utils;
+import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.mock.Mock;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -67,7 +67,7 @@ public class AnonymousService {
     @PostMapping("/mock")
     public ResultDto<String> mock(
             @ApiParam(value = "mock模板", name = "mock" , required = true) @RequestBody String mock) {
-        String type = Utils.strIsJsonOrXml(mock);
+        String type = PlatformUtil.strIsJsonOrXml(mock);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", resultMock(mock, type));
     }
 

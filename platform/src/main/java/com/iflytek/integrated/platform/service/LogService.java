@@ -10,7 +10,7 @@ import com.iflytek.integrated.common.utils.ase.AesUtil;
 import com.iflytek.integrated.platform.dto.InterfaceMonitorDto;
 import com.iflytek.integrated.platform.entity.QTInterfaceMonitor;
 import com.iflytek.integrated.platform.entity.TLog;
-import com.iflytek.integrated.platform.utils.Utils;
+import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
@@ -145,7 +145,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
         }
         //模糊查询接口地址
         if(StringUtils.isNotBlank(visitAddr)){
-            list.add(qTLog.visitAddr.like(Utils.createFuzzyText(visitAddr)));
+            list.add(qTLog.visitAddr.like(PlatformUtil.createFuzzyText(visitAddr)));
         }
         QueryResults<TLog> queryResults = sqlQueryFactory.select(
                 Projections.bean(TLog.class,

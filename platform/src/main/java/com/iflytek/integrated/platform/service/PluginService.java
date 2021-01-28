@@ -9,8 +9,8 @@ import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TType;
-import com.iflytek.integrated.platform.utils.ToolsGenerate;
-import com.iflytek.integrated.platform.utils.Utils;
+import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
+import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.integrated.platform.entity.TPlugin;
 import com.iflytek.integrated.common.validator.ValidationResult;
 import com.iflytek.integrated.common.validator.ValidatorHelper;
@@ -57,7 +57,7 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
     @Autowired
     private ValidatorHelper validatorHelper;
     @Autowired
-    private ToolsGenerate toolsGenerate;
+    private NiFiRequestUtil niFiRequestUtil;
     @Autowired
     private BusinessInterfaceService businessInterfaceService;
 
@@ -99,7 +99,7 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
             ArrayList<Predicate> list = new ArrayList<>();
             //判断条件是否为空
             if(StringUtils.isNotEmpty(pluginName)) {
-                list.add(qTPlugin.pluginName.like(Utils.createFuzzyText(pluginName)));
+                list.add(qTPlugin.pluginName.like(PlatformUtil.createFuzzyText(pluginName)));
             }
             if(StringUtils.isNotEmpty(typeId)) {
                 list.add(qTPlugin.typeId.eq(typeId));
@@ -224,7 +224,7 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
             rtnMap.put("isExist", true);
             rtnMap.put("message", "插件名称已存在!");
         }
-        GroovyValidateDto result = toolsGenerate.groovyUrl(pluginContent);
+        GroovyValidateDto result = niFiRequestUtil.groovyUrl(pluginContent);
         if(StringUtils.isNotBlank(result.getError()) || StringUtils.isBlank(result.getValidResult())){
             rtnMap.put("isExist", true);
             rtnMap.put("message", "插件内容格式错误!");
