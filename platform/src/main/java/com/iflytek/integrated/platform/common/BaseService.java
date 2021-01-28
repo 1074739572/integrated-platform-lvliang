@@ -1,12 +1,12 @@
 package com.iflytek.integrated.platform.common;
 
 import com.iflytek.integrated.common.utils.PinYinUtil;
+import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.dsl.ComparableExpressionBase;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.RelationalPath;
 import com.querydsl.sql.RelationalPathBase;
-import com.querydsl.sql.SQLQuery;
 import com.querydsl.sql.SQLQueryFactory;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +19,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class BaseService <E, I extends Comparable, ID extends ComparableExpressionBase<I> & Path<I> >{
 
-    protected ID qId;
-    protected RelationalPathBase<E> qEntity;
+    private ID qId;
+
+    private RelationalPathBase<E> qEntity;
 
     @Autowired
     protected SQLQueryFactory sqlQueryFactory;
@@ -36,14 +37,14 @@ public class BaseService <E, I extends Comparable, ID extends ComparableExpressi
      * @return
      */
     public E getOne(I id) {
-        return (E) ((SQLQuery)this.sqlQueryFactory.selectFrom(this.qEntity).where(this.qId.eq(id))).fetchOne();
+        return (this.sqlQueryFactory.selectFrom(this.qEntity).where(this.qId.eq(id))).fetchOne();
     }
     public long delete(I id) {
         return (this.sqlQueryFactory.delete(this.qEntity).where(this.qId.eq(id))).execute();
     }
 
     public I post(E entity) {
-        return (I) (this.sqlQueryFactory.insert(this.qEntity).populate(entity)).executeWithKey((Path)this.qId);
+        return (this.sqlQueryFactory.insert(this.qEntity).populate(entity)).executeWithKey(this.qId);
     }
 
     public long put(I id, E entity) {
@@ -64,9 +65,10 @@ public class BaseService <E, I extends Comparable, ID extends ComparableExpressi
         //名称中中文转拼音首字母小写
         String code = PinYinUtil.getFirstSpell(name);
         //查询编码已存在次数，递增
-        Long count = sqlQueryFactory.select(path).from(path).where(codePath.eq(code)).fetchCount();
+        Long count = sqlQueryFactory.select(path).from(path).where(codePath.eq(code)
+                .or(codePath.like(PlatformUtil.rightCreateFuzzyText(code + "_")))).fetchCount();
         if(count > 0){
-            code += count;
+            code += "_" + count;
         }
         return code;
     }

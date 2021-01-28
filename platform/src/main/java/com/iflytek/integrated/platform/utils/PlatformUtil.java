@@ -32,6 +32,15 @@ public class PlatformUtil {
     }
 
     /**
+     * 获取右模糊查询
+     * @param text
+     * @return
+     */
+    public static String rightCreateFuzzyText(String text) {
+        return String.format(Constant.Fuzzy.RIGHT_FUZZY_SEARCH, text.trim());
+    }
+
+    /**
      * 校验字符串是否是json或者xml
      * @param mock
      */
