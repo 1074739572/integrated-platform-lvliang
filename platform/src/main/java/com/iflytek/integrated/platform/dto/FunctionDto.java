@@ -1,8 +1,8 @@
 package com.iflytek.integrated.platform.dto;
 
-import com.iflytek.integrated.platform.entity.TFunction;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
+
 /**
 * 产品功能dto
 * @author weihe9
@@ -10,8 +10,23 @@ import lombok.Data;
 */
 @Data
 @ApiModel("产品功能实体")
-public class FunctionDto extends TFunction {
+public class FunctionDto {
 
     private String functionId;
+
+
+    private String id;
+
+    private String functionName;
+
+    private String functionCode;
+
+    private String createdBy;
+
+    private java.util.Date createdTime;
+
+    private String updatedBy;
+
+    private java.util.Date updatedTime;
 
 }

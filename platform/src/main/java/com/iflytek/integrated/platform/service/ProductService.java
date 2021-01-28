@@ -263,20 +263,6 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
         }else {
             errProductId = tp.getId();
         }
-        //更新所有相同产品名称
-        String oldProductId = dto.getOldProductId();
-        if (StringUtils.isNotBlank(oldProductId)) {
-            //查询原来产品名称
-            TProduct obj = this.getOne(oldProductId);
-            if (obj != null) {
-                long l = sqlQueryFactory.update(qTProduct)
-                        .set(qTProduct.productName, productName)
-                        .set(qTProduct.updatedBy, loginUserName)
-                        .set(qTProduct.updatedTime, new Date())
-                        .where(qTProduct.productName.eq(obj.getProductName()))
-                        .execute();
-            }
-        }
         //功能
         String functionName = dto.getFunctionName();
         TFunction tf = functionService.getObjByName(functionName);
@@ -312,7 +298,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
                         qTProduct.productName,
                         qTProduct.productCode
                 )
-            ).from(qTProduct).groupBy(qTProduct.productName).orderBy(qTProduct.createdTime.desc()).fetch();
+            ).from(qTProduct).orderBy(qTProduct.createdTime.desc()).fetch();
         //拼接方法列表
         for (TProduct product : products){
             List<TFunction> functions = sqlQueryFactory.select(
@@ -324,12 +310,44 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
                     )
             ).from(qTFunction)
             .leftJoin(qTProductFunctionLink).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
-//            .where(qTProductFunctionLink.productId.eq(product.getId()))
-            .groupBy(qTFunction.functionName)
+            .where(qTProductFunctionLink.productId.eq(product.getId()))
             .orderBy(qTFunction.createdTime.desc()).fetch();
             product.setFunctions(functions);
         }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"选择产品下拉及其功能获取成功!", products);
+    }
+
+
+    @ApiOperation(value = "选择产品下拉及所有功能")
+    @GetMapping("/getDisProductAndAllFunc")
+    public ResultDto<Map<String, Object>> getDisProductAndAllFunc() {
+        Map<String, Object> map = new HashMap<>();
+        List<TProduct> products = sqlQueryFactory.select(
+                Projections.bean(
+                        TProduct.class,
+                        qTProduct.id,
+                        qTProduct.productName,
+                        qTProduct.productCode
+                )
+            ).from(qTProduct).groupBy(qTProduct.productName).orderBy(qTProduct.createdTime.desc()).fetch();
+        map.put("products", products);
+        //拼接方法列表
+        List<TFunction> functions = sqlQueryFactory.select(
+                Projections.bean(
+                        TFunction.class,
+                        qTFunction.id,
+                        qTFunction.functionCode,
+                        qTFunction.functionName
+                )
+        ).from(qTFunction)
+                .leftJoin(qTProductFunctionLink).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
+                .groupBy(qTFunction.functionName)
+                .orderBy(qTFunction.createdTime.desc()).fetch();
+        map.put("functions", functions);
+//        for (TProduct product : products){
+//            product.setFunctions(functions);
+//        }
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"选择产品下拉及所有功能获取成功!", map);
     }
 
 

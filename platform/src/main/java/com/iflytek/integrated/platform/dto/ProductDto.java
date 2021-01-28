@@ -22,6 +22,8 @@ public class ProductDto extends TProduct {
     private String oldProductId;
 
     private String oldFunctionId;
+
+    private String oldProductName;
     /**
      * 新增编辑标识 1新增 2编辑
      */

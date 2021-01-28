@@ -1,10 +1,8 @@
 package com.iflytek.integrated.platform.dto;
 
-import com.iflytek.integrated.platform.entity.TInterface;
 import com.iflytek.integrated.platform.entity.TInterfaceParam;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
-
 import java.util.List;
 
 /**
@@ -14,7 +12,7 @@ import java.util.List;
 */
 @Data
 @ApiModel("标准接口信息")
-public class InterfaceDto extends TInterface {
+public class InterfaceDto {
 
     private String productId;
 
@@ -29,5 +27,35 @@ public class InterfaceDto extends TInterface {
      */
     private List<TInterfaceParam> outParamList;
 
+
+    private String id;
+
+    private String interfaceName;
+
+    private String typeId;
+
+    private String interfaceUrl;
+
+    private String inParamFormat;
+
+    private String outParamFormat;
+
+    private String paramOutStatus;
+
+    private String paramOutStatusSuccess;
+
+    private String createdBy;
+
+    private java.util.Date createdTime;
+
+    private String updatedBy;
+
+    private java.util.Date updatedTime;
+
+    private String interfaceTypeName;
+
+    private Long inParamCount;
+
+    private Long outParamCount;
 
 }

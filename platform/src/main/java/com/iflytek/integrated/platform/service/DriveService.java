@@ -209,7 +209,6 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"驱动编辑成功!", drive.getId());
     }
 
-    @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增厂商弹窗展示的驱动选择信息")
     @GetMapping("/getDriveChoiceList")
     public ResultDto<List<Map<String, Object>>> getDriveChoiceList() {
