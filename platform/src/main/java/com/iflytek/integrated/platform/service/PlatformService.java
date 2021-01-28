@@ -143,7 +143,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
         TPlatform tp = new TPlatform();
         String platformId = batchUidService.getUid(qTPlatform.getTableName()) + "";
         tp.setId(platformId);
-        tp.setPlatformCode(generateCode(qTPlatform.platformCode, dto.getPlatformName()));
+        tp.setPlatformCode(generateCode(qTPlatform.platformCode, qTPlatform, dto.getPlatformName()));
         tp.setProjectId(dto.getProjectId());
         tp.setPlatformName(dto.getPlatformName());
         tp.setPlatformType(dto.getPlatformType());

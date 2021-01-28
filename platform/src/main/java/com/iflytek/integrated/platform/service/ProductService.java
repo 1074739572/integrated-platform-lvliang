@@ -194,7 +194,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
             productId = batchUidService.getUid(qTProduct.getTableName()) + "";
             tp = new TProduct();
             tp.setId(productId);
-            tp.setProductCode(generateCode(qTProduct.productCode, productName));
+            tp.setProductCode(generateCode( qTProduct.productCode, qTProduct, productName));
             tp.setProductName(productName);
             tp.setIsValid(Constant.IsValid.ON);
             tp.setCreatedTime(new Date());
@@ -207,7 +207,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
             functionId = batchUidService.getUid(qTFunction.getTableName()) + "";
             tf = new TFunction();
             tf.setId(functionId);
-            tf.setFunctionCode(generateCode(qTFunction.functionCode, functionName));
+            tf.setFunctionCode(generateCode(qTFunction.functionCode, qTFunction, functionName));
             tf.setFunctionName(functionName);
             tf.setCreatedBy(loginUserName);
             tf.setCreatedTime(new Date());
@@ -242,7 +242,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
             productId = batchUidService.getUid(qTProduct.getTableName()) + "";
             tp = new TProduct();
             tp.setId(productId);
-            tp.setProductCode(generateCode(qTProduct.productCode, productName));
+            tp.setProductCode(generateCode(qTProduct.productCode, qTProduct, productName));
             tp.setProductName(productName);
             tp.setIsValid(Constant.IsValid.ON);
             tp.setCreatedTime(new Date());
@@ -269,7 +269,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
             functionId = batchUidService.getUid(qTFunction.getTableName()) + "";
             tf = new TFunction();
             tf.setId(functionId);
-            tf.setFunctionCode(generateCode(qTFunction.functionCode, functionName));
+            tf.setFunctionCode(generateCode(qTFunction.functionCode, qTFunction, functionName));
             tf.setFunctionName(functionName);
             tf.setCreatedTime(new Date());
             tf.setCreatedBy(loginUserName);

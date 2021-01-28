@@ -130,7 +130,7 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
         TProject project = new TProject();
         project.setId(projectId);
         project.setProjectName(projectName);
-        project.setProjectCode(generateCode(qTProject.projectCode, projectName));
+        project.setProjectCode(generateCode(qTProject.projectCode, qTProject, projectName));
         project.setProjectStatus(Constant.Status.START);
         project.setProjectType(dto.getProjectType());
         project.setCreatedTime(new Date());

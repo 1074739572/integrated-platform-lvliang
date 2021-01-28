@@ -101,7 +101,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
         String vendorId = batchUidService.getUid(qTVendor.getTableName()) + "";
         TVendor tv = new TVendor();
         tv.setId(vendorId);
-        tv.setVendorCode(generateCode(qTVendor.vendorCode, vendorName));
+        tv.setVendorCode(generateCode( qTVendor.vendorCode, qTVendor, vendorName));
         tv.setVendorName(vendorName);
         tv.setCreatedTime(new Date());
         tv.setCreatedBy(loginUserName);
