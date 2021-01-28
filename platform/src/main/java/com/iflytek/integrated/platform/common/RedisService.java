@@ -85,7 +85,7 @@ public class RedisService {
         ArrayList<Predicate> arr = new ArrayList<>();
 
         //调取枚举，处理返回结果
-        StringPath sqlId = Constant.RedisMap.idByKey(keyName);
+        StringPath sqlId = Constant.RedisKeyEnum.idByKey(keyName);
         if(sqlId == null){
             logger.error("删除redis-key操作,没有取到有效的key");
             return;

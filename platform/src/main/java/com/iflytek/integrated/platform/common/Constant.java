@@ -192,7 +192,7 @@ public class Constant {
     /**
      * redis缓存匹配枚举
      */
-    public enum RedisMap {
+    public enum RedisKeyEnum {
         /**
          * DRIVE
          */
@@ -217,7 +217,7 @@ public class Constant {
         private String key;
         private StringPath id;
 
-        RedisMap(String key, StringPath id){
+        RedisKeyEnum(String key, StringPath id){
             this.id = id;
             this.key =key;
         }
@@ -231,9 +231,9 @@ public class Constant {
         }
 
         public static StringPath idByKey(String key){
-            for(RedisMap redisMap : values()) {
-                if(redisMap.getKey().equals(key)) {
-                    return redisMap.getId();
+            for(RedisKeyEnum redisKeyEnum : values()) {
+                if(redisKeyEnum.getKey().equals(key)) {
+                    return redisKeyEnum.getId();
                 }
             }
             return null;
