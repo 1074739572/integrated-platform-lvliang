@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 
 /**
- * 用户登录拦截器
+ * 用户登录拦截器，安全策略设置
  * @author czzhan
  * @version 1.0
  * @date 2021/1/12 9:25
@@ -62,6 +62,14 @@ public class UserLoginIntercept extends HandlerInterceptorAdapter {
         }
         catch (Exception e){
             logger.error("登录用户获取失败");
+        }
+        finally {
+            //#ifream跨域禁止访问
+            response.addHeader("X-Frame-Options","SAMEORIGIN");
+            //#安全策略csp
+            response.addHeader("Content-Security-Policy","default-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: ;");
+            response.addHeader("X-Xss-Protection","1;mode=block");
+            response.addHeader("X-Content-Type-Options","nosniff");
         }
         return super.preHandle(request, response, handler);
     }
