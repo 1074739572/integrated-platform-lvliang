@@ -59,6 +59,7 @@ public class BaseService <E, I extends Comparable, ID extends ComparableExpressi
      */
     public String generateCode(StringPath codePath, RelationalPath<?> path, String name){
         //校验类型是否为空
+        name = name.replaceAll("_","");
         if(StringUtils.isEmpty(name)){
             throw new RuntimeException("名称不能为空");
         }
