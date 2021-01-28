@@ -92,7 +92,7 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
                 .offset((pageNo - 1) * pageSize)
                 .orderBy(qTProject.createdTime.desc()).fetchResults();
         TableData<TProject> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取项目信息成功!", tableData);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取项目信息成功!", tableData);
     }
 
 
@@ -102,17 +102,17 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
     public ResultDto<String> saveAndUpdateProject(@ApiParam(value = "保存项目-产品-功能信息") @RequestBody ProjectDto dto) {
         String projectName = dto.getProjectName();
         if (StringUtils.isBlank(projectName)) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "项目名称为空!", null);
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "项目名称为空!", null);
         }
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         String projectId = dto.getId();
         //检验项目名称是否存在
         if (isExistence(projectName, projectId)) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "项目名称已经存在!", null);
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "项目名称已经存在!", null);
         }
         //项目新增
         if (StringUtils.isBlank(projectId)) {
@@ -123,7 +123,7 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
     }
 
     /** 新增项目 */
-    private ResultDto saveProject(ProjectDto dto, String loginUserName) {
+    private ResultDto<String> saveProject(ProjectDto dto, String loginUserName) {
         String projectId = batchUidService.getUid(qTProject.getTableName())+"";
         String projectName = dto.getProjectName();
 
@@ -156,11 +156,11 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
                 projectProductLinkService.post(tppl);
             }
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "新增项目成功!", null);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "新增项目成功!");
     }
 
     /** 修改项目 */
-    private ResultDto updateProject(ProjectDto dto, String loginUserName) {
+    private ResultDto<String> updateProject(ProjectDto dto, String loginUserName) {
         String projectId = dto.getId();
         this.deleteProjectById(projectId);
 
@@ -192,7 +192,7 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
                 projectProductLinkService.post(tppl);
             }
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "项目修改成功!", projectId);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "项目修改成功!", projectId);
     }
 
 
@@ -202,12 +202,12 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
     public ResultDto<String> deleteProject(@ApiParam(value = "项目id") @RequestParam(value = "id", required = true) String id) {
         TProject tp = this.getOne(id);
         if (tp == null) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该项目不存在!", "该项目不存在!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该项目不存在!", "该项目不存在!");
         }
         //删除项目
         long count = this.delete(id);
         if (count <= 0) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "项目删除失败!", "项目删除失败!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "项目删除失败!", "项目删除失败!");
         }
         //删除项目下所有平台及其相关信息
         List<TPlatform> tpList = platformService.getListByProjectId(id);
@@ -229,7 +229,7 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
         }
         //删除项目与产品功能关联
         this.deleteProjectById(id);
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "项目删除成功!", id);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "项目删除成功!", id);
     }
 
 
@@ -240,7 +240,7 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         try {
             sqlQueryFactory.update(qTProject)
@@ -250,9 +250,9 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
         } catch (Exception e) {
             logger.error("项目状态修改失败! MSG:{}", ExceptionUtil.dealException(e));
             e.printStackTrace();
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "项目状态修改失败!", ExceptionUtil.dealException(e));
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "项目状态修改失败!", ExceptionUtil.dealException(e));
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "项目状态修改成功!", id);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "项目状态修改成功!", id);
     }
 
 
@@ -297,11 +297,11 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
                     rtnArr.add(obj);
                 }
             }
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取项目下的产品及功能信息成功!", rtnArr);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取项目下的产品及功能信息成功!", rtnArr);
         } catch (Exception e) {
             logger.error("获取项目下的产品及功能信息失败! MSG:{}", ExceptionUtil.dealException(e));
             e.printStackTrace();
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "获取项目下的产品及功能信息失败!", ExceptionUtil.dealException(e));
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取项目下的产品及功能信息失败!");
         }
     }
 

@@ -46,7 +46,7 @@ public class FunctionService extends BaseService<TFunction, String, StringPath> 
                         qTFunction.functionName
                 )
         ).from(qTFunction).orderBy(qTFunction.createdTime.desc()).fetch();
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"获取产品功能下拉成功", functions);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"获取产品功能下拉成功", functions);
     }
 
     /**

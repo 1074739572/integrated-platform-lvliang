@@ -51,7 +51,7 @@ public class TypeService extends BaseService<TType, String, StringPath> {
                 .where(list.toArray(new Predicate[list.size()]))
                 .orderBy(qTType.createdTime.desc())
                 .fetch();
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", typeList);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"数据获取成功!", typeList);
     }
 
 }

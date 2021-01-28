@@ -72,7 +72,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
                         qTDrive.driveName
                 )
         ).from(qTDrive).orderBy(qTDrive.createdTime.desc()).fetch();
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"驱动下拉数据获取成功!", drives);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"驱动下拉数据获取成功!", drives);
     }
 
     @ApiOperation(value = "根据厂商获取驱动")
@@ -89,7 +89,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
                 }
             }
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"根据厂商获取驱动成功", drives);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"根据厂商获取驱动成功", drives);
     }
 
     @ApiOperation(value = "驱动管理列表")
@@ -130,10 +130,10 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
                     .fetchResults();
             //分页
             TableData<TDrive> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "驱动管理列表获取成功!", tableData);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "驱动管理列表获取成功!", tableData);
         }catch (Exception e){
             logger.error("获取驱动管理列表失败! MSG:{}", ExceptionUtil.dealException(e));
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "驱动管理列表获取失败!", ExceptionUtil.dealException(e));
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "驱动管理列表获取失败!");
         }
     }
 
@@ -142,10 +142,10 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
     public ResultDto<GroovyValidateDto> groovyValidate(String content){
         GroovyValidateDto result = niFiRequestUtil.groovyUrl(content);
         if(StringUtils.isNotBlank(result.getValidResult()) && StringUtils.isBlank(result.getError())){
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", result);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "", result);
         }
         else {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", result);
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "");
         }
     }
 
@@ -156,19 +156,19 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
         //查看驱动是否存在
         TDrive drive = sqlQueryFactory.select(qTDrive).from(qTDrive).where(qTDrive.id.eq(id)).fetchFirst();
         if(drive == null || StringUtils.isEmpty(drive.getId())){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有找到该驱动，删除失败!", "没有找到该驱动,删除失败!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有找到该驱动，删除失败!", "没有找到该驱动,删除失败!");
         }
         //校验该驱动是否有厂商关联
         List<TVendorDriveLink> tvdlList = vendorDriveLinkService.getVendorDriveLinkByDriveId(id);
         if (CollectionUtils.isNotEmpty(tvdlList)) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该驱动已有厂商相关联,无法删除!", "该驱动已有厂商相关联,无法删除!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该驱动已有厂商相关联,无法删除!", "该驱动已有厂商相关联,无法删除!");
         }
         //删除驱动
         Long lon = sqlQueryFactory.delete(qTDrive).where(qTDrive.id.eq(drive.getId())).execute();
         if(lon <= 0){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "驱动删除失败!", "驱动删除失败!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "驱动删除失败!", "驱动删除失败!");
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "驱动删除成功!", id);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "驱动删除成功!", id);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -178,18 +178,18 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
         //校验参数是否完整
         ValidationResult validationResult = validatorHelper.validate(drive);
         if (validationResult.isHasErrors()) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "", validationResult.getErrorMsg());
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "", validationResult.getErrorMsg());
         }
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         //校验是否存在重复驱动，驱动代码格式是否正确
         Map<String, Object> isExist = this.isExistence(drive.getId(), drive.getDriveName(), drive.getDriveContent());
         boolean bool = (boolean) isExist.get("isExist");
         if (bool) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, isExist.get("message")+"", isExist.get("message"));
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, isExist.get("message")+"");
         }
         if(StringUtils.isEmpty(drive.getId())){
             //新增驱动
@@ -197,16 +197,16 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
             drive.setCreatedTime(new Date());
             drive.setCreatedBy(loginUserName);
             this.post(drive);
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"驱动新增成功", null);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"驱动新增成功", null);
         }
         //编辑驱动
         drive.setUpdatedBy(loginUserName);
         drive.setUpdatedTime(new Date());
         Long lon = this.put(drive.getId(), drive);
         if(lon <= 0){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE,"驱动编辑失败!", null);
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE,"驱动编辑失败!", null);
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"驱动编辑成功!", drive.getId());
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"驱动编辑成功!", drive.getId());
     }
 
     @ApiOperation(value = "新增厂商弹窗展示的驱动选择信息")
@@ -231,7 +231,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
             jsonObj.put("children", arr);
             rtnArr.add(jsonObj);
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"获取驱动选择信息成功", rtnArr);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"获取驱动选择信息成功", rtnArr);
     }
 
     /**

@@ -86,7 +86,7 @@ public class AfterCompletionIntercept extends HandlerInterceptorAdapter {
         }
         //如果有保存返回，清空返回
         if(resultDto != null){
-            resultDto = new ResultDto();
+            resultDto = null;
         }
     }
 

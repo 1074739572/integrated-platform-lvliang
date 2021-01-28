@@ -104,11 +104,11 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
              .fetchResults();
             //分页
             TableData<TPlatform> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "根据项目id获取平台成功!", tableData);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "根据项目id获取平台成功!", tableData);
         } catch (Exception e) {
             logger.error("根据项目id获取平台失败! MSG:{}", ExceptionUtil.dealException(e));
             e.printStackTrace();
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "根据项目id获取平台失败!", ExceptionUtil.dealException(e));
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据项目id获取平台失败!");
         }
     }
 
@@ -118,19 +118,19 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
     @PostMapping("/saveAndUpdatePlatform")
     public ResultDto<String> saveAndUpdatePlatform(@RequestBody PlatformDto dto) {
         if (dto == null) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
         }
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         //平台名称校验
         String platformId = dto.getId();
         String platformName = dto.getPlatformName();
         boolean isExist = getPlatformNameIsExistByProjectId(platformId, dto.getProjectId(), platformName);
         if (isExist) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "平台名称为空或此项目下该名称已存在!", platformName);
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "平台名称为空或此项目下该名称已存在!", platformName);
         }
         if (StringUtils.isBlank(platformId)) {
             return savePlatform(dto, loginUserName);
@@ -154,7 +154,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
         //关联厂商
         List<VendorConfigDto> jsonArr = dto.getVendorInfo();
         if (CollectionUtils.isEmpty(jsonArr)) {
-            return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "新增平台成功!", null);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "新增平台成功!", null);
         }
         for (int i = 0; i < jsonArr.size(); i++) {
             VendorConfigDto obj = jsonArr.get(i);
@@ -191,7 +191,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
                 hospitalVendorLinkService.post(hvl);
             }
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "新增平台成功!", "新增平台成功!");
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "新增平台成功!", "新增平台成功!");
     }
 
     /** 修改平台 */
@@ -298,7 +298,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
                 }
             }
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "修改平台成功!", platformId);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "修改平台成功!", platformId);
     }
 
 
@@ -307,12 +307,12 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
     @PostMapping("/updateVendorConfig")
     public ResultDto<String> updateVendorConfig(@RequestBody VendorConfigDto dto) {
         if (dto == null) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "数据传入有误!", "数据传入有误!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "数据传入有误!", "数据传入有误!");
         }
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)){
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         //平台id
         String platformId = dto.getPlatformId();
@@ -408,7 +408,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
                 }
             }
         }
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "修改厂商信息成功!", platformId);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "修改厂商信息成功!", platformId);
     }
 
 
@@ -423,7 +423,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
                 .set(qTPlatform.updatedTime, new Date())
                 .set(qTPlatform.updatedBy, loginUserName)
                 .where(qTPlatform.id.eq(id)).execute();
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "平台状态更改成功!", id);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "平台状态更改成功!", id);
     }
 
 
@@ -433,12 +433,12 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
     public ResultDto<String> deletePlatform(@ApiParam(value = "平台id") @RequestParam(value = "id", required = true) String id) {
         TPlatform tp = this.getOne(id);
         if (tp == null) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "该平台不存在!", "该平台不存在!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该平台不存在!", "该平台不存在!");
         }
         //删除平台
         long count = this.delete(id);
         if (count <= 0) {
-            return new ResultDto(Constant.ResultCode.ERROR_CODE, "平台删除失败!", "平台删除失败!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "平台删除失败!", "平台删除失败!");
         }
         //获取平台下所有厂商配置
         List<TVendorConfig> tvcList = vendorConfigService.getObjByPlatformId(id);
@@ -455,7 +455,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
         //删除平台下的所有厂商配置信息
         long vcCount = vendorConfigService.delVendorConfigAll(id);
 
-        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "平台"+tp.getPlatformName()+"删除成功,同时删除该平台下"+vcCount+"条厂商配置,"+count+"条厂商医院配置!",
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "平台"+tp.getPlatformName()+"删除成功,同时删除该平台下"+vcCount+"条厂商配置,"+count+"条厂商医院配置!",
                 id);
     }
 
