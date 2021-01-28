@@ -56,10 +56,6 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
     private ValidatorHelper validatorHelper;
     @Autowired
     private HospitalVendorLinkService hospitalVendorLinkService;
-    @Autowired
-    private BusinessInterfaceService businessInterfaceService;
-    @Autowired
-    private RedisUtil redisUtil;
 
 
     @ApiOperation(value = "获取医院管理列表")

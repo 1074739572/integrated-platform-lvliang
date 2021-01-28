@@ -188,7 +188,8 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
         }
         QueryResults<TVendor> queryResults = sqlQueryFactory.select(qTVendor).from(qTVendor)
                 .where(list.toArray(new Predicate[list.size()]))
-                .limit(pageSize).offset((pageNo - 1) * pageSize)
+                .limit(pageSize)
+                .offset((pageNo - 1) * pageSize)
                 .orderBy(qTVendor.createdTime.desc())
                 .fetchResults();
         //添加厂商驱动

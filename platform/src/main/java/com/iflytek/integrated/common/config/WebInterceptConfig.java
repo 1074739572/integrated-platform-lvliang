@@ -23,7 +23,7 @@ import java.util.Map;
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "cache.redis")
-public class WebMvcConfig extends WebMvcConfigurationSupport {
+public class WebInterceptConfig extends WebMvcConfigurationSupport {
 
     private Map<String, String[]> map;
 

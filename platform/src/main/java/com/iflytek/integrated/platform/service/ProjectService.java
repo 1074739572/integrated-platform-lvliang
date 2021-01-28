@@ -63,8 +63,6 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
     private BatchUidService batchUidService;
     @Autowired
     private Utils utils;
-    @Autowired
-    private RedisUtil redisUtil;
 
     private static final Logger logger = LoggerFactory.getLogger(ProjectService.class);
 
@@ -80,7 +78,7 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
             @ApiParam(value = "项目状态 1启用 2停用") @RequestParam(required = false) String projectStatus,
             @ApiParam(value = "项目名称") @RequestParam(required = false) String projectName,
             @ApiParam(value = "页码",example = "1") @RequestParam(defaultValue = "1", required = false)Integer pageNo,
-            @ApiParam(value = "每页大小",example = "10") @RequestParam(defaultValue = "10", required = false)Integer pageSize) {
+            @ApiParam(value = "每页大小",example = "10") @RequestParam(defaultValue = "10", required = false) Integer pageSize) {
         ArrayList<Predicate> list = new ArrayList<>();
         if (StringUtils.isNotBlank(projectType)) {
             list.add(qTProject.projectType.eq(projectType));
