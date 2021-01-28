@@ -117,6 +117,7 @@ public class RedisService {
                 String key = "IntegratedPlatform:Configs:_"+obj.getProjectCode()+"_"+obj.getOrgId()+"_"+obj.getProductCode()+"_"+obj.getFunCode();
                 redisUtil.del(key);
             }
+            logger.info("删除缓存{}条",list.size());
         }
     }
 }
