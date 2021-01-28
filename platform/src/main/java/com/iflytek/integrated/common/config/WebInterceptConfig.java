@@ -39,7 +39,7 @@ public class WebInterceptConfig extends WebMvcConfigurationSupport {
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry){
-        //用户登录拦截器，安全策略设置
+        //用户登录拦截器
         InterceptorRegistration rationUserLogin = registry.addInterceptor(userLoginIntercept);
         rationUserLogin.addPathPatterns("/*/pt/**");
 
