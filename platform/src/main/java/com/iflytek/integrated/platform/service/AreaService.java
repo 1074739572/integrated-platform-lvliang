@@ -6,10 +6,12 @@ import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.utils.JackSonUtils;
 import com.iflytek.integrated.platform.dto.AreaDto;
 import com.iflytek.integrated.platform.entity.TArea;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringPath;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -85,4 +87,21 @@ public class AreaService extends BaseService<TArea, String, StringPath> {
         List<AreaDto> areaDtoList = JackSonUtils.jsonToTransferList(provinceList,AreaDto.class);
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "", areaDtoList);
     }
+
+
+    @ApiOperation(value = "省市区分层获取")
+    @GetMapping("/getAreaInfoByAreaCode")
+    public ResultDto getAreaInfoByAreaCode(String areaCode) {
+        ArrayList<Predicate> list = new ArrayList<>();
+        if (StringUtils.isNotBlank(areaCode)) {
+            list.add(qTArea.superId.eq(areaCode));
+        }else {
+            list.add(qTArea.areaLevel.eq(1));
+        }
+        List<TArea> areaList = sqlQueryFactory.select(qTArea).from(qTArea)
+                .where(list.toArray(new Predicate[list.size()])).fetch();
+        return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取成功!", areaList);
+    }
+
+
 }

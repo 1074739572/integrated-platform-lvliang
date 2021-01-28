@@ -343,9 +343,6 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
                 .groupBy(qTFunction.functionName)
                 .orderBy(qTFunction.createdTime.desc()).fetch();
         map.put("functions", functions);
-//        for (TProduct product : products){
-//            product.setFunctions(functions);
-//        }
         return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"选择产品下拉及所有功能获取成功!", map);
     }
 
