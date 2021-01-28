@@ -90,7 +90,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     public ResultDto<String> updateMockStatus(@ApiParam(value = "接口配置") @RequestParam(value = "id", required = true) String id,
                                       @ApiParam(value = "更改后的状态") @RequestParam(value = "mockStatus", required = true) String mockStatus) {
         //校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
+        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
@@ -103,7 +103,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     public ResultDto<String> updateStatus(@ApiParam(value = "接口配置") @RequestParam(value = "id", required = true) String id,
                                   @ApiParam(value = "更改后的状态") @RequestParam(value = "status", required = true) String status) {
         //校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
+        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)) {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
@@ -138,7 +138,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @Transactional(rollbackFor = Exception.class)
     public ResultDto<String> saveMockTemplate(@RequestBody List<MockTemplateDto> dtoList) {
         //校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
+        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
@@ -263,7 +263,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
         }
         //校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
+        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
@@ -625,7 +625,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "请求参数不能为空!", null);
         }
         //校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
+        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", null);
         }

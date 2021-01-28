@@ -8,7 +8,6 @@ import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.ProductDto;
 import com.iflytek.integrated.platform.entity.*;
-import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
@@ -140,7 +139,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
         }
         //校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
+        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }

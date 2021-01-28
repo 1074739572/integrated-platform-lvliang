@@ -105,7 +105,7 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "项目名称为空!", null);
         }
         //校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
+        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
@@ -238,7 +238,7 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
     public ResultDto<String> updateProjectStatus(@ApiParam(value = "项目id") @RequestParam(value = "id", required = true) String id,
                                  @ApiParam(value = "项目状态 1启用 2停用") @RequestParam(value = "projectStatus", required = true) String projectStatus) {
         //校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
+        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }

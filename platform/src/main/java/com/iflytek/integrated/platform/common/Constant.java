@@ -35,11 +35,6 @@ public class Constant {
     }
 
     /**
-     * 00
-     */
-    public static final String NN_CODE = "00";
-
-    /**
      * 模糊查询
      */
     public interface Fuzzy {
@@ -83,35 +78,6 @@ public class Constant {
          * 无效
          */
         public static final String OFF = "2";
-    }
-
-    /**
-     * 管理编码前缀
-     */
-    public interface AppCode {
-
-        /**
-         * 产品管理
-         */
-        public static final String PRODUCT = "PR_";
-        /**
-         * 功能管理
-         */
-        public static final String FUNCTION = "FU_";
-
-        /**
-         * 项目
-         */
-        public static final String PROJECT = "PJ";
-        /**
-         * 平台
-         */
-        public static final String PLATFORM = "PF";
-        /**
-         * 厂商
-         */
-        public static final String VENDOR = "V";
-
     }
 
     /**

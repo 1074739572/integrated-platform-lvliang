@@ -10,7 +10,6 @@ import com.iflytek.integrated.platform.dto.PlatformDto;
 import com.iflytek.integrated.platform.dto.VendorConfigDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TVendorConfig;
-import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.integrated.platform.entity.THospitalVendorLink;
 import com.iflytek.integrated.platform.entity.TPlatform;
 import com.iflytek.medicalboot.core.id.BatchUidService;
@@ -122,7 +121,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
         }
         //校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
+        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
@@ -311,7 +310,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "数据传入有误!", "数据传入有误!");
         }
         //校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
+        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
@@ -418,7 +417,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
     public ResultDto<String> updateStatus(
             @ApiParam(value = "平台id") @RequestParam(value = "id", required = true) String id,
             @ApiParam(value = "平台状态 1启用 2停用") @RequestParam(value = "platformStatus", required = true) String platformStatus) {
-        String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
+        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         sqlQueryFactory.update(qTPlatform)
                 .set(qTPlatform.platformStatus, platformStatus)
                 .set(qTPlatform.updatedTime, new Date())

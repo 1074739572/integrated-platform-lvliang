@@ -173,7 +173,7 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "参数校验不通过", validationResult.getErrorMsg());
         }
         //校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
+        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }

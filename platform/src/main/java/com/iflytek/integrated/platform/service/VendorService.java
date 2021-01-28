@@ -82,7 +82,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
             @ApiParam(value = "厂商名") @RequestParam(value = "vendorName", required = true) String vendorName,
             @ApiParam(value = "驱动-多个用,分隔") @RequestParam(value = "driveIds", required = true) String driveIds) {
         //校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.getLoginUserName();
+        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if(StringUtils.isBlank(loginUserName)){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
