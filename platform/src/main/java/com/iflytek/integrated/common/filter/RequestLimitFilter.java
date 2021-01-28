@@ -32,8 +32,14 @@ public class RequestLimitFilter implements Filter {
         Map<String, String[]> parameterMap = new HashMap<>(requestLimitWrapper.getParameterMap());
         //如果什么都没有，直接通过
         if(!parameterMap.containsKey(PAGE_SIZE) && !parameterMap.containsKey(PAGE_NO)){
-            return;
         }
+        else {
+            reqFilter(parameterMap,requestLimitWrapper);
+        }
+        filterChain.doFilter(requestLimitWrapper, servletResponse);
+    }
+
+    private void reqFilter(Map<String, String[]> parameterMap,RequestLimitWrapper requestLimitWrapper){
 
         //如果存在pageSize，限制request中pageSize的大小范围
         if(StringUtils.isNotBlank(parameterMap.get(PAGE_SIZE)[0]) && NumberUtils.isNumber(parameterMap.get(PAGE_SIZE)[0])){
@@ -53,6 +59,5 @@ public class RequestLimitFilter implements Filter {
 
         //替换request中的原值
         requestLimitWrapper.setParameterMap(parameterMap);
-        filterChain.doFilter(requestLimitWrapper, servletResponse);
     }
 }
