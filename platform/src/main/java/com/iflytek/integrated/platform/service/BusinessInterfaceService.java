@@ -47,7 +47,7 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface,Str
      * @param mockStatus
      * @param loginUserName
      */
-    public ResultDto updateMockStatus(String id, String mockStatus, String loginUserName) {
+    public ResultDto<String> updateMockStatus(String id, String mockStatus, String loginUserName) {
         //获取多接口，多个接口的id集合
         List<String> idList = busInterfaceIds(id);
         long size = sqlQueryFactory.update(qTBusinessInterface)
