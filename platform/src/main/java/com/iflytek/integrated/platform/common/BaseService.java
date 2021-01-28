@@ -64,7 +64,7 @@ public class BaseService <E, I extends Comparable, ID extends ComparableExpressi
         //名称中中文转拼音首字母小写
         String code = PinYinUtil.getFirstSpell(name);
         //查询编码已存在次数，递增
-        Long count = sqlQueryFactory.select().from(path).where(codePath.eq(code)).fetchCount();
+        Long count = sqlQueryFactory.select(path).from(path).where(codePath.eq(code)).fetchCount();
         if(count > 0){
             code += count;
         }
