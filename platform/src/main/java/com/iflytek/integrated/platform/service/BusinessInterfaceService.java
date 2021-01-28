@@ -57,7 +57,7 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface,Str
             .where(qTBusinessInterface.id.in(idList)).execute();
         //判断编辑是否成功
         if(idList.size() != size){
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+            throw new RuntimeException("更改mock状态失败!");
         }
         String rtnStr = "";
         for (String idStr : idList) {
@@ -83,7 +83,7 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface,Str
             .where(qTBusinessInterface.id.in(idList)).execute();
         //判断编辑是否成功
         if(idList.size() != size){
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "启停用状态编辑失败!", "启停用状态编辑失败!");
+            throw new RuntimeException("启停用状态编辑失败!");
         }
         String rtnStr = "";
         for (String idStr : idList) {

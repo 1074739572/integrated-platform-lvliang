@@ -122,7 +122,7 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
         Long lon = sqlQueryFactory.update(qTHospital).set(qTHospital.status, Constant.Status.NO)
                 .where(qTHospital.id.eq(id)).execute();
         if(lon <= 0){
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "医院管理删除失败!", id);
+            throw new RuntimeException("医院管理删除失败");
         }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "医院管理删除成功", id);
     }
@@ -163,9 +163,9 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
             //存在id时，编辑医院
             hospital.setUpdatedTime(new Date());
             hospital.setUpdatedBy(loginUserName);
-            long lon = this.put(hospital.getId(),hospital);
+            Long lon = this.put(hospital.getId(),hospital);
             if(lon <= 0){
-                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "医院管理编辑失败!");
+                throw new RuntimeException("医院管理编辑失败!");
             }
         }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "医院管理编辑成功", hospital.getId());

@@ -17,4 +17,6 @@ public class HospitalDto {
     private String hospitalId;
 
     private String vendorHospitalId;
+
+    private String hospitalCode;
 }

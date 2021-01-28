@@ -166,7 +166,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
         //删除驱动
         Long lon = sqlQueryFactory.delete(qTDrive).where(qTDrive.id.eq(drive.getId())).execute();
         if(lon <= 0){
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "驱动删除失败!", "驱动删除失败!");
+            throw new RuntimeException("驱动删除失败!");
         }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "驱动删除成功!", id);
     }
@@ -204,7 +204,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
         drive.setUpdatedTime(new Date());
         Long lon = this.put(drive.getId(), drive);
         if(lon <= 0){
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE,"驱动编辑失败!", null);
+            throw new RuntimeException("驱动编辑失败!");
         }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"驱动编辑成功!", drive.getId());
     }

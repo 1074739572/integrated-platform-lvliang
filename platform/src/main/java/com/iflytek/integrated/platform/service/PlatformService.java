@@ -6,6 +6,7 @@ import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.platform.dto.HospitalDto;
 import com.iflytek.integrated.platform.dto.PlatformDto;
 import com.iflytek.integrated.platform.dto.VendorConfigDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
@@ -32,7 +33,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import static com.iflytek.integrated.platform.entity.QTHospitalVendorLink.qTHospitalVendorLink;
 import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
@@ -178,17 +178,19 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
             tvc.setCreatedTime(new Date());
             tvc.setCreatedBy(loginUserName);
             vendorConfigService.post(tvc);
-            List<Map<String, String>> hospitalArr = obj.getHospitalConfig();
-            for (int j = 0; j < hospitalArr.size(); j++) {
-                Map<String, String> hObj = hospitalArr.get(j);
-                THospitalVendorLink hvl = new THospitalVendorLink();
-                hvl.setId(batchUidService.getUid(qTHospitalVendorLink.getTableName()) + "");
-                hvl.setVendorConfigId(vendorConfigId);
-                hvl.setHospitalId(hObj.get("hospitalId"));
-                hvl.setVendorHospitalId(hObj.get("vendorHospitalId"));
-                hvl.setCreatedTime(new Date());
-                hvl.setCreatedBy(loginUserName);
-                hospitalVendorLinkService.post(hvl);
+            List<HospitalDto> hospitalArr = obj.getHospitalConfig();
+            if (CollectionUtils.isNotEmpty(hospitalArr)) {
+                for (int j = 0; j < hospitalArr.size(); j++) {
+                    HospitalDto hObj = hospitalArr.get(j);
+                    THospitalVendorLink hvl = new THospitalVendorLink();
+                    hvl.setId(batchUidService.getUid(qTHospitalVendorLink.getTableName()) + "");
+                    hvl.setVendorConfigId(vendorConfigId);
+                    hvl.setHospitalId(hObj.getHospitalId());
+                    hvl.setVendorHospitalId(hObj.getVendorHospitalId());
+                    hvl.setCreatedTime(new Date());
+                    hvl.setCreatedBy(loginUserName);
+                    hospitalVendorLinkService.post(hvl);
+                }
             }
         }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "新增平台成功!", "新增平台成功!");
@@ -198,13 +200,15 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
     private ResultDto updatePlatform(PlatformDto dto, String loginUserName) {
         //平台id
         String platformId = dto.getId();
-        sqlQueryFactory.update(qTPlatform).set(qTPlatform.platformName, dto.getPlatformName())
+        long l = sqlQueryFactory.update(qTPlatform).set(qTPlatform.platformName, dto.getPlatformName())
                 .set(qTPlatform.platformType, dto.getPlatformType())
                 .set(qTPlatform.projectId, dto.getProjectId())
                 .set(qTPlatform.updatedTime, new Date())
                 .set(qTPlatform.updatedBy, loginUserName)
                 .where(qTPlatform.id.eq(platformId)).execute();
-
+        if (l < 1) {
+            throw new RuntimeException("修改平台失败!");
+        }
         //获取更改前的厂商信息
         List<TVendorConfig> tvcList = vendorConfigService.getObjByPlatformId(platformId);
         //前台传递的新厂商信息
@@ -235,19 +239,18 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
                 tvc.setCreatedBy(loginUserName);
                 vendorConfigService.post(tvc);
                 //医院配置
-                List<Map<String, String>> hospitalArr = obj.getHospitalConfig();
+                List<HospitalDto> hospitalArr = obj.getHospitalConfig();
                 for (int j = 0; j < hospitalArr.size(); j++) {
-                    Map<String, String> hObj = hospitalArr.get(j);
+                    HospitalDto hObj = hospitalArr.get(j);
                     THospitalVendorLink hvl = new THospitalVendorLink();
                     hvl.setId(batchUidService.getUid(qTHospitalVendorLink.getTableName()) + "");
                     hvl.setVendorConfigId(vendorConfigId);
-                    hvl.setHospitalId(hObj.get("hospitalId"));
-                    hvl.setVendorHospitalId(hObj.get("vendorHospitalId"));
+                    hvl.setHospitalId(hObj.getHospitalId());
+                    hvl.setVendorHospitalId(hObj.getVendorHospitalId());
                     hvl.setCreatedTime(new Date());
                     hvl.setCreatedBy(loginUserName);
                     hospitalVendorLinkService.post(hvl);
                 }
-
             } else {
                 TVendorConfig tvc = vendorConfigService.getOne(vendorConfigId);
                 //编辑厂商信息
@@ -268,32 +271,42 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
                 tvc.setUserPassword(obj.getUserPassword());
                 tvc.setUpdatedTime(new Date());
                 tvc.setUpdatedBy(loginUserName);
-                vendorConfigService.put(vendorConfigId, tvc);
+                l = vendorConfigService.put(vendorConfigId, tvc);
+                if (l < 1) {
+                    throw new RuntimeException("厂商信息编辑失败!");
+                }
                 //医院配置
-                List<Map<String, String>> hospitalArr = obj.getHospitalConfig();
-                for (int j = 0; j < hospitalArr.size(); j++) {
-                    Map<String, String> hObj = hospitalArr.get(j);
-                    String hvlId = hObj.get("id");
-                    if (StringUtils.isBlank(hvlId)) {
-                        //新增医院配置
-                        THospitalVendorLink hvl = new THospitalVendorLink();
-                        hvl.setId(batchUidService.getUid(qTHospitalVendorLink.getTableName()) + "");
-                        hvl.setVendorConfigId(vendorConfigId);
-                        hvl.setHospitalId(hObj.get("hospitalId"));
-                        hvl.setVendorHospitalId(hObj.get("vendorHospitalId"));
-                        hvl.setCreatedTime(new Date());
-                        hvl.setCreatedBy(loginUserName);
-                        hospitalVendorLinkService.post(hvl);
-                    }else {
-                        //编辑医院配置
-                        THospitalVendorLink hvl = hospitalVendorLinkService.getOne(hvlId);
-                        hvl.setId(hvlId);
-                        hvl.setVendorConfigId(vendorConfigId);
-                        hvl.setHospitalId(hObj.get("hospitalId"));
-                        hvl.setVendorHospitalId(hObj.get("vendorHospitalId"));
-                        hvl.setUpdatedTime(new Date());
-                        hvl.setUpdatedBy(loginUserName);
-                        hospitalVendorLinkService.put(hvlId, hvl);
+                List<HospitalDto> hospitalArr = obj.getHospitalConfig();
+                if (CollectionUtils.isNotEmpty(hospitalArr)) {
+                    for (int j = 0; j < hospitalArr.size(); j++) {
+                        HospitalDto hObj = hospitalArr.get(j);
+                        String hvlId = hObj.getId();
+                        if (StringUtils.isBlank(hvlId)) {
+                            //新增医院配置
+                            THospitalVendorLink hvl = new THospitalVendorLink();
+                            hvl.setId(batchUidService.getUid(qTHospitalVendorLink.getTableName()) + "");
+                            hvl.setVendorConfigId(vendorConfigId);
+                            hvl.setHospitalId(hObj.getHospitalId());
+                            hvl.setVendorHospitalId(hObj.getVendorHospitalId());
+                            hvl.setCreatedTime(new Date());
+                            hvl.setCreatedBy(loginUserName);
+                            hospitalVendorLinkService.post(hvl);
+                        }else {
+                            //编辑医院配置
+                            THospitalVendorLink hvl = hospitalVendorLinkService.getOne(hvlId);
+                            if (hvl != null) {
+                                hvl.setId(hvlId);
+                                hvl.setVendorConfigId(vendorConfigId);
+                                hvl.setHospitalId(hObj.getHospitalId());
+                                hvl.setVendorHospitalId(hObj.getVendorHospitalId());
+                                hvl.setUpdatedTime(new Date());
+                                hvl.setUpdatedBy(loginUserName);
+                                l = hospitalVendorLinkService.put(hvlId, hvl);
+                                if (l < 1) {
+                                    throw new RuntimeException("医院配置信息编辑失败!");
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -346,14 +359,14 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
                 tvc.setCreatedBy(loginUserName);
                 vendorConfigService.post(tvc);
                 //医院配置
-                List<Map<String, String>> hospitalArr = obj.getHospitalConfig();
+                List<HospitalDto> hospitalArr = obj.getHospitalConfig();
                 for (int j = 0; j < hospitalArr.size(); j++) {
-                    Map<String, String> hObj = hospitalArr.get(j);
+                    HospitalDto hObj = hospitalArr.get(j);
                     THospitalVendorLink hvl = new THospitalVendorLink();
                     hvl.setId(batchUidService.getUid(qTHospitalVendorLink.getTableName()) + "");
                     hvl.setVendorConfigId(vendorConfigId);
-                    hvl.setHospitalId(hObj.get("hospitalId"));
-                    hvl.setVendorHospitalId(hObj.get("vendorHospitalId"));
+                    hvl.setHospitalId(hObj.getHospitalId());
+                    hvl.setVendorHospitalId(hObj.getVendorHospitalId());
                     hvl.setCreatedTime(new Date());
                     hvl.setCreatedBy(loginUserName);
                     hospitalVendorLinkService.post(hvl);
@@ -378,19 +391,22 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
                 tvc.setUserPassword(obj.getUserPassword());
                 tvc.setUpdatedTime(new Date());
                 tvc.setUpdatedBy(loginUserName);
-                vendorConfigService.put(vendorConfigId, tvc);
+                long l = vendorConfigService.put(vendorConfigId, tvc);
+                if (l < 1) {
+                    throw new RuntimeException("厂商信息编辑失败!");
+                }
                 //医院配置
-                List<Map<String, String>> hospitalArr = obj.getHospitalConfig();
+                List<HospitalDto> hospitalArr = obj.getHospitalConfig();
                 for (int j = 0; j < hospitalArr.size(); j++) {
-                    Map<String, String> hObj = hospitalArr.get(j);
-                    String hvlId = hObj.get("id");
+                    HospitalDto hObj = hospitalArr.get(j);
+                    String hvlId = hObj.getId();
                     if (StringUtils.isBlank(hvlId)) {
                         //新增医院配置
                         THospitalVendorLink hvl = new THospitalVendorLink();
                         hvl.setId(batchUidService.getUid(qTHospitalVendorLink.getTableName()) + "");
                         hvl.setVendorConfigId(vendorConfigId);
-                        hvl.setHospitalId(hObj.get("hospitalId"));
-                        hvl.setVendorHospitalId(hObj.get("vendorHospitalId"));
+                        hvl.setHospitalId(hObj.getHospitalId());
+                        hvl.setVendorHospitalId(hObj.getVendorHospitalId());
                         hvl.setCreatedTime(new Date());
                         hvl.setCreatedBy(loginUserName);
                         hospitalVendorLinkService.post(hvl);
@@ -399,11 +415,14 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
                         THospitalVendorLink hvl = hospitalVendorLinkService.getOne(hvlId);
                         hvl.setId(hvlId);
                         hvl.setVendorConfigId(vendorConfigId);
-                        hvl.setHospitalId(hObj.get("hospitalId"));
-                        hvl.setVendorHospitalId(hObj.get("vendorHospitalId"));
+                        hvl.setHospitalId(hObj.getHospitalId());
+                        hvl.setVendorHospitalId(hObj.getVendorHospitalId());
                         hvl.setUpdatedTime(new Date());
                         hvl.setUpdatedBy(loginUserName);
-                        hospitalVendorLinkService.put(hvlId, hvl);
+                        l = hospitalVendorLinkService.put(hvlId, hvl);
+                        if (l < 1) {
+                            throw new RuntimeException("医院配置编辑失败!");
+                        }
                     }
                 }
             }
@@ -412,17 +431,21 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
     }
 
 
+    @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "更改启停用状态", notes = "更改启停用状态")
     @PostMapping("/updateStatus")
     public ResultDto<String> updateStatus(
             @ApiParam(value = "平台id") @RequestParam(value = "id", required = true) String id,
             @ApiParam(value = "平台状态 1启用 2停用") @RequestParam(value = "platformStatus", required = true) String platformStatus) {
         String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-        sqlQueryFactory.update(qTPlatform)
+        long l = sqlQueryFactory.update(qTPlatform)
                 .set(qTPlatform.platformStatus, platformStatus)
                 .set(qTPlatform.updatedTime, new Date())
                 .set(qTPlatform.updatedBy, loginUserName)
                 .where(qTPlatform.id.eq(id)).execute();
+        if (l < 1) {
+            throw new RuntimeException("平台状态更改失败!");
+        }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "平台状态更改成功!", id);
     }
 
@@ -438,7 +461,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
         //删除平台
         long count = this.delete(id);
         if (count <= 0) {
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "平台删除失败!", "平台删除失败!");
+            throw new RuntimeException("平台删除失败!");
         }
         //获取平台下所有厂商配置
         List<TVendorConfig> tvcList = vendorConfigService.getObjByPlatformId(id);
@@ -449,12 +472,17 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
         }
         //删除平台下所有关联的接口配置
         List<TBusinessInterface> tbiList = businessInterfaceService.getListByPlatform(id);
-        for (TBusinessInterface tbi : tbiList) {
-            businessInterfaceService.delete(tbi.getId());
+        if (CollectionUtils.isNotEmpty(tbiList)) {
+            for (TBusinessInterface tbi : tbiList) {
+                long l = businessInterfaceService.delete(tbi.getId());
+                if (l < 1) {
+                    logger.error("平台下所有关联的接口配置删除失败!");
+                    throw new RuntimeException("平台删除失败!");
+                }
+            }
         }
         //删除平台下的所有厂商配置信息
         long vcCount = vendorConfigService.delVendorConfigAll(id);
-
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "平台"+tp.getPlatformName()+"删除成功,同时删除该平台下"+vcCount+"条厂商配置,"+count+"条厂商医院配置!",
                 id);
     }

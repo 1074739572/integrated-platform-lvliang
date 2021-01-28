@@ -5,7 +5,6 @@ import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
 import java.util.List;
-import java.util.Map;
 
 /**
 * 厂商配置信息
@@ -20,7 +19,7 @@ public class VendorConfigDto extends TVendorConfig {
 
     private String vendorName;
 
-    private List<Map<String, String>> hospitalConfig;
+    private List<HospitalDto> hospitalConfig;
 
     private String platformId;
 

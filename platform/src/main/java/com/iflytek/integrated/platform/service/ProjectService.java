@@ -138,58 +138,70 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
         projectService.post(project);
 
         List<ProductDto> productList = dto.getProductList();
-        for (int i = 0; i < productList.size(); i++) {
-            ProductDto pObj = productList.get(i);
-            String productId = pObj.getProductId();
-            List<FunctionDto> jsonArr = pObj.getFunctionList();
-            for (int j = 0; j < jsonArr.size(); j++) {
-                //产品与功能关联
-                String functionId = jsonArr.get(j).getFunctionId();
-                TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(productId, functionId);
-                //项目与产品关联
-                TProjectProductLink tppl = new TProjectProductLink();
-                tppl.setId(batchUidService.getUid(qTProjectProductLink.getTableName())+"");
-                tppl.setProjectId(projectId);
-                tppl.setProductFunctionLinkId(tpfl.getId());
-                tppl.setCreatedTime(new Date());
-                tppl.setCreatedBy(loginUserName);
-                projectProductLinkService.post(tppl);
+        if (!CollectionUtils.isEmpty(productList)) {
+            for (int i = 0; i < productList.size(); i++) {
+                ProductDto pObj = productList.get(i);
+                String productId = pObj.getProductId();
+                List<FunctionDto> jsonArr = pObj.getFunctionList();
+                if (!CollectionUtils.isEmpty(jsonArr)) {
+                    for (int j = 0; j < jsonArr.size(); j++) {
+                        //产品与功能关联
+                        String functionId = jsonArr.get(j).getFunctionId();
+                        TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(productId, functionId);
+                        //项目与产品关联
+                        TProjectProductLink tppl = new TProjectProductLink();
+                        tppl.setId(batchUidService.getUid(qTProjectProductLink.getTableName())+"");
+                        tppl.setProjectId(projectId);
+                        tppl.setProductFunctionLinkId(tpfl.getId());
+                        tppl.setCreatedTime(new Date());
+                        tppl.setCreatedBy(loginUserName);
+                        projectProductLinkService.post(tppl);
+                    }
+                }
             }
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "新增项目成功!");
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "新增项目成功!", null);
     }
 
     /** 修改项目 */
     private ResultDto<String> updateProject(ProjectDto dto, String loginUserName) {
         String projectId = dto.getId();
-        this.deleteProjectById(projectId);
+        boolean bool = this.deleteProjectById(projectId);
+        if(!bool) {
+            throw new RuntimeException("修改项目失败!");
+        }
 
         TProject project = new TProject();
         project.setProjectName(dto.getProjectName());
         project.setProjectType(dto.getProjectType());
         project.setUpdatedTime(new Date());
         project.setUpdatedBy(loginUserName);
-        projectService.put(projectId, project);
+        long l = projectService.put(projectId, project);
+        if (l < 1) {
+            throw new RuntimeException("修改项目失败!");
+        }
 
         List<ProductDto> productList = dto.getProductList();
-        for (int i = 0; i < productList.size(); i++) {
-            ProductDto pObj = productList.get(i);
-            String productId = pObj.getProductId();
-            List<FunctionDto> jsonArr = pObj.getFunctionList();
-            for (int j = 0; j < jsonArr.size(); j++) {
-                //产品与功能关联
-                String functionId = jsonArr.get(j).getFunctionId();
-                TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(productId, functionId);
-                //项目与产品关联
-                TProjectProductLink tppl = new TProjectProductLink();
-                tppl.setId(batchUidService.getUid(qTProjectProductLink.getTableName())+"");
-                tppl.setProjectId(projectId);
-                if (tpfl != null) {
-                    tppl.setProductFunctionLinkId(tpfl.getId());
+        if (!CollectionUtils.isEmpty(productList)) {
+            for (int i = 0; i < productList.size(); i++) {
+                ProductDto pObj = productList.get(i);
+                String productId = pObj.getProductId();
+                List<FunctionDto> jsonArr = pObj.getFunctionList();
+                for (int j = 0; j < jsonArr.size(); j++) {
+                    //产品与功能关联
+                    String functionId = jsonArr.get(j).getFunctionId();
+                    TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(productId, functionId);
+                    //项目与产品关联
+                    TProjectProductLink tppl = new TProjectProductLink();
+                    tppl.setId(batchUidService.getUid(qTProjectProductLink.getTableName())+"");
+                    tppl.setProjectId(projectId);
+                    if (tpfl != null) {
+                        tppl.setProductFunctionLinkId(tpfl.getId());
+                    }
+                    tppl.setCreatedTime(new Date());
+                    tpfl.setCreatedBy(loginUserName);
+                    projectProductLinkService.post(tppl);
                 }
-                tppl.setCreatedTime(new Date());
-                tpfl.setCreatedBy(loginUserName);
-                projectProductLinkService.post(tppl);
             }
         }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "项目修改成功!", projectId);
@@ -207,28 +219,46 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
         //删除项目
         long count = this.delete(id);
         if (count <= 0) {
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "项目删除失败!", "项目删除失败!");
+            throw new RuntimeException("项目删除失败!");
         }
         //删除项目下所有平台及其相关信息
         List<TPlatform> tpList = platformService.getListByProjectId(id);
-        for (TPlatform obj : tpList) {
-            String platformId = obj.getId();
-            //获取平台下所有厂商配置
-            List<TVendorConfig> list = vendorConfigService.getObjByPlatformId(platformId);
-            for (TVendorConfig tvc : list) {
-                //删除医院与厂商配置关联信息
-                hospitalVendorLinkService.deleteByVendorConfigId(tvc.getId());
+        if (!CollectionUtils.isEmpty(tpList)) {
+            for (TPlatform obj : tpList) {
+                String platformId = obj.getId();
+                //获取平台下所有厂商配置
+                List<TVendorConfig> list = vendorConfigService.getObjByPlatformId(platformId);
+                if (!CollectionUtils.isEmpty(list)) {
+                    for (TVendorConfig tvc : list) {
+                        //删除医院与厂商配置关联信息
+                        long l = hospitalVendorLinkService.deleteByVendorConfigId(tvc.getId());
+                        if (l < 1) {
+                            throw new RuntimeException("医院与厂商配置关联信息删除失败!");
+                        }
+                    }
+                }
+                //删除平台下所有关联的接口配置
+                List<TBusinessInterface> tbiList = businessInterfaceService.getListByPlatform(platformId);
+                if (!CollectionUtils.isEmpty(tbiList)) {
+                    for (TBusinessInterface tbi : tbiList) {
+                        long l = businessInterfaceService.delete(tbi.getId());
+                        if (l < 1) {
+                            throw new RuntimeException("平台下关联的接口配置信息删除失败!");
+                        }
+                    }
+                }
+                //删除平台下的所有厂商配置信息
+                long l = vendorConfigService.delVendorConfigAll(platformId);
+                if (l < 1) {
+                    throw new RuntimeException("平台下的厂商配置信息删除失败!");
+                }
             }
-            //删除平台下所有关联的接口配置
-            List<TBusinessInterface> tbiList = businessInterfaceService.getListByPlatform(platformId);
-            for (TBusinessInterface tbi : tbiList) {
-                businessInterfaceService.delete(tbi.getId());
-            }
-            //删除平台下的所有厂商配置信息
-            vendorConfigService.delVendorConfigAll(platformId);
         }
         //删除项目与产品功能关联
-        this.deleteProjectById(id);
+        boolean bool = this.deleteProjectById(id);
+        if (!bool) {
+            throw new RuntimeException("项目与产品功能关联删除失败!");
+        }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "项目删除成功!", id);
     }
 
@@ -256,29 +286,30 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
     }
 
 
-    @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "获取某项目下的产品及功能信息", notes = "获取某项目下的产品及功能信息")
     @GetMapping("/getInfoByProjectId")
     public ResultDto<List<Map<String, Object>>> getInfoByProjectId(@ApiParam(value = "项目id") @RequestParam(value = "id", required = true) String id) {
         try {
             List<TProjectProductLink> list = projectProductLinkService.findProjectProductLinkByProjectId(id);
             Map<String, String> map = new HashMap<>();
-            for (TProjectProductLink obj : list) {
-                String productFunctionLinkId = obj.getProductFunctionLinkId();
-                TProductFunctionLink tpfl = productFunctionLinkService.getOne(productFunctionLinkId);
-                if (tpfl != null) {
-                    String pId = tpfl.getProductId();
-                    String fId = tpfl.getFunctionId();
-                    boolean isExist = false;
-                    for(String key : map.keySet()) {
-                        if(key.equals(pId)) {
-                            map.put(pId, map.get(pId)+","+fId);
-                            isExist = true;
-                            break;
+            if (!CollectionUtils.isEmpty(list)) {
+                for (TProjectProductLink obj : list) {
+                    String productFunctionLinkId = obj.getProductFunctionLinkId();
+                    TProductFunctionLink tpfl = productFunctionLinkService.getOne(productFunctionLinkId);
+                    if (tpfl != null) {
+                        String pId = tpfl.getProductId();
+                        String fId = tpfl.getFunctionId();
+                        boolean isExist = false;
+                        for(String key : map.keySet()) {
+                            if(key.equals(pId)) {
+                                map.put(pId, map.get(pId)+","+fId);
+                                isExist = true;
+                                break;
+                            }
                         }
-                    }
-                    if (!isExist) {
-                        map.put(pId, fId);
+                        if (!isExist) {
+                            map.put(pId, fId);
+                        }
                     }
                 }
             }
@@ -327,14 +358,21 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
     }
 
     /**
-     * 根据项目id删除其关联信息
+     * 根据项目id删除其关联信息,返回是否删除成功
      * @param projectId
      */
-    private void deleteProjectById(String projectId) {
+    private boolean deleteProjectById(String projectId) {
         List<TProjectProductLink> list = projectProductLinkService.findProjectProductLinkByProjectId(projectId);
-        for (TProjectProductLink obj : list) {
-            projectProductLinkService.delete(obj.getId());
+        if (!CollectionUtils.isEmpty(list)) {
+            int count = 0;
+            for (TProjectProductLink obj : list) {
+                count += projectProductLinkService.delete(obj.getId());
+            }
+            if (list.size() != count) {
+                return false;
+            }
         }
+        return true;
     }
 
 

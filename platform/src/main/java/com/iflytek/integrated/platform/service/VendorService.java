@@ -6,6 +6,7 @@ import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.platform.dto.HospitalDto;
 import com.iflytek.integrated.platform.dto.JoltDebuggerDto;
 import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
@@ -134,8 +135,9 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
                 .set(qTVendor.updatedBy, loginUserName)
                 .where(qTVendor.id.eq(vendorId)).execute();
         if (l <= 0) {
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "厂商信息更新失败!", vendorId);
+            throw new RuntimeException("厂商信息更新失败!");
         }
+
         //删除关联
         vendorDriveLinkService.deleteVendorDriveLinkById(vendorId);
         //添加新关联
@@ -166,7 +168,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
         //删除厂商
         long count = this.delete(id);
         if (count < 1) {
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "删除厂商失败!", id);
+            throw new RuntimeException("删除厂商失败!");
         }
         //删除厂商与驱动关联
         vendorDriveLinkService.deleteVendorDriveLinkById(id);
@@ -228,20 +230,22 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
                     vcd.setVendorName(tv.getVendorName());
                 }
                 List<THospitalVendorLink> hvlvcList = hospitalVendorLinkService.getTHospitalVendorLinkByVendorConfigId(obj.getId());
-                List<Map<String, String>> hospitalConfigList = new ArrayList<>();
-                for (int i= 0; i < hvlvcList.size(); i++) {
-                    Map<String, String> map = new HashMap<>();
-                    //厂商医院配置
-                    map.put("id", hvlvcList.get(i).getId());
-                    //厂商医院id
-                    map.put("vendorHospitalId", hvlvcList.get(i).getVendorHospitalId());
-                    //医院信息
-                    THospital h = hospitalService.getOne(hvlvcList.get(i).getHospitalId());
-                    if (h != null) {
-                        map.put("hospitalCode", h.getHospitalCode());
-                        map.put("hospitalId", h.getId());
+                List<HospitalDto> hospitalConfigList = new ArrayList<>();
+                if (CollectionUtils.isNotEmpty(hvlvcList)) {
+                    for (int i= 0; i < hvlvcList.size(); i++) {
+                        HospitalDto map = new HospitalDto();
+                        //厂商医院配置
+                        map.setId(hvlvcList.get(i).getId());
+                        //厂商医院id
+                        map.setVendorHospitalId(hvlvcList.get(i).getVendorHospitalId());
+                        //医院信息
+                        THospital h = hospitalService.getOne(hvlvcList.get(i).getHospitalId());
+                        if (h != null) {
+                            map.setHospitalCode(h.getHospitalCode());
+                            map.setHospitalId(h.getId());
+                        }
+                        hospitalConfigList.add(map);
                     }
-                    hospitalConfigList.add(map);
                 }
                 vcd.setHospitalConfig(hospitalConfigList);
                 list.add(vcd);
@@ -267,7 +271,10 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
                 return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该厂商已有接口配置数据相关联,无法删除!", "该厂商已有接口配置数据相关联,无法删除!");
             }
             //删除厂商配置
-            vendorConfigService.delete(tvc.getId());
+            long l = vendorConfigService.delete(tvc.getId());
+            if (l < 1) {
+                throw new RuntimeException("厂商配置删除失败!");
+            }
             //删除厂商配置关联的医院
             hospitalVendorLinkService.deleteByVendorConfigId(tvc.getId());
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "厂商配置删除成功!", "厂商配置删除成功!");
@@ -276,6 +283,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
     }
 
 
+    @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "删除厂商下医院配置信息", notes = "删除厂商下医院配置信息")
     @PostMapping("/delHospitalVendorByVendorConfig")
     public ResultDto<String> delHospitalVendorByVendorConfig(
@@ -386,7 +394,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
         }
         long count = vendorConfigService.delete(id);
         if (count < 1) {
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "删除失败!", id);
+            throw new RuntimeException("删除失败!");
         }
         //删除厂商与医院关联
         hospitalVendorLinkService.deleteByVendorConfigId(id);
@@ -394,6 +402,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
     }
 
 
+    @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "根据厂商医院配置id删除厂商医院配置信息")
     @PostMapping("/delHospitalVendorById")
     public ResultDto<String> delHospitalVendorById(@ApiParam(value = "厂商医院配置id") @RequestParam(value = "id", required = true) String id) {
@@ -403,7 +412,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
         }
         long count = hospitalVendorLinkService.delete(id);
         if (count < 1) {
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "删除失败!", id);
+            throw new RuntimeException("删除失败!");
         }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"删除成功!", "删除成功!");
     }

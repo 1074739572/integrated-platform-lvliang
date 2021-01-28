@@ -149,12 +149,12 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
         //删除插件前校验是否有接口配置相关联
         List<TBusinessInterface> tbiList = businessInterfaceService.getListByPluginId(id);
         if (CollectionUtils.isNotEmpty(tbiList)) {
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该插件有接口配置相关联,无法删除!", "该插件有接口配置相关联,无法删除!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该插件有接口配置相关联,无法删除!");
         }
         //删除插件
         Long lon = sqlQueryFactory.delete(qTPlugin).where(qTPlugin.id.eq(plugin.getId())).execute();
         if(lon <= 0){
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "插件删除失败!", "插件删除失败!");
+            throw new RuntimeException("插件删除失败!");
         }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "插件删除成功", id);
     }
@@ -196,7 +196,7 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
         plugin.setUpdatedBy(loginUserName);
         long lon = this.put(plugin.getId(), plugin);
         if(lon <= 0){
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "插件编辑失败!", "插件编辑失败!");
+            throw new RuntimeException("插件编辑失败!");
         }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"插件编辑成功!", plugin.getId());
     }

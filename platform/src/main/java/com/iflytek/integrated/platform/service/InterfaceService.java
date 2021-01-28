@@ -158,7 +158,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             long lon = businessInterfaceService.saveMockTemplate(dto.getId(),
                     dto.getMockTemplate(), dto.getMockIsUse(), loginUserName);
             if(lon <= 0){
-                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "保存mock模板失败!");
+                throw new RuntimeException("保存mock模板失败!");
             }
             rtnStr += dto.getId() + ",";
         }
@@ -189,7 +189,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                     .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
                     .where(qTBusinessInterface.id.eq(id)).fetchFirst();
             if(businessInterface == null || StringUtils.isEmpty(businessInterface.getId())){
-                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有查询到接口配置信");
+                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有查询到接口配置信息");
             }
             //获取入参列表
             String interfaceId = StringUtils.isNotEmpty(businessInterface.getInterfaceId())?businessInterface.getInterfaceId():"";
@@ -232,25 +232,22 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @ApiOperation(value = "标准接口删除", notes = "标准接口删除")
     @PostMapping("/delInterfaceById")
     public ResultDto<String> delInterfaceById(@ApiParam(value = "标准接口id") @RequestParam(value = "id", required = true) String id) {
-        try {
-            //校验该接口是否有产品关联
-            TBusinessInterface tbi = businessInterfaceService.getProductIdByInterfaceId(id);
-            if (tbi != null && StringUtils.isNotBlank(tbi.getId())) {
-                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该标准接口已有产品关联,无法删除!");
-            }
-            List<TBusinessInterface> list = businessInterfaceService.getListByInterfaceId(id);
-            if (CollectionUtils.isNotEmpty(list)) {
-                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该标准接口已有接口配置关联,无法删除!");
-            }
-            //删除接口
-            this.delete(id);
-            //产品与标准接口关联
-            productInterfaceLinkService.deleteProductInterfaceLinkById(id);
-        } catch (Exception e) {
-            logger.error("厂商删除失败! MSG:{}", ExceptionUtil.dealException(e));
-            e.printStackTrace();
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "标准接口删除失败!");
+        //校验该接口是否有产品关联
+        TBusinessInterface tbi = businessInterfaceService.getProductIdByInterfaceId(id);
+        if (tbi != null && StringUtils.isNotBlank(tbi.getId())) {
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该标准接口已有产品关联,无法删除!", "该标准接口已有产品关联,无法删除!");
         }
+        List<TBusinessInterface> list = businessInterfaceService.getListByInterfaceId(id);
+        if (CollectionUtils.isNotEmpty(list)) {
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该标准接口已有接口配置关联,无法删除!", "该标准接口已有接口配置关联,无法删除!");
+        }
+        //删除接口
+        long l = this.delete(id);
+        if (l < 1) {
+            throw new RuntimeException("标准接口删除成功!");
+        }
+        //产品与标准接口关联
+        productInterfaceLinkService.deleteProductInterfaceLinkById(id);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准接口删除成功!", id);
     }
 
@@ -313,14 +310,16 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
         //新增产品与接口关联
         List<String> productIdArr = dto.getProductIds();
-        for (int i = 0; i < productIdArr.size(); i++) {
-            TProductInterfaceLink tpil = new TProductInterfaceLink();
-            tpil.setId(batchUidService.getUid(qTProductInterfaceLink.getTableName()) + "");
-            tpil.setProductId(productIdArr.get(i));
-            tpil.setInterfaceId(interfaceId);
-            tpil.setCreatedTime(new Date());
-            tpil.setCreatedBy(loginUserName);
-            productInterfaceLinkService.post(tpil);
+        if (CollectionUtils.isNotEmpty(productIdArr)) {
+            for (int i = 0; i < productIdArr.size(); i++) {
+                TProductInterfaceLink tpil = new TProductInterfaceLink();
+                tpil.setId(batchUidService.getUid(qTProductInterfaceLink.getTableName()) + "");
+                tpil.setProductId(productIdArr.get(i));
+                tpil.setInterfaceId(interfaceId);
+                tpil.setCreatedTime(new Date());
+                tpil.setCreatedBy(loginUserName);
+                productInterfaceLinkService.post(tpil);
+            }
         }
         //新增接口参数
         //入参
@@ -411,19 +410,21 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                     .set(qTInterface.updatedBy, loginUserName)
                     .where(qTInterface.id.eq(id)).execute();
         if (execute < 1) {
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "修改标准接口信息失败!", "修改标准接口信息失败!");
+            throw new RuntimeException("修改标准接口信息失败!");
         }
         //替换产品与接口关联
         productInterfaceLinkService.deleteProductInterfaceLinkById(id);
         List<String> productIdArr = dto.getProductIds();
-        for (int i = 0; i < productIdArr.size(); i++) {
-            TProductInterfaceLink tpil = new TProductInterfaceLink();
-            tpil.setId(batchUidService.getUid(qTProductInterfaceLink.getTableName()) + "");
-            tpil.setProductId(productIdArr.get(i));
-            tpil.setInterfaceId(id);
-            tpil.setCreatedTime(new Date());
-            tpil.setCreatedBy(loginUserName);
-            productInterfaceLinkService.post(tpil);
+        if (CollectionUtils.isNotEmpty(productIdArr)) {
+            for (int i = 0; i < productIdArr.size(); i++) {
+                TProductInterfaceLink tpil = new TProductInterfaceLink();
+                tpil.setId(batchUidService.getUid(qTProductInterfaceLink.getTableName()) + "");
+                tpil.setProductId(productIdArr.get(i));
+                tpil.setInterfaceId(id);
+                tpil.setCreatedTime(new Date());
+                tpil.setCreatedBy(loginUserName);
+                productInterfaceLinkService.post(tpil);
+            }
         }
         //替换接口参数
         interfaceParamService.deleteProductInterfaceLinkById(id);
@@ -462,10 +463,13 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 //标准接口信息出参赋值
                 String paramName = obj.getParamName();
                 String paramOutStatusSuccess = obj.getParamOutStatusSuccess();
-                sqlQueryFactory.update(qTInterface)
-                        .set(qTInterface.paramOutStatus, StringUtils.isBlank(paramName)?"":paramName)
-                        .set(qTInterface.paramOutStatusSuccess, StringUtils.isBlank(paramOutStatusSuccess)?"":paramOutStatusSuccess)
+                long l = sqlQueryFactory.update(qTInterface)
+                        .set(qTInterface.paramOutStatus, StringUtils.isBlank(paramName) ? "" : paramName)
+                        .set(qTInterface.paramOutStatusSuccess, StringUtils.isBlank(paramOutStatusSuccess) ? "" : paramOutStatusSuccess)
                         .where(qTInterface.id.eq(id)).execute();
+                if (l < 1) {
+                    throw new RuntimeException("修改标准接口出参信息失败!");
+                }
             }
         }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准接口修改成功!", id);
@@ -546,25 +550,27 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         QueryResults<TBusinessInterface> queryResults = businessInterfaceService.getInterfaceConfigureList(platformId, status, mockStatus, pageNo, pageSize);
         //匹配列表展示信息
         List<TBusinessInterface> list = queryResults.getResults();
-        for (TBusinessInterface tbi : list) {
-            //获取产品+功能
-            if (StringUtils.isNotBlank(tbi.getProductFunctionLinkId())) {
-                TProductFunctionLink tpfl = sqlQueryFactory.select(Projections.bean(
-                        qTProductFunctionLink, qTProduct.productName.as("productName"), qTFunction.functionName.as("functionName")))
-                        .from(qTProductFunctionLink)
-                        .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
-                        .leftJoin(qTFunction).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
-                        .where(qTProductFunctionLink.id.eq(tbi.getProductFunctionLinkId())).fetchFirst();
-                if (tpfl != null) {
-                    tbi.setProductName(tpfl.getProductName());
-                    tbi.setFunctionName(tpfl.getFunctionName());
+        if (CollectionUtils.isNotEmpty(list)) {
+            for (TBusinessInterface tbi : list) {
+                //获取产品+功能
+                if (StringUtils.isNotBlank(tbi.getProductFunctionLinkId())) {
+                    TProductFunctionLink tpfl = sqlQueryFactory.select(Projections.bean(
+                            qTProductFunctionLink, qTProduct.productName.as("productName"), qTFunction.functionName.as("functionName")))
+                            .from(qTProductFunctionLink)
+                            .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
+                            .leftJoin(qTFunction).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
+                            .where(qTProductFunctionLink.id.eq(tbi.getProductFunctionLinkId())).fetchFirst();
+                    if (tpfl != null) {
+                        tbi.setProductName(tpfl.getProductName());
+                        tbi.setFunctionName(tpfl.getFunctionName());
+                    }
                 }
-            }
-            //获取标准接口
-            if (StringUtils.isNotBlank(tbi.getInterfaceId())) {
-                TInterface ti = this.getOne(tbi.getInterfaceId());
-                if (ti != null) {
-                    tbi.setInterfaceName(ti.getInterfaceName());
+                //获取标准接口
+                if (StringUtils.isNotBlank(tbi.getInterfaceId())) {
+                    TInterface ti = this.getOne(tbi.getInterfaceId());
+                    if (ti != null) {
+                        tbi.setInterfaceName(ti.getInterfaceName());
+                    }
                 }
             }
         }
@@ -629,7 +635,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         if(StringUtils.isBlank(loginUserName)){
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
         }
-        List<TBusinessInterface> tbiList = dto.getBusinessInterfaceList();
         if (Constant.Operation.ADD.equals(dto.getAddOrUpdate())) {
             return this.saveInterfaceConfig(dto, loginUserName);
         }
@@ -657,13 +662,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         //产品与功能关联
         TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(dto.getProductId(), dto.getFunctionId());
         String productFunctionLinkId = tpfl!=null?tpfl.getId():null;
-//        String productFunctionLinkId = "";
-//        if (StringUtils.isBlank(dto.getProductFunctionLinkId())) {
-//            TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(dto.getProductId(), dto.getFunctionId());
-//            productFunctionLinkId = tpfl!=null?tpfl.getId():null;
-//        }else {
-//            productFunctionLinkId = dto.getProductFunctionLinkId();
-//        }
 
         //根据项目,厂商,标准接口判定是否存在相同配置数据
         List<THospitalVendorLink> thvlList = hospitalVendorLinkService.getTHospitalVendorLinkByVendorConfigId(vendorConfigId);
@@ -710,13 +708,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         //产品与功能关联
         TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(dto.getProductId(), dto.getFunctionId());
         String productFunctionLinkId = tpfl!=null?tpfl.getId():null;
-//        String productFunctionLinkId = "";
-//        if (StringUtils.isBlank(dto.getProductFunctionLinkId())) {
-//            TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(dto.getProductId(), dto.getFunctionId());
-//            productFunctionLinkId = tpfl!=null?tpfl.getId():null;
-//        }else {
-//            productFunctionLinkId = dto.getProductFunctionLinkId();
-//        }
 
         //返回缓存接口配置id
         String rtnId = "";
@@ -749,7 +740,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 //获取schema
                 niFiRequestUtil.generateSchemaToInterface(tbi);
                 //新增接口配置
-                businessInterfaceService.put(tbi.getId(), tbi);
+                long l = businessInterfaceService.put(tbi.getId(), tbi);
+                if (l < 1) {
+                    throw new RuntimeException("修改新增接口配置信息失败!");
+                }
                 rtnId += tbi.getId() + ",";
             }
         }
@@ -770,6 +764,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     }
 
 
+    @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "接口配置删除", notes = "接口配置删除")
     @PostMapping("/deleteInterfaceConfigure")
     public ResultDto<String> deleteInterfaceConfigure(
@@ -783,7 +778,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         long count = businessInterfaceService.delObjByCondition(
                 tbi.getProductFunctionLinkId(), tbi.getInterfaceId(), tbi.getVendorConfigId());
         if(count <= 0){
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "接口配置删除失败!", "接口配置删除失败!");
+            throw new RuntimeException("接口配置删除失败!");
         }
         //获取返回缓存id
         String rtnStr = "";
@@ -806,7 +801,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         }
         long count = businessInterfaceService.delete(id);
         if (count < 1) {
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据id删除该接口配置信息失败!", id);
+            throw new RuntimeException("根据id删除该接口配置信息失败!");
         }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "单个接口配置信息删除成功!", id);
     }
@@ -817,7 +812,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     public ResultDto<InterfaceDto> getInterfaceInfoById(@ApiParam(value = "标准接口id") @RequestParam(value = "id", required = true) String id) {
         TInterface ti = this.getOne(id);
         if (ti == null) {
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据id未查出该标准接口!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据id未查出该标准接口!", null);
         }
         try {
             InterfaceDto iDto = new InterfaceDto();
@@ -910,7 +905,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @PostMapping("/jsonFormat")
     public ResultDto<List<ParamsDto>> jsonFormat(String paramJson){
         if(StringUtils.isBlank(paramJson)){
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "参数为空");
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "参数为空");
         }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"", PlatformUtil.jsonFormat(paramJson));
     }
