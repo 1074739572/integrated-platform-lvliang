@@ -233,6 +233,8 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
         String productId = dto.getProductId();
         String productName = dto.getProductName();
         String functionId = dto.getFunctionId();
+        String oldProductId = dto.getOldProductId();
+        String oldFunctionId = dto.getOldFunctionId();
         String errProductId = null;
 
         //判断输入产品是否是新产品
@@ -249,12 +251,10 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
             tp.setCreatedBy(loginUserName);
             this.post(tp);
             //校验之前的产品功能是否有关联,没有则删除该产品功能
-            String oldProductId = dto.getOldProductId();
             TProductFunctionLink tpflObj = productFunctionLinkService.getObjByProductAndFunctionByNoId(oldProductId, null, id);
             if (tpflObj == null) {
                 this.delete(oldProductId);
             }
-            String oldFunctionId = dto.getOldFunctionId();
             tpflObj = productFunctionLinkService.getObjByProductAndFunctionByNoId(null, oldFunctionId, id);
             if (tpflObj == null) {
                 functionService.delete(oldFunctionId);
@@ -279,6 +279,16 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
             TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunctionByNoId(productId, functionId, id);
             if (tpfl != null) {
                 return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该产品与功能已有关联!",tpfl);
+            }
+        }
+        //功能没有关联删除
+        if(!oldFunctionId.equals(dto.getFunctionId())) {
+            List<TProductFunctionLink> tpflList = productFunctionLinkService.getObjByFunction(oldFunctionId);
+            if (CollectionUtils.isNotEmpty(tpflList) && tpflList.size()==1) {
+                long l = functionService.delete(tpflList.get(0).getFunctionId());
+                if (l < 1) {
+                    throw new RuntimeException("修改产品与功能关联失败!");
+                }
             }
         }
         //更新产品与功能关联

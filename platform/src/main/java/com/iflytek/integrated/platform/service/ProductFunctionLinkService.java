@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static com.iflytek.integrated.platform.entity.QTFunction.qTFunction;
 import static com.iflytek.integrated.platform.entity.QTProduct.qTProduct;
@@ -45,6 +46,16 @@ public class ProductFunctionLinkService extends BaseService<TProductFunctionLink
         TProductFunctionLink obj = sqlQueryFactory.select(qTProductFunctionLink).from(qTProductFunctionLink)
                 .where(qTProductFunctionLink.productId.eq(productId).and(qTProductFunctionLink.functionId.eq(functionId))).fetchFirst();
         return obj;
+    }
+
+    /**
+     * 根据功能获取所有关联对象
+     * @param functionId
+     * @return
+     */
+    public List<TProductFunctionLink> getObjByFunction(String functionId) {
+        return sqlQueryFactory.select(qTProductFunctionLink).from(qTProductFunctionLink)
+                .where((qTProductFunctionLink.functionId.eq(functionId))).fetch();
     }
 
     /**
