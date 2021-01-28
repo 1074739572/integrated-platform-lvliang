@@ -282,7 +282,10 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
             }
         }
         //更新产品与功能关联
-        productFunctionLinkService.updateObjById(id, productId, functionId, loginUserName);
+        long l = productFunctionLinkService.updateObjById(id, productId, functionId, loginUserName);
+        if (l < 1) {
+            throw new RuntimeException("修改产品与功能关联失败!");
+        }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"编辑产品功能关联成功", errProductId);
     }
 
