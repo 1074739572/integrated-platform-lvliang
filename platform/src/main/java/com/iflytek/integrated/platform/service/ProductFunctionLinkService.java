@@ -59,6 +59,16 @@ public class ProductFunctionLinkService extends BaseService<TProductFunctionLink
     }
 
     /**
+     * 根据功能获取所有关联对象
+     * @param productId
+     * @return
+     */
+    public List<TProductFunctionLink> getObjByProduct(String productId) {
+        return sqlQueryFactory.select(qTProductFunctionLink).from(qTProductFunctionLink)
+                .where((qTProductFunctionLink.productId.eq(productId))).fetch();
+    }
+
+    /**
      * 获取产品-功能关联对象
      * @param productId
      * @param functionId

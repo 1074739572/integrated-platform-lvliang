@@ -291,6 +291,16 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
                 }
             }
         }
+        //产品没有关联删除
+        if(!oldProductId.equals(dto.getProductId())) {
+            List<TProductFunctionLink> tpflList = productFunctionLinkService.getObjByProduct(oldProductId);
+            if (CollectionUtils.isNotEmpty(tpflList) && tpflList.size()==1) {
+                long l = this.delete(tpflList.get(0).getProductId());
+                if (l < 1) {
+                    throw new RuntimeException("修改产品与功能关联失败!");
+                }
+            }
+        }
         //更新产品与功能关联
         long l = productFunctionLinkService.updateObjById(id, productId, functionId, loginUserName);
         if (l < 1) {
