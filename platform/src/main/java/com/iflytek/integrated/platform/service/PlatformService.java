@@ -6,8 +6,10 @@ import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.platform.common.RedisService;
 import com.iflytek.integrated.platform.dto.HospitalDto;
 import com.iflytek.integrated.platform.dto.PlatformDto;
+import com.iflytek.integrated.platform.dto.RedisKeyDto;
 import com.iflytek.integrated.platform.dto.VendorConfigDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TVendorConfig;
@@ -36,6 +38,7 @@ import java.util.List;
 
 import static com.iflytek.integrated.platform.entity.QTHospitalVendorLink.qTHospitalVendorLink;
 import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
+import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
 import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConfig;
 
 /**
@@ -57,6 +60,8 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
     private BusinessInterfaceService businessInterfaceService;
     @Autowired
     private BatchUidService batchUidService;
+    @Autowired
+    private RedisService redisService;
 
     private static final Logger logger = LoggerFactory.getLogger(PlatformService.class);
 
@@ -458,6 +463,10 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
         if (tp == null) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该平台不存在!", "该平台不存在!");
         }
+        //redis缓存信息获取
+        ArrayList<Predicate> arr = new ArrayList<>();
+        arr.add(qTPlatform.id.eq(id));
+        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
         //删除平台
         long count = this.delete(id);
         if (count <= 0) {
@@ -483,8 +492,16 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
         }
         //删除平台下的所有厂商配置信息
         long vcCount = vendorConfigService.delVendorConfigAll(id);
+        if (vcCount < 1) {
+            logger.error("平台下所有厂商配置信息删除失败!");
+            throw new RuntimeException("平台删除失败!");
+        }
+        //删除缓存信息
+        if (!org.springframework.util.CollectionUtils.isEmpty(redisKeyDtoList)) {
+            redisService.delRedisKey(redisKeyDtoList);
+        }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "平台"+tp.getPlatformName()+"删除成功,同时删除该平台下"+vcCount+"条厂商配置,"+count+"条厂商医院配置!",
-                id);
+                null);
     }
 
     /**

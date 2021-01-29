@@ -6,9 +6,11 @@ import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.platform.common.RedisService;
 import com.iflytek.integrated.platform.dto.FunctionDto;
 import com.iflytek.integrated.platform.dto.ProductDto;
 import com.iflytek.integrated.platform.dto.ProjectDto;
+import com.iflytek.integrated.platform.dto.RedisKeyDto;
 import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.medicalboot.core.id.BatchUidService;
@@ -60,6 +62,8 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
     private BusinessInterfaceService businessInterfaceService;
     @Autowired
     private BatchUidService batchUidService;
+    @Autowired
+    private RedisService redisService;
 
     private static final Logger logger = LoggerFactory.getLogger(ProjectService.class);
 
@@ -216,6 +220,11 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
         if (tp == null) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该项目不存在!", "该项目不存在!");
         }
+        //redis缓存信息获取
+        ArrayList<Predicate> arr = new ArrayList<>();
+        arr.add(qTProject.id.eq(id));
+        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+
         //删除项目
         long count = this.delete(id);
         if (count <= 0) {
@@ -259,7 +268,11 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
         if (!bool) {
             throw new RuntimeException("项目与产品功能关联删除失败!");
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "项目删除成功!", id);
+        //删除缓存信息
+        if (!CollectionUtils.isEmpty(redisKeyDtoList)) {
+            redisService.delRedisKey(redisKeyDtoList);
+        }
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "项目删除成功!", null);
     }
 
 

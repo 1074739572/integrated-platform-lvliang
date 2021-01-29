@@ -6,6 +6,7 @@ import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.platform.common.RedisService;
 import com.iflytek.integrated.platform.dto.*;
 import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
@@ -77,6 +78,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     private NiFiRequestUtil niFiRequestUtil;
     @Autowired
     private ValidatorHelper validatorHelper;
+    @Autowired
+    private RedisService redisService;
 
     private static final Logger logger = LoggerFactory.getLogger(InterfaceService.class);
 
@@ -774,12 +777,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该接口id查询不到接口配置信息!", "该接口id查询不到接口配置信息!");
         }
         List<TBusinessInterface> list = businessInterfaceService.getListByCondition(tbi.getProductFunctionLinkId(), tbi.getInterfaceId(), tbi.getVendorConfigId());
-        //删除相同条件接口配置
-        long count = businessInterfaceService.delObjByCondition(
-                tbi.getProductFunctionLinkId(), tbi.getInterfaceId(), tbi.getVendorConfigId());
-        if(count <= 0){
-            throw new RuntimeException("接口配置删除失败!");
-        }
         //获取返回缓存id
         String rtnStr = "";
         if (CollectionUtils.isNotEmpty(list)) {
@@ -788,7 +785,22 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             }
         }
         rtnStr = StringUtils.isBlank(rtnStr)?null:rtnStr.substring(0,rtnStr.length()-1);
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "接口配置删除成功!共删除"+count+"条数据", rtnStr);
+        //redis缓存信息获取
+        ArrayList<Predicate> arr = new ArrayList<>();
+        arr.add(qTBusinessInterface.id.in(rtnStr));
+        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+
+        //删除相同条件接口配置
+        long count = businessInterfaceService.delObjByCondition(
+                tbi.getProductFunctionLinkId(), tbi.getInterfaceId(), tbi.getVendorConfigId());
+        if(count <= 0){
+            throw new RuntimeException("接口配置删除失败!");
+        }
+        //删除缓存信息
+        if (!org.springframework.util.CollectionUtils.isEmpty(redisKeyDtoList)) {
+            redisService.delRedisKey(redisKeyDtoList);
+        }
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "接口配置删除成功!共删除"+count+"条数据", null);
     }
 
 
@@ -799,11 +811,20 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         if (tbi == null) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据id未查出该接口配置信息!", id);
         }
+        //redis缓存信息获取
+        ArrayList<Predicate> arr = new ArrayList<>();
+        arr.add(qTBusinessInterface.id.eq(id));
+        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+
         long count = businessInterfaceService.delete(id);
         if (count < 1) {
             throw new RuntimeException("根据id删除该接口配置信息失败!");
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "单个接口配置信息删除成功!", id);
+        //删除缓存信息
+        if (!org.springframework.util.CollectionUtils.isEmpty(redisKeyDtoList)) {
+            redisService.delRedisKey(redisKeyDtoList);
+        }
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "单个接口配置信息删除成功!", null);
     }
 
 

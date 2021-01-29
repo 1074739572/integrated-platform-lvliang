@@ -91,8 +91,21 @@ public class RedisService {
             return;
         }
         arr.add(sqlId.in(conditionList));
+
+        List<RedisKeyDto> list = this.getRedisKeyDtoList(arr);
+        if (CollectionUtils.isNotEmpty(list)) {
+            this.delRedisKey(list);
+        }
+
+    }
+
+
+    /**
+     * 删除key操作
+     * @param arr
+     */
+    public List<RedisKeyDto> getRedisKeyDtoList(ArrayList<Predicate> arr) {
         arr.add(qTProject.projectCode.isNotNull().and(qTProduct.productCode.isNotNull().and(qTInterface.interfaceUrl.isNotNull())));
-        arr.add(qTProject.projectStatus.eq(Constant.Status.START).and(qTPlatform.platformStatus.eq(Constant.Status.START)));
 
         List<RedisKeyDto> list =
                 sqlQueryFactory.select(Projections.bean(RedisKeyDto.class, qTProject.projectCode.as("projectCode"),
@@ -112,12 +125,20 @@ public class RedisService {
                         .where(arr.toArray(new Predicate[arr.size()]))
                         .groupBy(qTProject.projectCode, qTHospital.hospitalCode, qTProduct.productCode, qTInterface.interfaceUrl)
                         .fetch();
-        if (CollectionUtils.isNotEmpty(list)) {
-            for (RedisKeyDto obj : list) {
-                String key = "IntegratedPlatform:Configs:_"+obj.getProjectCode()+"_"+obj.getOrgId()+"_"+obj.getProductCode()+"_"+obj.getFunCode();
-                redisUtil.del(key);
-            }
-            logger.info("删除缓存{}条",list.size());
-        }
+        return list;
     }
+
+    /**
+     * 清除缓存
+     * @param list
+     */
+    public void delRedisKey(List<RedisKeyDto> list) {
+        for (RedisKeyDto obj : list) {
+            String key = "IntegratedPlatform:Configs:_"+obj.getProjectCode()+"_"+obj.getOrgId()+"_"+obj.getProductCode()+"_"+obj.getFunCode();
+            redisUtil.del(key);
+        }
+        logger.info("删除缓存{}条",list.size());
+    }
+
+
 }
