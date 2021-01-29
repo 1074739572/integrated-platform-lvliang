@@ -31,14 +31,10 @@ public class BaseService <E, I extends Comparable, ID extends ComparableExpressi
         this.qId = qId;
     }
 
-    /**
-     * 获取一条
-     * @param id
-     * @return
-     */
     public E getOne(I id) {
         return (this.sqlQueryFactory.selectFrom(this.qEntity).where(this.qId.eq(id))).fetchOne();
     }
+
     public long delete(I id) {
         return (this.sqlQueryFactory.delete(this.qEntity).where(this.qId.eq(id))).execute();
     }
@@ -53,11 +49,11 @@ public class BaseService <E, I extends Comparable, ID extends ComparableExpressi
 
     /**
      * 生成编码
-     * @param codePath
-     * @param name
-     * @return
+     * @param codePath  编码Path
+     * @param name      名称
+     * @return          code
      */
-    public String generateCode(StringPath codePath, RelationalPath<?> path, String name){
+    protected String generateCode(StringPath codePath, RelationalPath<?> path, String name){
         //校验类型是否为空
         name = name.replaceAll("_","");
         if(StringUtils.isEmpty(name)){
@@ -66,9 +62,11 @@ public class BaseService <E, I extends Comparable, ID extends ComparableExpressi
         //名称中中文转拼音首字母小写
         String code = PinYinUtil.getFirstSpell(name);
         //查询编码已存在次数，递增
-        Long count = sqlQueryFactory.select(path).from(path).where(codePath.eq(code)
-                .or(codePath.like(PlatformUtil.rightCreateFuzzyText(code + "_")))).fetchCount();
-        if(count > 0){
+        String maxCode = sqlQueryFactory.select(codePath).from(path).where(codePath.eq(code)
+                .or(codePath.like(PlatformUtil.rightCreateFuzzyText(code + "_")))).orderBy(codePath.desc()).fetchFirst();
+        if(StringUtils.isNotBlank(maxCode)){
+            String max = maxCode.contains("_") ? maxCode.substring(maxCode.indexOf("_")+1) : "0";
+            int count = Integer.parseInt(max) + 1;
             code += "_" + count;
         }
         return code;
