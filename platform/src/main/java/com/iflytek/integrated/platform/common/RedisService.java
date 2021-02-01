@@ -1,5 +1,6 @@
 package com.iflytek.integrated.platform.common;
 
+import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.utils.RedisUtil;
 import com.iflytek.integrated.platform.dto.RedisKeyDto;
 import com.querydsl.core.types.Predicate;
@@ -58,15 +59,14 @@ public class RedisService {
 
     /**
      * 删除key
-     * @param code
-     * @param ids
+     * @param resultDto
      * @param keyName
      */
-    public void delRedisKey(Integer code, String ids, String keyName) {
+    public void delRedisKey(ResultDto resultDto, String keyName) {
         //调用新线程处理redis缓存
-        if(Constant.ResultCode.SUCCESS_CODE == code){
+        if(Constant.ResultCode.SUCCESS_CODE == resultDto.getCode()){
             THREAD_POOL_CLEAR_REDIS.execute(
-                    ()->threadDelRedisKey(ids, keyName)
+                    ()->threadDelRedisKey(resultDto.getData().toString(), keyName)
             );
         }
     }
