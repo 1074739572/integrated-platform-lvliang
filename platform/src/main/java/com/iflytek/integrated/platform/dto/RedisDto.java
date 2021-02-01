@@ -17,6 +17,10 @@ public class RedisDto {
 
     private List<RedisKeyDto> redisKeyDtoList;
 
+    public RedisDto(){
+
+    }
+
     public RedisDto(String ids){
         this.ids = ids;
     }
