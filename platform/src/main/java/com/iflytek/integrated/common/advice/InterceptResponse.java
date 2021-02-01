@@ -36,6 +36,7 @@ public class InterceptResponse implements ResponseBodyAdvice<Object>{
         AfterCompletionIntercept intercept = (AfterCompletionIntercept) servletRequest.getAttribute(AfterCompletionIntercept.Intercept);
         if(intercept != null){
             intercept.setResultDto((ResultDto) body);
+            body = new ResultDto<>(((ResultDto) body).getCode(),((ResultDto) body).getMessage());
         }
         return body;
     }
