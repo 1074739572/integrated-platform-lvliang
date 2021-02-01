@@ -12,6 +12,7 @@ import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TVendorConfig;
 import com.iflytek.integrated.platform.entity.THospitalVendorLink;
 import com.iflytek.integrated.platform.entity.TPlatform;
+import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
@@ -82,7 +83,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
                 list.add(qTPlatform.platformStatus.eq(platformStatus));
             }
             if (StringUtils.isNotBlank(platformName)) {
-                list.add(qTPlatform.platformName.eq(platformName));
+                list.add(qTPlatform.platformName.like(PlatformUtil.createFuzzyText(platformName)));
             }
             QueryResults<TPlatform> queryResults = sqlQueryFactory.select(
                     Projections.bean(
@@ -133,6 +134,16 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
         boolean isExist = getPlatformNameIsExistByProjectId(platformId, dto.getProjectId(), platformName);
         if (isExist) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "平台名称为空或此项目下该名称已存在!", platformName);
+        }
+        List<VendorConfigDto> jsonArr = dto.getVendorInfo();
+        if (CollectionUtils.isNotEmpty(jsonArr)) {
+            String vendorIdStr = "";
+            for (VendorConfigDto vcd : jsonArr) {
+                if (vendorIdStr.contains(vcd.getVendorId())) {
+                    return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "厂商名称不能重复!", "厂商名称不能重复!");
+                }
+                vendorIdStr += vcd.getVendorId();
+            }
         }
         if (StringUtils.isBlank(platformId)) {
             return savePlatform(dto, loginUserName);
@@ -313,7 +324,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
                 }
             }
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "修改平台成功!", platformId);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "修改平台成功!", new RedisDto(platformId).toString());
     }
 
 
@@ -335,6 +346,14 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
         List<TVendorConfig> tvcList = vendorConfigService.getObjByPlatformId(platformId);
         //前台传递的新厂商信息
         List<VendorConfigDto> jsonArr = dto.getVendorInfo();
+        String vendorIdStr = "";
+        for (VendorConfigDto vcd : jsonArr) {
+            if (vendorIdStr.contains(vcd.getVendorId())) {
+                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "厂商名称不能重复!", "厂商名称不能重复!");
+            }
+            vendorIdStr += vcd.getVendorId();
+        }
+
         for (int i = 0; i < jsonArr.size(); i++) {
             VendorConfigDto obj = jsonArr.get(i);
             String vendorConfigId = obj.getId();
@@ -429,7 +448,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
                 }
             }
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "修改厂商信息成功!", platformId);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "修改厂商信息成功!", new RedisDto(platformId).toString());
     }
 
 
@@ -448,7 +467,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
         if (l < 1) {
             throw new RuntimeException("平台状态更改失败!");
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "平台状态更改成功!", id);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "平台状态更改成功!", new RedisDto(id).toString());
     }
 
 
@@ -492,10 +511,6 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
         if (vcCount < 1) {
             logger.error("平台下所有厂商配置信息删除失败!");
             throw new RuntimeException("平台删除失败!");
-        }
-        //删除缓存信息
-        if (!org.springframework.util.CollectionUtils.isEmpty(redisKeyDtoList)) {
-            redisService.delRedisKey(redisKeyDtoList);
         }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "平台"+tp.getPlatformName()+"删除成功,同时删除该平台下"+vcCount+"条厂商配置,"+count+"条厂商医院配置!",
                 new RedisDto(redisKeyDtoList).toString());

@@ -67,7 +67,7 @@ public class RedisService {
      */
     public void delRedisKey(ResultDto resultDto, String keyName) {
         //调用新线程处理redis缓存
-        if(Constant.ResultCode.SUCCESS_CODE == resultDto.getCode()){
+        if(Constant.ResultCode.SUCCESS_CODE == resultDto.getCode() && null != resultDto.getData()){
             THREAD_POOL_CLEAR_REDIS.execute(
                     ()-> {
                         try {
@@ -86,7 +86,7 @@ public class RedisService {
      * @param keyName
      */
     private void threadDelRedisKey(String redisDtoStr, String keyName) throws IOException {
-        RedisDto redisDto = JackSonUtils.jsonToTransfer(redisDtoStr,RedisDto.class);
+        RedisDto redisDto = JackSonUtils.jsonToTransfer(redisDtoStr, RedisDto.class);
         List<RedisKeyDto> list = redisDto.getRedisKeyDtoList();
 
         if(CollectionUtils.isEmpty(list)){

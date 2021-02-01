@@ -166,7 +166,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             rtnStr += dto.getId() + ",";
         }
         rtnStr = StringUtils.isBlank(rtnStr)?null:rtnStr.substring(0,rtnStr.length()-1);
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存mock模板成功!", rtnStr);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存mock模板成功!", new RedisDto(rtnStr).toString());
     }
 
     @ApiOperation(value = "获取接口调试显示数据", notes = "获取接口调试显示数据")
@@ -244,6 +244,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         if (CollectionUtils.isNotEmpty(list)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该标准接口已有接口配置关联,无法删除!", "该标准接口已有接口配置关联,无法删除!");
         }
+        //redis缓存信息获取
+        ArrayList<Predicate> arr = new ArrayList<>();
+        arr.add(qTInterface.id.in(id));
+        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
         //删除接口
         long l = this.delete(id);
         if (l < 1) {
@@ -251,7 +255,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         }
         //产品与标准接口关联
         productInterfaceLinkService.deleteProductInterfaceLinkById(id);
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准接口删除成功!", id);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准接口删除成功!", new RedisDto(redisKeyDtoList).toString());
     }
 
 
@@ -475,7 +479,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 }
             }
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准接口修改成功!", id);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准接口修改成功!", new RedisDto(id).toString());
     }
 
 
@@ -751,7 +755,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             }
         }
         rtnId = StringUtils.isBlank(rtnId)?null:rtnId.substring(0, rtnId.length()-1);
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "编辑接口配置成功", rtnId);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "编辑接口配置成功", new RedisDto(rtnId).toString());
     }
 
 
@@ -796,11 +800,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         if(count <= 0){
             throw new RuntimeException("接口配置删除失败!");
         }
-        //删除缓存信息
-        if (!org.springframework.util.CollectionUtils.isEmpty(redisKeyDtoList)) {
-            redisService.delRedisKey(redisKeyDtoList);
-        }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "接口配置删除成功!共删除"+count+"条数据", null);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "接口配置删除成功!共删除"+count+"条数据", new RedisDto(redisKeyDtoList).toString());
     }
 
 
@@ -820,11 +820,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         if (count < 1) {
             throw new RuntimeException("根据id删除该接口配置信息失败!");
         }
-        //删除缓存信息
-        if (!org.springframework.util.CollectionUtils.isEmpty(redisKeyDtoList)) {
-            redisService.delRedisKey(redisKeyDtoList);
-        }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "单个接口配置信息删除成功!", null);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "单个接口配置信息删除成功!", new RedisDto(redisKeyDtoList).toString());
     }
 
 

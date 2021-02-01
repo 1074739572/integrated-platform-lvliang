@@ -7,10 +7,7 @@ import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.RedisService;
-import com.iflytek.integrated.platform.dto.FunctionDto;
-import com.iflytek.integrated.platform.dto.ProductDto;
-import com.iflytek.integrated.platform.dto.ProjectDto;
-import com.iflytek.integrated.platform.dto.RedisKeyDto;
+import com.iflytek.integrated.platform.dto.*;
 import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.medicalboot.core.id.BatchUidService;
@@ -208,7 +205,7 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
                 }
             }
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "项目修改成功!", projectId);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "项目修改成功!", new RedisDto(projectId).toString());
     }
 
 
@@ -268,11 +265,7 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
         if (!bool) {
             throw new RuntimeException("项目与产品功能关联删除失败!");
         }
-        //删除缓存信息
-        if (!CollectionUtils.isEmpty(redisKeyDtoList)) {
-            redisService.delRedisKey(redisKeyDtoList);
-        }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "项目删除成功!", null);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "项目删除成功!", new RedisDto(redisKeyDtoList).toString());
     }
 
 
@@ -298,7 +291,7 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
             e.printStackTrace();
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "项目状态修改失败!", ExceptionUtil.dealException(e));
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "项目状态修改成功!", id);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "项目状态修改成功!", new RedisDto(id).toString());
     }
 
 

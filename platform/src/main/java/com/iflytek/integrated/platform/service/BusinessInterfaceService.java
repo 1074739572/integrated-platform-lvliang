@@ -3,6 +3,7 @@ package com.iflytek.integrated.platform.service;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.common.dto.ResultDto;
+import com.iflytek.integrated.platform.dto.RedisDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.THospitalVendorLink;
 import com.querydsl.core.QueryResults;
@@ -64,7 +65,7 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface,Str
             rtnStr += idStr + ",";
         }
         rtnStr = StringUtils.isBlank(rtnStr)?"":rtnStr.substring(0, rtnStr.length()-1);
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "更改mock状态成功!", rtnStr);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "更改mock状态成功!", new RedisDto(rtnStr).toString());
     }
 
     /**
@@ -90,7 +91,7 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface,Str
             rtnStr += idStr + ",";
         }
         rtnStr = StringUtils.isBlank(rtnStr)?"":rtnStr.substring(0, rtnStr.length()-1);
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "更改接口配置状态成功!", rtnStr);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "更改接口配置状态成功!", new RedisDto(rtnStr).toString());
     }
 
 

@@ -6,7 +6,10 @@ import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
+import com.iflytek.integrated.platform.common.RedisService;
 import com.iflytek.integrated.platform.dto.ProductDto;
+import com.iflytek.integrated.platform.dto.RedisDto;
+import com.iflytek.integrated.platform.dto.RedisKeyDto;
 import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.QueryResults;
@@ -60,6 +63,8 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
     private BusinessInterfaceService businessInterfaceService;
     @Autowired
     private BatchUidService batchUidService;
+    @Autowired
+    private RedisService redisService;
 
 
     @ApiOperation(value = "产品功能列表")
@@ -106,8 +111,11 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
         if(lon <= 0){
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "产品功能删除失败!", "产品功能删除失败!");
         }
+
+        //redis缓存信息获取
+        ArrayList<Predicate> arr = new ArrayList<>();
+        List<RedisKeyDto> redisKeyDtoList = new ArrayList<>();
         //返回删除产品缓存的id
-        String errProductId = null;
         //如果该产品下没有其它功能关联,则删除该产品
         String productId = functionLink.getProductId();
         List<TProductFunctionLink> fetch = sqlQueryFactory.select(qTProductFunctionLink).from(qTProductFunctionLink)
@@ -116,7 +124,8 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
             //删除产品前判断该产品是否有标准接口相关联
             List<TProductInterfaceLink> tpilList = productInterfaceLinkService.getObjByProduct(productId);
             if (CollectionUtils.isEmpty(tpilList)) {
-                errProductId = productId;
+                arr.add(qTProduct.id.in(productId));
+                redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
                 this.delete(productId);
             }
         }
@@ -127,7 +136,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
         if (CollectionUtils.isEmpty(fetch)) {
             functionService.delete(functionId);
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "产品功能删除成功!", errProductId);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "产品功能删除成功!", new RedisDto(redisKeyDtoList).toString());
     }
 
 
@@ -251,14 +260,14 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
             tp.setCreatedBy(loginUserName);
             this.post(tp);
             //校验之前的产品功能是否有关联,没有则删除该产品功能
-            TProductFunctionLink tpflObj = productFunctionLinkService.getObjByProductAndFunctionByNoId(oldProductId, null, id);
-            if (tpflObj == null) {
-                this.delete(oldProductId);
-            }
-            tpflObj = productFunctionLinkService.getObjByProductAndFunctionByNoId(null, oldFunctionId, id);
-            if (tpflObj == null) {
-                functionService.delete(oldFunctionId);
-            }
+//            TProductFunctionLink tpflObj = productFunctionLinkService.getObjByProductAndFunctionByNoId(oldProductId, null, id);
+//            if (tpflObj == null) {
+//                this.delete(oldProductId);
+//            }
+//            tpflObj = productFunctionLinkService.getObjByProductAndFunctionByNoId(null, oldFunctionId, id);
+//            if (tpflObj == null) {
+//                functionService.delete(oldFunctionId);
+//            }
         }else {
             errProductId = tp.getId();
         }
@@ -285,20 +294,14 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
         if(!oldFunctionId.equals(dto.getFunctionId())) {
             List<TProductFunctionLink> tpflList = productFunctionLinkService.getObjByFunction(oldFunctionId);
             if (CollectionUtils.isNotEmpty(tpflList) && tpflList.size()==1) {
-                long l = functionService.delete(tpflList.get(0).getFunctionId());
-                if (l < 1) {
-                    throw new RuntimeException("修改产品与功能关联失败!");
-                }
+                functionService.delete(tpflList.get(0).getFunctionId());
             }
         }
         //产品没有关联删除
         if(!oldProductId.equals(dto.getProductId())) {
             List<TProductFunctionLink> tpflList = productFunctionLinkService.getObjByProduct(oldProductId);
             if (CollectionUtils.isNotEmpty(tpflList) && tpflList.size()==1) {
-                long l = this.delete(tpflList.get(0).getProductId());
-                if (l < 1) {
-                    throw new RuntimeException("修改产品与功能关联失败!");
-                }
+                this.delete(tpflList.get(0).getProductId());
             }
         }
         //更新产品与功能关联
@@ -306,7 +309,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
         if (l < 1) {
             throw new RuntimeException("修改产品与功能关联失败!");
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"编辑产品功能关联成功", errProductId);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"编辑产品功能关联成功", new RedisDto(errProductId).toString());
     }
 
 

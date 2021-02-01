@@ -6,11 +6,10 @@ import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
-import com.iflytek.integrated.platform.dto.HospitalDto;
-import com.iflytek.integrated.platform.dto.JoltDebuggerDto;
+import com.iflytek.integrated.platform.common.RedisService;
+import com.iflytek.integrated.platform.dto.*;
 import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
-import com.iflytek.integrated.platform.dto.VendorConfigDto;
 import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.integrated.common.validator.ValidationResult;
 import com.iflytek.integrated.common.validator.ValidatorHelper;
@@ -68,6 +67,8 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
     private ValidatorHelper validatorHelper;
     @Autowired
     private NiFiRequestUtil niFiRequestUtil;
+    @Autowired
+    private RedisService redisService;
 
     private static final Logger logger = LoggerFactory.getLogger(VendorService.class);
 
@@ -152,7 +153,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
             tvdl.setCreatedBy(loginUserName);
             vendorDriveLinkService.post(tvdl);
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "厂商修改成功!", vendorId);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "厂商修改成功!", new RedisDto(vendorId).toString());
     }
 
 
@@ -165,6 +166,10 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
         if (CollectionUtils.isNotEmpty(tvcList)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该厂商已有厂商配置数据相关联,无法删除!", "该厂商已有厂商配置数据相关联,无法删除!");
         }
+        //redis缓存信息获取
+        ArrayList<Predicate> arr = new ArrayList<>();
+        arr.add(qTVendorConfig.vendorId.in(id));
+        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
         //删除厂商
         long count = this.delete(id);
         if (count < 1) {
@@ -172,7 +177,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
         }
         //删除厂商与驱动关联
         vendorDriveLinkService.deleteVendorDriveLinkById(id);
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "厂商删除成功!", id);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "厂商删除成功!", new RedisDto(redisKeyDtoList).toString());
     }
 
 

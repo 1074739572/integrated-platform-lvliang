@@ -50,13 +50,12 @@ public class FunctionService extends BaseService<TFunction, String, StringPath> 
     }
 
     /**
-     * 根据功能那个获取功能信息
+     * 根据功能名称获取功能信息
      * @param functionName
      * @return
      */
     public TFunction getObjByName(String functionName) {
         return sqlQueryFactory.select(qTFunction).from(qTFunction).where(qTFunction.functionName.eq(functionName)).fetchFirst();
     }
-
 
 }

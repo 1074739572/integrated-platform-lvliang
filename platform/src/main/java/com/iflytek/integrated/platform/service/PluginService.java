@@ -6,8 +6,11 @@ import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
+import com.iflytek.integrated.platform.common.RedisService;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.platform.dto.PluginDto;
+import com.iflytek.integrated.platform.dto.RedisDto;
+import com.iflytek.integrated.platform.dto.RedisKeyDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TType;
 import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
@@ -34,6 +37,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
+import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
 import static com.iflytek.integrated.platform.entity.QTPlugin.qTPlugin;
 import static com.iflytek.integrated.platform.entity.QTType.qTType;
 
@@ -61,6 +65,8 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
     private NiFiRequestUtil niFiRequestUtil;
     @Autowired
     private BusinessInterfaceService businessInterfaceService;
+    @Autowired
+    private RedisService redisService;
 
 
     @ApiOperation(value = "接口配置选择插件下拉")
@@ -151,12 +157,16 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
         if (CollectionUtils.isNotEmpty(tbiList)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该插件有接口配置相关联,无法删除!");
         }
+        //redis缓存信息获取
+        ArrayList<Predicate> arr = new ArrayList<>();
+        arr.add(qTBusinessInterface.pluginId.in(id));
+        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
         //删除插件
         Long lon = sqlQueryFactory.delete(qTPlugin).where(qTPlugin.id.eq(plugin.getId())).execute();
         if(lon <= 0){
             throw new RuntimeException("插件删除失败!");
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "插件删除成功", id);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "插件删除成功", new RedisDto(redisKeyDtoList).toString());
     }
 
 
@@ -198,7 +208,7 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
         if(lon <= 0){
             throw new RuntimeException("插件编辑失败!");
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"插件编辑成功!", plugin.getId());
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"插件编辑成功!", new RedisDto(plugin.getId()).toString());
     }
 
     /**

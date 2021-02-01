@@ -6,6 +6,9 @@ import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
+import com.iflytek.integrated.platform.common.RedisService;
+import com.iflytek.integrated.platform.dto.RedisDto;
+import com.iflytek.integrated.platform.dto.RedisKeyDto;
 import com.iflytek.integrated.platform.entity.THospitalVendorLink;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.integrated.platform.entity.THospital;
@@ -55,6 +58,8 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
     private ValidatorHelper validatorHelper;
     @Autowired
     private HospitalVendorLinkService hospitalVendorLinkService;
+    @Autowired
+    private RedisService redisService;
 
 
     @ApiOperation(value = "获取医院管理列表")
@@ -118,13 +123,17 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
         if (CollectionUtils.isNotEmpty(thvlList)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该医院已有厂商相关联,无法删除!", "该医院已有厂商相关联,无法删除!");
         }
+        //redis缓存信息获取
+        ArrayList<Predicate> arr = new ArrayList<>();
+        arr.add(qTHospital.id.in(id));
+        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
         //逻辑删除
         Long lon = sqlQueryFactory.update(qTHospital).set(qTHospital.status, Constant.Status.NO)
                 .where(qTHospital.id.eq(id)).execute();
         if(lon <= 0){
             throw new RuntimeException("医院管理删除失败");
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "医院管理删除成功", id);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "医院管理删除成功", new RedisDto(redisKeyDtoList).toString());
     }
 
 
@@ -168,7 +177,7 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
                 throw new RuntimeException("医院管理编辑失败!");
             }
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "医院管理编辑成功", hospital.getId());
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "医院管理编辑成功", new RedisDto(hospital.getId()).toString());
     }
 
 

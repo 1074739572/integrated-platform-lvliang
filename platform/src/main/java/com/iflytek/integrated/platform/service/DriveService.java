@@ -3,11 +3,14 @@ package com.iflytek.integrated.platform.service;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
+import com.iflytek.integrated.platform.common.RedisService;
 import com.iflytek.integrated.platform.dto.DriveDto;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.platform.dto.RedisDto;
+import com.iflytek.integrated.platform.dto.RedisKeyDto;
 import com.iflytek.integrated.platform.entity.TType;
 import com.iflytek.integrated.platform.entity.TVendorDriveLink;
 import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
@@ -61,6 +64,8 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
     private ValidatorHelper validatorHelper;
     @Autowired
     private NiFiRequestUtil niFiRequestUtil;
+    @Autowired
+    private RedisService redisService;
 
     @ApiOperation(value = "获取驱动下拉")
     @GetMapping("/getAllDrive")
@@ -164,12 +169,16 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
         if (CollectionUtils.isNotEmpty(tvdlList)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该驱动已有厂商相关联,无法删除!", "该驱动已有厂商相关联,无法删除!");
         }
+        //redis缓存信息获取
+        ArrayList<Predicate> arr = new ArrayList<>();
+        arr.add(qTVendorDriveLink.driveId.in(id));
+        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
         //删除驱动
         Long lon = sqlQueryFactory.delete(qTDrive).where(qTDrive.id.eq(drive.getId())).execute();
         if(lon <= 0){
             throw new RuntimeException("驱动删除失败!");
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "驱动删除成功!", id);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "驱动删除成功!", new RedisDto(redisKeyDtoList).toString());
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -207,7 +216,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
         if(lon <= 0){
             throw new RuntimeException("驱动编辑失败!");
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"驱动编辑成功!", drive.getId());
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"驱动编辑成功!", new RedisDto(drive.getId()).toString());
     }
 
     @ApiOperation(value = "新增厂商弹窗展示的驱动选择信息")
