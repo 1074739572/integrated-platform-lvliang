@@ -7,10 +7,7 @@ import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.RedisService;
-import com.iflytek.integrated.platform.dto.HospitalDto;
-import com.iflytek.integrated.platform.dto.PlatformDto;
-import com.iflytek.integrated.platform.dto.RedisKeyDto;
-import com.iflytek.integrated.platform.dto.VendorConfigDto;
+import com.iflytek.integrated.platform.dto.*;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TVendorConfig;
 import com.iflytek.integrated.platform.entity.THospitalVendorLink;
@@ -501,7 +498,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
             redisService.delRedisKey(redisKeyDtoList);
         }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "平台"+tp.getPlatformName()+"删除成功,同时删除该平台下"+vcCount+"条厂商配置,"+count+"条厂商医院配置!",
-                null);
+                new RedisDto(redisKeyDtoList).toString());
     }
 
     /**

@@ -1,7 +1,9 @@
 package com.iflytek.integrated.platform.common;
 
 import com.iflytek.integrated.common.dto.ResultDto;
+import com.iflytek.integrated.common.utils.JackSonUtils;
 import com.iflytek.integrated.common.utils.RedisUtil;
+import com.iflytek.integrated.platform.dto.RedisDto;
 import com.iflytek.integrated.platform.dto.RedisKeyDto;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
@@ -15,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -66,33 +69,45 @@ public class RedisService {
         //调用新线程处理redis缓存
         if(Constant.ResultCode.SUCCESS_CODE == resultDto.getCode()){
             THREAD_POOL_CLEAR_REDIS.execute(
-                    ()->threadDelRedisKey(resultDto.getData().toString(), keyName)
+                    ()-> {
+                        try {
+                            threadDelRedisKey(resultDto.getData().toString(), keyName);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
             );
         }
     }
 
     /**
      * 删除key操作
-     * @param ids
+     * @param redisDtoStr
      * @param keyName
      */
-    private void threadDelRedisKey(String ids, String keyName){
-        if(StringUtils.isBlank(ids) || StringUtils.isBlank(keyName)){
-            logger.error("删除redis-key操作,没有取到ids或keyName");
-            return;
-        }
-        List<String> conditionList = Arrays.asList(ids.split(","));
-        ArrayList<Predicate> arr = new ArrayList<>();
+    private void threadDelRedisKey(String redisDtoStr, String keyName) throws IOException {
+        RedisDto redisDto = JackSonUtils.jsonToTransfer(redisDtoStr,RedisDto.class);
+        List<RedisKeyDto> list = redisDto.getRedisKeyDtoList();
 
-        //调取枚举，处理返回结果
-        StringPath sqlId = Constant.RedisKeyEnum.idByKey(keyName);
-        if(sqlId == null){
-            logger.error("删除redis-key操作,没有取到有效的key");
-            return;
-        }
-        arr.add(sqlId.in(conditionList));
+        if(CollectionUtils.isEmpty(list)){
+            String ids = redisDto.getIds();
+            if(StringUtils.isBlank(ids) || StringUtils.isBlank(keyName)){
+                logger.error("删除redis-key操作,没有取到ids或keyName");
+                return;
+            }
+            List<String> conditionList = Arrays.asList(ids.split(","));
+            ArrayList<Predicate> arr = new ArrayList<>();
 
-        List<RedisKeyDto> list = this.getRedisKeyDtoList(arr);
+            //调取枚举，处理返回结果
+            StringPath sqlId = Constant.RedisKeyEnum.idByKey(keyName);
+            if(sqlId == null){
+                logger.error("删除redis-key操作,没有取到有效的key");
+                return;
+            }
+            arr.add(sqlId.in(conditionList));
+
+            list = this.getRedisKeyDtoList(arr);
+        }
         if (CollectionUtils.isNotEmpty(list)) {
             this.delRedisKey(list);
         }
