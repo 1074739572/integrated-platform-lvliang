@@ -57,9 +57,8 @@ public class AfterCompletionIntercept extends HandlerInterceptorAdapter {
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
         //获取返回结果
-        ResultDto result = resultDto;
-        if(result.getData() != null){
-            redisService.delRedisKey(result.getCode(),result.getData().toString(), key);
+        if(resultDto.getData() != null){
+            redisService.delRedisKey(resultDto, key);
         }
     }
 

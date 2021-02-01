@@ -1,6 +1,7 @@
 package com.iflytek.integrated.common.config;
 
 import com.iflytek.integrated.common.filter.RequestLimitFilter;
+import com.iflytek.integrated.common.filter.UrlFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +19,16 @@ import java.util.List;
 public class WebFilterConfig {
 
     @Bean
+    public FilterRegistrationBean<UrlFilter> urlFilter() {
+        FilterRegistrationBean<UrlFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(new UrlFilter());
+        registration.addUrlPatterns("/integratedPlatform/*");
+        registration.setName("urlFilter");
+        registration.setOrder(1);
+        return registration;
+    }
+
+    @Bean
     public FilterRegistrationBean<RequestLimitFilter> reqResFilter() {
         FilterRegistrationBean<RequestLimitFilter> filterRegistrationBean = new FilterRegistrationBean<>();
 
@@ -31,7 +42,7 @@ public class WebFilterConfig {
         urls.add("/*");
         filterRegistrationBean.setUrlPatterns(urls);
         //执行次序
-        filterRegistrationBean.setOrder(1);
+        filterRegistrationBean.setOrder(2);
         return filterRegistrationBean;
     }
 }
