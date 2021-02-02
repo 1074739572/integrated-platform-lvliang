@@ -128,7 +128,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
         }
     }
 
-    @ApiOperation(value = "查看日志详细列表")
+    @ApiOperation(value = "查看监控日志列表")
     @GetMapping("/logInfoList")
     public ResultDto<TableData<TLog>> logInfoList(String interfaceMonitorId,String status,String visitAddr,
                              @RequestParam(defaultValue = "1")Integer pageNo,
@@ -168,8 +168,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志详细列表获取成功!",tableData);
     }
 
-
-    @ApiOperation(value = "查看日志详细")
+    @ApiOperation(value = "查看日志详细信息")
     @GetMapping("/logInfo")
     public ResultDto<TLog> logInfo(String id){
         if(StringUtils.isEmpty(id)){
@@ -190,7 +189,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
                         qTLog.venderRep
                 )
         ).from(qTLog).where(qTLog.id.eq(Long.valueOf(id))).fetchFirst();
-        //解密
+        //解密，脱敏处理数据
         tLog.setBusinessRep(decryptAndFilterSensitive(tLog.getBusinessRep()));
         tLog.setBusinessReq(decryptAndFilterSensitive(tLog.getBusinessReq()));
         tLog.setVenderRep(decryptAndFilterSensitive(tLog.getVenderRep()));
