@@ -128,10 +128,9 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
         }
     }
 
-
     @ApiOperation(value = "查看日志详细列表")
-    @GetMapping("/logInfo")
-    public ResultDto<TableData<TLog>> logInfo(String interfaceMonitorId,String status,String visitAddr,
+    @GetMapping("/logInfoList")
+    public ResultDto<TableData<TLog>> logInfoList(String interfaceMonitorId,String status,String visitAddr,
                              @RequestParam(defaultValue = "1")Integer pageNo,
                              @RequestParam(defaultValue = "10")Integer pageSize){
         //查询条件
@@ -154,11 +153,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
                         qTLog.status,
                         qTLog.venderRepTime,
                         qTLog.businessRepTime,
-                        qTLog.visitAddr,
-                        qTLog.businessReq,
-                        qTLog.venderReq,
-                        qTLog.businessRep,
-                        qTLog.venderRep
+                        qTLog.visitAddr
                 )
             ).from(qTLog)
             .leftJoin(qTInterfaceMonitor).on(qTInterfaceMonitor.platformId.eq(qTLog.platformId)
@@ -169,16 +164,38 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
             .orderBy(qTLog.createdTime.desc())
             .fetchResults();
         //分页
-        List<TLog> logList = queryResults.getResults();
-        //脱敏处理
-        logList.stream().forEach(tLog -> {
-            tLog.setBusinessRep(decryptAndFilterSensitive(tLog.getBusinessRep()));
-            tLog.setBusinessReq(decryptAndFilterSensitive(tLog.getBusinessReq()));
-            tLog.setVenderRep(decryptAndFilterSensitive(tLog.getVenderRep()));
-            tLog.setVenderReq(decryptAndFilterSensitive(tLog.getVenderReq()));
-        });
-        TableData<TLog> tableData = new TableData<>(queryResults.getTotal(), logList);
+        TableData<TLog> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志详细列表获取成功!",tableData);
+    }
+
+
+    @ApiOperation(value = "查看日志详细")
+    @GetMapping("/logInfo")
+    public ResultDto<TLog> logInfo(String id){
+        if(StringUtils.isEmpty(id)){
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE,"获取日志详细，id必传");
+        }
+        //查询详情
+        TLog tLog = sqlQueryFactory.select(
+                Projections.bean(TLog.class,
+                        qTLog.id,
+                        qTLog.createdTime,
+                        qTLog.status,
+                        qTLog.venderRepTime,
+                        qTLog.businessRepTime,
+                        qTLog.visitAddr,
+                        qTLog.businessReq,
+                        qTLog.venderReq,
+                        qTLog.businessRep,
+                        qTLog.venderRep
+                )
+        ).from(qTLog).where(qTLog.id.eq(Long.valueOf(id))).fetchFirst();
+        //解密
+        tLog.setBusinessRep(decryptAndFilterSensitive(tLog.getBusinessRep()));
+        tLog.setBusinessReq(decryptAndFilterSensitive(tLog.getBusinessReq()));
+        tLog.setVenderRep(decryptAndFilterSensitive(tLog.getVenderRep()));
+        tLog.setVenderReq(decryptAndFilterSensitive(tLog.getVenderReq()));
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志详细获取成功!",tLog);
     }
 
     /**
