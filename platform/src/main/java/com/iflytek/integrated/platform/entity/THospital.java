@@ -6,6 +6,7 @@ import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * THospital is a Querydsl bean type
@@ -37,6 +38,8 @@ public class THospital implements Serializable {
 
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone="GMT+8")
     private java.util.Date updatedTime;
+
+    private List<String> areaCodes;
 
     public String getId() {
         return id;
@@ -108,6 +111,14 @@ public class THospital implements Serializable {
 
     public void setUpdatedTime(java.util.Date updatedTime) {
         this.updatedTime = updatedTime;
+    }
+
+    public List<String> getAreaCodes() {
+        return areaCodes;
+    }
+
+    public void setAreaCodes(List<String> areaCodes) {
+        this.areaCodes = areaCodes;
     }
 
 }

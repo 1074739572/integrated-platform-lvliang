@@ -67,7 +67,7 @@ public class RedisService {
      */
     public void delRedisKey(ResultDto resultDto, String keyName) {
         //调用新线程处理redis缓存
-        if(Constant.ResultCode.SUCCESS_CODE == resultDto.getCode() && null != resultDto.getData()){
+        if(Constant.ResultCode.SUCCESS_CODE == resultDto.getCode()){
             THREAD_POOL_CLEAR_REDIS.execute(
                     ()-> {
                         try {

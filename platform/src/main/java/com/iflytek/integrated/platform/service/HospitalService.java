@@ -31,10 +31,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
 
@@ -58,6 +55,8 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
     private ValidatorHelper validatorHelper;
     @Autowired
     private HospitalVendorLinkService hospitalVendorLinkService;
+    @Autowired
+    private AreaService areaService;
     @Autowired
     private RedisService redisService;
 
@@ -100,6 +99,12 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
                     .fetchResults();
             //分页
             TableData<THospital> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
+            List<THospital> rows = tableData.getRows();
+            for (THospital th : rows) {
+                List<String> areaCodes = areaService.getAreaCodes(new ArrayList<>(), th.getAreaId());
+                Collections.reverse(areaCodes);
+                th.setAreaCodes(areaCodes);
+            }
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取医院管理列表成功", tableData);
         }catch (Exception e){
             logger.error("获取医院管理列表失败! MSG:{}", ExceptionUtil.dealException(e));

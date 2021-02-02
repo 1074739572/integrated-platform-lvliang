@@ -10,6 +10,7 @@ import com.querydsl.core.types.dsl.StringPath;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -86,5 +87,20 @@ public class AreaService extends BaseService<TArea, String, StringPath> {
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "", areaDtoList);
     }
 
+
+    /**
+     * 根据地区编码获取上级, 返回list
+     * @param list
+     * @param areaCode
+     * @return
+     */
+    public List<String> getAreaCodes(List<String>list, String areaCode) {
+        String superId = sqlQueryFactory.select(qTArea.superId).from(qTArea).where(qTArea.areaCode.eq(areaCode)).fetchFirst();
+        list.add(areaCode);
+        if (StringUtils.isNotBlank(superId)) {
+            this.getAreaCodes(list, superId);
+        }
+        return list;
+    }
 
 }
