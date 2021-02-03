@@ -1,5 +1,6 @@
 package com.iflytek.integrated.platform.utils;
 
+import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.common.utils.JackSonUtils;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Map;
 
@@ -42,7 +44,7 @@ public class NiFiRequestUtil {
     public SQLQueryFactory sqlQueryFactory;
 
     /**
-     * 调取对方接口，获取并保存schema
+     * 调取NiFi接口，获取并保存schema
      * @param businessInterface
      */
     public void generateSchemaToInterface(TBusinessInterface businessInterface){
@@ -104,10 +106,15 @@ public class NiFiRequestUtil {
         try {
             String url = MessageFormat.format(schemaUrl,content);
             HttpResult result = HttpClientUtil.doPost(url,format);
-            return result.getContent();
+            String schema = result.getContent();
+            ResultDto resultDto = JackSonUtils.jsonToTransfer(schema,ResultDto.class);
+            if(Constant.ResultCode.ERROR_CODE == resultDto.getCode()){
+                return "";
+            }
+            return schema;
         }
         catch (Exception e){
-            throw new RuntimeException("schema解析失败");
+            return "";
         }
     }
 
