@@ -53,7 +53,7 @@ public class GlobalExceptionHandler {
     @ResponseBody
     @ExceptionHandler(value = {Exception.class})
     public ResultDto<Object> exceptionHandler(Exception e) {
-        ResultDto<Object> resultDto = new ResultDto<>(ERROR_CODE,ERROR_MSG,"");
+        ResultDto<Object> resultDto = new ResultDto<>(ERROR_CODE,ERROR_MSG,ERROR_MSG);
         if (e instanceof MedicalBusinessException) {
             resultDto.setData(((MedicalBusinessException) e).getResponse());
         } else if (e instanceof MedicalHttpStatusCodeException) {
@@ -98,10 +98,10 @@ public class GlobalExceptionHandler {
             }
         } else if(e instanceof RuntimeException){
             //如果是后端抛出的错误，返回抛出的原因
-            resultDto.setData(e.getMessage());
+            resultDto.setMessage(e.getMessage());
         }
         else {
-            resultDto.setData(e.getMessage());
+            resultDto.setMessage(e.getMessage());
         }
         return resultDto;
     }

@@ -107,7 +107,7 @@ public class NiFiRequestUtil {
             HttpResult result = HttpClientUtil.doPost(url,format);
             String schema = result.getContent();
             ResultDto resultDto = JackSonUtils.jsonToTransfer(schema,ResultDto.class);
-            if(Constant.ResultCode.ERROR_CODE == resultDto.getCode()){
+            if(resultDto.getCode() != null && Constant.ResultCode.ERROR_CODE == resultDto.getCode()){
                 return "";
             }
             return schema;
