@@ -69,6 +69,21 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
     }
 
 
+    @ApiOperation(value = "获取所有项目信息", notes = "获取所有项目信息")
+    @GetMapping("/getAllProject")
+    public ResultDto<TableData<TProject>> getAllProject(
+            @ApiParam(value = "项目状态 1启用 2停用") @RequestParam(required = false) String projectStatus) {
+        ArrayList<Predicate> list = new ArrayList<>();
+        if (StringUtils.isNotBlank(projectStatus)) {
+            list.add(qTProject.projectStatus.eq(projectStatus));
+        }
+        QueryResults<TProject> queryResults = sqlQueryFactory.select(qTProject).from(qTProject)
+                .where(list.toArray(new Predicate[list.size()]))
+                .orderBy(qTProject.createdTime.desc()).fetchResults();
+        TableData<TProject> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取项目信息成功!", tableData);
+    }
+
     @ApiOperation(value = "获取项目信息", notes = "获取项目信息")
     @GetMapping("/getProject")
     public ResultDto<TableData<TProject>> getProject(
