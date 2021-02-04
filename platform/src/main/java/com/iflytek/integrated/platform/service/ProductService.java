@@ -259,15 +259,6 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
             tp.setCreatedTime(new Date());
             tp.setCreatedBy(loginUserName);
             this.post(tp);
-            //校验之前的产品功能是否有关联,没有则删除该产品功能
-//            TProductFunctionLink tpflObj = productFunctionLinkService.getObjByProductAndFunctionByNoId(oldProductId, null, id);
-//            if (tpflObj == null) {
-//                this.delete(oldProductId);
-//            }
-//            tpflObj = productFunctionLinkService.getObjByProductAndFunctionByNoId(null, oldFunctionId, id);
-//            if (tpflObj == null) {
-//                functionService.delete(oldFunctionId);
-//            }
         }else {
             errProductId = tp.getId();
         }
