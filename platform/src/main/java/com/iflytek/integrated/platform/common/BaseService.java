@@ -12,7 +12,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * 基础service，不展示swagger
+ * BaseService，包含公共方法
  * @author czzhan
  * @version 1.0
  * @date 2021/1/27 11:06
