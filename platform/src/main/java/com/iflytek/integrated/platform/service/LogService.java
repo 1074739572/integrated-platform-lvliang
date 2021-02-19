@@ -124,7 +124,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "", tableData);
         }catch (Exception e){
             logger.error("查看服务监控列表失败! MSG:{}", ExceptionUtil.dealException(e));
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "服务监控列表获取成功!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "服务监控列表获取失败");
         }
     }
 
