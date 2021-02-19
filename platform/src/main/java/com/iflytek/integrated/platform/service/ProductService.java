@@ -345,7 +345,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
                         qTProduct.productName,
                         qTProduct.productCode
                 )
-            ).from(qTProduct).groupBy(qTProduct.id,qTProduct.productName,qTProduct.productCode).orderBy(qTProduct.createdTime.desc()).fetch();
+            ).from(qTProduct).groupBy(qTProduct.productName).orderBy(qTProduct.createdTime.desc()).fetch();
         map.setProducts(products);
         //拼接方法列表
         List<TFunction> functions = sqlQueryFactory.select(
@@ -357,7 +357,7 @@ public class ProductService extends BaseService<TProduct, String, StringPath> {
                 )
         ).from(qTFunction)
                 .leftJoin(qTProductFunctionLink).on(qTFunction.id.eq(qTProductFunctionLink.functionId))
-                .groupBy(qTFunction.id,qTFunction.functionCode,qTFunction.functionName)
+                .groupBy(qTFunction.functionName)
                 .orderBy(qTFunction.createdTime.desc()).fetch();
         map.setFunctions(functions);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"选择产品下拉及所有功能获取成功!", map);
