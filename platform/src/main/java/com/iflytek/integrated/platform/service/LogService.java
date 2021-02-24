@@ -190,9 +190,17 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
                 )
         ).from(qTLog).where(qTLog.id.eq(Long.valueOf(id))).fetchFirst();
         //解密，脱敏处理数据
-        tLog.setBusinessRep(decryptAndFilterSensitive(tLog.getBusinessRep()));
+        String businessRep = decryptAndFilterSensitive(tLog.getBusinessRep());
+        if (StringUtils.isNotBlank(businessRep)) {
+            businessRep = businessRep.length() > 5000 ? businessRep.substring(0, 5000)+"......" : businessRep;
+        }
+        tLog.setBusinessRep(businessRep);
+        String venderRep = decryptAndFilterSensitive(tLog.getVenderRep());
+        if (StringUtils.isNotBlank(venderRep)) {
+            venderRep = venderRep.length() > 5000 ? venderRep.substring(0, 5000)+"......" : venderRep;
+        }
+        tLog.setVenderRep(venderRep);
         tLog.setBusinessReq(decryptAndFilterSensitive(tLog.getBusinessReq()));
-        tLog.setVenderRep(decryptAndFilterSensitive(tLog.getVenderRep()));
         tLog.setVenderReq(decryptAndFilterSensitive(tLog.getVenderReq()));
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志详细获取成功!",tLog);
     }
