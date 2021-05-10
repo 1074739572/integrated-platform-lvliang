@@ -24,6 +24,12 @@ public class TPlatform implements Serializable {
     private String platformStatus;
 
     private String platformType;
+    
+    private String etlServerUrl;
+    
+    private String etlUser;
+    
+    private String etlPwd;
 
     private String createdBy;
 
@@ -114,6 +120,30 @@ public class TPlatform implements Serializable {
     public void setUpdatedTime(java.util.Date updatedTime) {
         this.updatedTime = updatedTime;
     }
+
+	public String getEtlServerUrl() {
+		return etlServerUrl;
+	}
+
+	public void setEtlServerUrl(String etlServerUrl) {
+		this.etlServerUrl = etlServerUrl;
+	}
+
+	public String getEtlUser() {
+		return etlUser;
+	}
+
+	public void setEtlUser(String etlUser) {
+		this.etlUser = etlUser;
+	}
+
+	public String getEtlPwd() {
+		return etlPwd;
+	}
+
+	public void setEtlPwd(String etlPwd) {
+		this.etlPwd = etlPwd;
+	}
 
 }
 

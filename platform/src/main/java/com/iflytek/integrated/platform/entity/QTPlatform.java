@@ -37,6 +37,12 @@ public class QTPlatform extends com.querydsl.sql.RelationalPathBase<TPlatform> {
     public final StringPath platformType = createString("platformType");
 
     public final StringPath projectId = createString("projectId");
+    
+    public final StringPath etlServerUrl = createString("etlServerUrl");
+    
+    public final StringPath etlUser = createString("etlUser");
+    
+    public final StringPath etlPwd = createString("etlPwd");
 
     public final StringPath updatedBy = createString("updatedBy");
 
@@ -68,16 +74,19 @@ public class QTPlatform extends com.querydsl.sql.RelationalPathBase<TPlatform> {
     }
 
     public void addMetadata() {
-        addMetadata(createdBy, ColumnMetadata.named("CREATED_BY").withIndex(7).ofType(Types.VARCHAR).withSize(32));
-        addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(8).ofType(Types.TIMESTAMP).withSize(19));
         addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.VARCHAR).withSize(32));
         addMetadata(platformCode, ColumnMetadata.named("PLATFORM_CODE").withIndex(4).ofType(Types.VARCHAR).withSize(32));
         addMetadata(platformName, ColumnMetadata.named("PLATFORM_NAME").withIndex(3).ofType(Types.VARCHAR).withSize(32));
         addMetadata(platformStatus, ColumnMetadata.named("PLATFORM_STATUS").withIndex(5).ofType(Types.VARCHAR).withSize(1));
         addMetadata(platformType, ColumnMetadata.named("PLATFORM_TYPE").withIndex(6).ofType(Types.VARCHAR).withSize(1));
         addMetadata(projectId, ColumnMetadata.named("PROJECT_ID").withIndex(2).ofType(Types.VARCHAR).withSize(32));
-        addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(9).ofType(Types.VARCHAR).withSize(32));
-        addMetadata(updatedTime, ColumnMetadata.named("UPDATED_TIME").withIndex(10).ofType(Types.TIMESTAMP).withSize(19));
+        addMetadata(etlServerUrl, ColumnMetadata.named("ETL_SERVER_URL").withIndex(7).ofType(Types.VARCHAR).withSize(32));
+        addMetadata(etlUser, ColumnMetadata.named("ETL_USER").withIndex(8).ofType(Types.VARCHAR).withSize(32));
+        addMetadata(etlPwd, ColumnMetadata.named("ETL_PWD").withIndex(9).ofType(Types.VARCHAR).withSize(32));
+        addMetadata(createdBy, ColumnMetadata.named("CREATED_BY").withIndex(10).ofType(Types.VARCHAR).withSize(32));
+        addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(11).ofType(Types.TIMESTAMP).withSize(19));
+        addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(12).ofType(Types.VARCHAR).withSize(32));
+        addMetadata(updatedTime, ColumnMetadata.named("UPDATED_TIME").withIndex(13).ofType(Types.TIMESTAMP).withSize(19));
     }
 
 }

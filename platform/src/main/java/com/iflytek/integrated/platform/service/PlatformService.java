@@ -94,6 +94,9 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
                         qTPlatform.platformName,
                         qTPlatform.platformStatus,
                         qTPlatform.platformType,
+                        qTPlatform.etlServerUrl,
+                        qTPlatform.etlUser,
+                        qTPlatform.etlPwd,
                         qTPlatform.createdTime,
                         qTPlatform.updatedTime,
                         qTPlatform.createdBy,
@@ -160,6 +163,9 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
         tp.setProjectId(dto.getProjectId());
         tp.setPlatformName(dto.getPlatformName());
         tp.setPlatformType(dto.getPlatformType());
+        tp.setEtlServerUrl(dto.getEtlServerUrl());
+        tp.setEtlUser(dto.getEtlUser());
+        tp.setEtlPwd(dto.getEtlPwd());
         tp.setPlatformStatus(Constant.Status.START);
         tp.setCreatedTime(new Date());
         tp.setCreatedBy(loginUserName);
@@ -215,6 +221,9 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
         String platformId = dto.getId();
         long l = sqlQueryFactory.update(qTPlatform).set(qTPlatform.platformName, dto.getPlatformName())
                 .set(qTPlatform.platformType, dto.getPlatformType())
+                .set(qTPlatform.etlServerUrl, dto.getEtlServerUrl())
+                .set(qTPlatform.etlUser, dto.getEtlUser())
+                .set(qTPlatform.etlPwd, dto.getEtlPwd())
                 .set(qTPlatform.projectId, dto.getProjectId())
                 .set(qTPlatform.updatedTime, new Date())
                 .set(qTPlatform.updatedBy, loginUserName)
