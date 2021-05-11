@@ -4,6 +4,7 @@ import static com.iflytek.integrated.platform.entity.QTEtlFlow.qTEtlFlow;
 import static com.iflytek.integrated.platform.entity.QTEtlGroup.qTEtlGroup;
 import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
 import static com.iflytek.integrated.platform.entity.QTProduct.qTProduct;
+import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -85,7 +86,8 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 //				qTProject.projectCode.as("projectCode"),
 				qTEtlGroup.hospitalId, qTEtlGroup.sysId, qTHospital.hospitalName.as("hospitalName"),
 				qTProduct.productName.as("sysName"))).from(qTEtlFlow).leftJoin(qTEtlGroup)
-				.on(qTEtlFlow.groupId.eq(qTEtlGroup.id)).leftJoin(qTProduct).on(qTEtlGroup.sysId.eq(qTProduct.id))
+				.on(qTEtlFlow.groupId.eq(qTEtlGroup.id)).leftJoin(qTPlatform).on(qTEtlGroup.platformId.eq(qTPlatform.id))
+				.leftJoin(qTProduct).on(qTEtlGroup.sysId.eq(qTProduct.id))
 				.leftJoin(qTHospital).on(qTEtlGroup.hospitalId.eq(qTHospital.id))
 				.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
 				.orderBy(qTEtlFlow.createdTime.desc()).fetchResults();
