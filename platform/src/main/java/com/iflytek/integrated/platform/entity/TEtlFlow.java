@@ -46,6 +46,9 @@ public class TEtlFlow implements Serializable {
     
     @Transient
     private String hospitalName;
+    
+    @Transient
+    private String platformId;
 
 	public String getId() {
 		return id;
@@ -181,6 +184,14 @@ public class TEtlFlow implements Serializable {
 
 	public void setHospitalId(String hospitalId) {
 		this.hospitalId = hospitalId;
+	}
+
+	public String getPlatformId() {
+		return platformId;
+	}
+
+	public void setPlatformId(String platformId) {
+		this.platformId = platformId;
 	}
 
 }

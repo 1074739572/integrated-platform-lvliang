@@ -68,6 +68,10 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 			@ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
 		// 查询条件
 		ArrayList<Predicate> list = new ArrayList<>();
+		if(StringUtils.isNotBlank(queryCondition.getPlatformId())) {
+			list.add(qTEtlGroup.platformId.eq(queryCondition.getPlatformId()));
+		}
+		
 		if (StringUtils.isNotBlank(queryCondition.getGroupId())) {
 			list.add(qTEtlFlow.groupId.eq(queryCondition.getGroupId()));
 		}
