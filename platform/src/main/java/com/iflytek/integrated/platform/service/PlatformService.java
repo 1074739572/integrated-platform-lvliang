@@ -345,24 +345,27 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "数据传入有误!", "数据传入有误!");
         }
         //校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-        if(StringUtils.isBlank(loginUserName)){
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
-        }
+        String loginUserName = "admin";
+//        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
+//        if(StringUtils.isBlank(loginUserName)){
+//            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+//        }
         //平台id
         String platformId = dto.getPlatformId();
-        //获取更改前的厂商信息
-        List<TVendorConfig> tvcList = vendorConfigService.getObjByPlatformId(platformId);
-        //前台传递的新厂商信息
+        TPlatform platform = this.getOne(platformId);
         List<VendorConfigDto> jsonArr = dto.getVendorInfo();
-        String vendorIdStr = "";
-        for (VendorConfigDto vcd : jsonArr) {
-            if (vendorIdStr.contains(vcd.getVendorId())) {
-                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "厂商名称不能重复!", "厂商名称不能重复!");
-            }
-            vendorIdStr += vcd.getVendorId();
+        if("1".equals(platform.getPlatformType())) {
+	        //获取更改前的厂商信息
+	        List<TVendorConfig> tvcList = vendorConfigService.getObjByPlatformId(platformId);
+	        //前台传递的新厂商信息
+	        String vendorIdStr = "";
+	        for (VendorConfigDto vcd : jsonArr) {
+	            if (vendorIdStr.contains(vcd.getVendorId())) {
+	                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "厂商名称不能重复!", "厂商名称不能重复!");
+	            }
+	            vendorIdStr += vcd.getVendorId();
+	        }
         }
-
         for (int i = 0; i < jsonArr.size(); i++) {
             VendorConfigDto obj = jsonArr.get(i);
             String vendorConfigId = obj.getId();
