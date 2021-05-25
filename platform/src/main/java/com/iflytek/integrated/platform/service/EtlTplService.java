@@ -166,7 +166,7 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 
 	@ApiOperation(value = "修改模板")
 	@PostMapping(path = "/editEtlTpl/{id}")
-	public ResultDto<String> editEtlTpl(@PathVariable Integer id, @RequestBody EtlTplDto tplDto) {
+	public ResultDto<String> editEtlTpl(@PathVariable String id, @RequestBody EtlTplDto tplDto) {
 
 		// 校验是否获取到登录用户
 		String loginUserName = "admin";
@@ -188,7 +188,8 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 				updateClause.set(qTEtlTpl.tplDesp, tplDto.getTplDesp());
 			}
 			updateClause.set(qTEtlTpl.updatedBy, loginUserName != null ? loginUserName : "");
-			updateClause.set(qTEtlTpl.updatedTime, new Date()).addBatch();
+			updateClause.set(qTEtlTpl.updatedTime, new Date());
+			updateClause.where(qTEtlTpl.id.eq(id));
 			long insertCount = updateClause.execute();
 			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "流程模板文件更新成功", insertCount + "");
 		} catch (Exception e) {
