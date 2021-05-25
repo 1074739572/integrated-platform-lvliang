@@ -230,7 +230,7 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 
 	@ApiOperation(value = "删除流程")
 	@PostMapping(path = "/delEtlFlow/{id}")
-	public ResultDto<String> delEtlGroup(@PathVariable String id) {
+	public ResultDto<String> delEtlFlow(@PathVariable String id) {
 
 		// 校验是否获取到登录用户
 //		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
