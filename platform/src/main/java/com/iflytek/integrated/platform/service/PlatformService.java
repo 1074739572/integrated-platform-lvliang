@@ -155,13 +155,16 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "平台名称为空或此项目下该名称已存在!", platformName);
 		}
 		List<VendorConfigDto> jsonArr = dto.getVendorInfo();
-		if (CollectionUtils.isNotEmpty(jsonArr)) {
-			String vendorIdStr = "";
-			for (VendorConfigDto vcd : jsonArr) {
-				if (vendorIdStr.contains(vcd.getVendorId())) {
-					return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "厂商名称不能重复!", "厂商名称不能重复!");
+		TPlatform platform = this.getOne(platformId);
+		if ("1".equals(platform.getPlatformType())) {
+			if (CollectionUtils.isNotEmpty(jsonArr)) {
+				String vendorIdStr = "";
+				for (VendorConfigDto vcd : jsonArr) {
+					if (vendorIdStr.contains(vcd.getVendorId())) {
+						return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "厂商名称不能重复!", "厂商名称不能重复!");
+					}
+					vendorIdStr += vcd.getVendorId();
 				}
-				vendorIdStr += vcd.getVendorId();
 			}
 		}
 		if (StringUtils.isBlank(platformId)) {
