@@ -178,6 +178,9 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 		SQLUpdateClause updateClause = sqlQueryFactory.update(qTEtlTpl);
 		// 流程模板
 		try {
+			if (tplDto != null && tplDto.getTplName() != null) {
+				updateClause.set(qTEtlTpl.tplName, tplDto.getTplName());
+			}
 			if (tplDto != null && tplDto.getTplType() != null) {
 				updateClause.set(qTEtlTpl.tplType, tplDto.getTplType());
 			}
