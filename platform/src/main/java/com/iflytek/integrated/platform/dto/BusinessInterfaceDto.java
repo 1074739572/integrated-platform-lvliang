@@ -21,18 +21,13 @@ public class BusinessInterfaceDto {
     private String projectId;
 
     private String platformId;
+    
+    private String requestSysId;
 
-    private String productId;
-
-    private String functionId;
-
-    private String productFunctionLinkId;
+    private String requestSysconfigId;
 
     private String interfaceId;
 
-    private String vendorId;
-
-    private String vendorConfigId;
     /**
      * 多个厂商配置信息
      */

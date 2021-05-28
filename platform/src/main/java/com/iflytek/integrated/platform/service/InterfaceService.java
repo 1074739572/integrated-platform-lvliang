@@ -1,13 +1,11 @@
 package com.iflytek.integrated.platform.service;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
-import static com.iflytek.integrated.platform.entity.QTFunction.qTFunction;
 import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
 import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
 import static com.iflytek.integrated.platform.entity.QTInterfaceParam.qTInterfaceParam;
 import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
 import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
-import static com.iflytek.integrated.platform.entity.QTProjectProductLink.qTProjectProductLink;
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
 import static com.iflytek.integrated.platform.entity.QTType.qTType;
@@ -84,7 +82,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	@Autowired
 	private InterfaceParamService interfaceParamService;
 	@Autowired
-	private SysConfigService vendorConfigService;
+	private SysConfigService sysConfigService;
 	@Autowired
 	private BatchUidService batchUidService;
 	@Autowired
@@ -214,19 +212,17 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
 			// 获取医院名称列表
 			List<String> sysconfigIds = new ArrayList<>();
-			businessInterfaces.forEach(bi->{
-				if(StringUtils.isNotEmpty(businessInterface.getRequestSysconfigId())) {
+			businessInterfaces.forEach(bi -> {
+				if (StringUtils.isNotEmpty(businessInterface.getRequestSysconfigId())) {
 					sysconfigIds.add(businessInterface.getRequestSysconfigId());
 				}
-				if(StringUtils.isNotEmpty(businessInterface.getRequestedSysconfigId())) {
+				if (StringUtils.isNotEmpty(businessInterface.getRequestedSysconfigId())) {
 					sysconfigIds.add(businessInterface.getRequestedSysconfigId());
 				}
 			});
 			List<String> hospitals = sqlQueryFactory.select(qTHospital.hospitalCode).from(qTSysConfig)
 					.leftJoin(qTHospital).on(qTSysConfig.hospitalIds.contains(qTHospital.id))
-					.where(qTSysConfig.id.in(sysconfigIds)
-							.and(qTHospital.hospitalCode.isNotEmpty()))
-					.fetch();
+					.where(qTSysConfig.id.in(sysconfigIds).and(qTHospital.hospitalCode.isNotEmpty())).fetch();
 
 			// 拼接实体
 			InDebugResDto resDto = new InDebugResDto();
@@ -528,17 +524,22 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		if (CollectionUtils.isNotEmpty(list)) {
 			for (TBusinessInterface tbi : list) {
 				// 获取被请求方系统/接口
-				if (StringUtils.isNotBlank(tbi.getProductFunctionLinkId())) {
-					TProductFunctionLink tpfl = sqlQueryFactory
-							.select(Projections.bean(qTProductFunctionLink, qTProduct.productName.as("productName"),
-									qTFunction.functionName.as("functionName")))
-							.from(qTProductFunctionLink).leftJoin(qTProduct)
-							.on(qTProduct.id.eq(qTProductFunctionLink.productId)).leftJoin(qTFunction)
-							.on(qTFunction.id.eq(qTProductFunctionLink.functionId))
-							.where(qTProductFunctionLink.id.eq(tbi.getProductFunctionLinkId())).fetchFirst();
-					if (tpfl != null) {
-						tbi.setProductName(tpfl.getProductName());
-						tbi.setFunctionName(tpfl.getFunctionName());
+				if (StringUtils.isNotBlank(tbi.getBusinessInterfaceName())) {
+					String[] bizNames = tbi.getBusinessInterfaceName().split(",");
+					String bizSysInterfaces = "";
+					for (String bizName : bizNames) {
+						String sysConfigId = bizName.split("/")[0];
+						String bizInterfaceName = bizName.split("/")[1];
+						String sysInterface = sqlQueryFactory.select(qTSys.sysName.append("/").append(bizInterfaceName))
+								.from(qTSysConfig).join(qTSys).on(qTSys.id.eq(qTSysConfig.sysId))
+								.where(qTSysConfig.id.eq(sysConfigId)).fetchOne();
+						bizSysInterfaces += sysInterface + ",";
+					}
+					if (StringUtils.isNotBlank(bizSysInterfaces)) {
+						if (bizSysInterfaces.endsWith(",")) {
+							bizSysInterfaces = bizSysInterfaces.substring(0, bizSysInterfaces.lastIndexOf(","));
+						}
+						tbi.setBusinessInterfaceName(bizSysInterfaces);
 					}
 				}
 				// 获取请求方系统/接口
@@ -554,10 +555,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		TableData<TBusinessInterface> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取接口配置列表获取成功", tableData);
 	}
-	
+
 	private String getSysAndInterfaceById(String interfaceId) {
-		return sqlQueryFactory.select(qTSys.sysName.append("/").append(qTInterface.interfaceName))
-		.from(qTInterface).join(qTSys).on(qTInterface.sysId.eq(qTSys.id)).where(qTInterface.id.eq(interfaceId)).fetchOne();
+		return sqlQueryFactory.select(qTSys.sysName.append("/").append(qTInterface.interfaceName)).from(qTInterface)
+				.join(qTSys).on(qTInterface.sysId.eq(qTSys.id)).where(qTInterface.id.eq(interfaceId)).fetchOne();
 	}
 
 	@ApiOperation(value = "获取接口配置详情")
@@ -575,27 +576,17 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		TBusinessInterface tbi = businessInterfaceService.getOne(id);
 		if (tbi != null) {
 			// 标准接口
-			dto.setInterfaceId(tbi.getInterfaceId());
+			dto.setInterfaceId(tbi.getRequestInterfaceId());
 			// 获取厂商及配置信息
-			String vendorConfigId = tbi.getVendorConfigId();
-			dto.setVendorConfigId(vendorConfigId);
-			TSysConfig tvc = vendorConfigService.getOne(vendorConfigId);
+			String requestSysconfigId = tbi.getRequestSysconfigId();
+			dto.setRequestSysconfigId(requestSysconfigId);
+			TSysConfig tvc = sysConfigService.getOne(requestSysconfigId);
 			if (tvc != null) {
-				dto.setVendorId(tvc.getVendorId());
+				dto.setRequestSysId(tvc.getSysId());
 			}
-			// 获取产品与功能及关联信息
-			String productFunctionLinkId = tbi.getProductFunctionLinkId();
-			dto.setProductFunctionLinkId(productFunctionLinkId);
-			TProductFunctionLink tpfl = productFunctionLinkService.getOne(productFunctionLinkId);
-			if (tpfl != null) {
-				dto.setProductId(tpfl.getProductId());
-				dto.setFunctionId(tpfl.getFunctionId());
-			}
-			// 多个厂商配置信息
-			String pflId = tbi.getProductFunctionLinkId();
-			String iId = tbi.getInterfaceId();
-			String vcId = tbi.getVendorConfigId();
-			tbiList = businessInterfaceService.getTBusinessInterfaceList(pflId, iId, vcId);
+			// 多个厂商配置接口信息
+			tbiList = businessInterfaceService.getTBusinessInterfaceList(tbi.getRequestInterfaceId(),
+					tbi.getRequestSysconfigId());
 		}
 
 		dto.setBusinessInterfaceList(tbiList);
@@ -640,10 +631,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		} else {
 			vendorConfigId = dto.getVendorConfigId();
 		}
-		// 产品与功能关联
-		TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(dto.getProductId(),
-				dto.getFunctionId());
-		String productFunctionLinkId = tpfl != null ? tpfl.getId() : null;
 
 		// 根据项目,厂商,标准接口判定是否存在相同配置数据
 		List<THospitalVendorLink> thvlList = hospitalVendorLinkService
@@ -684,16 +671,12 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	 * @return
 	 */
 	private ResultDto updateInterfaceConfig(BusinessInterfaceDto dto, String loginUserName) {
-		if (StringUtils.isBlank(dto.getPlatformId()) || StringUtils.isBlank(dto.getVendorId())) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "平台id或厂商id不能为空!", null);
+		if (StringUtils.isBlank(dto.getPlatformId()) || StringUtils.isBlank(dto.getRequestSysId())) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "平台id或请求方系统id不能为空!", null);
 		}
-		// 获取厂商配置
-		TSysConfig tvc = vendorConfigService.getObjByPlatformAndVendor(dto.getPlatformId(), dto.getVendorId());
+		// 获取系统配置
+		TSysConfig tvc = sysConfigService.getObjByPlatformAndSys(dto.getPlatformId(), dto.getVendorId());
 		String vendorConfigId = tvc != null ? tvc.getId() : dto.getVendorConfigId();
-		// 产品与功能关联
-		TProductFunctionLink tpfl = productFunctionLinkService.getObjByProductAndFunction(dto.getProductId(),
-				dto.getFunctionId());
-		String productFunctionLinkId = tpfl != null ? tpfl.getId() : null;
 
 		// 返回缓存接口配置id
 		String rtnId = "";
@@ -758,8 +741,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		if (tbi == null) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该接口id查询不到接口配置信息!", "该接口id查询不到接口配置信息!");
 		}
-		List<TBusinessInterface> list = businessInterfaceService.getListByCondition(tbi.getProductFunctionLinkId(),
-				tbi.getInterfaceId(), tbi.getVendorConfigId());
+		List<TBusinessInterface> list = businessInterfaceService.getListByCondition(tbi.getRequestInterfaceId(),
+				tbi.getRequestSysconfigId());
 		// 获取返回缓存id
 		String rtnStr = "";
 		if (CollectionUtils.isNotEmpty(list)) {
@@ -774,8 +757,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
 
 		// 删除相同条件接口配置
-		long count = businessInterfaceService.delObjByCondition(tbi.getProductFunctionLinkId(), tbi.getInterfaceId(),
-				tbi.getVendorConfigId());
+		long count = businessInterfaceService.delObjByCondition(tbi.getRequestInterfaceId(),
+				tbi.getRequestSysconfigId());
 		if (count <= 0) {
 			throw new RuntimeException("接口配置删除失败!");
 		}
@@ -815,19 +798,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		try {
 			InterfaceDto iDto = new InterfaceDto();
 			BeanUtils.copyProperties(ti, iDto);
-			// 获取产品id
-			List<TProductInterfaceLink> list = productInterfaceLinkService.getObjByInterface(id);
-			List<String> productIds = new ArrayList<>();
-			String productIdStr = "";
-			for (int i = 0; i < list.size(); i++) {
-				productIds.add(list.get(i).getProductId());
-				productIdStr += list.get(i).getProductId();
-				if (i < list.size() - 1) {
-					productIdStr += ",";
-				}
-			}
-			iDto.setProductId(productIdStr);
-			iDto.setProductIds(productIds);
+			iDto.setSysId(ti.getSysId());
 			// 获取接口参数
 			List<TInterfaceParam> paramsList = interfaceParamService.getParamsByInterfaceId(id);
 			// 入参
@@ -873,28 +844,24 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			@ApiParam(value = "项目id") @RequestParam(value = "projectId", required = false) String projectId,
 			@ApiParam(value = "操作 1获取当前项目下的接口 2获取非当前项目下的接口") @RequestParam(defaultValue = "1", value = "status", required = false) String status) {
 		List<TInterface> interfaces = null;
-		if (StringUtils.isNotBlank(projectId) && Constant.Operation.CURRENT.equals(status)) {
+		if (StringUtils.isNotBlank(projectId)) {
 			// 返回当前项目下的接口
 			interfaces = sqlQueryFactory.select(qTInterface).from(qTInterface).leftJoin(qTBusinessInterface)
-					.on(qTBusinessInterface.interfaceId.eq(qTInterface.id)).leftJoin(qTProjectProductLink)
-					.on(qTProjectProductLink.productFunctionLinkId.eq(qTBusinessInterface.productFunctionLinkId))
-					.where(qTProjectProductLink.projectId.eq(projectId)).orderBy(qTInterface.createdTime.desc())
-					.fetch();
-			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "数据获取成功!", interfaces);
+					.on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id)).leftJoin(qTSysConfig)
+					.on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId))
+					.where(qTSysConfig.projectId.eq(projectId)).orderBy(qTInterface.createdTime.desc()).fetch();
+			if (Constant.Operation.CURRENT.equals(status)) {
+				return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "数据获取成功!", interfaces);
+			}
 		}
 		// 获取所有接口
-		interfaces = sqlQueryFactory.select(qTInterface).from(qTInterface).orderBy(qTInterface.createdTime.desc())
-				.fetch();
+		List<TInterface> allinterfaces = sqlQueryFactory.select(qTInterface).from(qTInterface)
+				.orderBy(qTInterface.createdTime.desc()).fetch();
 		if (StringUtils.isBlank(projectId)) {
-			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "数据获取成功!", interfaces);
+			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "数据获取成功!", allinterfaces);
 		}
-		// 返回当前项目下的接口
-		List<TInterface> tiList = sqlQueryFactory.select(qTInterface).from(qTInterface).leftJoin(qTBusinessInterface)
-				.on(qTBusinessInterface.interfaceId.eq(qTInterface.id)).leftJoin(qTProjectProductLink)
-				.on(qTProjectProductLink.productFunctionLinkId.eq(qTBusinessInterface.productFunctionLinkId))
-				.where(qTProjectProductLink.projectId.eq(projectId)).orderBy(qTInterface.createdTime.desc()).fetch();
 		// 去除当前项目下的接口
-		interfaces.removeAll(tiList);
+		interfaces.removeAll(interfaces);
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "数据获取成功!", interfaces);
 	}
 
@@ -907,16 +874,15 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "", PlatformUtil.jsonFormat(paramJson));
 	}
 
-	@ApiOperation(value = "根据产品获取标准接口(新增接口)")
-	@GetMapping("/getInterByPro")
-	public ResultDto<List<TInterface>> getInterByPro(
-			@ApiParam(value = "产品id") @RequestParam(value = "productId", required = false) String productId) {
+	@ApiOperation(value = "根据系统获取标准接口(新增接口)")
+	@GetMapping("/getInterBySys")
+	public ResultDto<List<TInterface>> getInterBySys(
+			@ApiParam(value = "系统id") @RequestParam(value = "sysId", required = false) String sysId) {
 		ArrayList<Predicate> list = new ArrayList<>();
-		if (StringUtils.isNotEmpty(productId)) {
-			list.add(qTProductInterfaceLink.productId.eq(productId));
+		if (StringUtils.isNotEmpty(sysId)) {
+			list.add(qTInterface.sysId.eq(sysId));
 		}
 		List<TInterface> interfaces = sqlQueryFactory.select(qTInterface).from(qTInterface)
-				.leftJoin(qTProductInterfaceLink).on(qTProductInterfaceLink.interfaceId.eq(qTInterface.id))
 				.where(list.toArray(new Predicate[list.size()])).fetch();
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "根据产品获取功能成功", interfaces);
 	}

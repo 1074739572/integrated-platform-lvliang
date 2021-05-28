@@ -1,7 +1,6 @@
 package com.iflytek.integrated.platform.service;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
-import static com.iflytek.integrated.platform.entity.QTHospitalVendorLink.qTHospitalVendorLink;
 import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
 import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
 import static com.querydsl.sql.SQLExpressions.groupConcat;
@@ -22,7 +21,6 @@ import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.RedisDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
-import com.iflytek.integrated.platform.entity.THospitalVendorLink;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
@@ -100,12 +98,9 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	 * @param interfaceId
 	 * @param vendorConfigId
 	 */
-	public long delObjByCondition(String productFunctionLinkId, String interfaceId, String vendorConfigId) {
-		long count = sqlQueryFactory.delete(qTBusinessInterface)
-				.where(qTBusinessInterface.productFunctionLinkId.eq(productFunctionLinkId)
-						.and(qTBusinessInterface.interfaceId.eq(interfaceId)
-								.and(qTBusinessInterface.vendorConfigId.eq(vendorConfigId))))
-				.execute();
+	public long delObjByCondition(String interfaceId, String requestSysconfigId) {
+		long count = sqlQueryFactory.delete(qTBusinessInterface).where(qTBusinessInterface.requestInterfaceId
+				.eq(interfaceId).and(qTBusinessInterface.requestSysconfigId.eq(requestSysconfigId))).execute();
 		return count;
 	}
 
@@ -116,17 +111,13 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	 * @param interfaceId
 	 * @param vendorConfigId
 	 */
-	public List<TBusinessInterface> getListByCondition(String productFunctionLinkId, String interfaceId,
-			String vendorConfigId) {
+	public List<TBusinessInterface> getListByCondition(String interfaceId, String requestSysconfigId) {
 		ArrayList<Predicate> list = new ArrayList<>();
-		if (StringUtils.isNotBlank(productFunctionLinkId)) {
-			list.add(qTBusinessInterface.productFunctionLinkId.eq(productFunctionLinkId));
-		}
 		if (StringUtils.isNotBlank(interfaceId)) {
-			list.add(qTBusinessInterface.interfaceId.eq(interfaceId));
+			list.add(qTBusinessInterface.requestInterfaceId.eq(interfaceId));
 		}
-		if (StringUtils.isNotBlank(vendorConfigId)) {
-			list.add(qTBusinessInterface.vendorConfigId.eq(vendorConfigId));
+		if (StringUtils.isNotBlank(requestSysconfigId)) {
+			list.add(qTBusinessInterface.requestSysconfigId.eq(requestSysconfigId));
 		}
 		List<TBusinessInterface> tbiList = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
 				.where(list.toArray(new Predicate[list.size()])).fetch();
@@ -178,8 +169,10 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 		}
 		QueryResults<TBusinessInterface> queryResults = sqlQueryFactory
 				.select(Projections.bean(TBusinessInterface.class, qTBusinessInterface.id,
-						qTBusinessInterface.requestInterfaceId,qTBusinessInterface.requestSysconfigId,
-						groupConcat(qTBusinessInterface.requestedSysconfigId.append("/").append(qTBusinessInterface.businessInterfaceName)).as("businessInterfaceName"),
+						qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId,
+						groupConcat(qTBusinessInterface.requestedSysconfigId.append("/")
+								.append(qTBusinessInterface.businessInterfaceName).append(","))
+										.as("businessInterfaceName"),
 						qTBusinessInterface.requestType, qTBusinessInterface.requestConstant,
 						qTBusinessInterface.interfaceType, qTBusinessInterface.pluginId,
 						qTBusinessInterface.inParamFormat, qTBusinessInterface.inParamSchema,
@@ -192,8 +185,7 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 				.from(qTBusinessInterface).leftJoin(qTSysConfig)
 				.on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId))
 				.where(list.toArray(new Predicate[list.size()]))
-				.groupBy(qTBusinessInterface.requestInterfaceId,
-						qTBusinessInterface.requestSysconfigId)
+				.groupBy(qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId)
 				.orderBy(qTBusinessInterface.createdTime.desc()).limit(pageSize).offset((pageNo - 1) * pageSize)
 				.fetchResults();
 		return queryResults;
@@ -207,16 +199,14 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	 */
 	public List<TBusinessInterface> getInterfaceConfigureList(String platformId) {
 		ArrayList<Predicate> list = new ArrayList<>();
-		list.add(qTVendorConfig.platformId.eq(platformId));
+		list.add(qTSysConfig.platformId.eq(platformId));
 		List<TBusinessInterface> queryResults = sqlQueryFactory
 				.select(Projections.bean(TBusinessInterface.class, qTBusinessInterface.id,
-						qTBusinessInterface.productFunctionLinkId, qTBusinessInterface.interfaceId,
-						qTBusinessInterface.vendorConfigId))
-				.from(qTBusinessInterface).leftJoin(qTVendorConfig)
-				.on(qTVendorConfig.id.eq(qTBusinessInterface.vendorConfigId))
-				.where(list.toArray(new Predicate[list.size()])).groupBy(qTBusinessInterface.productFunctionLinkId,
-						qTBusinessInterface.interfaceId, qTBusinessInterface.vendorConfigId)
-				.fetch();
+						qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId))
+				.from(qTBusinessInterface).leftJoin(qTSysConfig)
+				.on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId))
+				.where(list.toArray(new Predicate[list.size()]))
+				.groupBy(qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId).fetch();
 		return queryResults;
 	}
 
@@ -228,12 +218,10 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	 * @param vendorConfigId
 	 * @return
 	 */
-	public List<TBusinessInterface> getTBusinessInterfaceList(String productFunctionLinkId, String interfaceId,
-			String vendorConfigId) {
+	public List<TBusinessInterface> getTBusinessInterfaceList(String interfaceId, String requestSysconfigId) {
 		List<TBusinessInterface> list = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
-				.where(qTBusinessInterface.productFunctionLinkId.eq(productFunctionLinkId)
-						.and(qTBusinessInterface.interfaceId.eq(interfaceId)
-								.and(qTBusinessInterface.vendorConfigId.eq(vendorConfigId))))
+				.where(qTBusinessInterface.requestInterfaceId.eq(interfaceId)
+						.and(qTBusinessInterface.requestSysconfigId.eq(requestSysconfigId)))
 				.orderBy(qTBusinessInterface.excErrOrder.asc()).fetch();
 		return list;
 	}
@@ -247,46 +235,35 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	 * @param interfaceId
 	 * @return
 	 */
-	public List<TBusinessInterface> getBusinessInterfaceIsExist(List<THospitalVendorLink> thvlList, String projectId,
-			String productId, String interfaceId) {
+	public List<TBusinessInterface> getBusinessInterfaceIsExist(String projectId, String sysId, String interfaceId) {
 		ArrayList<Predicate> list = new ArrayList<>();
 
-		if (CollectionUtils.isNotEmpty(thvlList)) {
-			List<String> hospitalIds = new ArrayList<>();
-			for (THospitalVendorLink obj : thvlList) {
-				hospitalIds.add(obj.getHospitalId());
-			}
-			list.add(qTHospitalVendorLink.hospitalId.in(hospitalIds));
-		}
 		if (StringUtils.isNotEmpty(interfaceId)) {
-			list.add(qTBusinessInterface.interfaceId.eq(interfaceId));
+			list.add(qTBusinessInterface.requestInterfaceId.eq(interfaceId));
 		}
-		if (StringUtils.isNotEmpty(productId)) {
-			list.add(qTProductFunctionLink.productId.eq(productId));
+		if (StringUtils.isNotEmpty(sysId)) {
+			list.add(qTSysConfig.sysId.eq(sysId));
 		}
 		if (StringUtils.isNotEmpty(projectId)) {
 			list.add(qTPlatform.projectId.in(projectId));
 		}
 
 		List<TBusinessInterface> rtnList = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
-				.join(qTHospitalVendorLink)
-				.on(qTHospitalVendorLink.vendorConfigId.eq(qTBusinessInterface.vendorConfigId))
-				.join(qTProductFunctionLink).on(qTProductFunctionLink.id.eq(qTBusinessInterface.productFunctionLinkId))
-				.join(qTVendorConfig).on(qTVendorConfig.id.eq(qTBusinessInterface.vendorConfigId)).join(qTPlatform)
-				.on(qTPlatform.id.eq(qTVendorConfig.platformId)).where(list.toArray(new Predicate[list.size()]))
-				.fetch();
+				.on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId)).join(qTPlatform)
+				.on(qTPlatform.id.eq(qTSysConfig.platformId)).where(list.toArray(new Predicate[list.size()])).fetch();
 		return rtnList;
 	}
 
 	/**
-	 * 根据产品功能关联表id获取对接接口配置数据
+	 * 根据系统id获取对接接口配置数据
 	 * 
-	 * @param productFunctionLinkId
+	 * @param sysId
 	 * @return
 	 */
 	public List<TBusinessInterface> getListBySysId(String sysId) {
 		List<TBusinessInterface> list = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
-				.where(qTBusinessInterface.productFunctionLinkId.eq(productFunctionLinkId)).fetch();
+				.join(qTSysConfig).on(qTBusinessInterface.requestSysconfigId.eq(qTSysConfig.id))
+				.where(qTSysConfig.sysId.eq(sysId)).fetch();
 		return list;
 	}
 
@@ -303,14 +280,14 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	}
 
 	/**
-	 * 根据厂商配置id获取对接接口配置数据
+	 * 根据请求方系统配置id获取对接接口配置数据
 	 * 
 	 * @param vendorConfigId
 	 * @return
 	 */
-	public List<TBusinessInterface> getListByVendorConfigId(String vendorConfigId) {
+	public List<TBusinessInterface> getListBySysConfigId(String requestSysconfigId) {
 		List<TBusinessInterface> list = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
-				.where(qTBusinessInterface.vendorConfigId.eq(vendorConfigId)).fetch();
+				.where(qTBusinessInterface.requestSysconfigId.eq(requestSysconfigId)).fetch();
 		return list;
 	}
 
@@ -340,14 +317,11 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 			throw new RuntimeException("没有找到接口配置");
 		}
 		ArrayList<Predicate> list = new ArrayList<>();
-		if (StringUtils.isNotBlank(businessInterface.getInterfaceId())) {
-			list.add(qTBusinessInterface.interfaceId.eq(businessInterface.getInterfaceId()));
+		if (StringUtils.isNotBlank(businessInterface.getRequestInterfaceId())) {
+			list.add(qTBusinessInterface.requestInterfaceId.eq(businessInterface.getRequestInterfaceId()));
 		}
-		if (StringUtils.isNotBlank(businessInterface.getProductFunctionLinkId())) {
-			list.add(qTBusinessInterface.productFunctionLinkId.eq(businessInterface.getProductFunctionLinkId()));
-		}
-		if (StringUtils.isNotBlank(businessInterface.getVendorConfigId())) {
-			list.add(qTBusinessInterface.vendorConfigId.eq(businessInterface.getVendorConfigId()));
+		if (StringUtils.isNotBlank(businessInterface.getRequestSysconfigId())) {
+			list.add(qTBusinessInterface.requestSysconfigId.eq(businessInterface.getRequestSysconfigId()));
 		}
 		List<TBusinessInterface> interfaces = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
 				.where(list.toArray(new Predicate[list.size()])).orderBy(qTBusinessInterface.excErrOrder.asc()).fetch();
