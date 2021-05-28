@@ -9,7 +9,7 @@ import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.common.RedisService;
 import com.iflytek.integrated.platform.dto.RedisDto;
 import com.iflytek.integrated.platform.dto.RedisKeyDto;
-import com.iflytek.integrated.platform.entity.THospitalVendorLink;
+import com.iflytek.integrated.platform.entity.TSysConfig;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.integrated.platform.entity.THospital;
 import com.iflytek.integrated.common.validator.ValidationResult;
@@ -50,11 +50,12 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
     private static final Logger logger = LoggerFactory.getLogger(HospitalService.class);
 
     @Autowired
+    private SysConfigService sysConfigService;
+    
+    @Autowired
     private BatchUidService batchUidService;
     @Autowired
     private ValidatorHelper validatorHelper;
-    @Autowired
-    private HospitalVendorLinkService hospitalVendorLinkService;
     @Autowired
     private AreaService areaService;
     @Autowired
@@ -123,10 +124,10 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
         if(hospital == null) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "不存在该医院", "不存在该医院");
         }
-        //删除前校验该医院是否关联厂商
-        List<THospitalVendorLink> thvlList = hospitalVendorLinkService.getThvlListByHospitalId(id);
+        //删除前校验该医院是否关联系统
+        List<TSysConfig> thvlList = sysConfigService.getSysConfigByHospital(id);
         if (CollectionUtils.isNotEmpty(thvlList)) {
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该医院已有厂商相关联,无法删除!", "该医院已有厂商相关联,无法删除!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该医院已有系统相关联,无法删除!", "该医院已有系统相关联,无法删除!");
         }
         //redis缓存信息获取
         ArrayList<Predicate> arr = new ArrayList<>();

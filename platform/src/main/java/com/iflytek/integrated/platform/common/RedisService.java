@@ -30,13 +30,13 @@ import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
 import static com.iflytek.integrated.platform.entity.QTHospitalVendorLink.qTHospitalVendorLink;
 import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
 import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
-import static com.iflytek.integrated.platform.entity.QTProduct.qTProduct;
-import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.qTProductFunctionLink;
-import static com.iflytek.integrated.platform.entity.QTProductInterfaceLink.qTProductInterfaceLink;
+import static com.iflytek.integrated.platform.entity.QTSys.qTProduct;
+import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.QTSys;
+import static com.iflytek.integrated.platform.entity.QTProductInterfaceLink.QTSys;
 import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
 import static com.iflytek.integrated.platform.entity.QTProjectProductLink.qTProjectProductLink;
-import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConfig;
-import static com.iflytek.integrated.platform.entity.QTVendorDriveLink.qTVendorDriveLink;
+import static com.iflytek.integrated.platform.entity.QTSysConfig.qTVendorConfig;
+import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTVendorDriveLink;
 
 /**
 * redis缓存操作

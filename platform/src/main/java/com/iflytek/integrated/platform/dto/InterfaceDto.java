@@ -14,9 +14,7 @@ import java.util.List;
 @ApiModel("标准接口信息")
 public class InterfaceDto {
 
-    private String productId;
-
-    private List<String> productIds;
+    private String sysId;
 
     /**
      * 接口入参

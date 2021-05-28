@@ -1,8 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
-import static com.iflytek.integrated.platform.entity.QTHospitalVendorLink.qTHospitalVendorLink;
 import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
-import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConfig;
+import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -22,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.alibaba.fastjson.JSON;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
@@ -29,15 +29,13 @@ import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.common.RedisService;
-import com.iflytek.integrated.platform.dto.HospitalDto;
 import com.iflytek.integrated.platform.dto.PlatformDto;
 import com.iflytek.integrated.platform.dto.RedisDto;
 import com.iflytek.integrated.platform.dto.RedisKeyDto;
-import com.iflytek.integrated.platform.dto.VendorConfigDto;
+import com.iflytek.integrated.platform.dto.SysConfigDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
-import com.iflytek.integrated.platform.entity.THospitalVendorLink;
 import com.iflytek.integrated.platform.entity.TPlatform;
-import com.iflytek.integrated.platform.entity.TVendorConfig;
+import com.iflytek.integrated.platform.entity.TSysConfig;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.QueryResults;
@@ -63,9 +61,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PlatformService extends BaseService<TPlatform, String, StringPath> {
 
 	@Autowired
-	private VendorConfigService vendorConfigService;
-	@Autowired
-	private HospitalVendorLinkService hospitalVendorLinkService;
+	private SysConfigService sysConfigService;
 	@Autowired
 	private BusinessInterfaceService businessInterfaceService;
 	@Autowired
@@ -154,16 +150,18 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		if (isExist) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "平台名称为空或此项目下该名称已存在!", platformName);
 		}
-		List<VendorConfigDto> jsonArr = dto.getVendorInfo();
+		List<SysConfigDto> jsonArr = dto.getSysConfigs();
 		TPlatform platform = this.getOne(platformId);
 		if ("1".equals(platform.getPlatformType())) {
 			if (CollectionUtils.isNotEmpty(jsonArr)) {
-				String vendorIdStr = "";
-				for (VendorConfigDto vcd : jsonArr) {
-					if (vendorIdStr.contains(vcd.getVendorId())) {
-						return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "厂商名称不能重复!", "厂商名称不能重复!");
+				String sysIdStr = "";
+				for (SysConfigDto vcd : jsonArr) {
+					if (sysIdStr.contains(vcd.getSysId())) {
+						return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求方系统名称不能重复!", "请求方系统名称不能重复!");
 					}
-					vendorIdStr += vcd.getVendorId();
+					if (vcd.getSysConfigType() == 1) {
+						sysIdStr += vcd.getSysId();
+					}
 				}
 			}
 		}
@@ -190,17 +188,22 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		tp.setCreatedBy(loginUserName);
 		this.post(tp);
 		// 关联厂商
-		List<VendorConfigDto> jsonArr = dto.getVendorInfo();
+		List<SysConfigDto> jsonArr = dto.getSysConfigs();
 		if (CollectionUtils.isEmpty(jsonArr)) {
 			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "新增平台成功!", null);
 		}
 		for (int i = 0; i < jsonArr.size(); i++) {
-			VendorConfigDto obj = jsonArr.get(i);
-			TVendorConfig tvc = new TVendorConfig();
-			String vendorConfigId = batchUidService.getUid(qTVendorConfig.getTableName()) + "";
+			SysConfigDto obj = jsonArr.get(i);
+			TSysConfig tvc = new TSysConfig();
+			String vendorConfigId = batchUidService.getUid(qTSysConfig.getTableName()) + "";
 			tvc.setId(vendorConfigId);
+			tvc.setProjectId(dto.getProjectId());
 			tvc.setPlatformId(platformId);
-			tvc.setVendorId(obj.getVendorId());
+			tvc.setSysId(obj.getSysId());
+			tvc.setSysConfigType(obj.getSysConfigType());
+			if (obj.getHospitalConfig() != null && obj.getHospitalConfig().size() > 0) {
+				tvc.setHospitalConfigs(JSON.toJSONString(obj.getHospitalConfig()));
+			}
 			tvc.setVersionId(obj.getVersionId());
 			tvc.setConnectionType(obj.getConnectionType());
 			tvc.setAddressUrl(obj.getAddressUrl());
@@ -215,21 +218,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 			tvc.setUserPassword(obj.getUserPassword());
 			tvc.setCreatedTime(new Date());
 			tvc.setCreatedBy(loginUserName);
-			vendorConfigService.post(tvc);
-			List<HospitalDto> hospitalArr = obj.getHospitalConfig();
-			if (CollectionUtils.isNotEmpty(hospitalArr)) {
-				for (int j = 0; j < hospitalArr.size(); j++) {
-					HospitalDto hObj = hospitalArr.get(j);
-					THospitalVendorLink hvl = new THospitalVendorLink();
-					hvl.setId(batchUidService.getUid(qTHospitalVendorLink.getTableName()) + "");
-					hvl.setVendorConfigId(vendorConfigId);
-					hvl.setHospitalId(hObj.getHospitalId());
-					hvl.setVendorHospitalId(hObj.getVendorHospitalId());
-					hvl.setCreatedTime(new Date());
-					hvl.setCreatedBy(loginUserName);
-					hospitalVendorLinkService.post(hvl);
-				}
-			}
+			sysConfigService.post(tvc);
 		}
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "新增平台成功!", "新增平台成功!");
 	}
@@ -247,19 +236,24 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 			throw new RuntimeException("修改平台失败!");
 		}
 		// 获取更改前的厂商信息
-		List<TVendorConfig> tvcList = vendorConfigService.getObjByPlatformId(platformId);
+		List<TSysConfig> tvcList = sysConfigService.getObjByPlatformId(platformId);
 		// 前台传递的新厂商信息
-		List<VendorConfigDto> jsonArr = dto.getVendorInfo();
+		List<SysConfigDto> jsonArr = dto.getSysConfigs();
 		for (int i = 0; i < jsonArr.size(); i++) {
-			VendorConfigDto obj = jsonArr.get(i);
-			String vendorConfigId = obj.getId();
+			SysConfigDto obj = jsonArr.get(i);
+			String sysConfigId = obj.getId();
 			// 新增厂商信息
-			if (StringUtils.isBlank(vendorConfigId)) {
-				TVendorConfig tvc = new TVendorConfig();
-				vendorConfigId = batchUidService.getUid(qTVendorConfig.getTableName()) + "";
-				tvc.setId(vendorConfigId);
+			if (StringUtils.isBlank(sysConfigId)) {
+				TSysConfig tvc = new TSysConfig();
+				sysConfigId = batchUidService.getUid(qTSysConfig.getTableName()) + "";
+				tvc.setId(sysConfigId);
+				tvc.setProjectId(dto.getProjectId());
 				tvc.setPlatformId(platformId);
-				tvc.setVendorId(obj.getVendorId());
+				tvc.setSysId(obj.getSysId());
+				tvc.setSysConfigType(obj.getSysConfigType());
+				if (obj.getHospitalConfig() != null && obj.getHospitalConfig().size() > 0) {
+					tvc.setHospitalConfigs(JSON.toJSONString(obj.getHospitalConfig()));
+				}
 				tvc.setVersionId(obj.getVersionId());
 				tvc.setConnectionType(obj.getConnectionType());
 				tvc.setAddressUrl(obj.getAddressUrl());
@@ -274,26 +268,19 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 				tvc.setUserPassword(obj.getUserPassword());
 				tvc.setCreatedTime(new Date());
 				tvc.setCreatedBy(loginUserName);
-				vendorConfigService.post(tvc);
+				sysConfigService.post(tvc);
 				// 医院配置
-				List<HospitalDto> hospitalArr = obj.getHospitalConfig();
-				for (int j = 0; j < hospitalArr.size(); j++) {
-					HospitalDto hObj = hospitalArr.get(j);
-					THospitalVendorLink hvl = new THospitalVendorLink();
-					hvl.setId(batchUidService.getUid(qTHospitalVendorLink.getTableName()) + "");
-					hvl.setVendorConfigId(vendorConfigId);
-					hvl.setHospitalId(hObj.getHospitalId());
-					hvl.setVendorHospitalId(hObj.getVendorHospitalId());
-					hvl.setCreatedTime(new Date());
-					hvl.setCreatedBy(loginUserName);
-					hospitalVendorLinkService.post(hvl);
-				}
 			} else {
-				TVendorConfig tvc = vendorConfigService.getOne(vendorConfigId);
+				TSysConfig tvc = sysConfigService.getOne(sysConfigId);
 				// 编辑厂商信息
-				tvc.setId(vendorConfigId);
+				tvc.setId(sysConfigId);
+				tvc.setProjectId(dto.getProjectId());
 				tvc.setPlatformId(platformId);
-				tvc.setVendorId(obj.getVendorId());
+				tvc.setSysId(obj.getSysId());
+				tvc.setSysConfigType(obj.getSysConfigType());
+				if (obj.getHospitalConfig() != null && obj.getHospitalConfig().size() > 0) {
+					tvc.setHospitalConfigs(JSON.toJSONString(obj.getHospitalConfig()));
+				}
 				tvc.setVersionId(obj.getVersionId());
 				tvc.setConnectionType(obj.getConnectionType());
 				tvc.setAddressUrl(obj.getAddressUrl());
@@ -308,43 +295,9 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 				tvc.setUserPassword(obj.getUserPassword());
 				tvc.setUpdatedTime(new Date());
 				tvc.setUpdatedBy(loginUserName);
-				l = vendorConfigService.put(vendorConfigId, tvc);
+				l = sysConfigService.put(sysConfigId, tvc);
 				if (l < 1) {
 					throw new RuntimeException("厂商信息编辑失败!");
-				}
-				// 医院配置
-				List<HospitalDto> hospitalArr = obj.getHospitalConfig();
-				if (CollectionUtils.isNotEmpty(hospitalArr)) {
-					for (int j = 0; j < hospitalArr.size(); j++) {
-						HospitalDto hObj = hospitalArr.get(j);
-						String hvlId = hObj.getId();
-						if (StringUtils.isBlank(hvlId)) {
-							// 新增医院配置
-							THospitalVendorLink hvl = new THospitalVendorLink();
-							hvl.setId(batchUidService.getUid(qTHospitalVendorLink.getTableName()) + "");
-							hvl.setVendorConfigId(vendorConfigId);
-							hvl.setHospitalId(hObj.getHospitalId());
-							hvl.setVendorHospitalId(hObj.getVendorHospitalId());
-							hvl.setCreatedTime(new Date());
-							hvl.setCreatedBy(loginUserName);
-							hospitalVendorLinkService.post(hvl);
-						} else {
-							// 编辑医院配置
-							THospitalVendorLink hvl = hospitalVendorLinkService.getOne(hvlId);
-							if (hvl != null) {
-								hvl.setId(hvlId);
-								hvl.setVendorConfigId(vendorConfigId);
-								hvl.setHospitalId(hObj.getHospitalId());
-								hvl.setVendorHospitalId(hObj.getVendorHospitalId());
-								hvl.setUpdatedTime(new Date());
-								hvl.setUpdatedBy(loginUserName);
-								l = hospitalVendorLinkService.put(hvlId, hvl);
-								if (l < 1) {
-									throw new RuntimeException("医院配置信息编辑失败!");
-								}
-							}
-						}
-					}
 				}
 			}
 		}
@@ -352,9 +305,9 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 	}
 
 	@Transactional(rollbackFor = Exception.class)
-	@ApiOperation(value = "修改厂商信息接口", notes = "修改厂商信息接口")
-	@PostMapping("/updateVendorConfig")
-	public ResultDto<String> updateVendorConfig(@RequestBody VendorConfigDto dto) {
+	@ApiOperation(value = "修改系统配置信息接口", notes = "修改系统配置信息接口")
+	@PostMapping("/updateSysConfig")
+	public ResultDto<String> updateSysConfig(@RequestBody SysConfigDto dto) {
 		if (dto == null) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "数据传入有误!", "数据传入有误!");
 		}
@@ -367,29 +320,36 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		// 平台id
 		String platformId = dto.getPlatformId();
 		TPlatform platform = this.getOne(platformId);
-		List<VendorConfigDto> jsonArr = dto.getVendorInfo();
+		List<SysConfigDto> jsonArr = dto.getSysConfigs();
 		if ("1".equals(platform.getPlatformType())) {
 			// 获取更改前的厂商信息
-			List<TVendorConfig> tvcList = vendorConfigService.getObjByPlatformId(platformId);
+			List<TSysConfig> tvcList = sysConfigService.getObjByPlatformId(platformId);
 			// 前台传递的新厂商信息
-			String vendorIdStr = "";
-			for (VendorConfigDto vcd : jsonArr) {
-				if (vendorIdStr.contains(vcd.getVendorId())) {
-					return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "厂商名称不能重复!", "厂商名称不能重复!");
+			String sysIdStr = "";
+			for (SysConfigDto vcd : jsonArr) {
+				if (sysIdStr.contains(vcd.getSysId())) {
+					return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求方系统名称不能重复!", "请求方系统名称不能重复!");
 				}
-				vendorIdStr += vcd.getVendorId();
+				if (vcd.getSysConfigType() == 1) {
+					sysIdStr += vcd.getSysId();
+				}
 			}
 		}
 		for (int i = 0; i < jsonArr.size(); i++) {
-			VendorConfigDto obj = jsonArr.get(i);
-			String vendorConfigId = obj.getId();
+			SysConfigDto obj = jsonArr.get(i);
+			String sysConfigId = obj.getId();
 			// 新增厂商信息
-			if (StringUtils.isBlank(vendorConfigId)) {
-				TVendorConfig tvc = new TVendorConfig();
-				vendorConfigId = batchUidService.getUid(qTVendorConfig.getTableName()) + "";
-				tvc.setId(vendorConfigId);
+			if (StringUtils.isBlank(sysConfigId)) {
+				TSysConfig tvc = new TSysConfig();
+				sysConfigId = batchUidService.getUid(qTSysConfig.getTableName()) + "";
+				tvc.setId(sysConfigId);
+				tvc.setProjectId(obj.getProjectId());
 				tvc.setPlatformId(platformId);
-				tvc.setVendorId(obj.getVendorId());
+				tvc.setSysId(obj.getSysId());
+				tvc.setSysConfigType(obj.getSysConfigType());
+				if (obj.getHospitalConfig() != null && obj.getHospitalConfig().size() > 0) {
+					tvc.setHospitalConfigs(JSON.toJSONString(obj.getHospitalConfig()));
+				}
 				tvc.setVersionId(obj.getVersionId());
 				tvc.setConnectionType(obj.getConnectionType());
 				tvc.setAddressUrl(obj.getAddressUrl());
@@ -404,26 +364,18 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 				tvc.setUserPassword(obj.getUserPassword());
 				tvc.setCreatedTime(new Date());
 				tvc.setCreatedBy(loginUserName);
-				vendorConfigService.post(tvc);
-				// 医院配置
-				List<HospitalDto> hospitalArr = obj.getHospitalConfig();
-				for (int j = 0; j < hospitalArr.size(); j++) {
-					HospitalDto hObj = hospitalArr.get(j);
-					THospitalVendorLink hvl = new THospitalVendorLink();
-					hvl.setId(batchUidService.getUid(qTHospitalVendorLink.getTableName()) + "");
-					hvl.setVendorConfigId(vendorConfigId);
-					hvl.setHospitalId(hObj.getHospitalId());
-					hvl.setVendorHospitalId(hObj.getVendorHospitalId());
-					hvl.setCreatedTime(new Date());
-					hvl.setCreatedBy(loginUserName);
-					hospitalVendorLinkService.post(hvl);
-				}
+				sysConfigService.post(tvc);
 			} else {
-				TVendorConfig tvc = vendorConfigService.getOne(vendorConfigId);
+				TSysConfig tvc = sysConfigService.getOne(sysConfigId);
 				// 编辑厂商信息
-				tvc.setId(vendorConfigId);
+				tvc.setId(sysConfigId);
+				tvc.setProjectId(obj.getProjectId());
 				tvc.setPlatformId(platformId);
-				tvc.setVendorId(obj.getVendorId());
+				tvc.setSysId(obj.getSysId());
+				tvc.setSysConfigType(obj.getSysConfigType());
+				if (obj.getHospitalConfig() != null && obj.getHospitalConfig().size() > 0) {
+					tvc.setHospitalConfigs(JSON.toJSONString(obj.getHospitalConfig()));
+				}
 				tvc.setVersionId(obj.getVersionId());
 				tvc.setConnectionType(obj.getConnectionType());
 				tvc.setAddressUrl(obj.getAddressUrl());
@@ -438,39 +390,9 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 				tvc.setUserPassword(obj.getUserPassword());
 				tvc.setUpdatedTime(new Date());
 				tvc.setUpdatedBy(loginUserName);
-				long l = vendorConfigService.put(vendorConfigId, tvc);
+				long l = sysConfigService.put(sysConfigId, tvc);
 				if (l < 1) {
 					throw new RuntimeException("厂商信息编辑失败!");
-				}
-				// 医院配置
-				List<HospitalDto> hospitalArr = obj.getHospitalConfig();
-				for (int j = 0; j < hospitalArr.size(); j++) {
-					HospitalDto hObj = hospitalArr.get(j);
-					String hvlId = hObj.getId();
-					if (StringUtils.isBlank(hvlId)) {
-						// 新增医院配置
-						THospitalVendorLink hvl = new THospitalVendorLink();
-						hvl.setId(batchUidService.getUid(qTHospitalVendorLink.getTableName()) + "");
-						hvl.setVendorConfigId(vendorConfigId);
-						hvl.setHospitalId(hObj.getHospitalId());
-						hvl.setVendorHospitalId(hObj.getVendorHospitalId());
-						hvl.setCreatedTime(new Date());
-						hvl.setCreatedBy(loginUserName);
-						hospitalVendorLinkService.post(hvl);
-					} else {
-						// 编辑医院配置
-						THospitalVendorLink hvl = hospitalVendorLinkService.getOne(hvlId);
-						hvl.setId(hvlId);
-						hvl.setVendorConfigId(vendorConfigId);
-						hvl.setHospitalId(hObj.getHospitalId());
-						hvl.setVendorHospitalId(hObj.getVendorHospitalId());
-						hvl.setUpdatedTime(new Date());
-						hvl.setUpdatedBy(loginUserName);
-						l = hospitalVendorLinkService.put(hvlId, hvl);
-						if (l < 1) {
-							throw new RuntimeException("医院配置编辑失败!");
-						}
-					}
 				}
 			}
 		}
@@ -511,13 +433,6 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		if (count <= 0) {
 			throw new RuntimeException("平台删除失败!");
 		}
-		// 获取平台下所有厂商配置
-		List<TVendorConfig> tvcList = vendorConfigService.getObjByPlatformId(id);
-		count = 0;
-		for (TVendorConfig tvc : tvcList) {
-			// 删除医院与厂商配置关联信息
-			count += hospitalVendorLinkService.deleteByVendorConfigId(tvc.getId());
-		}
 		// 删除平台下所有关联的接口配置
 		List<TBusinessInterface> tbiList = businessInterfaceService.getListByPlatform(id);
 		if (CollectionUtils.isNotEmpty(tbiList)) {
@@ -530,7 +445,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 			}
 		}
 		// 删除平台下的所有厂商配置信息
-		long vcCount = vendorConfigService.delVendorConfigAll(id);
+		long vcCount = sysConfigService.delSysConfigAll(id);
 		if (vcCount < 1) {
 			logger.error("平台下所有厂商配置信息删除失败!");
 			throw new RuntimeException("平台删除失败!");

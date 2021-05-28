@@ -33,10 +33,10 @@ import static com.iflytek.integrated.platform.entity.QTFunction.qTFunction;
 import static com.iflytek.integrated.platform.entity.QTLog.qTLog;
 import static com.iflytek.integrated.platform.entity.QTInterfaceMonitor.qTInterfaceMonitor;
 import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
-import static com.iflytek.integrated.platform.entity.QTProduct.qTProduct;
-import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.qTProductFunctionLink;
+import static com.iflytek.integrated.platform.entity.QTSys.qTProduct;
+import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.QTSys;
 import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
-import static com.iflytek.integrated.platform.entity.QTVendorConfig.qTVendorConfig;
+import static com.iflytek.integrated.platform.entity.QTSysConfig.qTVendorConfig;
 
 /**
  * @author czzhan

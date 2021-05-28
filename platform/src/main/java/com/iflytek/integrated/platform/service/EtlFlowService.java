@@ -3,8 +3,8 @@ package com.iflytek.integrated.platform.service;
 import static com.iflytek.integrated.platform.entity.QTEtlFlow.qTEtlFlow;
 import static com.iflytek.integrated.platform.entity.QTEtlGroup.qTEtlGroup;
 import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
-import static com.iflytek.integrated.platform.entity.QTProduct.qTProduct;
 import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
+import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -68,10 +68,10 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 			@ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
 		// 查询条件
 		ArrayList<Predicate> list = new ArrayList<>();
-		if(StringUtils.isNotBlank(queryCondition.getPlatformId())) {
+		if (StringUtils.isNotBlank(queryCondition.getPlatformId())) {
 			list.add(qTEtlGroup.platformId.eq(queryCondition.getPlatformId()));
 		}
-		
+
 		if (StringUtils.isNotBlank(queryCondition.getGroupId())) {
 			list.add(qTEtlFlow.groupId.eq(queryCondition.getGroupId()));
 		}
@@ -89,9 +89,9 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 				qTEtlFlow.flowTplName, qTEtlFlow.funTplNames,
 //				qTProject.projectCode.as("projectCode"),
 				qTEtlGroup.hospitalId, qTEtlGroup.sysId, qTHospital.hospitalName.as("hospitalName"),
-				qTProduct.productName.as("sysName"))).from(qTEtlFlow).leftJoin(qTEtlGroup)
-				.on(qTEtlFlow.groupId.eq(qTEtlGroup.id)).leftJoin(qTPlatform).on(qTEtlGroup.platformId.eq(qTPlatform.id))
-				.leftJoin(qTProduct).on(qTEtlGroup.sysId.eq(qTProduct.id))
+				qTSys.sysName.as("sysName"))).from(qTEtlFlow).leftJoin(qTEtlGroup)
+				.on(qTEtlFlow.groupId.eq(qTEtlGroup.id)).leftJoin(qTPlatform)
+				.on(qTEtlGroup.platformId.eq(qTPlatform.id)).leftJoin(qTSys).on(qTEtlGroup.sysId.eq(qTSys.id))
 				.leftJoin(qTHospital).on(qTEtlGroup.hospitalId.eq(qTHospital.id))
 				.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
 				.orderBy(qTEtlFlow.createdTime.desc()).fetchResults();
@@ -110,8 +110,8 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 				qTEtlFlow.flowTplName, qTEtlFlow.funTplNames,
 //				qTProject.projectCode.as("projectCode"),
 				qTEtlGroup.hospitalId, qTEtlGroup.sysId, qTHospital.hospitalName.as("hospitalName"),
-				qTProduct.productName.as("sysName"))).from(qTEtlFlow).leftJoin(qTEtlGroup)
-				.on(qTEtlFlow.groupId.eq(qTEtlGroup.id)).leftJoin(qTProduct).on(qTEtlGroup.sysId.eq(qTProduct.id))
+				qTSys.sysName.as("sysName"))).from(qTEtlFlow).leftJoin(qTEtlGroup)
+				.on(qTEtlFlow.groupId.eq(qTEtlGroup.id)).leftJoin(qTSys).on(qTEtlGroup.sysId.eq(qTSys.id))
 				.leftJoin(qTHospital).on(qTEtlGroup.hospitalId.eq(qTHospital.id)).where(qTEtlFlow.id.eq(id))
 				.fetchFirst();
 
@@ -166,7 +166,7 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 //			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
 //		}
 		EtlGroupDto groupDto = flowDto.getEtlGroupDto();
-		if(groupDto == null) {
+		if (groupDto == null) {
 			groupDto = new EtlGroupDto();
 		}
 		String groupId = groupDto.getId();
