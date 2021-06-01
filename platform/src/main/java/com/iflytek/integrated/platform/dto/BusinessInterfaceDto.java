@@ -26,7 +26,7 @@ public class BusinessInterfaceDto {
 
     private String requestSysconfigId;
 
-    private String interfaceId;
+    private String requestInterfaceId;
 
     /**
      * 多个厂商配置信息

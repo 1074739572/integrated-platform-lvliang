@@ -1,21 +1,8 @@
 package com.iflytek.integrated.platform.common;
 
-import com.iflytek.integrated.common.dto.ResultDto;
-import com.iflytek.integrated.common.utils.JackSonUtils;
-import com.iflytek.integrated.common.utils.RedisUtil;
-import com.iflytek.integrated.platform.dto.RedisDto;
-import com.iflytek.integrated.platform.dto.RedisKeyDto;
-import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.StringPath;
-import com.querydsl.sql.SQLQueryFactory;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.apache.commons.collections.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import springfox.documentation.annotations.ApiIgnore;
+import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
+import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
+import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,18 +12,23 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
-import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
-import static com.iflytek.integrated.platform.entity.QTHospitalVendorLink.qTHospitalVendorLink;
-import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
-import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
-import static com.iflytek.integrated.platform.entity.QTSys.qTProduct;
-import static com.iflytek.integrated.platform.entity.QTProductFunctionLink.QTSys;
-import static com.iflytek.integrated.platform.entity.QTProductInterfaceLink.QTSys;
-import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
-import static com.iflytek.integrated.platform.entity.QTProjectProductLink.qTProjectProductLink;
-import static com.iflytek.integrated.platform.entity.QTSysConfig.qTVendorConfig;
-import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTVendorDriveLink;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iflytek.integrated.common.dto.ResultDto;
+import com.iflytek.integrated.common.utils.JackSonUtils;
+import com.iflytek.integrated.common.utils.RedisUtil;
+import com.iflytek.integrated.platform.dto.RedisDto;
+import com.iflytek.integrated.platform.dto.RedisKeyDto;
+import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.StringPath;
+import com.querydsl.sql.SQLQueryFactory;
+
+import springfox.documentation.annotations.ApiIgnore;
 
 /**
 * redis缓存操作
@@ -120,26 +112,26 @@ public class RedisService {
      * @param arr
      */
     public List<RedisKeyDto> getRedisKeyDtoList(ArrayList<Predicate> arr) {
-        arr.add(qTProject.projectCode.isNotNull().and(qTProduct.productCode.isNotNull().and(qTInterface.interfaceUrl.isNotNull())));
+        arr.add(qTProject.projectCode.isNotNull().and(qTSys.sysCode.isNotNull().and(qTInterface.interfaceUrl.isNotNull())));
 
-        List<RedisKeyDto> list =
-                sqlQueryFactory.select(Projections.bean(RedisKeyDto.class, qTProject.projectCode.as("projectCode"),
-                        qTHospital.hospitalCode.as("orgId"), qTProduct.productCode.as("productCode"), qTInterface.interfaceUrl.as("funCode")))
-                        .from(qTProject)
-                        .leftJoin(qTPlatform).on(qTPlatform.projectId.eq(qTProject.id))
-                        .leftJoin(qTVendorConfig).on(qTVendorConfig.platformId.eq(qTPlatform.id))
-                        .leftJoin(qTHospitalVendorLink).on(qTHospitalVendorLink.vendorConfigId.eq(qTVendorConfig.id))
-                        .leftJoin(qTHospital).on(qTHospital.id.eq(qTHospitalVendorLink.hospitalId))
-                        .leftJoin(qTProjectProductLink).on(qTProjectProductLink.projectId.eq(qTProject.id))
-                        .leftJoin(qTProductFunctionLink).on(qTProductFunctionLink.id.eq(qTProjectProductLink.productFunctionLinkId))
-                        .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
-                        .leftJoin(qTProductInterfaceLink).on(qTProductInterfaceLink.productId.eq(qTProduct.id))
-                        .leftJoin(qTInterface).on(qTInterface.id.eq(qTProductInterfaceLink.interfaceId))
-                        .leftJoin(qTBusinessInterface).on(qTBusinessInterface.vendorConfigId.eq(qTVendorConfig.id))
-                        .leftJoin(qTVendorDriveLink).on(qTVendorDriveLink.vendorId.eq(qTVendorConfig.vendorId))
-                        .where(arr.toArray(new Predicate[arr.size()]))
-                        .groupBy(qTProject.projectCode, qTHospital.hospitalCode, qTProduct.productCode, qTInterface.interfaceUrl)
-                        .fetch();
+        List<RedisKeyDto> list = null;
+//                sqlQueryFactory.select(Projections.bean(RedisKeyDto.class, qTProject.projectCode.as("projectCode"),
+//                        qTHospital.hospitalCode.as("orgId"), qTSys.sysCode.as("sysCode"), qTInterface.interfaceUrl.as("funCode")))
+//                        .from(qTProject)
+//                        .leftJoin(qTPlatform).on(qTPlatform.projectId.eq(qTProject.id))
+//                        .leftJoin(qTSysConfig).on(qTSysConfig.platformId.eq(qTPlatform.id))
+//                        .leftJoin(qTHospitalVendorLink).on(qTHospitalVendorLink.vendorConfigId.eq(qTVendorConfig.id))
+//                        .leftJoin(qTHospital).on(qTHospital.id.eq(qTHospitalVendorLink.hospitalId))
+//                        .leftJoin(qTProjectProductLink).on(qTProjectProductLink.projectId.eq(qTProject.id))
+//                        .leftJoin(qTProductFunctionLink).on(qTProductFunctionLink.id.eq(qTProjectProductLink.productFunctionLinkId))
+//                        .leftJoin(qTProduct).on(qTProduct.id.eq(qTProductFunctionLink.productId))
+//                        .leftJoin(qTProductInterfaceLink).on(qTProductInterfaceLink.productId.eq(qTProduct.id))
+//                        .leftJoin(qTInterface).on(qTInterface.id.eq(qTProductInterfaceLink.interfaceId))
+//                        .leftJoin(qTBusinessInterface).on(qTBusinessInterface.vendorConfigId.eq(qTVendorConfig.id))
+//                        .leftJoin(qTVendorDriveLink).on(qTVendorDriveLink.vendorId.eq(qTVendorConfig.vendorId))
+//                        .where(arr.toArray(new Predicate[arr.size()]))
+//                        .groupBy(qTProject.projectCode, qTHospital.hospitalCode, qTProduct.productCode, qTInterface.interfaceUrl)
+//                        .fetch();
         return list;
     }
 

@@ -575,8 +575,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		// 获取接口配置对象
 		TBusinessInterface tbi = businessInterfaceService.getOne(id);
 		if (tbi != null) {
-			// 标准接口
-			dto.setInterfaceId(tbi.getRequestInterfaceId());
+			// 请求方标准接口
+			dto.setRequestInterfaceId(tbi.getRequestInterfaceId());
 			// 获取厂商及配置信息
 			String requestSysconfigId = tbi.getRequestSysconfigId();
 			dto.setRequestSysconfigId(requestSysconfigId);
@@ -624,22 +624,19 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	 */
 	private ResultDto saveInterfaceConfig(BusinessInterfaceDto dto, String loginUserName) {
 		// 获取厂商配置
-		String vendorConfigId = "";
-		if (StringUtils.isBlank(dto.getVendorConfigId())) {
-			TSysConfig tvc = vendorConfigService.getObjByPlatformAndVendor(dto.getPlatformId(), dto.getVendorId());
-			vendorConfigId = tvc != null ? tvc.getId() : null;
+		String requestSysConfigId = "";
+		if (StringUtils.isBlank(dto.getRequestSysconfigId())) {
+			TSysConfig tvc = sysConfigService.getRequestConfigByPlatformAndSys(dto.getPlatformId(), dto.getRequestSysId());
+			requestSysConfigId = tvc != null ? tvc.getId() : null;
 		} else {
-			vendorConfigId = dto.getVendorConfigId();
+			requestSysConfigId = dto.getRequestSysconfigId();
 		}
 
-		// 根据项目,厂商,标准接口判定是否存在相同配置数据
-		List<THospitalVendorLink> thvlList = hospitalVendorLinkService
-				.getTHospitalVendorLinkByVendorConfigId(vendorConfigId);
 		// 根据条件判断是否存在该数据
-		List<TBusinessInterface> tbiList = businessInterfaceService.getBusinessInterfaceIsExist(thvlList,
-				dto.getProjectId(), dto.getProductId(), dto.getInterfaceId());
+		List<TBusinessInterface> tbiList = businessInterfaceService.getBusinessInterfaceIsExist(dto.getProjectId(),
+				dto.getRequestSysId(), dto.getRequestInterfaceId());
 		if (CollectionUtils.isNotEmpty(tbiList)) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据项目id,产品id,标准接口id匹配到该条件数据已存在!", null);
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据项目id,系统id,请求方接口id匹配到该条件数据已存在!", null);
 		}
 
 		tbiList = dto.getBusinessInterfaceList();
@@ -647,13 +644,13 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			TBusinessInterface tbi = tbiList.get(i);
 			// 新增接口配置
 			tbi.setId(batchUidService.getUid(qTBusinessInterface.getTableName()) + "");
-			tbi.setInterfaceId(dto.getInterfaceId());
+			tbi.setRequestInterfaceId(dto.getRequestInterfaceId());
 			tbi.setStatus(Constant.Status.START);
 			tbi.setMockStatus(Constant.Status.STOP);
 			tbi.setCreatedTime(new Date());
 			tbi.setCreatedBy(loginUserName);
-			tbi.setVendorConfigId(vendorConfigId);
-			tbi.setProductFunctionLinkId(productFunctionLinkId);
+			tbi.setRequestSysconfigId(requestSysConfigId);
+			tbi.setRequestedSysconfigId(tbi.getRequestedSysconfigId());
 			tbi.setExcErrOrder(i);
 			// 获取schema
 			niFiRequestUtil.generateSchemaToInterface(tbi);
@@ -675,8 +672,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "平台id或请求方系统id不能为空!", null);
 		}
 		// 获取系统配置
-		TSysConfig tvc = sysConfigService.getObjByPlatformAndSys(dto.getPlatformId(), dto.getVendorId());
-		String vendorConfigId = tvc != null ? tvc.getId() : dto.getVendorConfigId();
+		TSysConfig tvc = sysConfigService.getRequestConfigByPlatformAndSys(dto.getPlatformId(), dto.getRequestSysId());
+		String requestSysConfigId = tvc != null ? tvc.getId() : dto.getRequestSysconfigId();
 
 		// 返回缓存接口配置id
 		String rtnId = "";
@@ -686,13 +683,13 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			if (StringUtils.isBlank(tbi.getId())) {
 				// 新增的厂商配置
 				tbi.setId(batchUidService.getUid(qTBusinessInterface.getTableName()) + "");
-				tbi.setInterfaceId(dto.getInterfaceId());
+				tbi.setRequestInterfaceId(dto.getRequestInterfaceId());
 				tbi.setStatus(Constant.Status.START);
 				tbi.setMockStatus(Constant.Status.STOP);
 				tbi.setCreatedTime(new Date());
 				tbi.setCreatedBy(loginUserName);
-				tbi.setVendorConfigId(vendorConfigId);
-				tbi.setProductFunctionLinkId(productFunctionLinkId);
+				tbi.setRequestSysconfigId(requestSysConfigId);
+				tbi.setRequestedSysconfigId(tbi.getRequestedSysconfigId());
 				tbi.setExcErrOrder(i);
 				// 获取schema
 				niFiRequestUtil.generateSchemaToInterface(tbi);
@@ -700,11 +697,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				businessInterfaceService.post(tbi);
 			} else {
 				// 接口配置重新赋值
-				tbi.setInterfaceId(dto.getInterfaceId());
+				tbi.setRequestInterfaceId(dto.getRequestInterfaceId());
 				tbi.setUpdatedTime(new Date());
 				tbi.setUpdatedBy(loginUserName);
-				tbi.setVendorConfigId(vendorConfigId);
-				tbi.setProductFunctionLinkId(productFunctionLinkId);
+				tbi.setRequestedSysconfigId(tbi.getRequestedSysconfigId());
 				tbi.setExcErrOrder(i);
 				// 获取schema
 				niFiRequestUtil.generateSchemaToInterface(tbi);

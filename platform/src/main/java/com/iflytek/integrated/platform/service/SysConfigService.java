@@ -34,9 +34,9 @@ public class SysConfigService extends BaseService<TSysConfig, String, StringPath
 	 * @param sysId
 	 * @return
 	 */
-	public TSysConfig getObjByPlatformAndSys(String platformId, String sysId) {
+	public TSysConfig getRequestConfigByPlatformAndSys(String platformId, String sysId) {
 		return sqlQueryFactory.select(qTSysConfig).from(qTSysConfig)
-				.where(qTSysConfig.platformId.eq(platformId).and(qTSysConfig.sysId.eq(sysId))).fetchFirst();
+				.where(qTSysConfig.platformId.eq(platformId).and(qTSysConfig.sysId.eq(sysId)).and(qTSysConfig.sysConfigType.eq("1"))).fetchFirst();
 	}
 
 	/**
