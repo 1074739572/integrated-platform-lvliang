@@ -65,6 +65,8 @@ public class TSysConfig implements Serializable {
     private String updatedBy;
 
     private java.util.Date updatedTime;
+    
+    private String innerIdx;
 
 }
 

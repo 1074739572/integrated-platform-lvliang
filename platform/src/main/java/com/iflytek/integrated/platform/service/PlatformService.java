@@ -195,12 +195,15 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		for (int i = 0; i < jsonArr.size(); i++) {
 			SysConfigDto obj = jsonArr.get(i);
 			TSysConfig tvc = new TSysConfig();
-			String vendorConfigId = batchUidService.getUid(qTSysConfig.getTableName()) + "";
-			tvc.setId(vendorConfigId);
+			String sysConfigId = batchUidService.getUid(qTSysConfig.getTableName()) + "";
+			tvc.setId(sysConfigId);
 			tvc.setProjectId(dto.getProjectId());
 			tvc.setPlatformId(platformId);
 			tvc.setSysId(obj.getSysId());
 			tvc.setSysConfigType(obj.getSysConfigType());
+			if(obj.getSysConfigType() == 2) {
+				tvc.setInnerIdx(sysConfigId);
+			}
 			if (obj.getHospitalConfig() != null && obj.getHospitalConfig().size() > 0) {
 				tvc.setHospitalConfigs(JSON.toJSONString(obj.getHospitalConfig()));
 			}
@@ -235,8 +238,6 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		if (l < 1) {
 			throw new RuntimeException("修改平台失败!");
 		}
-		// 获取更改前的厂商信息
-		List<TSysConfig> tvcList = sysConfigService.getObjByPlatformId(platformId);
 		// 前台传递的新厂商信息
 		List<SysConfigDto> jsonArr = dto.getSysConfigs();
 		for (int i = 0; i < jsonArr.size(); i++) {
@@ -251,6 +252,9 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 				tvc.setPlatformId(platformId);
 				tvc.setSysId(obj.getSysId());
 				tvc.setSysConfigType(obj.getSysConfigType());
+				if(obj.getSysConfigType() == 2) {
+					tvc.setInnerIdx(sysConfigId);
+				}
 				if (obj.getHospitalConfig() != null && obj.getHospitalConfig().size() > 0) {
 					tvc.setHospitalConfigs(JSON.toJSONString(obj.getHospitalConfig()));
 				}
@@ -277,7 +281,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 				tvc.setProjectId(dto.getProjectId());
 				tvc.setPlatformId(platformId);
 				tvc.setSysId(obj.getSysId());
-				tvc.setSysConfigType(obj.getSysConfigType());
+//				tvc.setSysConfigType(obj.getSysConfigType());
 				if (obj.getHospitalConfig() != null && obj.getHospitalConfig().size() > 0) {
 					tvc.setHospitalConfigs(JSON.toJSONString(obj.getHospitalConfig()));
 				}

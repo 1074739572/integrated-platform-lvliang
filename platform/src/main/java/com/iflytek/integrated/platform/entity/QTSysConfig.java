@@ -67,6 +67,8 @@ public class QTSysConfig extends com.querydsl.sql.RelationalPathBase<TSysConfig>
     public final StringPath userPassword = createString("userPassword");
 
     public final StringPath versionId = createString("versionId");
+    
+    public final StringPath innerIdx = createString("innerIdx");
 
     public final com.querydsl.sql.PrimaryKey<TSysConfig> primary = createPrimaryKey(id);
 
@@ -118,6 +120,7 @@ public class QTSysConfig extends com.querydsl.sql.RelationalPathBase<TSysConfig>
         addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(20).ofType(Types.TIMESTAMP).withSize(19).notNull());
         addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(21).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(updatedTime, ColumnMetadata.named("UPDATED_TIME").withIndex(22).ofType(Types.TIMESTAMP).withSize(19).notNull());
+        addMetadata(innerIdx, ColumnMetadata.named("INNER_IDX").withIndex(23).ofType(Types.VARCHAR).withSize(32).notNull());
     }
 
 }
