@@ -326,13 +326,11 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		TPlatform platform = this.getOne(platformId);
 		List<SysConfigDto> jsonArr = dto.getSysConfigs();
 		if ("1".equals(platform.getPlatformType())) {
-			// 获取更改前的厂商信息
-			List<TSysConfig> tvcList = sysConfigService.getObjByPlatformId(platformId);
 			// 前台传递的新厂商信息
 			String sysIdStr = "";
 			for (SysConfigDto vcd : jsonArr) {
 				if (sysIdStr.contains(vcd.getSysId())) {
-					return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求方系统名称不能重复!", "请求方系统名称不能重复!");
+					return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求方系统不能重复!", "请求方系统名称不能重复!");
 				}
 				if (vcd.getSysConfigType() == 1) {
 					sysIdStr += vcd.getSysId();

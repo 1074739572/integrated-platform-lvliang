@@ -32,7 +32,7 @@ public class QTSysConfig extends com.querydsl.sql.RelationalPathBase<TSysConfig>
     
     public final StringPath sysConfigType = createString("sysConfigType");
     
-    public final StringPath hospitalIds = createString("hospitalIds");
+    public final StringPath hospitalConfigs = createString("hospitalConfigs");
 
     public final StringPath addressUrl = createString("addressUrl");
 
@@ -103,7 +103,7 @@ public class QTSysConfig extends com.querydsl.sql.RelationalPathBase<TSysConfig>
     	addMetadata(platformId, ColumnMetadata.named("PLATFORM_ID").withIndex(3).ofType(Types.VARCHAR).withSize(32).notNull());
     	addMetadata(sysId, ColumnMetadata.named("SYS_ID").withIndex(4).ofType(Types.VARCHAR).withSize(32).notNull());
     	addMetadata(sysConfigType, ColumnMetadata.named("SYS_CONFIG_TYPE").withIndex(5).ofType(Types.TINYINT).withSize(1).notNull());
-    	addMetadata(hospitalIds, ColumnMetadata.named("HOSPITAL_IDS").withIndex(6).ofType(Types.LONGVARCHAR).withSize(500).notNull());
+    	addMetadata(hospitalConfigs, ColumnMetadata.named("HOSPITAL_CONFIGS").withIndex(6).ofType(Types.LONGVARCHAR).withSize(500).notNull());
     	addMetadata(versionId, ColumnMetadata.named("VERSION_ID").withIndex(7).ofType(Types.VARCHAR).withSize(32).notNull());
     	addMetadata(connectionType, ColumnMetadata.named("CONNECTION_TYPE").withIndex(8).ofType(Types.VARCHAR).withSize(32).notNull());
     	addMetadata(addressUrl, ColumnMetadata.named("ADDRESS_URL").withIndex(9).ofType(Types.VARCHAR).withSize(128).notNull());

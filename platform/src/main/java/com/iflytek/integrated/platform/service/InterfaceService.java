@@ -221,7 +221,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				}
 			});
 			List<String> hospitals = sqlQueryFactory.select(qTHospital.hospitalCode).from(qTSysConfig)
-					.leftJoin(qTHospital).on(qTSysConfig.hospitalIds.contains(qTHospital.id))
+					.leftJoin(qTHospital).on(qTSysConfig.hospitalConfigs.contains(qTHospital.id))
 					.where(qTSysConfig.id.in(sysconfigIds).and(qTHospital.hospitalCode.isNotEmpty())).fetch();
 
 			// 拼接实体

@@ -77,7 +77,7 @@ public class SysConfigService extends BaseService<TSysConfig, String, StringPath
 	 * @param platformId
 	 */
 	public List<TSysConfig> getSysConfigByHospital(String hospitalId) {
-		return sqlQueryFactory.select(qTSysConfig).from(qTSysConfig).where(qTSysConfig.hospitalIds.contains(hospitalId))
+		return sqlQueryFactory.select(qTSysConfig).from(qTSysConfig).where(qTSysConfig.hospitalConfigs.contains(hospitalId))
 				.fetch();
 	}
 
