@@ -18,6 +18,8 @@ public class DriveDto {
     private String id;
 
     private String name;
+    
+    private String driveCallType;
 
     private List<TDrive> children;
 

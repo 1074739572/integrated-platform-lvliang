@@ -53,6 +53,14 @@ public class TInterface implements Serializable {
     private Long inParamCount;
 
     private Long outParamCount;
+    
+    private String inParamSchema;
+    
+    private String inParamFormatType;
+    
+    private String outParamSchema;
+    
+    private String outParamFormatType;
 
 }
 

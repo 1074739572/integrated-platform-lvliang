@@ -13,7 +13,7 @@ import com.iflytek.integrated.platform.entity.TSysConfig;
 import com.querydsl.core.types.dsl.StringPath;
 
 /**
- * 厂商配置
+ * 系统配置
  * 
  * @author weihe9
  * @date 2020/12/14 10:58

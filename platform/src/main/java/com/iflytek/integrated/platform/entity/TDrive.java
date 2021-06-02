@@ -43,6 +43,8 @@ public class TDrive implements Serializable {
     private String driveTypeName;
 
     private String name;
+    
+    private String driveCallType;
 
     public String getId() {
         return id;
@@ -140,7 +142,15 @@ public class TDrive implements Serializable {
         this.name = name;
     }
 
-    @Override
+    public String getDriveCallType() {
+		return driveCallType;
+	}
+
+	public void setDriveCallType(String driveCallType) {
+		this.driveCallType = driveCallType;
+	}
+
+	@Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;

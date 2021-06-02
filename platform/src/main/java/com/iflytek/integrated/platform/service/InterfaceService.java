@@ -72,7 +72,7 @@ import lombok.extern.slf4j.Slf4j;
  * @date 2020/12/12 17:16
  */
 @Slf4j
-@Api(tags = "接口管理")
+@Api(tags = "系统接口管理")
 @RestController
 @RequestMapping("/{version}/pt/interfaceManage")
 public class InterfaceService extends BaseService<TInterface, String, StringPath> {

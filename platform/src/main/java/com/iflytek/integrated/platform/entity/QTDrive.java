@@ -41,6 +41,8 @@ public class QTDrive extends com.querydsl.sql.RelationalPathBase<TDrive> {
     public final StringPath updatedBy = createString("updatedBy");
 
     public final DateTimePath<java.util.Date> updatedTime = createDateTime("updatedTime", java.util.Date.class);
+    
+    public final StringPath driveCallType = createString("driveCallType");
 
     public final com.querydsl.sql.PrimaryKey<TDrive> primary = createPrimaryKey(id);
 
@@ -80,6 +82,7 @@ public class QTDrive extends com.querydsl.sql.RelationalPathBase<TDrive> {
         addMetadata(typeId, ColumnMetadata.named("TYPE_ID").withIndex(4).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(9).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(updatedTime, ColumnMetadata.named("UPDATED_TIME").withIndex(10).ofType(Types.TIMESTAMP).withSize(19).notNull());
+        addMetadata(driveCallType, ColumnMetadata.named("DRIVE_CALL_TYPE").withIndex(11).ofType(Types.VARCHAR).withSize(1).notNull());
     }
 
 }

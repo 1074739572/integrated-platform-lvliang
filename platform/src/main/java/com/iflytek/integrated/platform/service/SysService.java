@@ -45,12 +45,12 @@ import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 产品管理
+ * 系统管理
  * 
  * @author czzhan
  */
 @Slf4j
-@Api(tags = "产品管理")
+@Api(tags = "系统管理")
 @RestController
 @RequestMapping("/{version}/pt/sysManage")
 public class SysService extends BaseService<TSys, String, StringPath> {
@@ -66,8 +66,6 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 
 	@Autowired
 	private SysConfigService sysConfigService;
-	@Autowired
-	private BusinessInterfaceService businessInterfaceService;
 	@Autowired
 	private BatchUidService batchUidService;
 	@Autowired
@@ -226,12 +224,12 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "修改系统成功", "");
 	}
 
-	@ApiOperation(value = "选择产品下拉及其功能")
+	@ApiOperation(value = "选择系统下拉列表")
 	@GetMapping("/getDisSys")
 	public ResultDto<List<TSys>> getDisSys() {
 		List<TSys> syss = sqlQueryFactory.select(Projections.bean(TSys.class, qTSys.id, qTSys.sysName, qTSys.sysCode))
 				.from(qTSys).orderBy(qTSys.createdTime.desc()).fetch();
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "选择产品下拉及其功能获取成功!", syss);
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "选择系统下拉列表获取成功!", syss);
 	}
 
 	/**
