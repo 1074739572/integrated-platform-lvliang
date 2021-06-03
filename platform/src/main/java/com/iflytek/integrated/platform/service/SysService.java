@@ -320,7 +320,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据平台与系统id未查到该系统配置信息!", null);
 	}
 
-	@ApiOperation(value = "选择厂商下拉(可根据当前项目操作选择)")
+	@ApiOperation(value = "选择系统下拉(可根据当前项目操作选择)")
 	@GetMapping("/getDisSysByOpt")
 	public ResultDto<List<TSys>> getDisSysByOpt(
 			@ApiParam(value = "项目id") @RequestParam(value = "projectId", required = false) String projectId,
