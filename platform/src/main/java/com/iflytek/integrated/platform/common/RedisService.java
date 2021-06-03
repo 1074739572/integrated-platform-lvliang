@@ -8,6 +8,7 @@ import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
 import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
+import static com.iflytek.integrated.platform.entity.QTSysHospitalConfig.qTSysHospitalConfig;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -123,7 +124,7 @@ public class RedisService {
 
 		List<RedisKeyDto> list = null;
 		sqlQueryFactory
-				.select(Projections.bean(RedisKeyDto.class, qTHospital.hospitalCode.as("orgId"),
+				.select(Projections.bean(RedisKeyDto.class, qTSysHospitalConfig.hospitalCode.as("orgId"),
 						qTSys.sysCode.as("sysCode"), qTInterface.interfaceUrl.as("funCode")))
 				.from(qTBusinessInterface).leftJoin(qTInterface)
 				.on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id)).leftJoin(qTSys)
@@ -131,10 +132,11 @@ public class RedisService {
 				.on(qTSysConfig.sysId.eq(qTSys.id)
 						.and(qTBusinessInterface.requestSysconfigId.eq(qTSysConfig.id)
 								.or(qTBusinessInterface.requestedSysconfigId.eq(qTSysConfig.id))))
-				.leftJoin(qTHospital).on(qTSysConfig.hospitalConfigs.contains(qTHospital.id)).leftJoin(qTSysDriveLink)
+				.leftJoin(qTSysHospitalConfig).on(qTSysConfig.id.eq(qTSysHospitalConfig.sysConfigId))
+				.leftJoin(qTHospital).on(qTSysHospitalConfig.hospitalId.eq(qTHospital.id)).leftJoin(qTSysDriveLink)
 				.on(qTSysDriveLink.sysId.eq(qTSys.id)).leftJoin(qTDrive).on(qTDrive.id.eq(qTSysDriveLink.driveId))
 				.where(arr.toArray(new Predicate[arr.size()]))
-				.groupBy(qTSys.sysCode, qTHospital.hospitalCode, qTInterface.interfaceUrl).fetch();
+				.groupBy(qTSys.sysCode, qTSysHospitalConfig.hospitalCode, qTInterface.interfaceUrl).fetch();
 		return list;
 	}
 

@@ -1,19 +1,18 @@
 package com.iflytek.integrated.platform.service;
 
-import com.alibaba.fastjson.JSON;
-import com.iflytek.integrated.platform.common.BaseService;
-import com.iflytek.integrated.platform.dto.HospitalDto;
-import com.iflytek.integrated.platform.entity.TSysConfig;
-import com.querydsl.core.types.dsl.StringPath;
+import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
+import static com.iflytek.integrated.platform.entity.QTSysHospitalConfig.qTSysHospitalConfig;
+
+import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
+import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.entity.TSysConfig;
+import com.querydsl.core.types.dsl.StringPath;
 
 /**
  * 系统配置
@@ -80,29 +79,22 @@ public class SysConfigService extends BaseService<TSysConfig, String, StringPath
 	}
 
 	/**
-	 * 删除平台下所有系统配置信息
+	 * 根据医院ID系统配置信息
 	 * 
 	 * @param hospitalId
 	 */
 	public List<TSysConfig> getSysConfigByHospital(String hospitalId) {
-		return sqlQueryFactory.select(qTSysConfig).from(qTSysConfig)
-				.where(qTSysConfig.hospitalConfigs.contains(hospitalId)).fetch();
+		return sqlQueryFactory.select(qTSysConfig).from(qTSysConfig).join(qTSysHospitalConfig)
+				.on(qTSysConfig.id.eq(qTSysHospitalConfig.sysConfigId))
+				.where(qTSysHospitalConfig.hospitalId.eq(hospitalId)).fetch();
 	}
 
 	public long delSysConfigHospital(TSysConfig sysConfig, String hospitalId) {
 		if (StringUtils.isBlank(hospitalId)) {
-			return sqlQueryFactory.update(qTSysConfig).set(qTSysConfig.hospitalConfigs, "")
-					.where(qTSysConfig.id.eq(sysConfig.getId())).execute();
-		}
-		String hospitals = sysConfig.getHospitalConfigs();
-		if (StringUtils.isBlank(hospitals)) {
 			return 0;
 		}
-		List<HospitalDto> hosList = JSON.parseArray(hospitals, HospitalDto.class);
-		List<HospitalDto> newHosList = hosList.stream().filter(hd -> !hospitalId.equals(hd.getHospitalId()))
-				.collect(Collectors.toList());
-		return sqlQueryFactory.update(qTSysConfig).set(qTSysConfig.hospitalConfigs, JSON.toJSONString(newHosList))
-				.where(qTSysConfig.id.eq(sysConfig.getId())).execute();
+		return sqlQueryFactory.delete(qTSysHospitalConfig).where(qTSysHospitalConfig.sysConfigId.eq(sysConfig.getId())
+				.and(qTSysHospitalConfig.hospitalId.eq(hospitalId))).execute();
 	}
 
 }

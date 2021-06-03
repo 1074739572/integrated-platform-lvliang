@@ -10,8 +10,8 @@ import lombok.Data;
  * @date 2020/12/14 17:43
  */
 @Data
-@ApiModel("医院配置信息")
-public class HospitalDto {
+@ApiModel("系统医院配置信息")
+public class SysHospitalDto {
 
 	private String hospitalId;
 

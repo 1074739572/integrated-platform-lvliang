@@ -20,9 +20,9 @@ public class THospital implements Serializable {
     @Length(max = 100, message = "医院名称不能超过100")
     private String hospitalName;
 
-    @NotBlank(message = "医院编码不能为空")
-    @Length(max = 100, message = "医院名编码不能超过100")
-    private String hospitalCode;
+//    @NotBlank(message = "医院编码不能为空")
+//    @Length(max = 100, message = "医院名编码不能超过100")
+//    private String hospitalCode;
 
     private String status;
 
@@ -55,14 +55,6 @@ public class THospital implements Serializable {
 
     public void setHospitalName(String hospitalName) {
         this.hospitalName = hospitalName;
-    }
-
-    public String getHospitalCode() {
-        return hospitalCode;
-    }
-
-    public void setHospitalCode(String hospitalCode) {
-        this.hospitalCode = hospitalCode;
     }
 
     public String getStatus() {

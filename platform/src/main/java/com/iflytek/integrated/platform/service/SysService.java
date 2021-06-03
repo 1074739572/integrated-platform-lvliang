@@ -1,4 +1,31 @@
 package com.iflytek.integrated.platform.service;
+
+import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
+import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
+import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
+import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
+import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
+import static com.iflytek.integrated.platform.entity.QTSysHospitalConfig.qTSysHospitalConfig;
+import static com.querydsl.sql.SQLExpressions.groupConcat;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.alibaba.fastjson.JSON;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
@@ -7,44 +34,26 @@ import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.common.RedisService;
-import com.iflytek.integrated.platform.dto.HospitalDto;
 import com.iflytek.integrated.platform.dto.SysConfigDto;
 import com.iflytek.integrated.platform.dto.SysDto;
+import com.iflytek.integrated.platform.dto.SysHospitalDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TSys;
 import com.iflytek.integrated.platform.entity.TSysConfig;
 import com.iflytek.integrated.platform.entity.TSysDriveLink;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.QueryResults;
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.SQLQuery;
 import com.querydsl.sql.dml.SQLUpdateClause;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
-import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
-import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
-import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
-import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
-import static com.querydsl.sql.SQLExpressions.groupConcat;
 
 /**
  * 系统管理
@@ -84,8 +93,8 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		try {
 			List<Predicate> list = new ArrayList<>();
 			SQLQuery<TSys> queryer = sqlQueryFactory
-					.select(Projections.bean(qTSys, groupConcat(qTDrive.driveName , "|").as("driverNames")))
-					.from(qTSys).leftJoin((qTSysDriveLink)).on(qTSys.id.eq(qTSysDriveLink.sysId)).leftJoin(qTDrive)
+					.select(Projections.bean(qTSys, groupConcat(qTDrive.driveName, "|").as("driverNames"))).from(qTSys)
+					.leftJoin((qTSysDriveLink)).on(qTSys.id.eq(qTSysDriveLink.sysId)).leftJoin(qTDrive)
 					.on(qTSysDriveLink.driveId.eq(qTDrive.id));
 			if (StringUtils.isNotBlank(sysCode)) {
 				list.add(qTSys.sysCode.eq(sysCode));
@@ -203,8 +212,8 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		if (StringUtils.isNotBlank(isValid)) {
 			updater.set(qTSys.isValid, isValid);
 		}
-		long l = updater.set(qTSys.updatedTime, new Date()).set(qTSys.updatedBy, loginUserName).where(qTSys.id.eq(sysId))
-				.execute();
+		long l = updater.set(qTSys.updatedTime, new Date()).set(qTSys.updatedBy, loginUserName)
+				.where(qTSys.id.eq(sysId)).execute();
 		if (l <= 0) {
 			throw new RuntimeException("系统信息更新失败!");
 		}
@@ -245,31 +254,41 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		return sqlQueryFactory.select(qTSys).from(qTSys).where(qTSys.sysName.eq(sysName)).fetchFirst();
 	}
 
-	@ApiOperation(value = "获取系统配置信息", notes = "获取系统配置信息")
-	@GetMapping("/getSysConfigList")
-	public ResultDto<List<SysConfigDto>> getSysConfigList(
+	@ApiOperation(value = "获取平台系统配置信息", notes = "获取平台系统配置信息")
+	@GetMapping("/getSysConfigs")
+	public ResultDto<SysConfigDto> getSysConfigList(
 			@ApiParam(value = "分类id") @RequestParam(value = "platformId", required = true) String platformId) {
 		try {
-			List<TSysConfig> VCList = sqlQueryFactory.select(qTSysConfig).from(qTSysConfig)
+
+			List<Expression<?>> columuns = qTSysConfig.getProjection().getArgs();
+			columuns.add(
+					groupConcat(qTSysHospitalConfig.hospitalId.append(":").append(qTSysHospitalConfig.hospitalCode))
+							.as("hospitalConfigStr"));
+			List<TSysConfig> VCList = sqlQueryFactory.select(Projections.bean(qTSysConfig, columuns.toArray(null)))
+					.from(qTSysConfig).leftJoin(qTSysHospitalConfig)
+					.on(qTSysConfig.id.eq(qTSysHospitalConfig.sysConfigId)).groupBy(qTSysConfig.id)
 					.where(qTSysConfig.platformId.eq(platformId)).fetch();
-			List<SysConfigDto> list = new ArrayList<>();
+			SysConfigDto configDto = new SysConfigDto();
+			configDto.setRequestedSysConfigs(new ArrayList<TSysConfig>());
 			for (TSysConfig obj : VCList) {
-				SysConfigDto vcd = new SysConfigDto();
-				BeanUtils.copyProperties(obj, vcd);
-				// 厂商信息
-				TSys tv = this.getOne(vcd.getSysId());
+				// 系统信息
+				TSys tv = this.getOne(obj.getSysId());
 				if (tv != null) {
-					vcd.setSysCode(tv.getSysCode());
-					vcd.setSysName(tv.getSysName());
+					obj.setSysCode(tv.getSysCode());
+					obj.setSysName(tv.getSysName());
 				}
-				String hospitalConfigs = obj.getHospitalConfigs();
+				String hospitalConfigs = obj.getHospitalConfigStr();
 				if (StringUtils.isNotBlank(hospitalConfigs)) {
-					List<HospitalDto> hospitalConfigList = JSON.parseArray(hospitalConfigs, HospitalDto.class);
-					vcd.setHospitalConfig(hospitalConfigList);
+					List<SysHospitalDto> hospitalConfigList = JSON.parseArray(hospitalConfigs, SysHospitalDto.class);
+					obj.setHospitalConfigs(hospitalConfigList);
 				}
-				list.add(vcd);
+				if (obj.getSysConfigType() == 1) {
+					configDto.setRequestSysConfig(obj);
+				} else {
+					configDto.getRequestedSysConfigs().add(obj);
+				}
 			}
-			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取系统配置信息成功!", list);
+			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取系统配置信息成功!", configDto);
 		} catch (BeansException e) {
 			logger.error("获取系统配置信息失败! MSG:{}", ExceptionUtil.dealException(e));
 			e.printStackTrace();

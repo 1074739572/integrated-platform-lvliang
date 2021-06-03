@@ -1,7 +1,5 @@
 package com.iflytek.integrated.platform.dto;
 
-import java.util.List;
-
 import com.iflytek.integrated.platform.entity.TPlatform;
 
 import io.swagger.annotations.ApiModel;
@@ -17,6 +15,6 @@ import lombok.Data;
 @ApiModel("平台")
 public class PlatformDto extends TPlatform {
 
-	private List<SysConfigDto> sysConfigs;
+	private SysConfigDto sysConfig;
 
 }

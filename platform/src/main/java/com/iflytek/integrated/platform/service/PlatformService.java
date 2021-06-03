@@ -1,6 +1,27 @@
 package com.iflytek.integrated.platform.service;
 
-import com.alibaba.fastjson.JSON;
+import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
+import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
+import static com.iflytek.integrated.platform.entity.QTSysHospitalConfig.qTSysHospitalConfig;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
@@ -12,33 +33,23 @@ import com.iflytek.integrated.platform.dto.PlatformDto;
 import com.iflytek.integrated.platform.dto.RedisDto;
 import com.iflytek.integrated.platform.dto.RedisKeyDto;
 import com.iflytek.integrated.platform.dto.SysConfigDto;
+import com.iflytek.integrated.platform.dto.SysHospitalDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TPlatform;
 import com.iflytek.integrated.platform.entity.TSysConfig;
+import com.iflytek.integrated.platform.entity.TSysHospitalConfig;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
+import com.querydsl.sql.dml.SQLInsertClause;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
-import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
 
 /**
  * 平台管理
@@ -142,17 +153,16 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		if (isExist) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "平台名称为空或此项目下该名称已存在!", platformName);
 		}
-		List<SysConfigDto> jsonArr = dto.getSysConfigs();
-		TPlatform platform = this.getOne(platformId);
-		if ("1".equals(platform.getPlatformType())) {
-			if (CollectionUtils.isNotEmpty(jsonArr)) {
-				String sysIdStr = "";
-				for (SysConfigDto vcd : jsonArr) {
-					if (sysIdStr.contains(vcd.getSysId())) {
-						return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求方系统名称不能重复!", "请求方系统名称不能重复!");
-					}
-					if (vcd.getSysConfigType() == 1) {
-						sysIdStr += vcd.getSysId();
+		SysConfigDto sysConfig = dto.getSysConfig();
+		if (StringUtils.isNotBlank(platformId)) {
+			TPlatform platform = this.getOne(platformId);
+			if ("1".equals(platform.getPlatformType())) {
+				TSysConfig requestConfig = sysConfig.getRequestSysConfig();
+				if (sysConfig != null && requestConfig != null) {
+					TSysConfig config = sysConfigService.getRequestConfigByPlatformAndSys(platformId,
+							requestConfig.getSysId());
+					if (config != null) {
+						return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求方系统不能重复!", "请求方系统不能重复!");
 					}
 				}
 			}
@@ -180,40 +190,42 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		tp.setCreatedBy(loginUserName);
 		this.post(tp);
 		// 关联系统
-		List<SysConfigDto> jsonArr = dto.getSysConfigs();
-		if (CollectionUtils.isEmpty(jsonArr)) {
+		SysConfigDto configDto = dto.getSysConfig();
+		if (configDto == null) {
 			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "新增平台成功!", null);
 		}
-		for (int i = 0; i < jsonArr.size(); i++) {
-			SysConfigDto obj = jsonArr.get(i);
-			TSysConfig tvc = new TSysConfig();
-			String sysConfigId = batchUidService.getUid(qTSysConfig.getTableName()) + "";
-			tvc.setId(sysConfigId);
-			tvc.setProjectId(dto.getProjectId());
-			tvc.setPlatformId(platformId);
-			tvc.setSysId(obj.getSysId());
-			tvc.setSysConfigType(obj.getSysConfigType());
-			if(obj.getSysConfigType() == 2) {
-				tvc.setInnerIdx(sysConfigId);
+		List<TSysConfig> allConfig = new ArrayList<>();
+		allConfig.add(configDto.getRequestSysConfig());
+		allConfig.addAll(configDto.getRequestedSysConfigs());
+		if (allConfig.size() > 0) {
+			SQLInsertClause syshosConfigClause = sqlQueryFactory.insert(qTSysHospitalConfig);
+			boolean storehosconfig = false;
+			for (int i = 0; i < allConfig.size(); i++) {
+				TSysConfig tvc = allConfig.get(i);
+				List<SysHospitalDto> sysHosList = tvc.getHospitalConfigs();
+				String sysConfigId = batchUidService.getUid(qTSysConfig.getTableName()) + "";
+				tvc.setId(sysConfigId);
+				if (tvc.getSysConfigType() == 2) {
+					tvc.setInnerIdx(sysConfigId);
+				}
+				tvc.setCreatedTime(new Date());
+				tvc.setCreatedBy(loginUserName);
+				sysConfigService.post(tvc);
+				if (sysHosList != null && sysHosList.size() > 0) {
+					storehosconfig = true;
+					sysHosList.forEach(hosDto -> {
+						TSysHospitalConfig thosconfig = new TSysHospitalConfig();
+						thosconfig.setId(batchUidService.getUid(qTSysHospitalConfig.getTableName()) + "");
+						thosconfig.setHospitalCode(hosDto.getHospitalCode());
+						thosconfig.setHospitalId(hosDto.getHospitalId());
+						thosconfig.setSysConfigId(sysConfigId);
+						syshosConfigClause.values(thosconfig).addBatch();
+					});
+				}
 			}
-			if (obj.getHospitalConfig() != null && obj.getHospitalConfig().size() > 0) {
-				tvc.setHospitalConfigs(JSON.toJSONString(obj.getHospitalConfig()));
+			if (storehosconfig) {
+				syshosConfigClause.execute();
 			}
-			tvc.setVersionId(obj.getVersionId());
-			tvc.setConnectionType(obj.getConnectionType());
-			tvc.setAddressUrl(obj.getAddressUrl());
-			tvc.setEndpointUrl(obj.getEndpointUrl());
-			tvc.setNamespaceUrl(obj.getNamespaceUrl());
-			tvc.setDatabaseName(obj.getDatabaseName());
-			tvc.setDatabaseUrl(obj.getDatabaseUrl());
-			tvc.setDatabaseDriver(obj.getDatabaseDriver());
-			tvc.setDriverUrl(obj.getDriverUrl());
-			tvc.setJsonParams(obj.getJsonParams());
-			tvc.setUserName(obj.getUserName());
-			tvc.setUserPassword(obj.getUserPassword());
-			tvc.setCreatedTime(new Date());
-			tvc.setCreatedBy(loginUserName);
-			sysConfigService.post(tvc);
 		}
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "新增平台成功!", "新增平台成功!");
 	}
@@ -231,69 +243,67 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 			throw new RuntimeException("修改平台失败!");
 		}
 		// 前台传递的新厂商信息
-		List<SysConfigDto> jsonArr = dto.getSysConfigs();
-		for (int i = 0; i < jsonArr.size(); i++) {
-			SysConfigDto obj = jsonArr.get(i);
-			String sysConfigId = obj.getId();
-			// 新增厂商信息
-			if (StringUtils.isBlank(sysConfigId)) {
-				TSysConfig tvc = new TSysConfig();
-				sysConfigId = batchUidService.getUid(qTSysConfig.getTableName()) + "";
-				tvc.setId(sysConfigId);
-				tvc.setProjectId(dto.getProjectId());
-				tvc.setPlatformId(platformId);
-				tvc.setSysId(obj.getSysId());
-				tvc.setSysConfigType(obj.getSysConfigType());
-				if(obj.getSysConfigType() == 2) {
-					tvc.setInnerIdx(sysConfigId);
-				}
-				if (obj.getHospitalConfig() != null && obj.getHospitalConfig().size() > 0) {
-					tvc.setHospitalConfigs(JSON.toJSONString(obj.getHospitalConfig()));
-				}
-				tvc.setVersionId(obj.getVersionId());
-				tvc.setConnectionType(obj.getConnectionType());
-				tvc.setAddressUrl(obj.getAddressUrl());
-				tvc.setEndpointUrl(obj.getEndpointUrl());
-				tvc.setNamespaceUrl(obj.getNamespaceUrl());
-				tvc.setDatabaseName(obj.getDatabaseName());
-				tvc.setDatabaseUrl(obj.getDatabaseUrl());
-				tvc.setDatabaseDriver(obj.getDatabaseDriver());
-				tvc.setDriverUrl(obj.getDriverUrl());
-				tvc.setJsonParams(obj.getJsonParams());
-				tvc.setUserName(obj.getUserName());
-				tvc.setUserPassword(obj.getUserPassword());
-				tvc.setCreatedTime(new Date());
-				tvc.setCreatedBy(loginUserName);
-				sysConfigService.post(tvc);
-				// 医院配置
-			} else {
-				TSysConfig tvc = sysConfigService.getOne(sysConfigId);
-				// 编辑厂商信息
-				tvc.setId(sysConfigId);
-				tvc.setProjectId(dto.getProjectId());
-				tvc.setPlatformId(platformId);
-				tvc.setSysId(obj.getSysId());
-//				tvc.setSysConfigType(obj.getSysConfigType());
-				if (obj.getHospitalConfig() != null && obj.getHospitalConfig().size() > 0) {
-					tvc.setHospitalConfigs(JSON.toJSONString(obj.getHospitalConfig()));
-				}
-				tvc.setVersionId(obj.getVersionId());
-				tvc.setConnectionType(obj.getConnectionType());
-				tvc.setAddressUrl(obj.getAddressUrl());
-				tvc.setEndpointUrl(obj.getEndpointUrl());
-				tvc.setNamespaceUrl(obj.getNamespaceUrl());
-				tvc.setDatabaseName(obj.getDatabaseName());
-				tvc.setDatabaseUrl(obj.getDatabaseUrl());
-				tvc.setDatabaseDriver(obj.getDatabaseDriver());
-				tvc.setDriverUrl(obj.getDriverUrl());
-				tvc.setJsonParams(obj.getJsonParams());
-				tvc.setUserName(obj.getUserName());
-				tvc.setUserPassword(obj.getUserPassword());
-				tvc.setUpdatedTime(new Date());
-				tvc.setUpdatedBy(loginUserName);
-				l = sysConfigService.put(sysConfigId, tvc);
-				if (l < 1) {
-					throw new RuntimeException("厂商信息编辑失败!");
+		SysConfigDto configDto = dto.getSysConfig();
+		if (configDto == null) {
+			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "修改平台成功!", null);
+		}
+		List<TSysConfig> allConfig = new ArrayList<>();
+		allConfig.add(configDto.getRequestSysConfig());
+		allConfig.addAll(configDto.getRequestedSysConfigs());
+		if (allConfig.size() > 0) {
+			for (int i = 0; i < allConfig.size(); i++) {
+				TSysConfig tvc = allConfig.get(i);
+				String sysConfigId = tvc.getId();
+				// 新增厂商信息
+				if (StringUtils.isBlank(sysConfigId)) {
+					sysConfigId = batchUidService.getUid(qTSysConfig.getTableName()) + "";
+					tvc.setId(sysConfigId);
+					if (tvc.getSysConfigType() == 2) {
+						tvc.setInnerIdx(sysConfigId);
+					}
+					tvc.setCreatedTime(new Date());
+					tvc.setCreatedBy(loginUserName);
+					sysConfigService.post(tvc);
+					// 医院配置
+					List<SysHospitalDto> sysHosList = tvc.getHospitalConfigs();
+					if (sysHosList != null && sysHosList.size() > 0) {
+						SQLInsertClause syshosConfigClause = sqlQueryFactory.insert(qTSysHospitalConfig);
+						for (SysHospitalDto hosDto : sysHosList) {
+							TSysHospitalConfig thosconfig = new TSysHospitalConfig();
+							thosconfig.setId(batchUidService.getUid(qTSysHospitalConfig.getTableName()) + "");
+							thosconfig.setHospitalCode(hosDto.getHospitalCode());
+							thosconfig.setHospitalId(hosDto.getHospitalId());
+							thosconfig.setSysConfigId(sysConfigId);
+							syshosConfigClause.values(thosconfig).addBatch();
+						}
+						syshosConfigClause.execute();
+					}
+				} else {
+					if (tvc.getSysConfigType() == 2) {
+						tvc.setInnerIdx(sysConfigId);
+					}
+					tvc.setUpdatedTime(new Date());
+					tvc.setUpdatedBy(loginUserName);
+					l = sysConfigService.put(sysConfigId, tvc);
+					if (l < 1) {
+						throw new RuntimeException("系统配置信息编辑失败!");
+					}
+					// 医院配置
+					List<SysHospitalDto> sysHosList = tvc.getHospitalConfigs();
+					sqlQueryFactory.delete(qTSysHospitalConfig).where(qTSysHospitalConfig.sysConfigId.eq(sysConfigId))
+							.execute();
+					if (sysHosList != null && sysHosList.size() > 0) {
+						SQLInsertClause syshosConfigClause = sqlQueryFactory.insert(qTSysHospitalConfig);
+						for (SysHospitalDto hosDto : sysHosList) {
+							TSysHospitalConfig thosconfig = new TSysHospitalConfig();
+							thosconfig.setId(batchUidService.getUid(qTSysHospitalConfig.getTableName()) + "");
+							thosconfig.setHospitalCode(hosDto.getHospitalCode());
+							thosconfig.setHospitalId(hosDto.getHospitalId());
+							thosconfig.setSysConfigId(sysConfigId);
+							syshosConfigClause.values(thosconfig).addBatch();
+						}
+						syshosConfigClause.execute();
+					}
 				}
 			}
 		}
@@ -301,91 +311,86 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 	}
 
 	@Transactional(rollbackFor = Exception.class)
-	@ApiOperation(value = "修改系统配置信息接口", notes = "修改系统配置信息接口")
-	@PostMapping("/updateSysConfig")
-	public ResultDto<String> updateSysConfig(@RequestBody SysConfigDto dto) {
+	@ApiOperation(value = "修改系统配置信息", notes = "修改系统配置信息")
+	@PostMapping("/updateSysConfig/{platformId}")
+	public ResultDto<String> updateSysConfig(@PathVariable("platformId") String platformId,
+			@RequestBody SysConfigDto dto) {
 		if (dto == null) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "数据传入有误!", "数据传入有误!");
 		}
 		// 校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-        if(StringUtils.isBlank(loginUserName)){
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
-        }
-		// 平台id
-		String platformId = dto.getPlatformId();
+		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
+		if (StringUtils.isBlank(loginUserName)) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+		}
 		TPlatform platform = this.getOne(platformId);
-		List<SysConfigDto> jsonArr = dto.getSysConfigs();
 		if ("1".equals(platform.getPlatformType())) {
-			// 前台传递的新厂商信息
-			String sysIdStr = "";
-			for (SysConfigDto vcd : jsonArr) {
-				if (sysIdStr.contains(vcd.getSysId())) {
-					return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求方系统不能重复!", "请求方系统名称不能重复!");
-				}
-				if (vcd.getSysConfigType() == 1) {
-					sysIdStr += vcd.getSysId();
+			TSysConfig requestConfig = dto.getRequestSysConfig();
+			if (dto != null && requestConfig != null) {
+				TSysConfig config = sysConfigService.getRequestConfigByPlatformAndSys(platformId,
+						requestConfig.getSysId());
+				if (config != null) {
+					return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求方系统不能重复!", "请求方系统不能重复!");
 				}
 			}
 		}
-		for (int i = 0; i < jsonArr.size(); i++) {
-			SysConfigDto obj = jsonArr.get(i);
-			String sysConfigId = obj.getId();
-			// 新增厂商信息
-			if (StringUtils.isBlank(sysConfigId)) {
-				TSysConfig tvc = new TSysConfig();
-				sysConfigId = batchUidService.getUid(qTSysConfig.getTableName()) + "";
-				tvc.setId(sysConfigId);
-				tvc.setProjectId(obj.getProjectId());
-				tvc.setPlatformId(platformId);
-				tvc.setSysId(obj.getSysId());
-				tvc.setSysConfigType(obj.getSysConfigType());
-				if (obj.getHospitalConfig() != null && obj.getHospitalConfig().size() > 0) {
-					tvc.setHospitalConfigs(JSON.toJSONString(obj.getHospitalConfig()));
-				}
-				tvc.setVersionId(obj.getVersionId());
-				tvc.setConnectionType(obj.getConnectionType());
-				tvc.setAddressUrl(obj.getAddressUrl());
-				tvc.setEndpointUrl(obj.getEndpointUrl());
-				tvc.setNamespaceUrl(obj.getNamespaceUrl());
-				tvc.setDatabaseName(obj.getDatabaseName());
-				tvc.setDatabaseUrl(obj.getDatabaseUrl());
-				tvc.setDatabaseDriver(obj.getDatabaseDriver());
-				tvc.setDriverUrl(obj.getDriverUrl());
-				tvc.setJsonParams(obj.getJsonParams());
-				tvc.setUserName(obj.getUserName());
-				tvc.setUserPassword(obj.getUserPassword());
-				tvc.setCreatedTime(new Date());
-				tvc.setCreatedBy(loginUserName);
-				sysConfigService.post(tvc);
-			} else {
-				TSysConfig tvc = sysConfigService.getOne(sysConfigId);
-				// 编辑厂商信息
-				tvc.setId(sysConfigId);
-				tvc.setProjectId(obj.getProjectId());
-				tvc.setPlatformId(platformId);
-				tvc.setSysId(obj.getSysId());
-				tvc.setSysConfigType(obj.getSysConfigType());
-				if (obj.getHospitalConfig() != null && obj.getHospitalConfig().size() > 0) {
-					tvc.setHospitalConfigs(JSON.toJSONString(obj.getHospitalConfig()));
-				}
-				tvc.setVersionId(obj.getVersionId());
-				tvc.setConnectionType(obj.getConnectionType());
-				tvc.setAddressUrl(obj.getAddressUrl());
-				tvc.setEndpointUrl(obj.getEndpointUrl());
-				tvc.setNamespaceUrl(obj.getNamespaceUrl());
-				tvc.setDatabaseName(obj.getDatabaseName());
-				tvc.setDatabaseUrl(obj.getDatabaseUrl());
-				tvc.setDatabaseDriver(obj.getDatabaseDriver());
-				tvc.setDriverUrl(obj.getDriverUrl());
-				tvc.setJsonParams(obj.getJsonParams());
-				tvc.setUserName(obj.getUserName());
-				tvc.setUserPassword(obj.getUserPassword());
-				tvc.setUpdatedTime(new Date());
-				tvc.setUpdatedBy(loginUserName);
-				long l = sysConfigService.put(sysConfigId, tvc);
-				if (l < 1) {
-					throw new RuntimeException("厂商信息编辑失败!");
+		List<TSysConfig> allConfig = new ArrayList<>();
+		allConfig.add(dto.getRequestSysConfig());
+		allConfig.addAll(dto.getRequestedSysConfigs());
+		if (allConfig.size() > 0) {
+			for (int i = 0; i < allConfig.size(); i++) {
+				TSysConfig tvc = allConfig.get(i);
+				String sysConfigId = tvc.getId();
+				// 新增厂商信息
+				if (StringUtils.isBlank(sysConfigId)) {
+					sysConfigId = batchUidService.getUid(qTSysConfig.getTableName()) + "";
+					tvc.setId(sysConfigId);
+					if (tvc.getSysConfigType() == 2) {
+						tvc.setInnerIdx(sysConfigId);
+					}
+					tvc.setCreatedTime(new Date());
+					tvc.setCreatedBy(loginUserName);
+					sysConfigService.post(tvc);
+					// 医院配置
+					List<SysHospitalDto> sysHosList = tvc.getHospitalConfigs();
+					if (sysHosList != null && sysHosList.size() > 0) {
+						SQLInsertClause syshosConfigClause = sqlQueryFactory.insert(qTSysHospitalConfig);
+						for (SysHospitalDto hosDto : sysHosList) {
+							TSysHospitalConfig thosconfig = new TSysHospitalConfig();
+							thosconfig.setId(batchUidService.getUid(qTSysHospitalConfig.getTableName()) + "");
+							thosconfig.setHospitalCode(hosDto.getHospitalCode());
+							thosconfig.setHospitalId(hosDto.getHospitalId());
+							thosconfig.setSysConfigId(sysConfigId);
+							syshosConfigClause.values(thosconfig).addBatch();
+						}
+						syshosConfigClause.execute();
+					}
+				} else {
+					if (tvc.getSysConfigType() == 2) {
+						tvc.setInnerIdx(sysConfigId);
+					}
+					tvc.setUpdatedTime(new Date());
+					tvc.setUpdatedBy(loginUserName);
+					long l = sysConfigService.put(sysConfigId, tvc);
+					if (l < 1) {
+						throw new RuntimeException("系统配置信息编辑失败!");
+					}
+					// 医院配置
+					List<SysHospitalDto> sysHosList = tvc.getHospitalConfigs();
+					sqlQueryFactory.delete(qTSysHospitalConfig).where(qTSysHospitalConfig.sysConfigId.eq(sysConfigId))
+							.execute();
+					if (sysHosList != null && sysHosList.size() > 0) {
+						SQLInsertClause syshosConfigClause = sqlQueryFactory.insert(qTSysHospitalConfig);
+						for (SysHospitalDto hosDto : sysHosList) {
+							TSysHospitalConfig thosconfig = new TSysHospitalConfig();
+							thosconfig.setId(batchUidService.getUid(qTSysHospitalConfig.getTableName()) + "");
+							thosconfig.setHospitalCode(hosDto.getHospitalCode());
+							thosconfig.setHospitalId(hosDto.getHospitalId());
+							thosconfig.setSysConfigId(sysConfigId);
+							syshosConfigClause.values(thosconfig).addBatch();
+						}
+						syshosConfigClause.execute();
+					}
 				}
 			}
 		}

@@ -2,10 +2,13 @@ package com.iflytek.integrated.platform.entity;
 
 import org.hibernate.validator.constraints.Length;
 
+import com.iflytek.integrated.platform.dto.SysHospitalDto;
+
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * TSysConfig is a Querydsl bean type
@@ -21,11 +24,17 @@ public class TSysConfig implements Serializable {
 
     private String sysId;
     
+    private String sysCode;
+
+	private String sysName;
+
+	private List<SysHospitalDto> hospitalConfigs;
+	
+	private String hospitalConfigStr;
+
 //  系统配置类型（1、请求方 2、被请求方）
     private Integer sysConfigType;
     
-    private String hospitalConfigs;
-
     @NotBlank(message = "接口版本不能为空")
     @Length(max = 32, message = "接口版本长度不能超过32")
     private String versionId;

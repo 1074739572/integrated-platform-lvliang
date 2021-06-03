@@ -1,10 +1,12 @@
 package com.iflytek.integrated.platform.dto;
 
+import java.io.Serializable;
 import java.util.List;
 
 import com.iflytek.integrated.platform.entity.TSysConfig;
 
 import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiParam;
 import lombok.Data;
 
 /**
@@ -15,16 +17,12 @@ import lombok.Data;
  */
 @Data
 @ApiModel("系统配置")
-public class SysConfigDto extends TSysConfig {
+public class SysConfigDto implements Serializable {
 
-	private String sysCode;
+	@ApiParam("请求方系统配置")
+	private TSysConfig requestSysConfig;
 
-	private String sysName;
-
-	private List<HospitalDto> hospitalConfig;
-
-	private String platformId;
-
-	private List<SysConfigDto> sysConfigs;
+	@ApiParam("被请求方系统配置")
+	private List<TSysConfig> requestedSysConfigs;
 
 }

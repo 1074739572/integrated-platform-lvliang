@@ -8,6 +8,7 @@ import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
 import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
+import static com.iflytek.integrated.platform.entity.QTSysHospitalConfig.qTSysHospitalConfig;
 import static com.iflytek.integrated.platform.entity.QTType.qTType;
 
 import java.util.ArrayList;
@@ -220,17 +221,18 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 					sysconfigIds.add(businessInterface.getRequestedSysconfigId());
 				}
 			});
-			List<String> hospitals = sqlQueryFactory.select(qTHospital.hospitalCode).from(qTSysConfig)
-					.leftJoin(qTHospital).on(qTSysConfig.hospitalConfigs.contains(qTHospital.id))
-					.where(qTSysConfig.id.in(sysconfigIds).and(qTHospital.hospitalCode.isNotEmpty())).fetch();
-
+			List<String> hospitalCodes = sqlQueryFactory.select(qTSysHospitalConfig.hospitalCode)
+					.from(qTSysHospitalConfig).leftJoin(qTSysConfig)
+					.on(qTSysConfig.id.eq(qTSysHospitalConfig.sysConfigId)).leftJoin(qTHospital)
+					.on(qTSysHospitalConfig.hospitalId.eq(qTHospital.id)).where(qTSysConfig.id.in(sysconfigIds))
+					.fetch();
 			// 拼接实体
 			InDebugResDto resDto = new InDebugResDto();
 			resDto.setFuncode(businessInterface.getInterfaceUrl());
 			resDto.setProductcode(businessInterface.getProductCode());
 			resDto.setProjectcode(businessInterface.getProjectCode());
 			resDto.setInParams(paramNames);
-			resDto.setOrgids(hospitals);
+			resDto.setOrgids(hospitalCodes);
 			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取接口调试显示数据成功!", resDto);
 		} catch (Exception e) {
 			logger.error("获取接口调试显示数据失败! MSG:{}", ExceptionUtil.dealException(e));
@@ -626,7 +628,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		// 获取厂商配置
 		String requestSysConfigId = "";
 		if (StringUtils.isBlank(dto.getRequestSysconfigId())) {
-			TSysConfig tvc = sysConfigService.getRequestConfigByPlatformAndSys(dto.getPlatformId(), dto.getRequestSysId());
+			TSysConfig tvc = sysConfigService.getRequestConfigByPlatformAndSys(dto.getPlatformId(),
+					dto.getRequestSysId());
 			requestSysConfigId = tvc != null ? tvc.getId() : null;
 		} else {
 			requestSysConfigId = dto.getRequestSysconfigId();
