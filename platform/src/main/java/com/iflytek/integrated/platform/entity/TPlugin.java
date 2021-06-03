@@ -46,6 +46,8 @@ public class TPlugin implements Serializable {
 
     private String name;
 
+    private String dependentPath;
+
     public String getId() {
         return id;
     }
@@ -164,6 +166,14 @@ public class TPlugin implements Serializable {
             }
         }
         return super.equals(obj);
+    }
+
+    public String getDependentPath() {
+        return dependentPath;
+    }
+
+    public void setDependentPath(String dependentPath) {
+        this.dependentPath = dependentPath;
     }
 }
 

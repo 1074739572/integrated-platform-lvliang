@@ -93,8 +93,10 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		try {
 			List<Predicate> list = new ArrayList<>();
 			SQLQuery<TSys> queryer = sqlQueryFactory
-					.select(Projections.bean(qTSys, groupConcat(qTDrive.driveName, "|").as("driverNames"))).from(qTSys)
-					.leftJoin((qTSysDriveLink)).on(qTSys.id.eq(qTSysDriveLink.sysId)).leftJoin(qTDrive)
+					.select(Projections.bean(TSys.class, qTSys.id, qTSys.sysName, qTSys.sysCode, qTSys.isValid,
+							qTSys.createdBy, qTSys.createdTime, qTSys.updatedBy, qTSys.updatedTime,
+							groupConcat(qTDrive.driveName, "|").as("driverNames")))
+					.from(qTSys).leftJoin((qTSysDriveLink)).on(qTSys.id.eq(qTSysDriveLink.sysId)).leftJoin(qTDrive)
 					.on(qTSysDriveLink.driveId.eq(qTDrive.id));
 			if (StringUtils.isNotBlank(sysCode)) {
 				list.add(qTSys.sysCode.eq(sysCode));
@@ -156,20 +158,19 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "addOrUpdate参数有误!", null);
 	}
 
-	/** 新增产品 */
+	/** 新增系统 */
 	private ResultDto saveSys(SysDto dto, String loginUserName) {
 		String sysName = dto.getSysName();
 		if (StringUtils.isBlank(sysName)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "系统名称未填!", dto);
 		}
-		// 判断输入产品是否是新产品
+		// 判断系统名称是否存在
 		TSys tp = getObjBySysName(sysName.trim());
-		// 判断输入功能是否是新功能
 		if (tp != null) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该系统名称已存在，不能重复!", "该系统名称已存在!");
 		}
 
-		// 新增产品
+		// 新增系统
 		String sysId = batchUidService.getUid(qTSys.getTableName()) + "";
 		tp = new TSys();
 		tp.setId(sysId);
@@ -197,14 +198,14 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "新增系统成功", null);
 	}
 
-	/** 编辑产品 */
+	/** 编辑系统 */
 	private ResultDto updateSys(SysDto dto, String loginUserName) {
 		String sysId = dto.getId();
 		String sysName = dto.getSysName();
 		String isValid = dto.getIsValid();
 		String driveIds = dto.getDriveIds();
 
-		// 更新厂商信息
+		// 更新系统信息
 		SQLUpdateClause updater = sqlQueryFactory.update(qTSys);
 		if (StringUtils.isNotBlank(sysName)) {
 			updater.set(qTSys.sysName, sysName);
@@ -245,7 +246,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 	}
 
 	/**
-	 * 根据产品名称获取产品信息
+	 * 根据系统名称获取系统信息
 	 * 
 	 * @param sysName
 	 * @return
