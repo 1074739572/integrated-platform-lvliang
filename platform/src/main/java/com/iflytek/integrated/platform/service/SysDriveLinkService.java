@@ -1,18 +1,17 @@
 package com.iflytek.integrated.platform.service;
 
-import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
-import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
-
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.entity.TSysDriveLink;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
+import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
 
 /**
  * 系统与驱动关联
@@ -32,7 +31,7 @@ public class SysDriveLinkService extends BaseService<TSysDriveLink, String, Stri
 	/**
 	 * 根据系统id删除系统与驱动关联信息
 	 * 
-	 * @param id
+	 * @param sysId
 	 */
 	public long deleteSysDriveLinkBySysId(String sysId) {
 		return sqlQueryFactory.delete(qTSysDriveLink).where(qTSysDriveLink.sysId.eq(sysId)).execute();
@@ -41,7 +40,7 @@ public class SysDriveLinkService extends BaseService<TSysDriveLink, String, Stri
 	/**
 	 * 根据系统id获取系统驱动关联
 	 * 
-	 * @param vendorId
+	 * @param sysId
 	 * @return
 	 */
 	public List<TSysDriveLink> getSysDriveLinkBySysId(String sysId) {

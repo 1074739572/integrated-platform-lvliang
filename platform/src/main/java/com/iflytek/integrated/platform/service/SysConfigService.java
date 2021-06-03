@@ -1,20 +1,19 @@
 package com.iflytek.integrated.platform.service;
 
-import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
 import com.alibaba.fastjson.JSON;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.dto.HospitalDto;
 import com.iflytek.integrated.platform.entity.TSysConfig;
 import com.querydsl.core.types.dsl.StringPath;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
 
 /**
  * 系统配置
@@ -62,7 +61,7 @@ public class SysConfigService extends BaseService<TSysConfig, String, StringPath
 	/**
 	 * 根据系统获取所有系统配置信息
 	 * 
-	 * @param vendorId
+	 * @param sysId
 	 * @return
 	 */
 	public List<TSysConfig> getObjBySysId(String sysId) {
@@ -83,7 +82,7 @@ public class SysConfigService extends BaseService<TSysConfig, String, StringPath
 	/**
 	 * 删除平台下所有系统配置信息
 	 * 
-	 * @param platformId
+	 * @param hospitalId
 	 */
 	public List<TSysConfig> getSysConfigByHospital(String hospitalId) {
 		return sqlQueryFactory.select(qTSysConfig).from(qTSysConfig)

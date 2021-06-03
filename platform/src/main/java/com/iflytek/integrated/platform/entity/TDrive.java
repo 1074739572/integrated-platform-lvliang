@@ -46,6 +46,8 @@ public class TDrive implements Serializable {
     
     private String driveCallType;
 
+    private String dependentPath;
+
     public String getId() {
         return id;
     }
@@ -142,14 +144,6 @@ public class TDrive implements Serializable {
         this.name = name;
     }
 
-    public String getDriveCallType() {
-		return driveCallType;
-	}
-
-	public void setDriveCallType(String driveCallType) {
-		this.driveCallType = driveCallType;
-	}
-
 	@Override
     public boolean equals(Object obj) {
         if (obj == null) {
@@ -166,5 +160,20 @@ public class TDrive implements Serializable {
         return super.equals(obj);
     }
 
+    public String getDriveCallType() {
+        return driveCallType;
+    }
+
+    public void setDriveCallType(String driveCallType) {
+        this.driveCallType = driveCallType;
+    }
+
+    public String getDependentPath() {
+        return dependentPath;
+    }
+
+    public void setDependentPath(String dependentPath) {
+        this.dependentPath = dependentPath;
+    }
 }
 
