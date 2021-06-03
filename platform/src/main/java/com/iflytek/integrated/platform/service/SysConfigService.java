@@ -59,7 +59,7 @@ public class SysConfigService extends BaseService<TSysConfig, String, StringPath
 	}
 
 	/**
-	 * 根据系统获取所有系统配置信息
+	 * 根据系统id获取所有系统配置信息
 	 * 
 	 * @param sysId
 	 * @return
