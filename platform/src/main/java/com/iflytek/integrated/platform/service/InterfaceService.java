@@ -40,19 +40,8 @@ import com.iflytek.integrated.common.validator.ValidatorHelper;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.common.RedisService;
-import com.iflytek.integrated.platform.dto.BusinessInterfaceDto;
-import com.iflytek.integrated.platform.dto.InDebugResDto;
-import com.iflytek.integrated.platform.dto.InterfaceDto;
-import com.iflytek.integrated.platform.dto.JoltDebuggerDto;
-import com.iflytek.integrated.platform.dto.MockTemplateDto;
-import com.iflytek.integrated.platform.dto.ParamsDto;
-import com.iflytek.integrated.platform.dto.RedisDto;
-import com.iflytek.integrated.platform.dto.RedisKeyDto;
-import com.iflytek.integrated.platform.entity.TBusinessInterface;
-import com.iflytek.integrated.platform.entity.TInterface;
-import com.iflytek.integrated.platform.entity.TInterfaceParam;
-import com.iflytek.integrated.platform.entity.TSysConfig;
-import com.iflytek.integrated.platform.entity.TType;
+import com.iflytek.integrated.platform.dto.*;
+import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.medicalboot.core.id.BatchUidService;
@@ -60,7 +49,6 @@ import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -484,6 +472,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			@ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
 		// 查询条件
 		ArrayList<Predicate> list = new ArrayList<>();
+		if(StringUtils.isNotEmpty(sysId)){
+			list.add(qTInterface.sysId.eq(sysId));
+		}
 		if (StringUtils.isNotEmpty(typeId)) {
 			list.add(qTInterface.typeId.eq(typeId));
 		}
@@ -898,6 +889,18 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		}
 		return sqlQueryFactory.select(qTInterface).from(qTInterface).where(qTInterface.interfaceName.eq(interfaceName))
 				.fetchFirst();
+	}
+
+	/**
+	 * 根据系统id获取所有接口信息
+	 *
+	 * @param sysId
+	 * @return
+	 */
+	public List<TInterface> getObjBySysId(String sysId){
+		List<TInterface> list = sqlQueryFactory.select(qTInterface).from(qTInterface).where(qTInterface.sysId.eq(sysId))
+				.fetch();
+		return list;
 	}
 
 	@ApiOperation(value = "被请求方接口调试数据获取")
