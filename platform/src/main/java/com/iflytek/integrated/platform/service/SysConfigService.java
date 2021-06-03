@@ -40,7 +40,7 @@ public class SysConfigService extends BaseService<TSysConfig, String, StringPath
 	 */
 	public TSysConfig getRequestConfigByPlatformAndSys(String platformId, String sysId) {
 		return sqlQueryFactory.select(qTSysConfig).from(qTSysConfig).where(qTSysConfig.platformId.eq(platformId)
-				.and(qTSysConfig.sysId.eq(sysId)).and(qTSysConfig.sysConfigType.eq("1"))).fetchFirst();
+				.and(qTSysConfig.sysId.eq(sysId)).and(qTSysConfig.sysConfigType.eq(1))).fetchFirst();
 	}
 
 	public TSysConfig getConfigByPlatformAndSys(String platformId, String sysId) {
@@ -102,8 +102,7 @@ public class SysConfigService extends BaseService<TSysConfig, String, StringPath
 		List<HospitalDto> hosList = JSON.parseArray(hospitals, HospitalDto.class);
 		List<HospitalDto> newHosList = hosList.stream().filter(hd -> !hospitalId.equals(hd.getHospitalId()))
 				.collect(Collectors.toList());
-		return sqlQueryFactory.update(qTSysConfig).set(qTSysConfig.hospitalConfigs,
-				JSON.toJSONString(newHosList))
+		return sqlQueryFactory.update(qTSysConfig).set(qTSysConfig.hospitalConfigs, JSON.toJSONString(newHosList))
 				.where(qTSysConfig.id.eq(sysConfig.getId())).execute();
 	}
 

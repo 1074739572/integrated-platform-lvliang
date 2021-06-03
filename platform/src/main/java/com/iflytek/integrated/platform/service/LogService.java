@@ -106,7 +106,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 							qTSys.sysName, qTInterface.interfaceName))
 					.from(query, queryLabel).leftJoin(qTProject).on(qTProject.id.eq(monitor.projectId))
 					.leftJoin(qTPlatform).on(qTPlatform.id.eq(monitor.platformId)).leftJoin(qTSysConfig)
-					.on(qTSysConfig.platformId.eq(qTPlatform.id).and(qTSysConfig.sysConfigType.eq("1"))).leftJoin(qTSys)
+					.on(qTSysConfig.platformId.eq(qTPlatform.id).and(qTSysConfig.sysConfigType.eq(1))).leftJoin(qTSys)
 					.leftJoin(qTInterface).on(qTInterface.sysId.eq(qTSys.id)).on(qTSys.id.eq(qTSysConfig.sysId))
 					.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
 					.orderBy(monitor.createdTime.desc()).fetchResults();

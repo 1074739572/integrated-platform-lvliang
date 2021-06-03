@@ -41,7 +41,7 @@ public class QTSysDriveLink extends com.querydsl.sql.RelationalPathBase<TSysDriv
     public final com.querydsl.sql.PrimaryKey<TSysDriveLink> primary = createPrimaryKey(id);
 
     public QTSysDriveLink(String variable) {
-        super(TSysDriveLink.class, forVariable(variable), "null", "t_vendor_drive_link");
+        super(TSysDriveLink.class, forVariable(variable), "null", "t_sys_drive_link");
         addMetadata();
     }
 
@@ -51,17 +51,17 @@ public class QTSysDriveLink extends com.querydsl.sql.RelationalPathBase<TSysDriv
     }
 
     public QTSysDriveLink(String variable, String schema) {
-        super(TSysDriveLink.class, forVariable(variable), schema, "t_vendor_drive_link");
+        super(TSysDriveLink.class, forVariable(variable), schema, "t_sys_drive_link");
         addMetadata();
     }
 
     public QTSysDriveLink(Path<? extends TSysDriveLink> path) {
-        super(path.getType(), path.getMetadata(), "null", "t_vendor_drive_link");
+        super(path.getType(), path.getMetadata(), "null", "t_sys_drive_link");
         addMetadata();
     }
 
     public QTSysDriveLink(PathMetadata metadata) {
-        super(TSysDriveLink.class, metadata, "null", "t_vendor_drive_link");
+        super(TSysDriveLink.class, metadata, "null", "t_sys_drive_link");
         addMetadata();
     }
 

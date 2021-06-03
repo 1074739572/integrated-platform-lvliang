@@ -171,8 +171,7 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 				.select(Projections.bean(TBusinessInterface.class, qTBusinessInterface.id,
 						qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId,
 						groupConcat(qTBusinessInterface.requestedSysconfigId.append("/")
-								.append(qTBusinessInterface.businessInterfaceName).append(","))
-										.as("businessInterfaceName"),
+								.append(qTBusinessInterface.businessInterfaceName)).as("businessInterfaceName"),
 						qTBusinessInterface.requestType, qTBusinessInterface.requestConstant,
 						qTBusinessInterface.interfaceType, qTBusinessInterface.pluginId,
 						qTBusinessInterface.inParamFormat, qTBusinessInterface.inParamSchema,

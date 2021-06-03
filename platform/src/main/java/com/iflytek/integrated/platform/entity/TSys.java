@@ -37,6 +37,8 @@ public class TSys implements Serializable {
     private java.util.Date updatedTime;
     
     private String connectionType;
+    
+    private String driverNames;
 
 }
 

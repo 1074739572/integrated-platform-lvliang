@@ -1,9 +1,11 @@
 package com.iflytek.integrated.platform.service;
 
+import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
 import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
 import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
+import static com.querydsl.sql.SQLExpressions.groupConcat;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -89,16 +91,18 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 			@ApiParam(value = "每页大小", example = "10") @RequestParam(defaultValue = "10", required = false) Integer pageSize) {
 		try {
 			List<Predicate> list = new ArrayList<>();
-			SQLQuery<TSys> queryer = sqlQueryFactory.select(qTSys).from(qTSys);
+			SQLQuery<TSys> queryer = sqlQueryFactory
+					.select(Projections.bean(qTSys, groupConcat(qTDrive.driveName , "|").as("driverNames")))
+					.from(qTSys).leftJoin((qTSysDriveLink)).on(qTSys.id.eq(qTSysDriveLink.sysId)).leftJoin(qTDrive)
+					.on(qTSysDriveLink.driveId.eq(qTDrive.id));
 			if (StringUtils.isNotBlank(sysCode)) {
 				list.add(qTSys.sysCode.eq(sysCode));
 			}
 			if (StringUtils.isNotBlank(sysName)) {
 				list.add(qTSys.sysCode.like("%" + sysCode + "%"));
 			}
-			QueryResults<TSys> queryResults = queryer.where(list.toArray(new Predicate[list.size()])).limit(pageSize)
-					.offset((pageNo - 1) * pageSize).orderBy(qTSys.createdTime.desc()).fetchResults();
-			;
+			QueryResults<TSys> queryResults = queryer.where(list.toArray(new Predicate[list.size()])).groupBy(qTSys.id)
+					.limit(pageSize).offset((pageNo - 1) * pageSize).orderBy(qTSys.createdTime.desc()).fetchResults();
 			// 分页
 			TableData<TSys> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
 			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "系统管理列表获取成功", tableData);
