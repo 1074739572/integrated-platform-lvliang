@@ -187,7 +187,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		tp.setCreatedTime(new Date());
 		tp.setCreatedBy(loginUserName);
 		this.post(tp);
-		// 关联厂商
+		// 关联系统
 		List<SysConfigDto> jsonArr = dto.getSysConfigs();
 		if (CollectionUtils.isEmpty(jsonArr)) {
 			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "新增平台成功!", null);

@@ -783,7 +783,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				new RedisDto(redisKeyDtoList).toString());
 	}
 
-	@ApiOperation(value = "获取标准接口详情", notes = "获取标准接口详情")
+	@ApiOperation(value = "获取系统接口详情", notes = "获取系统接口详情")
 	@GetMapping("/getInterfaceInfoById")
 	public ResultDto<InterfaceDto> getInterfaceInfoById(
 			@ApiParam(value = "标准接口id") @RequestParam(value = "id", required = true) String id) {
@@ -901,7 +901,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	@PostMapping("/getInterfaceDebugger")
 	public ResultDto<List<String>> getInterfaceDebugger(String interfaceId) {
 		if (StringUtils.isBlank(interfaceId)) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "标准接口id必传");
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求方接口id必传");
 		}
 		try {
 			// 获取入参列表

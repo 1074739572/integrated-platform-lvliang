@@ -3,12 +3,16 @@ package com.iflytek.integrated.platform.service;
 import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.alibaba.fastjson.JSON;
 import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.dto.HospitalDto;
 import com.iflytek.integrated.platform.entity.TSysConfig;
 import com.querydsl.core.types.dsl.StringPath;
 
@@ -35,8 +39,13 @@ public class SysConfigService extends BaseService<TSysConfig, String, StringPath
 	 * @return
 	 */
 	public TSysConfig getRequestConfigByPlatformAndSys(String platformId, String sysId) {
+		return sqlQueryFactory.select(qTSysConfig).from(qTSysConfig).where(qTSysConfig.platformId.eq(platformId)
+				.and(qTSysConfig.sysId.eq(sysId)).and(qTSysConfig.sysConfigType.eq("1"))).fetchFirst();
+	}
+
+	public TSysConfig getConfigByPlatformAndSys(String platformId, String sysId) {
 		return sqlQueryFactory.select(qTSysConfig).from(qTSysConfig)
-				.where(qTSysConfig.platformId.eq(platformId).and(qTSysConfig.sysId.eq(sysId)).and(qTSysConfig.sysConfigType.eq("1"))).fetchFirst();
+				.where(qTSysConfig.platformId.eq(platformId).and(qTSysConfig.sysId.eq(sysId))).fetchFirst();
 	}
 
 	/**
@@ -77,8 +86,25 @@ public class SysConfigService extends BaseService<TSysConfig, String, StringPath
 	 * @param platformId
 	 */
 	public List<TSysConfig> getSysConfigByHospital(String hospitalId) {
-		return sqlQueryFactory.select(qTSysConfig).from(qTSysConfig).where(qTSysConfig.hospitalConfigs.contains(hospitalId))
-				.fetch();
+		return sqlQueryFactory.select(qTSysConfig).from(qTSysConfig)
+				.where(qTSysConfig.hospitalConfigs.contains(hospitalId)).fetch();
+	}
+
+	public long delSysConfigHospital(TSysConfig sysConfig, String hospitalId) {
+		if (StringUtils.isBlank(hospitalId)) {
+			return sqlQueryFactory.update(qTSysConfig).set(qTSysConfig.hospitalConfigs, "")
+					.where(qTSysConfig.id.eq(sysConfig.getId())).execute();
+		}
+		String hospitals = sysConfig.getHospitalConfigs();
+		if (StringUtils.isBlank(hospitals)) {
+			return 0;
+		}
+		List<HospitalDto> hosList = JSON.parseArray(hospitals, HospitalDto.class);
+		List<HospitalDto> newHosList = hosList.stream().filter(hd -> !hospitalId.equals(hd.getHospitalId()))
+				.collect(Collectors.toList());
+		return sqlQueryFactory.update(qTSysConfig).set(qTSysConfig.hospitalConfigs,
+				JSON.toJSONString(newHosList))
+				.where(qTSysConfig.id.eq(sysConfig.getId())).execute();
 	}
 
 }

@@ -24,7 +24,7 @@ public class SysConfigDto extends TSysConfig {
 	private List<HospitalDto> hospitalConfig;
 
 	private String platformId;
-	
+
 	private List<SysConfigDto> sysConfigs;
 
 }
