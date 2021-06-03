@@ -10,10 +10,7 @@ import com.iflytek.integrated.platform.common.RedisService;
 import com.iflytek.integrated.platform.dto.HospitalDto;
 import com.iflytek.integrated.platform.dto.SysConfigDto;
 import com.iflytek.integrated.platform.dto.SysDto;
-import com.iflytek.integrated.platform.entity.TBusinessInterface;
-import com.iflytek.integrated.platform.entity.TSys;
-import com.iflytek.integrated.platform.entity.TSysConfig;
-import com.iflytek.integrated.platform.entity.TSysDriveLink;
+import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
@@ -73,6 +70,8 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 	private BatchUidService batchUidService;
 	@Autowired
 	private RedisService redisService;
+	@Autowired
+	private InterfaceService interfaceService;
 
 	@ApiOperation(value = "系统列表")
 	@GetMapping("/getSysList")
@@ -117,11 +116,20 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该系统已在项目中配置使用,无法删除!", "该系统已在项目中配置使用,无法删除!");
 		}
 
+		//删除系统前先查询是否与接口关联
+		List<TInterface> interfaceList = interfaceService.getObjBySysId(id);
+		if (CollectionUtils.isNotEmpty(interfaceList)) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该系统已有关联接口,无法删除!", "该系统已有关联接口,无法删除!");
+		}
+
+		//删除系统
+		long count = this.delete(id);
+		if (count <= 0) {
+			throw new RuntimeException("系统删除失败!");
+		}
+
 		// 根据系统id删除系统与驱动关联信息
 		long lon = sysDriveLinkService.deleteSysDriveLinkBySysId(id);
-		if (lon <= 0) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "系统删除失败!", "系统删除失败!");
-		}
 
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "系统删除成功!", "");
 	}
