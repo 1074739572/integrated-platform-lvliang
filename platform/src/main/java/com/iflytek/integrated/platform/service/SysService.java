@@ -1,31 +1,4 @@
 package com.iflytek.integrated.platform.service;
-
-import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
-import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
-import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
-import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
-import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
-import static com.querydsl.sql.SQLExpressions.groupConcat;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.alibaba.fastjson.JSON;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
@@ -48,11 +21,30 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.SQLQuery;
 import com.querydsl.sql.dml.SQLUpdateClause;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
+import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
+import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
+import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
+import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
+import static com.querydsl.sql.SQLExpressions.groupConcat;
 
 /**
  * 系统管理
@@ -117,13 +109,13 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 	@PostMapping("/delSysById")
 	public ResultDto<String> delSysById(
 			@ApiParam(value = "系统id") @RequestParam(value = "id", required = true) String id) {
-		// 删除产品功能关联关系前先查询该关联数据是否有项目相关联
+		// 删除系统前先查询该关联数据是否有项目相关联
 		List<TSysConfig> tpplList = sysConfigService.getObjBySysId(id);
 		if (CollectionUtils.isNotEmpty(tpplList)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该系统已在项目中配置使用,无法删除!", "该系统已在项目中配置使用,无法删除!");
 		}
 
-		// 删除产品和功能的关联关系
+		// 根据系统id删除系统与驱动关联信息
 		long lon = sysDriveLinkService.deleteSysDriveLinkBySysId(id);
 		if (lon <= 0) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "系统删除失败!", "系统删除失败!");
@@ -204,7 +196,6 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		String driveIds = dto.getDriveIds();
 
 		// 更新厂商信息
-		long l = 0;
 		SQLUpdateClause updater = sqlQueryFactory.update(qTSys);
 		if (StringUtils.isNotBlank(sysName)) {
 			updater.set(qTSys.sysName, sysName);
@@ -212,7 +203,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		if (StringUtils.isNotBlank(isValid)) {
 			updater.set(qTSys.isValid, isValid);
 		}
-		updater.set(qTSys.updatedTime, new Date()).set(qTSys.updatedBy, loginUserName).where(qTSys.id.eq(sysId))
+		long l = updater.set(qTSys.updatedTime, new Date()).set(qTSys.updatedBy, loginUserName).where(qTSys.id.eq(sysId))
 				.execute();
 		if (l <= 0) {
 			throw new RuntimeException("系统信息更新失败!");
@@ -247,7 +238,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 	/**
 	 * 根据产品名称获取产品信息
 	 * 
-	 * @param productName
+	 * @param sysName
 	 * @return
 	 */
 	public TSys getObjBySysName(String sysName) {

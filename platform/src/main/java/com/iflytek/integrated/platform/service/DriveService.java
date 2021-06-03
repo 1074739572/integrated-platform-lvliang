@@ -1,28 +1,5 @@
 package com.iflytek.integrated.platform.service;
 
-import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
-import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
-import static com.iflytek.integrated.platform.entity.QTType.qTType;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
@@ -46,11 +23,23 @@ import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.*;
+
+import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
+import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
+import static com.iflytek.integrated.platform.entity.QTType.qTType;
 
 /**
  * 驱动管理
@@ -151,7 +140,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
 	}
 
 	@Transactional(rollbackFor = Exception.class)
-	@ApiOperation(value = "驱动管理删除")
+	@ApiOperation(value = "驱动删除")
 	@PostMapping("/delDriveById")
 	public ResultDto<String> delDriveById(
 			@ApiParam(value = "驱动id") @RequestParam(value = "id", required = true) String id) {
@@ -200,6 +189,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
 		if (StringUtils.isEmpty(drive.getId())) {
 			// 新增驱动
 			drive.setId(batchUidService.getUid(qTDrive.getTableName()) + "");
+			drive.setDriveCode(generateCode(qTDrive.driveCode,qTDrive,drive.getDriveName()));
 			drive.setCreatedTime(new Date());
 			drive.setCreatedBy(loginUserName);
 			this.post(drive);

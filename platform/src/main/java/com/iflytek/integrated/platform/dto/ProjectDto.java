@@ -1,11 +1,10 @@
 package com.iflytek.integrated.platform.dto;
 
-import java.util.List;
-
 import com.iflytek.integrated.platform.entity.TProject;
-
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
+
+import java.util.List;
 
 /**
  *

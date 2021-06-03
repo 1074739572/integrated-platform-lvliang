@@ -1,26 +1,5 @@
 package com.iflytek.integrated.platform.service;
 
-import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
-import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.alibaba.fastjson.JSON;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
@@ -42,11 +21,24 @@ import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
+import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
 
 /**
  * 平台管理
@@ -132,7 +124,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 	}
 
 	@Transactional(rollbackFor = Exception.class)
-	@ApiOperation(value = "新增or修改平台", notes = "新增or修改平台")
+	@ApiOperation(value = "新增or修改分类", notes = "新增or修改分类")
 	@PostMapping("/saveAndUpdatePlatform")
 	public ResultDto<String> saveAndUpdatePlatform(@RequestBody PlatformDto dto) {
 		if (dto == null) {
@@ -316,11 +308,10 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "数据传入有误!", "数据传入有误!");
 		}
 		// 校验是否获取到登录用户
-		String loginUserName = "admin";
-//        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-//        if(StringUtils.isBlank(loginUserName)){
-//            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
-//        }
+        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
+        if(StringUtils.isBlank(loginUserName)){
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+        }
 		// 平台id
 		String platformId = dto.getPlatformId();
 		TPlatform platform = this.getOne(platformId);

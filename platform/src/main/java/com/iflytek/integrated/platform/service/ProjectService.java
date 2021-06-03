@@ -1,24 +1,5 @@
 package com.iflytek.integrated.platform.service;
 
-import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
@@ -38,11 +19,23 @@ import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringPath;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
 
 /**
  * 项目管理
@@ -118,7 +111,7 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
 	@Transactional(rollbackFor = Exception.class)
 	@ApiOperation(value = "新增or修改项目", notes = "新增or修改项目")
 	@PostMapping("/saveAndUpdateProject")
-	public ResultDto<String> saveAndUpdateProject(@ApiParam(value = "保存项目-产品-功能信息") @RequestBody ProjectDto dto) {
+	public ResultDto<String> saveAndUpdateProject(@ApiParam(value = "保存项目信息") @RequestBody ProjectDto dto) {
 		String projectName = dto.getProjectName();
 		if (StringUtils.isBlank(projectName)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "项目名称为空!", null);
