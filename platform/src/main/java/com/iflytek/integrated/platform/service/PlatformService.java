@@ -145,12 +145,14 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		if (StringUtils.isNotBlank(platformId)) {
 			TPlatform platform = this.getOne(platformId);
 			if ("1".equals(platform.getPlatformType())) {
-				TSysConfig requestConfig = sysConfig.getRequestSysConfig();
-				if (sysConfig != null && requestConfig != null) {
-					TSysConfig config = sysConfigService.getRequestConfigByPlatformAndSys(platformId,
-							requestConfig.getSysId());
-					if (config != null) {
-						return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求方系统不能重复!", "请求方系统不能重复!");
+				List<TSysConfig> jsonArr = sysConfig.getRequestedSysConfigs();
+				if (CollectionUtils.isNotEmpty(jsonArr)) {
+					String vendorIdStr = "";
+					for (TSysConfig vcd : jsonArr) {
+						if (vendorIdStr.contains(vcd.getSysId())) {
+							return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "系统名称不能重复!", "系统名称不能重复!");
+						}
+						vendorIdStr += vcd.getSysId();
 					}
 				}
 			}
@@ -315,12 +317,14 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		}
 		TPlatform platform = this.getOne(platformId);
 		if ("1".equals(platform.getPlatformType())) {
-			TSysConfig requestConfig = dto.getRequestSysConfig();
-			if (dto != null && requestConfig != null) {
-				TSysConfig config = sysConfigService.getRequestConfigByPlatformAndSys(platformId,
-						requestConfig.getSysId());
-				if (config != null) {
-					return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求方系统不能重复!", "请求方系统不能重复!");
+			List<TSysConfig> jsonArr = dto.getRequestedSysConfigs();
+			if (CollectionUtils.isNotEmpty(jsonArr)) {
+				String vendorIdStr = "";
+				for (TSysConfig vcd : jsonArr) {
+					if (vendorIdStr.contains(vcd.getSysId())) {
+						return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "系统名称不能重复!", "系统名称不能重复!");
+					}
+					vendorIdStr += vcd.getSysId();
 				}
 			}
 		}
@@ -351,7 +355,8 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 							thosconfig.setHospitalCode(hosDto.getHospitalCode());
 							thosconfig.setHospitalId(hosDto.getHospitalId());
 							thosconfig.setSysConfigId(sysConfigId);
-							syshosConfigClause.values(thosconfig).addBatch();
+//							syshosConfigClause.values(thosconfig).addBatch();
+							syshosConfigClause.populate(thosconfig).addBatch();
 						}
 						syshosConfigClause.execute();
 					}
@@ -377,7 +382,8 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 							thosconfig.setHospitalCode(hosDto.getHospitalCode());
 							thosconfig.setHospitalId(hosDto.getHospitalId());
 							thosconfig.setSysConfigId(sysConfigId);
-							syshosConfigClause.values(thosconfig).addBatch();
+//							syshosConfigClause.values(thosconfig).addBatch();
+							syshosConfigClause.populate(thosconfig).addBatch();
 						}
 						syshosConfigClause.execute();
 					}
