@@ -45,6 +45,8 @@ public class TDrive implements Serializable {
     private String name;
     
     private String driveCallType;
+    
+    private String driveCallTypeName;
 
     private String dependentPath;
 
@@ -175,5 +177,14 @@ public class TDrive implements Serializable {
     public void setDependentPath(String dependentPath) {
         this.dependentPath = dependentPath;
     }
+
+	public String getDriveCallTypeName() {
+		return driveCallTypeName;
+	}
+
+	public void setDriveCallTypeName(String driveCallTypeName) {
+		this.driveCallTypeName = driveCallTypeName;
+	}
+    
 }
 

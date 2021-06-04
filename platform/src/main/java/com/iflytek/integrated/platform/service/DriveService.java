@@ -22,6 +22,7 @@ import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.StringPath;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -115,6 +116,9 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
 			QueryResults<TDrive> queryResults = sqlQueryFactory
 					.select(Projections.bean(TDrive.class, qTDrive.id, qTDrive.driveCode, qTDrive.driveName,
 							qTDrive.driveContent, qTDrive.driveInstruction, qTDrive.createdTime, qTDrive.typeId,
+							qTDrive.dependentPath,
+							new CaseBuilder().when(qTDrive.driveCallType.eq("1")).then("请求方").otherwise("被请求方")
+									.as("driveCallTypeName"),
 							qTType.typeName.as("driveTypeName")))
 					.from(qTDrive).where(list.toArray(new Predicate[list.size()])).leftJoin(qTType)
 					.on(qTType.id.eq(qTDrive.typeId)).limit(pageSize).offset((pageNo - 1) * pageSize)
@@ -189,7 +193,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
 		if (StringUtils.isEmpty(drive.getId())) {
 			// 新增驱动
 			drive.setId(batchUidService.getUid(qTDrive.getTableName()) + "");
-			drive.setDriveCode(generateCode(qTDrive.driveCode,qTDrive,drive.getDriveName()));
+			drive.setDriveCode(generateCode(qTDrive.driveCode, qTDrive, drive.getDriveName()));
 			drive.setCreatedTime(new Date());
 			drive.setCreatedBy(loginUserName);
 			this.post(drive);
