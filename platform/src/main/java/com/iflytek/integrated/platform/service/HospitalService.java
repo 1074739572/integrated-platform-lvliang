@@ -97,8 +97,7 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
 			// 根据查询条件获取医院列表
 			QueryResults<THospital> queryResults = sqlQueryFactory
 					.select(Projections.bean(THospital.class, qTHospital.id, qTHospital.hospitalName,
-//                        qTHospital.hospitalCode,
-							qTHospital.createdTime, qTHospital.areaId))
+							qTHospital.createdTime, qTHospital.updatedTime, qTHospital.areaId))
 					.from(qTHospital).where(list.toArray(new Predicate[list.size()])).limit(pageSize)
 					.offset((pageNo - 1) * pageSize).orderBy(qTHospital.createdTime.desc()).fetchResults();
 			// 分页
