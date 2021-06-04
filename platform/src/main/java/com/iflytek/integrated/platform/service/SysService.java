@@ -1,32 +1,5 @@
 package com.iflytek.integrated.platform.service;
 
-import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
-import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
-import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
-import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
-import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
-import static com.iflytek.integrated.platform.entity.QTSysHospitalConfig.qTSysHospitalConfig;
-import static com.querydsl.sql.SQLExpressions.groupConcat;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.alibaba.fastjson.JSON;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
@@ -37,24 +10,38 @@ import com.iflytek.integrated.platform.common.RedisService;
 import com.iflytek.integrated.platform.dto.SysConfigDto;
 import com.iflytek.integrated.platform.dto.SysDto;
 import com.iflytek.integrated.platform.dto.SysHospitalDto;
-import com.iflytek.integrated.platform.entity.TBusinessInterface;
-import com.iflytek.integrated.platform.entity.TInterface;
-import com.iflytek.integrated.platform.entity.TSys;
-import com.iflytek.integrated.platform.entity.TSysConfig;
-import com.iflytek.integrated.platform.entity.TSysDriveLink;
+import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.QueryResults;
-import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.SQLQuery;
 import com.querydsl.sql.dml.SQLUpdateClause;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
+import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
+import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
+import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
+import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
+import static com.iflytek.integrated.platform.entity.QTSysHospitalConfig.qTSysHospitalConfig;
+import static com.querydsl.sql.SQLExpressions.groupConcat;
 
 /**
  * 系统管理
@@ -273,11 +260,19 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 			@ApiParam(value = "分类id") @RequestParam(value = "platformId", required = true) String platformId) {
 		try {
 
-			List<Expression<?>> columuns = qTSysConfig.getProjection().getArgs();
-			columuns.add(
+//			List<Expression<?>> columuns = qTSysConfig.getProjection().getArgs();
+//			columuns.add(
+//					groupConcat(qTSysHospitalConfig.hospitalId.append(":").append(qTSysHospitalConfig.hospitalCode))
+//							.as("hospitalConfigStr"));
+			List<TSysConfig> VCList = sqlQueryFactory.select(Projections.bean(TSysConfig.class,
+					qTSysConfig.id,qTSysConfig.projectId,qTSysConfig.platformId,qTSysConfig.sysId,
+					qTSysConfig.sysConfigType,qTSysConfig.connectionType,qTSysConfig.versionId,
+					qTSysConfig.addressUrl,qTSysConfig.endpointUrl,qTSysConfig.namespaceUrl,
+					qTSysConfig.databaseName,qTSysConfig.databaseUrl,qTSysConfig.databaseDriver,
+					qTSysConfig.driverUrl,qTSysConfig.jsonParams,qTSysConfig.userName,qTSysConfig.userPassword,
+					qTSysConfig.createdBy,qTSysConfig.createdTime,qTSysConfig.updatedBy,qTSysConfig.updatedTime,
 					groupConcat(qTSysHospitalConfig.hospitalId.append(":").append(qTSysHospitalConfig.hospitalCode))
-							.as("hospitalConfigStr"));
-			List<TSysConfig> VCList = sqlQueryFactory.select(Projections.bean(qTSysConfig, columuns.toArray(null)))
+							.as("hospitalConfigStr")))
 					.from(qTSysConfig).leftJoin(qTSysHospitalConfig)
 					.on(qTSysConfig.id.eq(qTSysHospitalConfig.sysConfigId)).groupBy(qTSysConfig.id)
 					.where(qTSysConfig.platformId.eq(platformId)).fetch();
@@ -292,7 +287,15 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 				}
 				String hospitalConfigs = obj.getHospitalConfigStr();
 				if (StringUtils.isNotBlank(hospitalConfigs)) {
-					List<SysHospitalDto> hospitalConfigList = JSON.parseArray(hospitalConfigs, SysHospitalDto.class);
+					List<SysHospitalDto> hospitalConfigList = new ArrayList<>();
+					for (String s : hospitalConfigs.split(",")) {
+						SysHospitalDto sysHospitalDto = new SysHospitalDto();
+						String[] split = s.split(":");
+						sysHospitalDto.setHospitalId(split[0]);
+						sysHospitalDto.setHospitalCode(split[1]);
+						hospitalConfigList.add(sysHospitalDto);
+					}
+//					List<SysHospitalDto> hospitalConfigList = JSON.parseArray(hospitalConfigs, SysHospitalDto.class);
 					obj.setHospitalConfigs(hospitalConfigList);
 				}
 				if (obj.getSysConfigType() == 1) {

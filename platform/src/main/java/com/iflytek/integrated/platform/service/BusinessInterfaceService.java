@@ -1,21 +1,5 @@
 package com.iflytek.integrated.platform.service;
 
-import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
-import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
-import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
-import static com.querydsl.sql.SQLExpressions.groupConcat;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
@@ -25,6 +9,21 @@ import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
+import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
+import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
+import static com.querydsl.sql.SQLExpressions.groupConcat;
 
 /**
  * 对接接口配置
@@ -94,9 +93,8 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	/**
 	 * 根据相同条件删除接口配置数据
 	 * 
-	 * @param productFunctionLinkId
 	 * @param interfaceId
-	 * @param vendorConfigId
+	 * @param requestSysconfigId
 	 */
 	public long delObjByCondition(String interfaceId, String requestSysconfigId) {
 		long count = sqlQueryFactory.delete(qTBusinessInterface).where(qTBusinessInterface.requestInterfaceId
@@ -107,9 +105,8 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	/**
 	 * 根据相同条件查询所有接口配置数据
 	 * 
-	 * @param productFunctionLinkId
 	 * @param interfaceId
-	 * @param vendorConfigId
+	 * @param requestSysconfigId
 	 */
 	public List<TBusinessInterface> getListByCondition(String interfaceId, String requestSysconfigId) {
 		ArrayList<Predicate> list = new ArrayList<>();
@@ -212,9 +209,8 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	/**
 	 * 根据三条件获取
 	 * 
-	 * @param productFunctionLinkId
 	 * @param interfaceId
-	 * @param vendorConfigId
+	 * @param requestSysconfigId
 	 * @return
 	 */
 	public List<TBusinessInterface> getTBusinessInterfaceList(String interfaceId, String requestSysconfigId) {
@@ -228,9 +224,8 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	/**
 	 * 新增接口配置时根据条件判断是否存在该数据
 	 * 
-	 * @param thvlList
 	 * @param projectId
-	 * @param productId
+	 * @param sysId
 	 * @param interfaceId
 	 * @return
 	 */
@@ -248,7 +243,7 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 		}
 
 		List<TBusinessInterface> rtnList = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
-				.on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId)).join(qTPlatform)
+				.leftJoin(qTSysConfig).on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId)).join(qTPlatform)
 				.on(qTPlatform.id.eq(qTSysConfig.platformId)).where(list.toArray(new Predicate[list.size()])).fetch();
 		return rtnList;
 	}
@@ -281,7 +276,7 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	/**
 	 * 根据请求方系统配置id获取对接接口配置数据
 	 * 
-	 * @param vendorConfigId
+	 * @param requestSysconfigId
 	 * @return
 	 */
 	public List<TBusinessInterface> getListBySysConfigId(String requestSysconfigId) {
