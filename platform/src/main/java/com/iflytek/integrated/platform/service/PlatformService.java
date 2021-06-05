@@ -266,7 +266,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 							thosconfig.setHospitalCode(hosDto.getHospitalCode());
 							thosconfig.setHospitalId(hosDto.getHospitalId());
 							thosconfig.setSysConfigId(sysConfigId);
-							syshosConfigClause.values(thosconfig).addBatch();
+                            syshosConfigClause.populate(thosconfig).addBatch();
 						}
 						syshosConfigClause.execute();
 					}
@@ -292,7 +292,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 							thosconfig.setHospitalCode(hosDto.getHospitalCode());
 							thosconfig.setHospitalId(hosDto.getHospitalId());
 							thosconfig.setSysConfigId(sysConfigId);
-							syshosConfigClause.values(thosconfig).addBatch();
+                            syshosConfigClause.populate(thosconfig).addBatch();
 						}
 						syshosConfigClause.execute();
 					}
@@ -355,7 +355,6 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 							thosconfig.setHospitalCode(hosDto.getHospitalCode());
 							thosconfig.setHospitalId(hosDto.getHospitalId());
 							thosconfig.setSysConfigId(sysConfigId);
-//							syshosConfigClause.values(thosconfig).addBatch();
 							syshosConfigClause.populate(thosconfig).addBatch();
 						}
 						syshosConfigClause.execute();
@@ -382,7 +381,6 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 							thosconfig.setHospitalCode(hosDto.getHospitalCode());
 							thosconfig.setHospitalId(hosDto.getHospitalId());
 							thosconfig.setSysConfigId(sysConfigId);
-//							syshosConfigClause.values(thosconfig).addBatch();
 							syshosConfigClause.populate(thosconfig).addBatch();
 						}
 						syshosConfigClause.execute();

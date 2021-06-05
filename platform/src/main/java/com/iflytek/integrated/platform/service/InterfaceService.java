@@ -382,6 +382,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		// 校验出入参格式字符串是否为json或者xml
 		String inParamFormat = dto.getInParamFormat();
 		String outParamFormat = dto.getOutParamFormat();
+
 		if (StringUtils.isNotBlank(inParamFormat)) {
 			PlatformUtil.strIsJsonOrXml(inParamFormat);
 		}
@@ -679,7 +680,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				tbi.setRequestedSysconfigId(tbi.getRequestedSysconfigId());
 				tbi.setExcErrOrder(i);
 				// 获取schema
-				niFiRequestUtil.generateSchemaToInterface(tbi);
+//				niFiRequestUtil.generateSchemaToInterface(tbi);
 				// 新增接口配置
 				businessInterfaceService.post(tbi);
 			} else {
@@ -690,7 +691,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				tbi.setRequestedSysconfigId(tbi.getRequestedSysconfigId());
 				tbi.setExcErrOrder(i);
 				// 获取schema
-				niFiRequestUtil.generateSchemaToInterface(tbi);
+//				niFiRequestUtil.generateSchemaToInterface(tbi);
 				// 新增接口配置
 				long l = businessInterfaceService.put(tbi.getId(), tbi);
 				if (l < 1) {
