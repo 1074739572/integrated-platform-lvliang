@@ -142,18 +142,15 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "平台名称为空或此项目下该名称已存在!", platformName);
 		}
 		SysConfigDto sysConfig = dto.getSysConfig();
-		if (StringUtils.isNotBlank(platformId)) {
-			TPlatform platform = this.getOne(platformId);
-			if ("1".equals(platform.getPlatformType())) {
-				List<TSysConfig> jsonArr = sysConfig.getRequestedSysConfigs();
-				if (CollectionUtils.isNotEmpty(jsonArr)) {
-					String vendorIdStr = "";
-					for (TSysConfig vcd : jsonArr) {
-						if (vendorIdStr.contains(vcd.getSysId())) {
-							return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "系统名称不能重复!", "系统名称不能重复!");
-						}
-						vendorIdStr += vcd.getSysId();
+		if ("1".equals(dto.getPlatformType())) {
+			List<TSysConfig> jsonArr = sysConfig.getRequestedSysConfigs();
+			if (CollectionUtils.isNotEmpty(jsonArr)) {
+				String vendorIdStr = "";
+				for (TSysConfig vcd : jsonArr) {
+					if (vendorIdStr.contains(vcd.getSysId())) {
+						return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "系统名称不能重复!", "系统名称不能重复!");
 					}
+					vendorIdStr += vcd.getSysId();
 				}
 			}
 		}
@@ -187,6 +184,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		List<TSysConfig> allConfig = new ArrayList<>();
 		allConfig.add(configDto.getRequestSysConfig());
 		allConfig.addAll(configDto.getRequestedSysConfigs());
+		allConfig.remove(null);
 		if (allConfig.size() > 0) {
 			SQLInsertClause syshosConfigClause = sqlQueryFactory.insert(qTSysHospitalConfig);
 			boolean storehosconfig = false;
@@ -197,6 +195,11 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 				tvc.setId(sysConfigId);
 				tvc.setProjectId(dto.getProjectId());
 				tvc.setPlatformId(platformId);
+				if(tvc.getSysConfigType() == null || tvc.getSysConfigType() == 3) {
+					tvc.setSysConfigType(3);
+					tvc.setInnerIdx(sysConfigId);
+					tvc.setSysId(sysConfigId);
+				}
 				if (tvc.getSysConfigType() == 2) {
 					tvc.setInnerIdx(sysConfigId);
 				}
@@ -245,11 +248,18 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		if (allConfig.size() > 0) {
 			for (int i = 0; i < allConfig.size(); i++) {
 				TSysConfig tvc = allConfig.get(i);
+				tvc.setProjectId(dto.getProjectId());
+				tvc.setPlatformId(platformId);
 				String sysConfigId = tvc.getId();
 				// 新增厂商信息
 				if (StringUtils.isBlank(sysConfigId)) {
 					sysConfigId = batchUidService.getUid(qTSysConfig.getTableName()) + "";
 					tvc.setId(sysConfigId);
+					if(tvc.getSysConfigType() == null || tvc.getSysConfigType() == 3) {
+						tvc.setSysConfigType(3);
+						tvc.setInnerIdx(sysConfigId);
+						tvc.setSysId(sysConfigId);
+					}
 					if (tvc.getSysConfigType() == 2) {
 						tvc.setInnerIdx(sysConfigId);
 					}
@@ -271,6 +281,11 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 						syshosConfigClause.execute();
 					}
 				} else {
+					if(tvc.getSysConfigType() == null || tvc.getSysConfigType() == 3) {
+						tvc.setSysConfigType(3);
+						tvc.setInnerIdx(sysConfigId);
+						tvc.setSysId(sysConfigId);
+					}
 					if (tvc.getSysConfigType() == 2) {
 						tvc.setInnerIdx(sysConfigId);
 					}
@@ -331,6 +346,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		List<TSysConfig> allConfig = new ArrayList<>();
 		allConfig.add(dto.getRequestSysConfig());
 		allConfig.addAll(dto.getRequestedSysConfigs());
+		allConfig.remove(null);
 		if (allConfig.size() > 0) {
 			for (int i = 0; i < allConfig.size(); i++) {
 				TSysConfig tvc = allConfig.get(i);
