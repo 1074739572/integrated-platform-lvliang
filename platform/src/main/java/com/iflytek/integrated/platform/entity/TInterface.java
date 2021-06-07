@@ -1,14 +1,11 @@
 package com.iflytek.integrated.platform.entity;
 
-import java.io.Serializable;
-
-import javax.validation.constraints.NotBlank;
-
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-
-import lombok.Data;
+import javax.validation.constraints.NotBlank;
+import java.io.Serializable;
 
 /**
  * TInterface is a Querydsl bean type

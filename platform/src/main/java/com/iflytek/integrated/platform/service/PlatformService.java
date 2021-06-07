@@ -143,6 +143,15 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		}
 		SysConfigDto sysConfig = dto.getSysConfig();
 		if ("1".equals(dto.getPlatformType())) {
+			TSysConfig requestSysConfig = sysConfig.getRequestSysConfig();
+			if(requestSysConfig.getSysConfigType()==1){
+				//判断请求方系统id是否存在多条
+				List<TSysConfig> requestSysConfigList = sysConfigService.getObjBySysId(requestSysConfig.getSysId());
+				if(requestSysConfigList.size()>1){
+					return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求方系统id不能重复！", "请求方系统id不能重复!");
+				}
+			}
+
 			List<TSysConfig> jsonArr = sysConfig.getRequestedSysConfigs();
 			if (CollectionUtils.isNotEmpty(jsonArr)) {
 				String vendorIdStr = "";
@@ -332,6 +341,15 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		}
 		TPlatform platform = this.getOne(platformId);
 		if ("1".equals(platform.getPlatformType())) {
+			TSysConfig requestSysConfig = dto.getRequestSysConfig();
+			if(requestSysConfig.getSysConfigType()==1){
+				//判断请求方系统id是否存在多条
+				List<TSysConfig> requestSysConfigList = sysConfigService.getObjBySysId(requestSysConfig.getSysId());
+				if(requestSysConfigList.size()>1){
+					return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求方系统id不能重复！", "请求方系统id不能重复!");
+				}
+			}
+
 			List<TSysConfig> jsonArr = dto.getRequestedSysConfigs();
 			if (CollectionUtils.isNotEmpty(jsonArr)) {
 				String vendorIdStr = "";

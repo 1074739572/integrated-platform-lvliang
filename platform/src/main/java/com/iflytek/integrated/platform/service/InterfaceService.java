@@ -868,7 +868,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		}
 		List<TInterface> interfaces = sqlQueryFactory.select(qTInterface).from(qTInterface)
 				.where(list.toArray(new Predicate[list.size()])).fetch();
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "根据产品获取功能成功", interfaces);
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "根据系统id获取标准接口成功", interfaces);
 	}
 
 	/**
