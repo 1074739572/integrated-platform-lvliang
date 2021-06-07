@@ -9,6 +9,7 @@ import com.iflytek.integrated.platform.entity.TType;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
+import com.querydsl.sql.dml.SQLInsertClause;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -16,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,6 +44,8 @@ public class TypeService extends BaseService<TType, String, StringPath> {
         super(qTType, qTType.id);
     }
 
+    @Autowired
+    private InterfaceService interfaceService;
 
     @ApiOperation(value = "获取分类")
     @GetMapping("/getType")
@@ -60,9 +64,9 @@ public class TypeService extends BaseService<TType, String, StringPath> {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    @ApiOperation(value = "新增分类")
-    @PostMapping("/saveAndUpdateType")
-    public ResultDto<String> saveAndUpdateInterface(@RequestBody TypeDto dto){
+    @ApiOperation(value = "批量新增分类", notes ="批量新增分类")
+    @PostMapping("/saveBatchType")
+    public ResultDto<String> saveBatchType(@RequestBody TypeDto dto){
         if (dto == null) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
         }
@@ -71,28 +75,48 @@ public class TypeService extends BaseService<TType, String, StringPath> {
         if (StringUtils.isBlank(loginUserName)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
-        String typeName = dto.getTypeName();
-        if (StringUtils.isBlank(typeName)) {
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "类型名为空!", "类型名为空!");
-        }
         return this.saveType(dto,loginUserName);
     }
 
     //新增分类
     private ResultDto saveType(TypeDto dto, String loginUserName) {
-        String typeName = dto.getTypeName();
-        if (null != this.getTypeByName(typeName)) {
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该类型名已存在!", "该类型名已存在!");
+        List<TType> typeList = dto.getTypeList();
+        if(typeList.size()>0){
+            SQLInsertClause qTypeClause = sqlQueryFactory.insert(qTType);
+            for(TType type : typeList){
+                String typeName = type.getTypeName();
+                if (StringUtils.isBlank(typeName)) {
+                    return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "类型名为空!", "类型名为空!");
+                }
+                if (null != this.getTypeByName(typeName)) {
+                    return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该类型名已存在!", "该类型名已存在!");
+                }
+                type.setTypeCode(generateCode(qTType.typeCode,qTType,type.getTypeName()));
+                type.setCreatedBy(loginUserName);
+                type.setCreatedTime(new Date());
+                qTypeClause.populate(type).addBatch();
+            }
+            qTypeClause.execute();
         }
-        TType type = new TType();
-        type.setId(dto.getId());
-        type.setTypeName(dto.getTypeName());
-        type.setTypeCode(generateCode(qTType.typeCode,qTType,dto.getTypeName()));
-        type.setType(dto.getType());
-        type.setCreatedBy(loginUserName);
-        type.setCreatedTime(new Date());
-        this.post(type);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "类型新增成功!", null);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @ApiOperation(value = "删除类型", notes = "删除类型")
+    @PostMapping("/deleteType")
+    public ResultDto<String> deleteType(
+            @ApiParam(value = "类型id") @RequestParam(value = "typeIds", required = true) String typeIds) {
+        if (StringUtils.isBlank(typeIds)) {
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
+        }
+        for (String id : typeIds.split(",")) {
+            long l = this.delete(id);
+            if(l<1){
+                logger.error("接口类型删除失败!");
+                throw new RuntimeException("接口类型删除失败!");
+            }
+        }
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"接口类型删除成功!","接口类型删除成功!");
     }
 
     //根据类型名获取类型

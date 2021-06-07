@@ -349,6 +349,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				ti.setParamOutStatusSuccess(obj.getParamOutStatusSuccess());
 			}
 		}
+		niFiRequestUtil.generateSchemaToInterface(ti);
 		// 新增标准接口
 		this.post(ti);
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准接口新增成功!", null);
@@ -680,7 +681,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				tbi.setRequestedSysconfigId(tbi.getRequestedSysconfigId());
 				tbi.setExcErrOrder(i);
 				// 获取schema
-//				niFiRequestUtil.generateSchemaToInterface(tbi);
+				niFiRequestUtil.generateSchemaToInterface(tbi);
 				// 新增接口配置
 				businessInterfaceService.post(tbi);
 			} else {
@@ -691,7 +692,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				tbi.setRequestedSysconfigId(tbi.getRequestedSysconfigId());
 				tbi.setExcErrOrder(i);
 				// 获取schema
-//				niFiRequestUtil.generateSchemaToInterface(tbi);
+				niFiRequestUtil.generateSchemaToInterface(tbi);
 				// 新增接口配置
 				long l = businessInterfaceService.put(tbi.getId(), tbi);
 				if (l < 1) {
@@ -928,6 +929,28 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, validationResult.getErrorMsg());
 		}
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "", niFiRequestUtil.joltDebugger(dto));
+	}
+
+	@ApiOperation(value = "根据类型id获取关联接口", notes = "根据类型id获取关联接口")
+	@GetMapping("/getInterfaceListById/{typeId}")
+	public ResultDto getInterfaceListById(@ApiParam(value = "类型id") @PathVariable String typeId){
+		try{
+			ArrayList<Predicate> list = new ArrayList<>();
+			list.add(qTInterface.typeId.eq(typeId));
+			list.add(qTType.type.eq(1));
+			List<TInterface> queryResults = sqlQueryFactory
+					.select(qTInterface).from(qTInterface).leftJoin(qTType)
+					.on(qTInterface.typeId.eq(qTType.id)).where(list.toArray(new Predicate[list.size()]))
+					.fetch();
+			if(queryResults.size()>0){
+				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该类型有关联的接口!");
+			}
+			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "该类型没有关联的接口!");
+		}catch (Exception e) {
+			logger.error("根据类型id获取关联接口失败! MSG:{}", ExceptionUtil.dealException(e));
+			e.printStackTrace();
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据类型id获取关联接口失败!");
+		}
 	}
 
 }

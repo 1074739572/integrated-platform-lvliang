@@ -1,13 +1,14 @@
 package com.iflytek.integrated.platform.utils;
 
-import com.iflytek.integrated.common.dto.ResultDto;
-import com.iflytek.integrated.platform.common.Constant;
-import com.iflytek.integrated.common.utils.JackSonUtils;
-import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.common.dto.HttpResult;
+import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.utils.HttpClientUtil;
+import com.iflytek.integrated.common.utils.JackSonUtils;
+import com.iflytek.integrated.platform.common.Constant;
+import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.platform.dto.JoltDebuggerDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
+import com.iflytek.integrated.platform.entity.TInterface;
 import com.querydsl.sql.SQLQueryFactory;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,39 @@ public class NiFiRequestUtil {
 
     @Autowired
     public SQLQueryFactory sqlQueryFactory;
+
+    /**
+     * 调取NiFi接口，获取并保存schema
+     * @param tInterface
+     */
+    public void generateSchemaToInterface(TInterface tInterface){
+        if(StringUtils.isNotEmpty(tInterface.getInParamFormat())){
+            //获取参数类型
+            String type = Constant.ParamFormatType.getByType(tInterface.getInParamFormatType());
+            if(StringUtils.isBlank(type) || Constant.ParamFormatType.NONE.getType().equals(type)){
+                throw new RuntimeException("入参参数类型无效");
+            }
+            //解析入参
+            String schema = generateSchema(tInterface.getInParamFormat(),type);
+            if(StringUtils.isEmpty(schema)){
+                throw new RuntimeException("入参schema获取失败");
+            }
+            tInterface.setInParamSchema(schema);
+        }
+        if(StringUtils.isNotEmpty(tInterface.getOutParamFormat())){
+            //获取参数类型
+            String type = Constant.ParamFormatType.getByType(tInterface.getOutParamFormatType());
+            if(StringUtils.isBlank(type) || Constant.ParamFormatType.NONE.getType().equals(type)){
+                throw new RuntimeException("出参参数类型无效");
+            }
+            //解析入参
+            String schema = generateSchema(tInterface.getOutParamFormat(),type);
+            if(StringUtils.isEmpty(schema)){
+                throw new RuntimeException("出参schema获取失败");
+            }
+            tInterface.setOutParamSchema(schema);
+        }
+    }
 
     /**
      * 调取NiFi接口，获取并保存schema
