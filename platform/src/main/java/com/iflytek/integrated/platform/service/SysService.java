@@ -116,13 +116,13 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该系统已在项目中配置使用,无法删除!", "该系统已在项目中配置使用,无法删除!");
 		}
 
-		//删除系统前先查询是否与接口关联
+		// 删除系统前先查询是否与接口关联
 		List<TInterface> interfaceList = interfaceService.getObjBySysId(id);
 		if (CollectionUtils.isNotEmpty(interfaceList)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该系统已有关联接口,无法删除!", "该系统已有关联接口,无法删除!");
 		}
 
-		//删除系统
+		// 删除系统
 		long count = this.delete(id);
 		if (count <= 0) {
 			throw new RuntimeException("系统删除失败!");
@@ -264,15 +264,17 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 //			columuns.add(
 //					groupConcat(qTSysHospitalConfig.hospitalId.append(":").append(qTSysHospitalConfig.hospitalCode))
 //							.as("hospitalConfigStr"));
-			List<TSysConfig> VCList = sqlQueryFactory.select(Projections.bean(TSysConfig.class,
-					qTSysConfig.id,qTSysConfig.projectId,qTSysConfig.platformId,qTSysConfig.sysId,
-					qTSysConfig.sysConfigType,qTSysConfig.connectionType,qTSysConfig.versionId,
-					qTSysConfig.addressUrl,qTSysConfig.endpointUrl,qTSysConfig.namespaceUrl,
-					qTSysConfig.databaseName,qTSysConfig.databaseUrl,qTSysConfig.databaseDriver,
-					qTSysConfig.driverUrl,qTSysConfig.jsonParams,qTSysConfig.userName,qTSysConfig.userPassword,
-					qTSysConfig.createdBy,qTSysConfig.createdTime,qTSysConfig.updatedBy,qTSysConfig.updatedTime,
-					groupConcat(qTSysHospitalConfig.hospitalId.append(":").append(qTSysHospitalConfig.hospitalCode))
-							.as("hospitalConfigStr")))
+			List<TSysConfig> VCList = sqlQueryFactory
+					.select(Projections
+							.bean(TSysConfig.class, qTSysConfig.id, qTSysConfig.projectId, qTSysConfig.platformId,
+									qTSysConfig.sysId, qTSysConfig.sysConfigType, qTSysConfig.connectionType,
+									qTSysConfig.versionId, qTSysConfig.addressUrl, qTSysConfig.endpointUrl,
+									qTSysConfig.namespaceUrl, qTSysConfig.databaseName, qTSysConfig.databaseUrl,
+									qTSysConfig.databaseDriver, qTSysConfig.driverUrl, qTSysConfig.jsonParams,
+									qTSysConfig.userName, qTSysConfig.userPassword, qTSysConfig.createdBy,
+									qTSysConfig.createdTime, qTSysConfig.updatedBy, qTSysConfig.updatedTime,
+									groupConcat(qTSysHospitalConfig.hospitalId.append(":")
+											.append(qTSysHospitalConfig.hospitalCode)).as("hospitalConfigStr")))
 					.from(qTSysConfig).leftJoin(qTSysHospitalConfig)
 					.on(qTSysConfig.id.eq(qTSysHospitalConfig.sysConfigId)).groupBy(qTSysConfig.id)
 					.where(qTSysConfig.platformId.eq(platformId)).fetch();
@@ -375,13 +377,15 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 	@ApiOperation(value = "根据平台id获取系统信息")
 	@GetMapping("/getDisSysByPlatform")
 	public ResultDto<List<TSys>> getDisSysByPlatform(
-			@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId) {
+			@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId,
+			@ApiParam(value = "sysConfigType") @RequestParam(value = "sysConfigType", required = true) String sysConfigType) {
 		List<TSys> vendors = sqlQueryFactory
 				.select(Projections.bean(TSys.class, qTSys.id, qTSys.sysName, qTSys.sysCode, qTSys.createdBy,
 						qTSys.createdTime, qTSys.updatedBy, qTSys.updatedTime,
 						qTSysConfig.connectionType.as("connectionType")))
-				.from(qTSys).leftJoin(qTSysConfig).on(qTSysConfig.sysId.eq(qTSys.id))
-				.where(qTSysConfig.platformId.eq(platformId)).fetch();
+				.from(qTSys).join(qTSysConfig).on(qTSysConfig.sysId.eq(qTSys.id)).where(qTSysConfig.platformId
+						.eq(platformId).and(qTSysConfig.sysConfigType.eq(Integer.valueOf(sysConfigType))))
+				.fetch();
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "数据获取成功!", vendors);
 	}
 
