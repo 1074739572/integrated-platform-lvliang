@@ -861,10 +861,14 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	@ApiOperation(value = "根据系统获取标准接口(新增接口)")
 	@GetMapping("/getInterBySys")
 	public ResultDto<List<TInterface>> getInterBySys(
-			@ApiParam(value = "系统id") @RequestParam(value = "sysId", required = false) String sysId) {
+			@ApiParam(value = "系统id") @RequestParam(value = "sysId", required = false) String sysId , 
+			@ApiParam(value = "接口分类id") @RequestParam(value = "typeId", required = false) String typeId) {
 		ArrayList<Predicate> list = new ArrayList<>();
 		if (StringUtils.isNotEmpty(sysId)) {
 			list.add(qTInterface.sysId.eq(sysId));
+		}
+		if (StringUtils.isNotEmpty(typeId)) {
+			list.add(qTInterface.typeId.eq(typeId));
 		}
 		List<TInterface> interfaces = sqlQueryFactory.select(qTInterface).from(qTInterface)
 				.where(list.toArray(new Predicate[list.size()])).fetch();
