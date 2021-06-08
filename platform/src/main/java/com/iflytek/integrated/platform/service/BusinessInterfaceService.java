@@ -169,12 +169,12 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 						qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId,
 						groupConcat(qTBusinessInterface.requestedSysconfigId.append("/")
 								.append(qTBusinessInterface.businessInterfaceName)).as("businessInterfaceName"),
-						qTBusinessInterface.requestType, qTBusinessInterface.requestConstant,
-						qTBusinessInterface.interfaceType, qTBusinessInterface.pluginId,
-						qTBusinessInterface.inParamFormat, qTBusinessInterface.inParamSchema,
-						qTBusinessInterface.inParamTemplate, qTBusinessInterface.inParamFormatType,
-						qTBusinessInterface.outParamFormat, qTBusinessInterface.outParamSchema,
-						qTBusinessInterface.outParamTemplate, qTBusinessInterface.outParamFormatType,
+//						qTBusinessInterface.requestType, qTBusinessInterface.requestConstant,
+//						qTBusinessInterface.interfaceType, qTBusinessInterface.pluginId,
+//						qTBusinessInterface.inParamFormat, qTBusinessInterface.inParamSchema,
+//						qTBusinessInterface.inParamTemplate, qTBusinessInterface.inParamFormatType,
+//						qTBusinessInterface.outParamFormat, qTBusinessInterface.outParamSchema,
+//						qTBusinessInterface.outParamTemplate, qTBusinessInterface.outParamFormatType,
 						qTBusinessInterface.mockStatus, qTBusinessInterface.status, qTBusinessInterface.createdBy,
 						qTBusinessInterface.createdTime, qTBusinessInterface.updatedBy, qTBusinessInterface.updatedTime,
 						qTSysConfig.versionId.as("versionId")))
