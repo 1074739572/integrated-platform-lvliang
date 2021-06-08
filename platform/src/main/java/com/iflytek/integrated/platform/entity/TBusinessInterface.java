@@ -74,7 +74,7 @@ public class TBusinessInterface implements Serializable {
     private String platformId;
     @Transient
     private String requestSysId;
-    @Transient
+
     private String requestedSysId;
 
     /**

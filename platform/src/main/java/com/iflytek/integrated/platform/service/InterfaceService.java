@@ -570,7 +570,16 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		TBusinessInterface tbi = businessInterfaceService.getOne(id);
 		if (tbi != null) {
 			// 请求方标准接口
-			dto.setRequestInterfaceId(tbi.getRequestInterfaceId());
+			String requestInterfaceId = tbi.getRequestInterfaceId();
+			dto.setRequestInterfaceId(requestInterfaceId);
+			//获取请求方接口类型
+			ArrayList<Predicate> list = new ArrayList<>();
+			if (StringUtils.isNotEmpty(requestInterfaceId)) {
+				list.add(qTInterface.id.eq(requestInterfaceId));
+			}
+			TInterface tInterface = sqlQueryFactory.select(qTInterface).from(qTInterface)
+					.where(list.toArray(new Predicate[list.size()])).fetchOne();
+			dto.setRequestInterfaceTypeId(tInterface.getTypeId());
 			// 获取厂商及配置信息
 			String requestSysconfigId = tbi.getRequestSysconfigId();
 			dto.setRequestSysconfigId(requestSysconfigId);
@@ -581,6 +590,13 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			// 多个厂商配置接口信息
 			tbiList = businessInterfaceService.getTBusinessInterfaceList(tbi.getRequestInterfaceId(),
 					tbi.getRequestSysconfigId());
+			if (CollectionUtils.isNotEmpty(tbiList)) {
+				for(TBusinessInterface tb : tbiList ){
+					String requestdSysconfigId = tb.getRequestedSysconfigId();
+					TSysConfig config = sysConfigService.getOne(requestdSysconfigId);
+					tb.setRequestedSysId(config.getSysId());
+				}
+			}
 		}
 
 		dto.setBusinessInterfaceList(tbiList);

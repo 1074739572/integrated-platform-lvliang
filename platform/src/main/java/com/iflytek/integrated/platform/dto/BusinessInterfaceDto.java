@@ -28,6 +28,8 @@ public class BusinessInterfaceDto {
 
     private String requestInterfaceId;
 
+    private String requestInterfaceTypeId;
+
     /**
      * 多个厂商配置信息
      */
