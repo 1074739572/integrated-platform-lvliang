@@ -1,21 +1,15 @@
 package com.iflytek.integrated.platform.common;
 
-import com.iflytek.integrated.common.dto.ResultDto;
-import com.iflytek.integrated.common.utils.JackSonUtils;
-import com.iflytek.integrated.common.utils.RedisUtil;
-import com.iflytek.integrated.platform.dto.RedisDto;
-import com.iflytek.integrated.platform.dto.RedisKeyDto;
-import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.StringPath;
-import com.querydsl.sql.SQLQueryFactory;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import springfox.documentation.annotations.ApiIgnore;
+import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
+import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
+import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
+import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
+import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
+import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
+import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
+import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
+import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
+import static com.iflytek.integrated.platform.entity.QTSysHospitalConfig.qTSysHospitalConfig;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,14 +19,24 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
-import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
-import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
-import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
-import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
-import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
-import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
-import static com.iflytek.integrated.platform.entity.QTSysHospitalConfig.qTSysHospitalConfig;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iflytek.integrated.common.dto.ResultDto;
+import com.iflytek.integrated.common.utils.JackSonUtils;
+import com.iflytek.integrated.common.utils.RedisUtil;
+import com.iflytek.integrated.platform.dto.RedisDto;
+import com.iflytek.integrated.platform.dto.RedisKeyDto;
+import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.StringPath;
+import com.querydsl.sql.SQLQueryFactory;
+
+import springfox.documentation.annotations.ApiIgnore;
 
 /**
  * redis缓存操作
@@ -123,10 +127,10 @@ public class RedisService {
 		sqlQueryFactory
 				.select(Projections.bean(RedisKeyDto.class, qTSysHospitalConfig.hospitalCode.as("orgId"),
 						qTSys.sysCode.as("sysCode"), qTInterface.interfaceUrl.as("funCode")))
-				.from(qTBusinessInterface).leftJoin(qTInterface)
-				.on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id)).leftJoin(qTSys)
-				.on(qTInterface.sysId.eq(qTSys.id)).leftJoin(qTSysConfig)
-				.on(qTSysConfig.sysId.eq(qTSys.id)
+				.from(qTProject).leftJoin(qTPlatform).on(qTPlatform.projectId.eq(qTProject.id)).leftJoin(qTSysConfig)
+				.on(qTSysConfig.platformId.eq(qTPlatform.id)).leftJoin(qTSys).on(qTSysConfig.sysId.eq(qTSys.id))
+				.leftJoin(qTInterface).on(qTSys.id.eq(qTInterface.sysId)).leftJoin(qTBusinessInterface)
+				.on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id)
 						.and(qTBusinessInterface.requestSysconfigId.eq(qTSysConfig.id)
 								.or(qTBusinessInterface.requestedSysconfigId.eq(qTSysConfig.id))))
 				.leftJoin(qTSysHospitalConfig).on(qTSysConfig.id.eq(qTSysHospitalConfig.sysConfigId))
