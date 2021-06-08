@@ -58,6 +58,7 @@ import com.iflytek.integrated.platform.entity.TEtlTpl;
 import com.iflytek.integrated.platform.entity.TPlatform;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.QueryResults;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.dml.SQLInsertClause;
@@ -99,8 +100,12 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 		if (StringUtils.isNotBlank(tplName)) {
 			conditon = conditon.and(qTEtlTpl.tplName.like("%" + tplName + "%"));
 		}
-		QueryResults<TEtlTpl> queryResults = sqlQueryFactory.select(qTEtlTpl).from(qTEtlTpl).where(conditon)
-				.limit(pageSize).offset((pageNo - 1) * pageSize).orderBy(qTEtlTpl.createdTime.desc()).fetchResults();
+		QueryResults<TEtlTpl> queryResults = sqlQueryFactory
+				.select(Projections.bean(TEtlTpl.class, qTEtlTpl.id, qTEtlTpl.tplType, qTEtlTpl.tplName,
+						qTEtlTpl.tplFunType, qTEtlTpl.tplDesp, qTEtlTpl.createdBy, qTEtlTpl.createdTime,
+						qTEtlTpl.updatedBy, qTEtlTpl.updatedTime))
+				.from(qTEtlTpl).where(conditon).limit(pageSize).offset((pageNo - 1) * pageSize)
+				.orderBy(qTEtlTpl.createdTime.desc()).fetchResults();
 
 		// 分页
 		TableData<TEtlTpl> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
