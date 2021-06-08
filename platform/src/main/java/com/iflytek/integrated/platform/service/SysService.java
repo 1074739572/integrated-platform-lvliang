@@ -259,11 +259,6 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 	public ResultDto<SysConfigDto> getSysConfigList(
 			@ApiParam(value = "分类id") @RequestParam(value = "platformId", required = true) String platformId) {
 		try {
-
-//			List<Expression<?>> columuns = qTSysConfig.getProjection().getArgs();
-//			columuns.add(
-//					groupConcat(qTSysHospitalConfig.hospitalId.append(":").append(qTSysHospitalConfig.hospitalCode))
-//							.as("hospitalConfigStr"));
 			List<TSysConfig> VCList = sqlQueryFactory
 					.select(Projections
 							.bean(TSysConfig.class, qTSysConfig.id, qTSysConfig.projectId, qTSysConfig.platformId,
@@ -294,7 +289,9 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 						SysHospitalDto sysHospitalDto = new SysHospitalDto();
 						String[] split = s.split(":");
 						sysHospitalDto.setHospitalId(split[0]);
-						sysHospitalDto.setHospitalCode(split[1]);
+						if(split.length == 2) {
+							sysHospitalDto.setHospitalCode(split[1]);
+						}
 						hospitalConfigList.add(sysHospitalDto);
 					}
 //					List<SysHospitalDto> hospitalConfigList = JSON.parseArray(hospitalConfigs, SysHospitalDto.class);

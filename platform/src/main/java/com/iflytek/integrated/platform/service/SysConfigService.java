@@ -69,6 +69,12 @@ public class SysConfigService extends BaseService<TSysConfig, String, StringPath
 		return list;
 	}
 
+	public boolean requestSysExsits(String sysId) {
+		List<TSysConfig> list = sqlQueryFactory.select(qTSysConfig).from(qTSysConfig)
+				.where(qTSysConfig.sysId.eq(sysId).and(qTSysConfig.sysConfigType.eq(1))).fetch();
+		return list != null && list.size() > 0;
+	}
+
 	/**
 	 * 删除平台下所有系统配置信息
 	 * 

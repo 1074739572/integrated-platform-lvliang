@@ -1,5 +1,27 @@
 package com.iflytek.integrated.platform.service;
 
+import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
+import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
+import static com.iflytek.integrated.platform.entity.QTSysHospitalConfig.qTSysHospitalConfig;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
@@ -7,7 +29,11 @@ import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.common.RedisService;
-import com.iflytek.integrated.platform.dto.*;
+import com.iflytek.integrated.platform.dto.PlatformDto;
+import com.iflytek.integrated.platform.dto.RedisDto;
+import com.iflytek.integrated.platform.dto.RedisKeyDto;
+import com.iflytek.integrated.platform.dto.SysConfigDto;
+import com.iflytek.integrated.platform.dto.SysHospitalDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TPlatform;
 import com.iflytek.integrated.platform.entity.TSysConfig;
@@ -19,25 +45,11 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.dml.SQLInsertClause;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
-import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
-import static com.iflytek.integrated.platform.entity.QTSysHospitalConfig.qTSysHospitalConfig;
 
 /**
  * 平台管理
@@ -144,10 +156,10 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		SysConfigDto sysConfig = dto.getSysConfig();
 		if ("1".equals(dto.getPlatformType())) {
 			TSysConfig requestSysConfig = sysConfig.getRequestSysConfig();
-			if(requestSysConfig.getSysConfigType()==1){
-				//判断请求方系统id是否存在多条
-				List<TSysConfig> requestSysConfigList = sysConfigService.getObjBySysId(requestSysConfig.getSysId());
-				if(requestSysConfigList.size()>1){
+			if (requestSysConfig.getSysConfigType() == 1) {
+				// 判断请求方系统id是否存在多条
+				boolean requestSysExsits = sysConfigService.requestSysExsits(requestSysConfig.getSysId());
+				if (requestSysExsits) {
 					return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求方系统id不能重复！", "请求方系统id不能重复!");
 				}
 			}
@@ -204,7 +216,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 				tvc.setId(sysConfigId);
 				tvc.setProjectId(dto.getProjectId());
 				tvc.setPlatformId(platformId);
-				if(tvc.getSysConfigType() == null || tvc.getSysConfigType() == 3) {
+				if (tvc.getSysConfigType() == null || tvc.getSysConfigType() == 3) {
 					tvc.setSysConfigType(3);
 					tvc.setInnerIdx(sysConfigId);
 					tvc.setSysId(sysConfigId);
@@ -264,7 +276,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 				if (StringUtils.isBlank(sysConfigId)) {
 					sysConfigId = batchUidService.getUid(qTSysConfig.getTableName()) + "";
 					tvc.setId(sysConfigId);
-					if(tvc.getSysConfigType() == null || tvc.getSysConfigType() == 3) {
+					if (tvc.getSysConfigType() == null || tvc.getSysConfigType() == 3) {
 						tvc.setSysConfigType(3);
 						tvc.setInnerIdx(sysConfigId);
 						tvc.setSysId(sysConfigId);
@@ -285,12 +297,12 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 							thosconfig.setHospitalCode(hosDto.getHospitalCode());
 							thosconfig.setHospitalId(hosDto.getHospitalId());
 							thosconfig.setSysConfigId(sysConfigId);
-                            syshosConfigClause.populate(thosconfig).addBatch();
+							syshosConfigClause.populate(thosconfig).addBatch();
 						}
 						syshosConfigClause.execute();
 					}
 				} else {
-					if(tvc.getSysConfigType() == null || tvc.getSysConfigType() == 3) {
+					if (tvc.getSysConfigType() == null || tvc.getSysConfigType() == 3) {
 						tvc.setSysConfigType(3);
 						tvc.setInnerIdx(sysConfigId);
 						tvc.setSysId(sysConfigId);
@@ -316,7 +328,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 							thosconfig.setHospitalCode(hosDto.getHospitalCode());
 							thosconfig.setHospitalId(hosDto.getHospitalId());
 							thosconfig.setSysConfigId(sysConfigId);
-                            syshosConfigClause.populate(thosconfig).addBatch();
+							syshosConfigClause.populate(thosconfig).addBatch();
 						}
 						syshosConfigClause.execute();
 					}
@@ -342,10 +354,10 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		TPlatform platform = this.getOne(platformId);
 		if ("1".equals(platform.getPlatformType())) {
 			TSysConfig requestSysConfig = dto.getRequestSysConfig();
-			if(requestSysConfig.getSysConfigType()==1){
-				//判断请求方系统id是否存在多条
-				List<TSysConfig> requestSysConfigList = sysConfigService.getObjBySysId(requestSysConfig.getSysId());
-				if(requestSysConfigList.size()>1){
+			if (requestSysConfig.getSysConfigType() == 1) {
+				// 判断请求方系统id是否存在多条
+				boolean requestSysExsits = sysConfigService.requestSysExsits(requestSysConfig.getSysId());
+				if (requestSysExsits) {
 					return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求方系统id不能重复！", "请求方系统id不能重复!");
 				}
 			}
