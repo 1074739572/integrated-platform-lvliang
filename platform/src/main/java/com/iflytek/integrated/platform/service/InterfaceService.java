@@ -302,6 +302,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		String interfaceId = batchUidService.getUid(qTInterface.getTableName()) + "";
 		TInterface ti = new TInterface();
 		ti.setId(interfaceId);
+		ti.setInParamFormatType(dto.getInParamFormatType());
+		ti.setOutParamFormatType(dto.getOutParamFormatType());
 		ti.setSysId(dto.getSysId());
 		ti.setInterfaceName(dto.getInterfaceName());
 		ti.setTypeId(dto.getTypeId());
@@ -384,6 +386,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		// 校验出入参格式字符串是否为json或者xml
 		String inParamFormat = dto.getInParamFormat();
 		String outParamFormat = dto.getOutParamFormat();
+		String inParamFormatType = dto.getInParamFormatType();
+		String outParamFormatType = dto.getOutParamFormatType();
 
 		if (StringUtils.isNotBlank(inParamFormat)) {
 			PlatformUtil.strIsJsonOrXml(inParamFormat);
@@ -394,6 +398,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		long execute = sqlQueryFactory.update(qTInterface).set(qTInterface.interfaceName, interfaceName)
 				.set(qTInterface.typeId, interfaceTypeId).set(qTInterface.interfaceUrl, interfaceUrl)
 				.set(qTInterface.inParamFormat, inParamFormat).set(qTInterface.outParamFormat, outParamFormat)
+				.set(qTInterface.inParamFormatType, inParamFormatType).set(qTInterface.outParamFormatType, outParamFormatType)
 				.set(qTInterface.updatedTime, new Date()).set(qTInterface.paramOutStatus, "")
 				.set(qTInterface.paramOutStatusSuccess, "").set(qTInterface.updatedBy, loginUserName)
 				.where(qTInterface.id.eq(id)).execute();
