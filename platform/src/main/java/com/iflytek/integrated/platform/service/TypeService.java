@@ -55,7 +55,7 @@ public class TypeService extends BaseService<TType, String, StringPath> {
             list.add(qTType.type.eq(type));
         }
         List<TType> typeList = sqlQueryFactory.select(
-                Projections.bean(TType.class, qTType.id, qTType.type, qTType.typeCode, qTType.typeName))
+                Projections.bean(TType.class, qTType.id, qTType.type, qTType.typeCode, qTType.typeName, qTType.updatedTime))
                 .from(qTType)
                 .where(list.toArray(new Predicate[list.size()]))
                 .orderBy(qTType.createdTime.desc())
@@ -81,9 +81,12 @@ public class TypeService extends BaseService<TType, String, StringPath> {
     //新增分类
     private ResultDto saveType(TypeDto dto, String loginUserName) {
         List<TType> typeList = dto.getTypeList();
+        String maxId = sqlQueryFactory.select(qTType.id.max().as("id")).from(qTType).
+                where(qTType.type.eq(1)).fetchOne();
         if(typeList.size()>0){
             SQLInsertClause qTypeClause = sqlQueryFactory.insert(qTType);
-            for(TType type : typeList){
+            for(int i = 0;i<typeList.size(); i++){
+                TType type = typeList.get(i);
                 String typeName = type.getTypeName();
                 if (StringUtils.isBlank(typeName)) {
                     return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "类型名为空!", "类型名为空!");
@@ -91,6 +94,8 @@ public class TypeService extends BaseService<TType, String, StringPath> {
                 if (null != this.getTypeByName(typeName)) {
                     return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该类型名已存在!", "该类型名已存在!");
                 }
+                Integer typeId = Integer.valueOf(maxId) + i +1;
+                type.setId(String.valueOf(typeId));
                 type.setTypeCode(generateCode(qTType.typeCode,qTType,type.getTypeName()));
                 type.setCreatedBy(loginUserName);
                 type.setCreatedTime(new Date());
@@ -103,9 +108,9 @@ public class TypeService extends BaseService<TType, String, StringPath> {
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "删除类型", notes = "删除类型")
-    @PostMapping("/deleteType")
+    @DeleteMapping("/deleteType/{typeIds}")
     public ResultDto<String> deleteType(
-            @ApiParam(value = "类型id") @RequestParam(value = "typeIds", required = true) String typeIds) {
+            @ApiParam(value = "类型id") @PathVariable(value = "typeIds", required = true) String typeIds) {
         if (StringUtils.isBlank(typeIds)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
         }

@@ -261,8 +261,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
 		}
 		// 校验是否获取到登录用户
-//		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-		String loginUserName = "admin";
+		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
 		if (StringUtils.isBlank(loginUserName)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
 		}
@@ -459,7 +458,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	@GetMapping("/getInterfaceType")
 	public ResultDto<List<TType>> getInterfaceType() {
 		List<TType> vendors = sqlQueryFactory
-				.select(Projections.bean(TType.class, qTType.id, qTType.typeCode, qTType.typeName)).from(qTType)
+				.select(Projections.bean(TType.class, qTType.id, qTType.typeCode, qTType.typeName, qTType.updatedTime)).from(qTType)
 				.where(qTType.type.eq(1)).orderBy(qTType.createdTime.desc()).fetch();
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "数据获取成功!", vendors);
 	}
