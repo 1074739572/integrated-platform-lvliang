@@ -36,9 +36,5 @@ public class TSys implements Serializable {
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone="GMT+8")
     private java.util.Date updatedTime;
     
-    private String connectionType;
-    
-    private String driverNames;
-
 }
 

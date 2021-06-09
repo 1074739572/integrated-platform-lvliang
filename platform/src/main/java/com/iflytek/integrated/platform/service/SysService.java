@@ -75,15 +75,15 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 
 	@ApiOperation(value = "系统列表")
 	@GetMapping("/getSysList")
-	public ResultDto<TableData<TSys>> getSysList(
+	public ResultDto<TableData<SysDto>> getSysList(
 			@ApiParam(value = "系统编码") @RequestParam(value = "sysCode", required = false) String sysCode,
 			@ApiParam(value = "系统名称") @RequestParam(value = "sysName", required = false) String sysName,
 			@ApiParam(value = "页码", example = "1") @RequestParam(defaultValue = "1", required = false) Integer pageNo,
 			@ApiParam(value = "每页大小", example = "10") @RequestParam(defaultValue = "10", required = false) Integer pageSize) {
 		try {
 			List<Predicate> list = new ArrayList<>();
-			SQLQuery<TSys> queryer = sqlQueryFactory
-					.select(Projections.bean(TSys.class, qTSys.id, qTSys.sysName, qTSys.sysCode, qTSys.isValid,
+			SQLQuery<SysDto> queryer = sqlQueryFactory
+					.select(Projections.bean(SysDto.class, qTSys.id, qTSys.sysName, qTSys.sysCode, qTSys.isValid,
 							qTSys.createdBy, qTSys.createdTime, qTSys.updatedBy, qTSys.updatedTime,
 							groupConcat(qTDrive.driveName, "|").as("driverNames")))
 					.from(qTSys).leftJoin((qTSysDriveLink)).on(qTSys.id.eq(qTSysDriveLink.sysId)).leftJoin(qTDrive)
@@ -94,10 +94,10 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 			if (StringUtils.isNotBlank(sysName)) {
 				list.add(qTSys.sysCode.like("%" + sysCode + "%"));
 			}
-			QueryResults<TSys> queryResults = queryer.where(list.toArray(new Predicate[list.size()])).groupBy(qTSys.id)
+			QueryResults<SysDto> queryResults = queryer.where(list.toArray(new Predicate[list.size()])).groupBy(qTSys.id)
 					.limit(pageSize).offset((pageNo - 1) * pageSize).orderBy(qTSys.createdTime.desc()).fetchResults();
 			// 分页
-			TableData<TSys> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
+			TableData<SysDto> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
 			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "系统管理列表获取成功", tableData);
 		} catch (Exception e) {
 			logger.error("获取产品管理列表失败! MSG:{}", ExceptionUtil.dealException(e));
@@ -373,13 +373,13 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 
 	@ApiOperation(value = "根据平台id获取系统信息")
 	@GetMapping("/getDisSysByPlatform")
-	public ResultDto<List<TSys>> getDisSysByPlatform(
+	public ResultDto<List<SysDto>> getDisSysByPlatform(
 			@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId,
 			@ApiParam(value = "sysConfigType") @RequestParam(value = "sysConfigType", required = true) String sysConfigType) {
-		List<TSys> vendors = sqlQueryFactory
-				.select(Projections.bean(TSys.class, qTSys.id, qTSys.sysName, qTSys.sysCode, qTSys.createdBy,
+		List<SysDto> vendors = sqlQueryFactory
+				.select(Projections.bean(SysDto.class, qTSys.id, qTSys.sysName, qTSys.sysCode, qTSys.createdBy,
 						qTSys.createdTime, qTSys.updatedBy, qTSys.updatedTime,
-						qTSysConfig.connectionType.as("connectionType")))
+						qTSysConfig.connectionType.as("connectionType") , qTSysConfig.id.as("sysConfigId")))
 				.from(qTSys).join(qTSysConfig).on(qTSysConfig.sysId.eq(qTSys.id)).where(qTSysConfig.platformId
 						.eq(platformId).and(qTSysConfig.sysConfigType.eq(Integer.valueOf(sysConfigType))))
 				.fetch();

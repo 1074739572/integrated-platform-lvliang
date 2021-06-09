@@ -22,4 +22,10 @@ public class SysDto extends TSys {
 
 	private String driveIds;
 	
+	private String sysConfigId;
+	
+	private String connectionType;
+    
+    private String driverNames;
+	
 }
