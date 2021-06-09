@@ -76,6 +76,8 @@ public class TSysConfig implements Serializable {
     private java.util.Date updatedTime;
     
     private String innerIdx;
+    
+    private String databaseType;
 
 }
 

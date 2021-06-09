@@ -27,5 +27,7 @@ public class SysDto extends TSys {
 	private String connectionType;
     
     private String driverNames;
+    
+    private String versionId;
 	
 }

@@ -265,7 +265,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 									qTSysConfig.sysId, qTSysConfig.sysConfigType, qTSysConfig.connectionType,
 									qTSysConfig.versionId, qTSysConfig.addressUrl, qTSysConfig.endpointUrl,
 									qTSysConfig.namespaceUrl, qTSysConfig.databaseName, qTSysConfig.databaseUrl,
-									qTSysConfig.databaseDriver, qTSysConfig.driverUrl, qTSysConfig.jsonParams,
+									qTSysConfig.databaseDriver, qTSysConfig.driverUrl, qTSysConfig.databaseType, qTSysConfig.jsonParams,
 									qTSysConfig.userName, qTSysConfig.userPassword, qTSysConfig.createdBy,
 									qTSysConfig.createdTime, qTSysConfig.updatedBy, qTSysConfig.updatedTime,
 									groupConcat(qTSysHospitalConfig.hospitalId.append(":")
@@ -379,7 +379,8 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		List<SysDto> vendors = sqlQueryFactory
 				.select(Projections.bean(SysDto.class, qTSys.id, qTSys.sysName, qTSys.sysCode, qTSys.createdBy,
 						qTSys.createdTime, qTSys.updatedBy, qTSys.updatedTime,
-						qTSysConfig.connectionType.as("connectionType") , qTSysConfig.id.as("sysConfigId")))
+						qTSysConfig.connectionType.as("connectionType") , qTSysConfig.id.as("sysConfigId"),
+						qTSysConfig.versionId.as("versionId")))
 				.from(qTSys).join(qTSysConfig).on(qTSysConfig.sysId.eq(qTSys.id)).where(qTSysConfig.platformId
 						.eq(platformId).and(qTSysConfig.sysConfigType.eq(Integer.valueOf(sysConfigType))))
 				.fetch();

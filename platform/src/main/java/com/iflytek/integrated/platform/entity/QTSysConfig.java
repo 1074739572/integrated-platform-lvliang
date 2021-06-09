@@ -65,6 +65,8 @@ public class QTSysConfig extends com.querydsl.sql.RelationalPathBase<TSysConfig>
 	public final StringPath versionId = createString("versionId");
 
 	public final StringPath innerIdx = createString("innerIdx");
+	
+	public final StringPath databaseType = createString("databaseType");
 
 	public final com.querydsl.sql.PrimaryKey<TSysConfig> primary = createPrimaryKey(id);
 
@@ -119,24 +121,26 @@ public class QTSysConfig extends com.querydsl.sql.RelationalPathBase<TSysConfig>
 		addMetadata(databaseUrl,
 				ColumnMetadata.named("DATABASE_URL").withIndex(12).ofType(Types.VARCHAR).withSize(128).notNull());
 		addMetadata(databaseDriver,
-				ColumnMetadata.named("DATABASE_DRIVER").withIndex(13).ofType(Types.VARCHAR).withSize(128).notNull());
-		addMetadata(driverUrl, ColumnMetadata.named("DRIVER_URL").withIndex(14).ofType(Types.VARCHAR).withSize(128));
+				ColumnMetadata.named("DATABASE_DRIVER").withIndex(14).ofType(Types.VARCHAR).withSize(128).notNull());
+		addMetadata(driverUrl, ColumnMetadata.named("DRIVER_URL").withIndex(15).ofType(Types.VARCHAR).withSize(128));
 		addMetadata(jsonParams,
-				ColumnMetadata.named("JSON_PARAMS").withIndex(15).ofType(Types.LONGVARCHAR).withSize(65535));
+				ColumnMetadata.named("JSON_PARAMS").withIndex(16).ofType(Types.LONGVARCHAR).withSize(65535));
 		addMetadata(userName,
-				ColumnMetadata.named("USER_NAME").withIndex(16).ofType(Types.VARCHAR).withSize(32).notNull());
+				ColumnMetadata.named("USER_NAME").withIndex(17).ofType(Types.VARCHAR).withSize(32).notNull());
 		addMetadata(userPassword,
-				ColumnMetadata.named("USER_PASSWORD").withIndex(17).ofType(Types.VARCHAR).withSize(128).notNull());
+				ColumnMetadata.named("USER_PASSWORD").withIndex(18).ofType(Types.VARCHAR).withSize(128).notNull());
 		addMetadata(createdBy,
-				ColumnMetadata.named("CREATED_BY").withIndex(18).ofType(Types.VARCHAR).withSize(32).notNull());
+				ColumnMetadata.named("CREATED_BY").withIndex(19).ofType(Types.VARCHAR).withSize(32).notNull());
 		addMetadata(createdTime,
-				ColumnMetadata.named("CREATED_TIME").withIndex(19).ofType(Types.TIMESTAMP).withSize(19).notNull());
+				ColumnMetadata.named("CREATED_TIME").withIndex(20).ofType(Types.TIMESTAMP).withSize(19).notNull());
 		addMetadata(updatedBy,
-				ColumnMetadata.named("UPDATED_BY").withIndex(20).ofType(Types.VARCHAR).withSize(32).notNull());
+				ColumnMetadata.named("UPDATED_BY").withIndex(21).ofType(Types.VARCHAR).withSize(32).notNull());
 		addMetadata(updatedTime,
-				ColumnMetadata.named("UPDATED_TIME").withIndex(21).ofType(Types.TIMESTAMP).withSize(19).notNull());
+				ColumnMetadata.named("UPDATED_TIME").withIndex(22).ofType(Types.TIMESTAMP).withSize(19).notNull());
 		addMetadata(innerIdx,
-				ColumnMetadata.named("INNER_IDX").withIndex(22).ofType(Types.VARCHAR).withSize(32).notNull());
+				ColumnMetadata.named("INNER_IDX").withIndex(23).ofType(Types.VARCHAR).withSize(32).notNull());
+		addMetadata(databaseType,
+				ColumnMetadata.named("DATABASE_TYPE").withIndex(13).ofType(Types.VARCHAR).withSize(32).notNull());
 	}
 
 }
