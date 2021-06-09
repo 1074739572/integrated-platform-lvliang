@@ -74,22 +74,24 @@ public class TBusinessInterface implements Serializable {
     private String platformId;
     @Transient
     private String requestSysId;
-
+    @Transient
     private String requestedSysId;
 
     /**
      * 列表接口配置查询出参
      */
     @Transient
-    private String productName;
+    private String sysName;
     @Transient
     private String versionId;
     @Transient
     private String projectCode;
     @Transient
-    private String productCode;
+    private String sysCode;
     @Transient
     private String interfaceUrl;
+    @Transient
+    private String sysIntfInParamFormatType;
 
 }
 

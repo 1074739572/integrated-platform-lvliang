@@ -1,41 +1,5 @@
 package com.iflytek.integrated.platform.service;
 
-import com.iflytek.integrated.common.dto.ResultDto;
-import com.iflytek.integrated.common.dto.TableData;
-import com.iflytek.integrated.common.intercept.UserLoginIntercept;
-import com.iflytek.integrated.common.utils.ExceptionUtil;
-import com.iflytek.integrated.common.validator.ValidationResult;
-import com.iflytek.integrated.common.validator.ValidatorHelper;
-import com.iflytek.integrated.platform.common.BaseService;
-import com.iflytek.integrated.platform.common.Constant;
-import com.iflytek.integrated.platform.common.RedisService;
-import com.iflytek.integrated.platform.dto.*;
-import com.iflytek.integrated.platform.entity.*;
-import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
-import com.iflytek.integrated.platform.utils.PlatformUtil;
-import com.iflytek.medicalboot.core.id.BatchUidService;
-import com.querydsl.core.QueryResults;
-import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.StringPath;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
 import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
 import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
@@ -46,6 +10,62 @@ import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
 import static com.iflytek.integrated.platform.entity.QTSysHospitalConfig.qTSysHospitalConfig;
 import static com.iflytek.integrated.platform.entity.QTType.qTType;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iflytek.integrated.common.dto.ResultDto;
+import com.iflytek.integrated.common.dto.TableData;
+import com.iflytek.integrated.common.intercept.UserLoginIntercept;
+import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.common.validator.ValidationResult;
+import com.iflytek.integrated.common.validator.ValidatorHelper;
+import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.Constant;
+import com.iflytek.integrated.platform.common.RedisService;
+import com.iflytek.integrated.platform.dto.BusinessInterfaceDto;
+import com.iflytek.integrated.platform.dto.InDebugResDto;
+import com.iflytek.integrated.platform.dto.InterfaceDebugDto;
+import com.iflytek.integrated.platform.dto.InterfaceDto;
+import com.iflytek.integrated.platform.dto.JoltDebuggerDto;
+import com.iflytek.integrated.platform.dto.MockTemplateDto;
+import com.iflytek.integrated.platform.dto.ParamsDto;
+import com.iflytek.integrated.platform.dto.RedisDto;
+import com.iflytek.integrated.platform.dto.RedisKeyDto;
+import com.iflytek.integrated.platform.entity.TBusinessInterface;
+import com.iflytek.integrated.platform.entity.TInterface;
+import com.iflytek.integrated.platform.entity.TInterfaceParam;
+import com.iflytek.integrated.platform.entity.TSysConfig;
+import com.iflytek.integrated.platform.entity.TType;
+import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
+import com.iflytek.integrated.platform.utils.PlatformUtil;
+import com.iflytek.medicalboot.core.id.BatchUidService;
+import com.querydsl.core.QueryResults;
+import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.StringPath;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 接口管理
@@ -172,7 +192,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 					.select(Projections.bean(TBusinessInterface.class, qTBusinessInterface.id,
 							qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId,
 							qTProject.projectCode.as("projectCode"), qTInterface.interfaceUrl.as("interfaceUrl"),
-							qTSys.sysCode.as("sysCode")))
+							qTSys.sysCode.as("sysCode"), qTInterface.inParamFormatType.as("sysIntfInParamFormatType"),
+							qTInterface.sysId.as("requestSysId")))
 					.from(qTBusinessInterface).leftJoin(qTInterface)
 					.on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id)).leftJoin(qTSysConfig)
 					.on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId)).leftJoin(qTPlatform)
@@ -187,11 +208,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			String interfaceId = StringUtils.isNotEmpty(businessInterface.getRequestInterfaceId())
 					? businessInterface.getRequestInterfaceId()
 					: "";
-			List<String> paramNames = sqlQueryFactory.select(qTInterfaceParam.paramName).from(qTInterfaceParam)
-					.where(qTInterfaceParam.interfaceId.eq(interfaceId)
-							.and(qTInterfaceParam.paramInOut.eq(Constant.ParmInOut.IN)))
-					.fetch();
-
 			// 获取医院名称列表
 			List<String> sysconfigIds = new ArrayList<>();
 			businessInterfaces.forEach(bi -> {
@@ -209,10 +225,32 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 					.fetch();
 			// 拼接实体
 			InDebugResDto resDto = new InDebugResDto();
+			if ("2".equals(businessInterface.getSysIntfInParamFormatType())) {
+				String inparamFormat = sqlQueryFactory.select(qTInterface.inParamFormat).from(qTInterface).where(
+						qTInterface.id.eq(interfaceId).and(qTInterface.sysId.eq(businessInterface.getRequestSysId())))
+						.fetchFirst();
+				resDto.setWsInParams(inparamFormat);
+				String wsUrl = niFiRequestUtil.getWsServiceUrl();
+				if (!wsUrl.endsWith("/")) {
+					wsUrl = wsUrl + "/";
+				}
+				String suffix = "services/" + businessInterface.getSysCode() + "/" + hospitalCodes.get(0);
+				wsUrl = wsUrl + suffix;
+				resDto.setWsdlUrl(wsUrl);
+				List<String> wsOperationNames = PlatformUtil.getWsdlOperationNames(wsUrl);
+				resDto.setWsOperationNames(wsOperationNames);
+				resDto.setSysIntfParamFormatType("2");
+			} else {
+				List<String> paramNames = sqlQueryFactory.select(qTInterfaceParam.paramName).from(qTInterfaceParam)
+						.where(qTInterfaceParam.interfaceId.eq(interfaceId)
+								.and(qTInterfaceParam.paramInOut.eq(Constant.ParmInOut.IN)))
+						.fetch();
+				resDto.setInParams(paramNames);
+				resDto.setSysIntfParamFormatType("3");
+			}
 			resDto.setFuncode(businessInterface.getInterfaceUrl());
-			resDto.setProductcode(businessInterface.getProductCode());
+			resDto.setProductcode(businessInterface.getSysCode());
 			resDto.setProjectcode(businessInterface.getProjectCode());
-			resDto.setInParams(paramNames);
 			resDto.setOrgids(hospitalCodes);
 			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取接口调试显示数据成功!", resDto);
 		} catch (Exception e) {
@@ -224,8 +262,17 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
 	@PostMapping("/interfaceDebug")
 	@ApiOperation(value = "请求方接口调试", notes = "请求方接口调试")
-	public ResultDto<String> interfaceDebug(String format) {
-		String result = niFiRequestUtil.interfaceDebug(format);
+	public ResultDto<String> interfaceDebug(@RequestBody InterfaceDebugDto degubDto) {
+		String result = "";
+		if ("2".equals(degubDto.getSysIntfParamFormatType())) {
+			String wsdlUrl = degubDto.getWsdlUrl();
+			String methodName = degubDto.getWsOperationName();
+			String funcode = degubDto.getFuncode();
+			String param = degubDto.getFormat();
+			result = PlatformUtil.invokeWsService(wsdlUrl, methodName, funcode, param);
+		} else {
+			result = niFiRequestUtil.interfaceDebug(degubDto.getFormat());
+		}
 		if (StringUtils.isBlank(result)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "接口调试失败");
 		}
@@ -397,10 +444,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		long execute = sqlQueryFactory.update(qTInterface).set(qTInterface.interfaceName, interfaceName)
 				.set(qTInterface.typeId, interfaceTypeId).set(qTInterface.interfaceUrl, interfaceUrl)
 				.set(qTInterface.inParamFormat, inParamFormat).set(qTInterface.outParamFormat, outParamFormat)
-				.set(qTInterface.inParamFormatType, inParamFormatType).set(qTInterface.outParamFormatType, outParamFormatType)
-				.set(qTInterface.updatedTime, new Date()).set(qTInterface.paramOutStatus, "")
-				.set(qTInterface.paramOutStatusSuccess, "").set(qTInterface.updatedBy, loginUserName)
-				.where(qTInterface.id.eq(id)).execute();
+				.set(qTInterface.inParamFormatType, inParamFormatType)
+				.set(qTInterface.outParamFormatType, outParamFormatType).set(qTInterface.updatedTime, new Date())
+				.set(qTInterface.paramOutStatus, "").set(qTInterface.paramOutStatusSuccess, "")
+				.set(qTInterface.updatedBy, loginUserName).where(qTInterface.id.eq(id)).execute();
 		if (execute < 1) {
 			throw new RuntimeException("修改标准接口信息失败!");
 		}
@@ -458,8 +505,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	@GetMapping("/getInterfaceType")
 	public ResultDto<List<TType>> getInterfaceType() {
 		List<TType> vendors = sqlQueryFactory
-				.select(Projections.bean(TType.class, qTType.id, qTType.typeCode, qTType.typeName, qTType.updatedTime)).from(qTType)
-				.where(qTType.type.eq(1)).orderBy(qTType.createdTime.desc()).fetch();
+				.select(Projections.bean(TType.class, qTType.id, qTType.typeCode, qTType.typeName, qTType.updatedTime))
+				.from(qTType).where(qTType.type.eq(1)).orderBy(qTType.createdTime.desc()).fetch();
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "数据获取成功!", vendors);
 	}
 
@@ -472,7 +519,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			@ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
 		// 查询条件
 		ArrayList<Predicate> list = new ArrayList<>();
-		if(StringUtils.isNotEmpty(sysId)){
+		if (StringUtils.isNotEmpty(sysId)) {
 			list.add(qTInterface.sysId.eq(sysId));
 		}
 		if (StringUtils.isNotEmpty(typeId)) {
@@ -571,7 +618,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			// 请求方标准接口
 			String requestInterfaceId = tbi.getRequestInterfaceId();
 			dto.setRequestInterfaceId(requestInterfaceId);
-			//获取请求方接口类型
+			// 获取请求方接口类型
 			ArrayList<Predicate> list = new ArrayList<>();
 			if (StringUtils.isNotEmpty(requestInterfaceId)) {
 				list.add(qTInterface.id.eq(requestInterfaceId));
@@ -590,7 +637,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			tbiList = businessInterfaceService.getTBusinessInterfaceList(tbi.getRequestInterfaceId(),
 					tbi.getRequestSysconfigId());
 			if (CollectionUtils.isNotEmpty(tbiList)) {
-				for(TBusinessInterface tb : tbiList ){
+				for (TBusinessInterface tb : tbiList) {
 					String requestdSysconfigId = tb.getRequestedSysconfigId();
 					TSysConfig config = sysConfigService.getOne(requestdSysconfigId);
 					tb.setRequestedSysId(config.getSysId());
@@ -883,7 +930,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	@ApiOperation(value = "根据系统获取标准接口(新增接口)")
 	@GetMapping("/getInterBySys")
 	public ResultDto<List<TInterface>> getInterBySys(
-			@ApiParam(value = "系统id") @RequestParam(value = "sysId", required = true) String sysId , 
+			@ApiParam(value = "系统id") @RequestParam(value = "sysId", required = true) String sysId,
 			@ApiParam(value = "接口分类id") @RequestParam(value = "typeId", required = false) String typeId) {
 		ArrayList<Predicate> list = new ArrayList<>();
 		if (StringUtils.isNotEmpty(sysId)) {
@@ -917,7 +964,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	 * @param sysId
 	 * @return
 	 */
-	public List<TInterface> getObjBySysId(String sysId){
+	public List<TInterface> getObjBySysId(String sysId) {
 		List<TInterface> list = sqlQueryFactory.select(qTInterface).from(qTInterface).where(qTInterface.sysId.eq(sysId))
 				.fetch();
 		return list;
@@ -954,20 +1001,18 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
 	@ApiOperation(value = "根据类型id获取关联接口", notes = "根据类型id获取关联接口")
 	@GetMapping("/getInterfaceListById/{typeId}")
-	public ResultDto getInterfaceListById(@ApiParam(value = "类型id") @PathVariable String typeId){
-		try{
+	public ResultDto getInterfaceListById(@ApiParam(value = "类型id") @PathVariable String typeId) {
+		try {
 			ArrayList<Predicate> list = new ArrayList<>();
 			list.add(qTInterface.typeId.eq(typeId));
 			list.add(qTType.type.eq(1));
-			List<TInterface> queryResults = sqlQueryFactory
-					.select(qTInterface).from(qTInterface).leftJoin(qTType)
-					.on(qTInterface.typeId.eq(qTType.id)).where(list.toArray(new Predicate[list.size()]))
-					.fetch();
-			if(queryResults.size()>0){
+			List<TInterface> queryResults = sqlQueryFactory.select(qTInterface).from(qTInterface).leftJoin(qTType)
+					.on(qTInterface.typeId.eq(qTType.id)).where(list.toArray(new Predicate[list.size()])).fetch();
+			if (queryResults.size() > 0) {
 				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该类型有关联的接口!");
 			}
 			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "该类型没有关联的接口!");
-		}catch (Exception e) {
+		} catch (Exception e) {
 			logger.error("根据类型id获取关联接口失败! MSG:{}", ExceptionUtil.dealException(e));
 			e.printStackTrace();
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据类型id获取关联接口失败!");

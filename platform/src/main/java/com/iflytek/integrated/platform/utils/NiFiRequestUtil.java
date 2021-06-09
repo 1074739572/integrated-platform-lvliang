@@ -39,6 +39,9 @@ public class NiFiRequestUtil {
 
     @Value("${param.jolt.debugger}")
     private String joltDebuggerUrl;
+    
+    @Value("${param.wsdl.url}")
+    private String wsdlServiceUrl;
 
     @Autowired
     public SQLQueryFactory sqlQueryFactory;
@@ -197,5 +200,8 @@ public class NiFiRequestUtil {
             throw new RuntimeException("调取校验调试接口错误");
         }
     }
-
+    
+    public String getWsServiceUrl() {
+    	return wsdlServiceUrl;
+    }
 }
