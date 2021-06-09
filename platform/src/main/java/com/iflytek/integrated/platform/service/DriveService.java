@@ -116,7 +116,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
 			QueryResults<TDrive> queryResults = sqlQueryFactory
 					.select(Projections.bean(TDrive.class, qTDrive.id, qTDrive.driveCode, qTDrive.driveName,
 							qTDrive.driveContent, qTDrive.driveInstruction, qTDrive.createdTime, qTDrive.typeId,
-							qTDrive.dependentPath,
+							qTDrive.dependentPath, qTDrive.driveCallType,
 							new CaseBuilder().when(qTDrive.driveCallType.eq("1")).then("请求方").otherwise("被请求方")
 									.as("driveCallTypeName"),
 							qTType.typeName.as("driveTypeName")))

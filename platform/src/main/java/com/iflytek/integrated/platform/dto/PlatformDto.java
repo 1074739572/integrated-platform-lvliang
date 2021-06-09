@@ -15,6 +15,8 @@ import lombok.Data;
 @ApiModel("平台")
 public class PlatformDto extends TPlatform {
 
+	private String sysId;
+
 	private SysConfigDto sysConfig;
 
 }

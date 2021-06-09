@@ -107,9 +107,9 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 
 	@Transactional(rollbackFor = Exception.class)
 	@ApiOperation(value = "系统管理删除")
-	@PostMapping("/delSysById")
+	@PostMapping("/delSysById/{id}")
 	public ResultDto<String> delSysById(
-			@ApiParam(value = "系统id") @RequestParam(value = "id", required = true) String id) {
+			@ApiParam(value = "系统id") @PathVariable(value = "id", required = true) String id) {
 		// 删除系统前先查询该关联数据是否有项目相关联
 		List<TSysConfig> tpplList = sysConfigService.getObjBySysId(id);
 		if (CollectionUtils.isNotEmpty(tpplList)) {

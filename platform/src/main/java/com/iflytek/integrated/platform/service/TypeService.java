@@ -108,7 +108,7 @@ public class TypeService extends BaseService<TType, String, StringPath> {
 
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "删除类型", notes = "删除类型")
-    @DeleteMapping("/deleteType/{typeIds}")
+    @PostMapping("/deleteType/{typeIds}")
     public ResultDto<String> deleteType(
             @ApiParam(value = "类型id") @PathVariable(value = "typeIds", required = true) String typeIds) {
         if (StringUtils.isBlank(typeIds)) {

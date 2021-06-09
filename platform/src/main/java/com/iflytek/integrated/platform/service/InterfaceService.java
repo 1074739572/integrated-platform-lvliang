@@ -234,9 +234,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
 	@Transactional(rollbackFor = Exception.class)
 	@ApiOperation(value = "系统接口删除", notes = "系统接口删除")
-	@PostMapping("/delInterfaceById")
+	@PostMapping("/delInterfaceById/{id}")
 	public ResultDto<String> delInterfaceById(
-			@ApiParam(value = "标准接口id") @RequestParam(value = "id", required = true) String id) {
+			@ApiParam(value = "标准接口id") @PathVariable(value = "id", required = true) String id) {
 		List<TBusinessInterface> list = businessInterfaceService.getListByInterfaceId(id);
 		if (CollectionUtils.isNotEmpty(list)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该标准接口已有接口配置关联,无法删除!", "该标准接口已有接口配置关联,无法删除!");
