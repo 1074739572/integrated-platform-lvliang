@@ -246,6 +246,11 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 	private ResultDto updatePlatform(PlatformDto dto, String loginUserName) {
 		// 平台id
 		String platformId = dto.getId();
+        // redis缓存信息获取
+        ArrayList<Predicate> arr = new ArrayList<>();
+        arr.add(qTPlatform.id.eq(platformId));
+        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+
 		long l = sqlQueryFactory.update(qTPlatform).set(qTPlatform.platformName, dto.getPlatformName())
 				.set(qTPlatform.platformType, dto.getPlatformType()).set(qTPlatform.etlServerUrl, dto.getEtlServerUrl())
 				.set(qTPlatform.etlUser, dto.getEtlUser()).set(qTPlatform.etlPwd, dto.getEtlPwd())
@@ -337,7 +342,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 				}
 			}
 		}
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "修改平台成功!", new RedisDto(platformId).toString());
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "修改平台成功!", new RedisDto(redisKeyDtoList).toString());
 	}
 
 	@Transactional(rollbackFor = Exception.class)
