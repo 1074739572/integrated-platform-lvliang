@@ -37,6 +37,8 @@ public class TBusinessInterface implements Serializable {
     private String inParamSchema;
 
     private String inParamTemplate;
+    
+    private String inParamTemplateType;
 
     private String inParamFormatType;
 
@@ -45,6 +47,8 @@ public class TBusinessInterface implements Serializable {
     private String outParamSchema;
 
     private String outParamTemplate;
+    
+    private String outParamTemplateType;
 
     private String outParamFormatType;
 

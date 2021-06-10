@@ -47,6 +47,8 @@ public class QTBusinessInterface extends com.querydsl.sql.RelationalPathBase<TBu
     public final StringPath inParamSchema = createString("inParamSchema");
 
     public final StringPath inParamTemplate = createString("inParamTemplate");
+    
+    public final StringPath inParamTemplateType = createString("inParamTemplateType");
 
     public final StringPath interfaceType = createString("interfaceType");
 
@@ -63,6 +65,8 @@ public class QTBusinessInterface extends com.querydsl.sql.RelationalPathBase<TBu
     public final StringPath outParamSchema = createString("outParamSchema");
 
     public final StringPath outParamTemplate = createString("outParamTemplate");
+    
+    public final StringPath outParamTemplateType = createString("outParamTemplateType");
 
     public final StringPath pluginId = createString("pluginId");
 
@@ -115,22 +119,24 @@ public class QTBusinessInterface extends com.querydsl.sql.RelationalPathBase<TBu
         addMetadata(pluginId, ColumnMetadata.named("PLUGIN_ID").withIndex(9).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(inParamFormat, ColumnMetadata.named("IN_PARAM_FORMAT").withIndex(10).ofType(Types.LONGVARCHAR).withSize(65535));
         addMetadata(inParamSchema, ColumnMetadata.named("IN_PARAM_SCHEMA").withIndex(11).ofType(Types.LONGVARCHAR).withSize(65535));
-        addMetadata(inParamTemplate, ColumnMetadata.named("IN_PARAM_TEMPLATE").withIndex(12).ofType(Types.LONGVARCHAR).withSize(65535));
-        addMetadata(inParamFormatType, ColumnMetadata.named("IN_PARAM_FORMAT_TYPE").withIndex(13).ofType(Types.VARCHAR).withSize(1).notNull());
-        addMetadata(outParamFormat, ColumnMetadata.named("OUT_PARAM_FORMAT").withIndex(14).ofType(Types.LONGVARCHAR).withSize(65535));
-        addMetadata(outParamSchema, ColumnMetadata.named("OUT_PARAM_SCHEMA").withIndex(15).ofType(Types.LONGVARCHAR).withSize(65535));
-        addMetadata(outParamTemplate, ColumnMetadata.named("OUT_PARAM_TEMPLATE").withIndex(16).ofType(Types.LONGVARCHAR).withSize(65535));
-        addMetadata(outParamFormatType, ColumnMetadata.named("OUT_PARAM_FORMAT_TYPE").withIndex(17).ofType(Types.VARCHAR).withSize(1).notNull());
-        addMetadata(mockTemplate, ColumnMetadata.named("MOCK_TEMPLATE").withIndex(18).ofType(Types.LONGVARCHAR).withSize(65535));
-        addMetadata(mockStatus, ColumnMetadata.named("MOCK_STATUS").withIndex(19).ofType(Types.VARCHAR).withSize(1).notNull());
-        addMetadata(status, ColumnMetadata.named("STATUS").withIndex(20).ofType(Types.VARCHAR).withSize(1).notNull());
-        addMetadata(excErrStatus, ColumnMetadata.named("EXC_ERR_STATUS").withIndex(21).ofType(Types.VARCHAR).withSize(1).notNull());
-        addMetadata(excErrOrder, ColumnMetadata.named("EXC_ERR_ORDER").withIndex(22).ofType(Types.INTEGER).withSize(10).notNull());
-        addMetadata(createdBy, ColumnMetadata.named("CREATED_BY").withIndex(23).ofType(Types.VARCHAR).withSize(32).notNull());
-        addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(24).ofType(Types.TIMESTAMP).withSize(19).notNull());
-        addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(25).ofType(Types.VARCHAR).withSize(32).notNull());
-        addMetadata(updatedTime, ColumnMetadata.named("UPDATED_TIME").withIndex(26).ofType(Types.TIMESTAMP).withSize(19).notNull());
-        addMetadata(mockIsUse, ColumnMetadata.named("MOCK_IS_USE").withIndex(37).ofType(Types.INTEGER).withSize(10).notNull());
+        addMetadata(inParamTemplateType, ColumnMetadata.named("IN_PARAM_TEMPLATE_TYPE").withIndex(12).ofType(Types.TINYINT).withSize(1));
+        addMetadata(inParamTemplate, ColumnMetadata.named("IN_PARAM_TEMPLATE").withIndex(13).ofType(Types.LONGVARCHAR).withSize(65535));
+        addMetadata(inParamFormatType, ColumnMetadata.named("IN_PARAM_FORMAT_TYPE").withIndex(14).ofType(Types.VARCHAR).withSize(1).notNull());
+        addMetadata(outParamFormat, ColumnMetadata.named("OUT_PARAM_FORMAT").withIndex(15).ofType(Types.LONGVARCHAR).withSize(65535));
+        addMetadata(outParamSchema, ColumnMetadata.named("OUT_PARAM_SCHEMA").withIndex(16).ofType(Types.LONGVARCHAR).withSize(65535));
+        addMetadata(outParamTemplateType, ColumnMetadata.named("OUT_PARAM_TEMPLATE_TYPE").withIndex(17).ofType(Types.TINYINT).withSize(1));
+        addMetadata(outParamTemplate, ColumnMetadata.named("OUT_PARAM_TEMPLATE").withIndex(18).ofType(Types.LONGVARCHAR).withSize(65535));
+        addMetadata(outParamFormatType, ColumnMetadata.named("OUT_PARAM_FORMAT_TYPE").withIndex(19).ofType(Types.VARCHAR).withSize(1).notNull());
+        addMetadata(mockTemplate, ColumnMetadata.named("MOCK_TEMPLATE").withIndex(20).ofType(Types.LONGVARCHAR).withSize(65535));
+        addMetadata(mockStatus, ColumnMetadata.named("MOCK_STATUS").withIndex(21).ofType(Types.VARCHAR).withSize(1).notNull());
+        addMetadata(status, ColumnMetadata.named("STATUS").withIndex(22).ofType(Types.VARCHAR).withSize(1).notNull());
+        addMetadata(excErrStatus, ColumnMetadata.named("EXC_ERR_STATUS").withIndex(23).ofType(Types.VARCHAR).withSize(1).notNull());
+        addMetadata(excErrOrder, ColumnMetadata.named("EXC_ERR_ORDER").withIndex(24).ofType(Types.INTEGER).withSize(10).notNull());
+        addMetadata(mockIsUse, ColumnMetadata.named("MOCK_IS_USE").withIndex(25).ofType(Types.INTEGER).withSize(10).notNull());
+        addMetadata(createdBy, ColumnMetadata.named("CREATED_BY").withIndex(26).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(27).ofType(Types.TIMESTAMP).withSize(19).notNull());
+        addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(28).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(updatedTime, ColumnMetadata.named("UPDATED_TIME").withIndex(29).ofType(Types.TIMESTAMP).withSize(19).notNull());
     }
 
 }
