@@ -465,13 +465,21 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 			@ApiParam(value = "平台id") @RequestParam(value = "id", required = true) String id,
 			@ApiParam(value = "平台状态 1启用 2停用") @RequestParam(value = "platformStatus", required = true) String platformStatus) {
 		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
+		if (StringUtils.isBlank(loginUserName)) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+		}
+		// redis缓存信息获取
+		ArrayList<Predicate> arr = new ArrayList<>();
+		arr.add(qTPlatform.id.eq(id));
+		List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+
 		long l = sqlQueryFactory.update(qTPlatform).set(qTPlatform.platformStatus, platformStatus)
 				.set(qTPlatform.updatedTime, new Date()).set(qTPlatform.updatedBy, loginUserName)
 				.where(qTPlatform.id.eq(id)).execute();
 		if (l < 1) {
 			throw new RuntimeException("平台状态更改失败!");
 		}
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "平台状态更改成功!", new RedisDto(id).toString());
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "平台状态更改成功!", new RedisDto(redisKeyDtoList).toString());
 	}
 
 	@Transactional(rollbackFor = Exception.class)
