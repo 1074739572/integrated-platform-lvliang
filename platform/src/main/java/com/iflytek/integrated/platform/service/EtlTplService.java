@@ -147,12 +147,20 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 			if (tplFiles == null || tplFiles.length == 0) {
 				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到上传文件!", "没有获取到上传文件!");
 			}
+			String exsitsFileNames = "";
+			int insetNum = 0;
 			for (MultipartFile file : tplFiles) {
 				String fileName = file.getOriginalFilename();
 				fileName = fileName.substring(0, fileName.lastIndexOf("."));
 				InputStream is = file.getInputStream();
 				String tplContent = IOUtils.toString(is, "UTF-8");
 				is.close();
+				String tplId = sqlQueryFactory.select(qTEtlTpl.id).from(qTEtlTpl).where(qTEtlTpl.tplName.eq(fileName))
+						.fetchFirst();
+				if (StringUtils.isNotBlank(tplId)) {
+					exsitsFileNames += fileName + ",";
+					continue;
+				}
 				String id = batchUidService.getUid(qTEtlTpl.getTableName()) + "";
 				insertClause.set(qTEtlTpl.id, id).set(qTEtlTpl.tplName, fileName).set(qTEtlTpl.tplType, tplType)
 						.set(qTEtlTpl.tplFunType, tplFunType).set(qTEtlTpl.tplContent, tplContent)
@@ -161,9 +169,25 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 						.set(qTEtlTpl.createdTime, new Date())
 						.set(qTEtlTpl.updatedBy, loginUserName != null ? loginUserName : "")
 						.set(qTEtlTpl.updatedTime, new Date()).addBatch();
+				insetNum++;
 			}
-			long insertCount = insertClause.execute();
-			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "流程模板文件上传成功", insertCount + "");
+			if (StringUtils.isNotBlank(exsitsFileNames)) {
+				if (exsitsFileNames.endsWith(",")) {
+					exsitsFileNames = exsitsFileNames.substring(0, exsitsFileNames.lastIndexOf(","));
+				}
+				exsitsFileNames = "[" + exsitsFileNames + "]";
+			}
+			if (insetNum == tplFiles.length) {
+				long insertCount = insertClause.execute();
+				return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "流程模板文件上传成功", insertCount + "");
+			} else if (insetNum > 0 && insetNum < tplFiles.length) {
+				long insertCount = insertClause.execute();
+				return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "流程模板文件部分上传成功,文件" + exsitsFileNames + "已存在",
+						insertCount + "");
+			} else {
+				return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "所有流程模板文件都已存在！", "");
+			}
+
 		} catch (Exception e) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "上传文件入库处理失败", e.getLocalizedMessage());
 		}

@@ -201,17 +201,23 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 			boolean storehosconfig = false;
 			for (int i = 0; i < allConfig.size(); i++) {
 				TSysConfig tvc = allConfig.get(i);
+				if(StringUtils.isBlank(tvc.getPlatformId())){
+					tvc.setPlatformId(platformId);
+				}
+				if(StringUtils.isBlank(tvc.getProjectId())) {
+					tvc.setProjectId(dto.getProjectId());
+				}
+				if("2".equals(dto.getPlatformType())) {
+					tvc.setSysConfigType(3);
+					tvc.setSysId("0");
+					tvc.setConnectionType("0");
+				}
 				List<SysHospitalDto> sysHosList = tvc.getHospitalConfigs();
 				String sysConfigId = batchUidService.getUid(qTSysConfig.getTableName()) + "";
 				tvc.setId(sysConfigId);
 				tvc.setProjectId(dto.getProjectId());
 				tvc.setPlatformId(platformId);
-				if (tvc.getSysConfigType() == null || tvc.getSysConfigType() == 3) {
-					tvc.setSysConfigType(3);
-					tvc.setInnerIdx(sysConfigId);
-					tvc.setSysId(sysConfigId);
-				}
-				if (tvc.getSysConfigType() == 2) {
+				if (tvc.getSysConfigType() != 1) {
 					tvc.setInnerIdx(sysConfigId);
 				}
 				tvc.setCreatedTime(new Date());
@@ -259,6 +265,17 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		if (allConfig.size() > 0) {
 			for (int i = 0; i < allConfig.size(); i++) {
 				TSysConfig tvc = allConfig.get(i);
+				if(StringUtils.isBlank(tvc.getPlatformId())){
+					tvc.setPlatformId(platformId);
+				}
+				if(StringUtils.isBlank(tvc.getProjectId())) {
+					tvc.setProjectId(dto.getProjectId());
+				}
+				if("2".equals(dto.getPlatformType())) {
+					tvc.setSysConfigType(3);
+					tvc.setSysId("0");
+					tvc.setConnectionType("0");
+				}
 				tvc.setProjectId(dto.getProjectId());
 				tvc.setPlatformId(platformId);
 				String sysConfigId = tvc.getId();
@@ -266,12 +283,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 				if (StringUtils.isBlank(sysConfigId)) {
 					sysConfigId = batchUidService.getUid(qTSysConfig.getTableName()) + "";
 					tvc.setId(sysConfigId);
-					if (tvc.getSysConfigType() == null || tvc.getSysConfigType() == 3) {
-						tvc.setSysConfigType(3);
-						tvc.setInnerIdx(sysConfigId);
-						tvc.setSysId(sysConfigId);
-					}
-					if (tvc.getSysConfigType() == 2) {
+					if (tvc.getSysConfigType() != 1) {
 						tvc.setInnerIdx(sysConfigId);
 					}
 					tvc.setCreatedTime(new Date());
@@ -373,12 +385,23 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		if (allConfig.size() > 0) {
 			for (int i = 0; i < allConfig.size(); i++) {
 				TSysConfig tvc = allConfig.get(i);
+				if(StringUtils.isBlank(tvc.getPlatformId())){
+					tvc.setPlatformId(platformId);
+				}
+				if(StringUtils.isBlank(tvc.getProjectId())) {
+					tvc.setProjectId(platform.getProjectId());
+				}
 				String sysConfigId = tvc.getId();
+				if("2".equals(platform.getPlatformType())) {
+					tvc.setSysConfigType(3);
+					tvc.setSysId("0");
+					tvc.setConnectionType("0");
+				}
 				// 新增厂商信息
 				if (StringUtils.isBlank(sysConfigId)) {
 					sysConfigId = batchUidService.getUid(qTSysConfig.getTableName()) + "";
 					tvc.setId(sysConfigId);
-					if (tvc.getSysConfigType() == 2) {
+					if (tvc.getSysConfigType() != 1) {
 						tvc.setInnerIdx(sysConfigId);
 					}
 					tvc.setCreatedTime(new Date());
@@ -399,7 +422,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 						syshosConfigClause.execute();
 					}
 				} else {
-					if (tvc.getSysConfigType() == 2) {
+					if (tvc.getSysConfigType() != 1) {
 						tvc.setInnerIdx(sysConfigId);
 					}
 					tvc.setUpdatedTime(new Date());
