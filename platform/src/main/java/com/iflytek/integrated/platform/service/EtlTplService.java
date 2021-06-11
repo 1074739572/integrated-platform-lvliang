@@ -50,6 +50,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
+import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.OAuthApiClient;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
@@ -135,11 +136,11 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 			@RequestParam("tplFiles") MultipartFile[] tplFiles, String tplDesp) {
 
 		// 校验是否获取到登录用户
-		String loginUserName = "admin";
-//		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-//		if (StringUtils.isBlank(loginUserName)) {
-//			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
-//		}
+//		String loginUserName = "admin";
+		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
+		if (StringUtils.isBlank(loginUserName)) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+		}
 
 		SQLInsertClause insertClause = sqlQueryFactory.insert(qTEtlTpl);
 		// 流程模板
@@ -198,11 +199,11 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 	public ResultDto<String> editEtlTpl(@PathVariable String id, @RequestBody EtlTplDto tplDto) {
 
 		// 校验是否获取到登录用户
-		String loginUserName = "admin";
-//		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-//		if (StringUtils.isBlank(loginUserName)) {
-//			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
-//		}
+//		String loginUserName = "admin";
+		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
+		if (StringUtils.isBlank(loginUserName)) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+		}
 
 		SQLUpdateClause updateClause = sqlQueryFactory.update(qTEtlTpl);
 		// 流程模板

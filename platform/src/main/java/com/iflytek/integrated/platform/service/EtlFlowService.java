@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
+import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.EtlFlowDto;
@@ -123,11 +124,10 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 	public ResultDto<String> saveEtlFlow(@RequestBody EtlFlowDto flowDto) {
 
 		// 校验是否获取到登录用户
-		String loginUserName = "admin";
-//		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-//		if (StringUtils.isBlank(loginUserName)) {
-//			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
-//		}
+		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
+		if (StringUtils.isBlank(loginUserName)) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+		}
 		EtlGroupDto groupDto = flowDto.getEtlGroupDto();
 		String groupId = "";
 		try {
@@ -160,11 +160,10 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 	public ResultDto<String> editEtlFlow(@RequestBody EtlFlowDto flowDto) {
 
 		// 校验是否获取到登录用户
-		String loginUserName = "admin";
-//		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-//		if (StringUtils.isBlank(loginUserName)) {
-//			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
-//		}
+		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
+		if (StringUtils.isBlank(loginUserName)) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+		}
 		EtlGroupDto groupDto = flowDto.getEtlGroupDto();
 		if (groupDto == null) {
 			groupDto = new EtlGroupDto();

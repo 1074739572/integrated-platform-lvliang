@@ -90,11 +90,11 @@ public class EtlGroupService extends BaseService<TEtlGroup, String, StringPath> 
 	public ResultDto<String> editEtlGroup(EtlGroupDto groupDto) {
 
 		// 校验是否获取到登录用户
-		String loginUserName = "admin";
-//		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-//		if (StringUtils.isBlank(loginUserName)) {
-//			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
-//		}
+//		String loginUserName = "admin";
+		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
+		if (StringUtils.isBlank(loginUserName)) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+		}
 		String etlGroupName = groupDto.getEtlGroupName();
 		String etlGroupId = groupDto.getEtlGroupId();
 		String sysId = groupDto.getSysId();
