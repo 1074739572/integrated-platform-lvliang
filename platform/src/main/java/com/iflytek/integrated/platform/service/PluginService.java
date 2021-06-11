@@ -121,6 +121,8 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
                             qTPlugin.pluginInstruction,
                             qTPlugin.createdTime,
                             qTPlugin.typeId,
+                            qTPlugin.dependentPath,
+                            qTPlugin.updatedTime,
                             qTType.typeName.as("pluginTypeName")
                     ))
                     .from(qTPlugin)
