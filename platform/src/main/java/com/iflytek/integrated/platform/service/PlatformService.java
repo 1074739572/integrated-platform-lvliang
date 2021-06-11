@@ -267,6 +267,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		List<TSysConfig> allConfig = new ArrayList<>();
 		allConfig.add(configDto.getRequestSysConfig());
 		allConfig.addAll(configDto.getRequestedSysConfigs());
+		allConfig.remove(null);
 		if (allConfig.size() > 0) {
 			for (int i = 0; i < allConfig.size(); i++) {
 				TSysConfig tvc = allConfig.get(i);
