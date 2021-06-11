@@ -341,10 +341,10 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 					}
 				}
 				if (StringUtils.isBlank(uploadGroupId)) {
-					return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "调用NIFI API异常", "未获取到ETL服务器组ID信息");
+					return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "调用NIFI API异常,未获取到ETL服务器组ID信息", "未获取到ETL服务器组ID信息");
 				}
 			} catch (Exception e) {
-				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "调用NIFI API异常", e.getLocalizedMessage());
+				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "调用NIFI API异常,请检查项目分类下etl服务器配置信息", e.getLocalizedMessage());
 			}
 			if (result == null || result.size() == 0) {
 				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "上传模板文件失败", "未获取到模板文件数据");
