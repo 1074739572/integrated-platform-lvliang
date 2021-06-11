@@ -1,11 +1,12 @@
 package com.iflytek.integrated.platform.utils;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.wsdl.Definition;
@@ -16,13 +17,21 @@ import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLReader;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
+import org.apache.cxf.binding.soap.interceptor.ReadHeadersInterceptor;
 import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.endpoint.ClientCallback;
+import org.apache.cxf.interceptor.Interceptor;
+import org.apache.cxf.io.CacheAndWriteOutputStream;
+import org.apache.cxf.io.CachedOutputStream;
+import org.apache.cxf.io.CachedOutputStreamCallback;
 import org.apache.cxf.jaxws.endpoint.dynamic.JaxWsDynamicClientFactory;
-import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
+import org.apache.cxf.message.Message;
+import org.apache.cxf.phase.AbstractPhaseInterceptor;
+import org.apache.cxf.phase.Phase;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
 import org.json.JSONArray;
@@ -194,26 +203,92 @@ public class PlatformUtil {
 	}
 
 	public static String invokeWsService(String wsdlUrl, String methodName, String funCode, String params) {
+		Map<String, String> resultMap = new HashMap<>();
 		Bus bus = BusFactory.getDefaultBus();
-		bus.setProperty("use.async.http.conduit", Boolean.TRUE);
-		bus.setProperty("org.apache.cxf.transport.http.async.MAX_CONNECTIONS", Integer.valueOf(60000));
-		bus.setProperty("org.apache.cxf.transport.http.async.MAX_PER_HOST_CONNECTIONS", Integer.valueOf(60000));
-		bus.setProperty("org.apache.cxf.transport.http.async.SO_TIMEOUT", 0);
+		List<Interceptor<? extends Message>> ininters = bus.getInInterceptors();
+		if (ininters != null && ininters.size() > 0) {
+			for (Interceptor<? extends Message> intc : ininters) {
+				if (intc instanceof ReadHeadersInterceptor) {
+					ininters.remove(intc);
+				}
+			}
+		}
+
+		bus.getInFaultInterceptors().clear();
+		bus.getOutFaultInterceptors().clear();
+		bus.getOutInterceptors().clear();
+		bus.getOutInterceptors().add(new ArtifactOutInterceptor(wsdlUrl, methodName, resultMap));
 		JaxWsDynamicClientFactory clientFactory = JaxWsDynamicClientFactory.newInstance(bus);
-		HTTPClientPolicy policy = new HTTPClientPolicy();
-		policy.setConnectionTimeout(5000);
-		policy.setReceiveTimeout(15000);
-		policy.setAllowChunking(false);
 		Client client = clientFactory.createClient(wsdlUrl);
 		ClientCallback cb = new ClientCallback();
 		try {
 			client.invoke(cb, methodName, funCode, params);
-			Object[] bojs = cb.get(15, TimeUnit.SECONDS);
-			return String.valueOf(bojs[0]);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return e.getMessage();
+		}
+		return resultMap.get("data");
+	}
+
+	static class ArtifactOutInterceptor extends AbstractPhaseInterceptor<Message> {
+
+		private String postUrl;
+
+		private String methodName;
+
+		private Map<String, String> resultMap;
+
+		public ArtifactOutInterceptor(String postUrl, String methodName, Map<String, String> resultMap) {
+			// 这儿使用pre_stream，意思为在流关闭之前
+			super(Phase.PRE_STREAM);
+			this.postUrl = postUrl;
+			this.methodName = methodName;
+			this.resultMap = resultMap;
+		}
+
+		public void handleMessage(Message message) {
+
+			try {
+				OutputStream os = message.getContent(OutputStream.class);
+				CacheAndWriteOutputStream cwos = new CacheAndWriteOutputStream(os);
+				message.setContent(OutputStream.class, cwos);
+				cwos.registerCallback(new LoggingOutCallBack(postUrl, methodName, resultMap));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	static class LoggingOutCallBack implements CachedOutputStreamCallback {
+
+		private String postUrl;
+
+		private String methodName;
+
+		private Map<String, String> resultMap;
+
+		public LoggingOutCallBack(String postUrl, String methodName, Map<String, String> resultMap) {
+			this.postUrl = postUrl;
+			this.methodName = methodName;
+			this.resultMap = resultMap;
+		}
+
+		@Override
+		public void onClose(CachedOutputStream cos) {
+			try {
+				if (cos != null) {
+					String soapxml = IOUtils.toString(cos.getInputStream());
+					System.out.println("Response XML in out Interceptor : " + soapxml);
+					String responseStr = HttpClientCallSoapUtil.doPostSoap1_1(postUrl, soapxml, methodName);
+					System.out.println(responseStr);
+					resultMap.put("data", responseStr);
+				}
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		@Override
+		public void onFlush(CachedOutputStream arg0) {
 		}
 	}
 
