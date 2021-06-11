@@ -183,10 +183,10 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 				return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "流程模板文件上传成功", insertCount + "");
 			} else if (insetNum > 0 && insetNum < tplFiles.length) {
 				long insertCount = insertClause.execute();
-				return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "流程模板文件部分上传成功,文件" + exsitsFileNames + "已存在",
-						insertCount + "");
+				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "流程模板文件部分上传成功,文件" + exsitsFileNames + "已存在",
+						"流程模板文件部分上传成功,文件" + exsitsFileNames + "已存在！成功上传文件数：" + insertCount);
 			} else {
-				return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "所有流程模板文件都已存在！", "");
+				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "流程模板文件都已存在，请先删除后再上传！", "流程模板文件都已存在，请先删除后再上传！");
 			}
 
 		} catch (Exception e) {
