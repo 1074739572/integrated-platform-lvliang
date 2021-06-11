@@ -1,26 +1,5 @@
 package com.iflytek.integrated.platform.service;
 
-import static com.iflytek.integrated.platform.entity.QTEtlFlow.qTEtlFlow;
-import static com.iflytek.integrated.platform.entity.QTEtlGroup.qTEtlGroup;
-import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
-import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
-import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
-
-import java.util.ArrayList;
-import java.util.Date;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
@@ -35,11 +14,24 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.dml.SQLUpdateClause;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.Date;
+
+import static com.iflytek.integrated.platform.entity.QTEtlFlow.qTEtlFlow;
+import static com.iflytek.integrated.platform.entity.QTEtlGroup.qTEtlGroup;
+import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
+import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
+import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 
 /**
  * @author lsn
@@ -72,7 +64,9 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 		if (StringUtils.isNotBlank(queryCondition.getPlatformId())) {
 			list.add(qTEtlGroup.platformId.eq(queryCondition.getPlatformId()));
 		}
-
+		if(StringUtils.isNotBlank(queryCondition.getStatus())){
+			list.add(qTEtlFlow.status.eq(queryCondition.getStatus()));
+		}
 		if (StringUtils.isNotBlank(queryCondition.getGroupId())) {
 			list.add(qTEtlFlow.groupId.eq(queryCondition.getGroupId()));
 		}
@@ -87,7 +81,7 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 		}
 		QueryResults<TEtlFlow> queryResults = sqlQueryFactory.select(Projections.bean(TEtlFlow.class, qTEtlFlow.id,
 				qTEtlFlow.groupId, qTEtlFlow.flowName, qTEtlFlow.etlGroupId, qTEtlFlow.flowConfig, qTEtlFlow.flowDesp,
-				qTEtlFlow.flowTplName, qTEtlFlow.funTplNames,
+				qTEtlFlow.flowTplName, qTEtlFlow.funTplNames, qTEtlFlow.status,
 //				qTProject.projectCode.as("projectCode"),
 				qTEtlGroup.hospitalId, qTEtlGroup.sysId, qTHospital.hospitalName.as("hospitalName"),
 				qTSys.sysName.as("sysName"))).from(qTEtlFlow).leftJoin(qTEtlGroup)
@@ -215,6 +209,9 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 			}
 			if (StringUtils.isNotBlank(flowDto.getFunTplNames())) {
 				updateClause.set(qTEtlFlow.funTplNames, flowDto.getFunTplNames());
+			}
+			if (StringUtils.isNotBlank(flowDto.getStatus())) {
+				updateClause.set(qTEtlFlow.status, flowDto.getStatus());
 			}
 			if (StringUtils.isNotBlank(loginUserName))
 				updateClause.set(qTEtlFlow.updatedBy, loginUserName != null ? loginUserName : "");
