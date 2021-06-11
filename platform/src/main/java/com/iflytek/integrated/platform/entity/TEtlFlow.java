@@ -1,8 +1,8 @@
 package com.iflytek.integrated.platform.entity;
 
-import java.io.Serializable;
-
 import org.springframework.data.annotation.Transient;
+
+import java.io.Serializable;
 
 /**
  * TEtlFlow is a Querydsl bean type
@@ -34,6 +34,8 @@ public class TEtlFlow implements Serializable {
     private String updatedBy;
 
     private java.util.Date updatedTime;
+
+    private String status;
     
     @Transient
     private String sysName;
@@ -194,5 +196,12 @@ public class TEtlFlow implements Serializable {
 		this.platformId = platformId;
 	}
 
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
 }
 

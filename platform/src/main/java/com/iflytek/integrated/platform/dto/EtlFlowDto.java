@@ -1,8 +1,8 @@
 package com.iflytek.integrated.platform.dto;
 
-import java.io.Serializable;
-
 import io.swagger.annotations.ApiModel;
+
+import java.io.Serializable;
 
 /**
  * TEtlFlow is a Querydsl bean type
@@ -27,6 +27,8 @@ public class EtlFlowDto implements Serializable {
 	private String funTplNames;
 
 	private EtlGroupDto etlGroupDto;
+
+	private String status;
 
 	public String getId() {
 		return id;
@@ -100,4 +102,11 @@ public class EtlFlowDto implements Serializable {
 		this.funTplNames = funTplNames;
 	}
 
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
 }
