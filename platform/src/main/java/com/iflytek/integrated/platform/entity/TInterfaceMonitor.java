@@ -13,7 +13,7 @@ public class TInterfaceMonitor implements Serializable {
 
     private String platformId;
 
-    private String productFunctionLinkId;
+    private String sysId;
 
     private String businessInterfaceId;
 
@@ -30,6 +30,8 @@ public class TInterfaceMonitor implements Serializable {
     private String updatedBy;
 
     private java.util.Date updatedTime;
+
+    private String typeId;
 
     public Long getId() {
         return id;
@@ -55,12 +57,12 @@ public class TInterfaceMonitor implements Serializable {
         this.platformId = platformId;
     }
 
-    public String getProductFunctionLinkId() {
-        return productFunctionLinkId;
+    public String getSysId() {
+        return sysId;
     }
 
-    public void setProductFunctionLinkId(String productFunctionLinkId) {
-        this.productFunctionLinkId = productFunctionLinkId;
+    public void setSysId(String sysId) {
+        this.sysId = sysId;
     }
 
     public String getBusinessInterfaceId() {
@@ -127,5 +129,12 @@ public class TInterfaceMonitor implements Serializable {
         this.updatedTime = updatedTime;
     }
 
+    public String getTypeId() {
+        return typeId;
+    }
+
+    public void setTypeId(String typeId) {
+        this.typeId = typeId;
+    }
 }
 

@@ -549,10 +549,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 					String bizSysInterfaces = "";
 					for (String bizName : bizNames) {
 						String sysConfigId = bizName.split("/")[0];
-                        String bizInterfaceName = "";
-						if(bizName.split("/").length > 1){
-                            bizInterfaceName = bizName.split("/")[1];
-                        }
+						String bizInterfaceName = bizName.substring(sysConfigId.length()+1);
 
 						String sysInterface = sqlQueryFactory.select(qTSys.sysName.append("/").append(bizInterfaceName))
 								.from(qTSysConfig).join(qTSys).on(qTSys.id.eq(qTSysConfig.sysId))

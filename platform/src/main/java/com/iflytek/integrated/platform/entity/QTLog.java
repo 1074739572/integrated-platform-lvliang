@@ -1,14 +1,15 @@
 package com.iflytek.integrated.platform.entity;
 
-import static com.querydsl.core.types.PathMetadataFactory.*;
-
-import com.querydsl.core.types.dsl.*;
-
-import com.querydsl.core.types.PathMetadata;
 import com.querydsl.core.types.Path;
-
+import com.querydsl.core.types.PathMetadata;
+import com.querydsl.core.types.dsl.DateTimePath;
+import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
+
 import java.sql.Types;
+
+import static com.querydsl.core.types.PathMetadataFactory.forVariable;
 
 
 
@@ -38,7 +39,9 @@ public class QTLog extends com.querydsl.sql.RelationalPathBase<TLog> {
 
     public final StringPath platformId = createString("platformId");
 
-    public final StringPath productFunctionLinkId = createString("productFunctionLinkId");
+    public final StringPath sysId = createString("sysId");
+
+    public final StringPath typeId = createString("typeId");
 
     public final StringPath projectId = createString("projectId");
 
@@ -94,7 +97,7 @@ public class QTLog extends com.querydsl.sql.RelationalPathBase<TLog> {
         addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(16).ofType(Types.TIMESTAMP).withSize(19).notNull());
         addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.BIGINT).withSize(19).notNull());
         addMetadata(platformId, ColumnMetadata.named("PLATFORM_ID").withIndex(3).ofType(Types.VARCHAR).withSize(32).notNull());
-        addMetadata(productFunctionLinkId, ColumnMetadata.named("PRODUCT_FUNCTION_LINK_ID").withIndex(4).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(sysId, ColumnMetadata.named("SYS_ID").withIndex(4).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(projectId, ColumnMetadata.named("PROJECT_ID").withIndex(2).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(requestIdentifier, ColumnMetadata.named("REQUEST_IDENTIFIER").withIndex(13).ofType(Types.VARCHAR).withSize(255));
         addMetadata(status, ColumnMetadata.named("STATUS").withIndex(14).ofType(Types.VARCHAR).withSize(1).notNull());
@@ -104,6 +107,7 @@ public class QTLog extends com.querydsl.sql.RelationalPathBase<TLog> {
         addMetadata(venderRepTime, ColumnMetadata.named("VENDER_REP_TIME").withIndex(11).ofType(Types.INTEGER).withSize(10).notNull());
         addMetadata(venderReq, ColumnMetadata.named("VENDER_REQ").withIndex(8).ofType(Types.VARCHAR).withSize(1024).notNull());
         addMetadata(visitAddr, ColumnMetadata.named("VISIT_ADDR").withIndex(6).ofType(Types.VARCHAR).withSize(255).notNull());
+        addMetadata(typeId, ColumnMetadata.named("TYPE_ID").withIndex(19).ofType(Types.VARCHAR).withSize(32).notNull());
     }
 
 }

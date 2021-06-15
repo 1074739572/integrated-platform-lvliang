@@ -1,24 +1,5 @@
 package com.iflytek.integrated.platform.service;
 
-import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
-import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
-import static com.iflytek.integrated.platform.entity.QTInterfaceMonitor.qTInterfaceMonitor;
-import static com.iflytek.integrated.platform.entity.QTLog.qTLog;
-import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
-import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
-import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
-import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
-
-import java.util.ArrayList;
-
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
@@ -38,10 +19,27 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.SQLExpressions;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.ArrayList;
+
+import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
+import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
+import static com.iflytek.integrated.platform.entity.QTInterfaceMonitor.qTInterfaceMonitor;
+import static com.iflytek.integrated.platform.entity.QTLog.qTLog;
+import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
+import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
+import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
+import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
 
 /**
  * @author czzhan
@@ -79,14 +77,14 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 					.select(qTInterfaceMonitor.id, qTInterfaceMonitor.status.max().as("status"),
 							qTInterfaceMonitor.successCount.sum().as("SUCCESS_COUNT"),
 							qTInterfaceMonitor.errorCount.sum().as("ERROR_COUNT"), qTInterfaceMonitor.projectId,
-							qTInterfaceMonitor.platformId, qTInterfaceMonitor.productFunctionLinkId,
+							qTInterfaceMonitor.platformId, qTInterfaceMonitor.sysId,
 							qTInterfaceMonitor.createdTime)
 					.from(qTInterfaceMonitor).rightJoin(qTBusinessInterface)
 					.on(qTBusinessInterface.id.eq(qTInterfaceMonitor.businessInterfaceId)).rightJoin(qTSysConfig)
 					.on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId)
 							.and(qTSysConfig.platformId.eq(qTInterfaceMonitor.platformId)))
 					.where(qTInterfaceMonitor.id.isNotNull())
-					.groupBy(qTInterfaceMonitor.platformId, qTInterfaceMonitor.productFunctionLinkId)
+					.groupBy(qTInterfaceMonitor.platformId, qTInterfaceMonitor.sysId)
 					.orderBy(qTInterfaceMonitor.createdTime.desc());
 
 			// 按条件筛选
@@ -106,8 +104,9 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 							qTSys.sysName, qTInterface.interfaceName))
 					.from(query, queryLabel).leftJoin(qTProject).on(qTProject.id.eq(monitor.projectId))
 					.leftJoin(qTPlatform).on(qTPlatform.id.eq(monitor.platformId)).leftJoin(qTSysConfig)
-					.on(qTSysConfig.platformId.eq(qTPlatform.id).and(qTSysConfig.sysConfigType.eq(1))).leftJoin(qTSys)
-					.leftJoin(qTInterface).on(qTInterface.sysId.eq(qTSys.id)).on(qTSys.id.eq(qTSysConfig.sysId))
+					.on(qTSysConfig.platformId.eq(qTPlatform.id).and(qTSysConfig.sysConfigType.eq(1)))
+					.leftJoin(qTSys).on(qTSys.id.eq(qTSysConfig.sysId))
+					.leftJoin(qTInterface).on(qTInterface.sysId.eq(qTSys.id))
 					.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
 					.orderBy(monitor.createdTime.desc()).fetchResults();
 			// 分页
@@ -142,7 +141,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 						qTLog.businessRepTime, qTLog.visitAddr))
 				.from(qTLog).leftJoin(qTInterfaceMonitor)
 				.on(qTInterfaceMonitor.platformId.eq(qTLog.platformId)
-						.and(qTInterfaceMonitor.productFunctionLinkId.eq(qTLog.productFunctionLinkId)))
+						.and(qTInterfaceMonitor.sysId.eq(qTLog.sysId)))
 				.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
 				.orderBy(qTLog.createdTime.desc()).fetchResults();
 		// 分页
