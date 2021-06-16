@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
+import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
 import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
 import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
 import static com.querydsl.sql.SQLExpressions.groupConcat;
@@ -147,23 +148,13 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	/**
 	 * 获取接口配置信息列表
 	 * 
-	 * @param platformId
-	 * @param status
-	 * @param mockStatus
+	 * @param list
 	 * @param pageNo
 	 * @param pageSize
 	 * @return
 	 */
-	public QueryResults<TBusinessInterface> getInterfaceConfigureList(String platformId, String status,
-			String mockStatus, Integer pageNo, Integer pageSize) {
-		ArrayList<Predicate> list = new ArrayList<>();
-		list.add(qTSysConfig.platformId.eq(platformId));
-		if (StringUtils.isNotEmpty(status)) {
-			list.add(qTBusinessInterface.status.eq(status));
-		}
-		if (StringUtils.isNotEmpty(mockStatus)) {
-			list.add(qTBusinessInterface.mockStatus.eq(mockStatus));
-		}
+	public QueryResults<TBusinessInterface> getInterfaceConfigureList(ArrayList<Predicate> list, Integer pageNo, Integer pageSize) {
+
 		QueryResults<TBusinessInterface> queryResults = sqlQueryFactory
 				.select(Projections.bean(TBusinessInterface.class, qTBusinessInterface.id,
 						qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId,
@@ -178,8 +169,9 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 						qTBusinessInterface.mockStatus, qTBusinessInterface.status, qTBusinessInterface.createdBy,
 						qTBusinessInterface.createdTime, qTBusinessInterface.updatedBy, qTBusinessInterface.updatedTime,
 						qTSysConfig.versionId.as("versionId")))
-				.from(qTBusinessInterface).leftJoin(qTSysConfig)
-				.on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId))
+				.from(qTBusinessInterface)
+				.leftJoin(qTSysConfig).on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId))
+				.leftJoin(qTInterface).on(qTInterface.id.eq(qTBusinessInterface.requestInterfaceId))
 				.where(list.toArray(new Predicate[list.size()]))
 				.groupBy(qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId)
 				.orderBy(qTBusinessInterface.createdTime.desc()).limit(pageSize).offset((pageNo - 1) * pageSize)

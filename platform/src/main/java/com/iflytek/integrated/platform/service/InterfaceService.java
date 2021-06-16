@@ -543,11 +543,27 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId,
 			@ApiParam(value = "启停用状态") @RequestParam(value = "status", required = false) String status,
 			@ApiParam(value = "mock状态") @RequestParam(value = "mockStatus", required = false) String mockStatus,
+            @ApiParam(value = "请求方接口名称") @RequestParam(value = "requestInterfaceName", required = false) String requestInterfaceName,
+            @ApiParam(value = "被请求方接口名称") @RequestParam(value = "requestedInterfaceName", required = false) String requestedInterfaceName,
 			@ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
 			@ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
-		// 获取接口配置列表信息
-		QueryResults<TBusinessInterface> queryResults = businessInterfaceService.getInterfaceConfigureList(platformId,
-				status, mockStatus, pageNo, pageSize);
+
+        ArrayList<Predicate> predicateList = new ArrayList<>();
+        predicateList.add(qTSysConfig.platformId.eq(platformId));
+        if (StringUtils.isNotEmpty(status)) {
+            predicateList.add(qTBusinessInterface.status.eq(status));
+        }
+        if (StringUtils.isNotEmpty(mockStatus)) {
+            predicateList.add(qTBusinessInterface.mockStatus.eq(mockStatus));
+        }
+        if (StringUtils.isNotEmpty(requestInterfaceName)) {
+            predicateList.add(qTInterface.interfaceName.like("%" + requestInterfaceName + "%"));
+        }
+        if (StringUtils.isNotEmpty(requestedInterfaceName)) {
+            predicateList.add(qTBusinessInterface.businessInterfaceName.like("%" + requestedInterfaceName + "%"));
+        }
+	    // 获取接口配置列表信息
+		QueryResults<TBusinessInterface> queryResults = businessInterfaceService.getInterfaceConfigureList(predicateList, pageNo, pageSize);
 		// 匹配列表展示信息
 		List<TBusinessInterface> list = queryResults.getResults();
 		if (CollectionUtils.isNotEmpty(list)) {
