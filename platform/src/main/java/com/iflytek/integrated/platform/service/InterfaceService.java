@@ -315,21 +315,27 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "出参不能为空!", "出参不能为空!");
 		}
 
+		TInterface ti = new TInterface();
 		// 校验出入参格式字符串是否为json或者xml
 		// 入参格式非必填
 		String inParamFormat = dto.getInParamFormat();
-		// 出参格式必填
-		String outParamFormat = dto.getOutParamFormat();
+		String inParamFormatType = dto.getInParamFormatType();
 		if (StringUtils.isNotBlank(inParamFormat)) {
 			PlatformUtil.strIsJsonOrXml(inParamFormat);
+			String inParamSchema = niFiRequestUtil.generateSchemaToInterface(inParamFormat, inParamFormatType);
+			ti.setInParamSchema(inParamSchema);
 		}
+		// 出参格式必填
+		String outParamFormat = dto.getOutParamFormat();
+		String outParamFormatType = dto.getOutParamFormatType();
 		PlatformUtil.strIsJsonOrXml(outParamFormat);
+		String outParamSchema = niFiRequestUtil.generateSchemaToInterface(outParamFormat, outParamFormatType);
+		ti.setOutParamSchema(outParamSchema);
 		// 新增标准接口
 		String interfaceId = batchUidService.getUid(qTInterface.getTableName()) + "";
-		TInterface ti = new TInterface();
 		ti.setId(interfaceId);
-		ti.setInParamFormatType(dto.getInParamFormatType());
-		ti.setOutParamFormatType(dto.getOutParamFormatType());
+		ti.setInParamFormatType(inParamFormatType);
+		ti.setOutParamFormatType(outParamFormatType);
 		ti.setSysId(dto.getSysId());
 		ti.setInterfaceName(dto.getInterfaceName());
 		ti.setTypeId(dto.getTypeId());
@@ -378,7 +384,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				ti.setParamOutStatusSuccess(obj.getParamOutStatusSuccess());
 			}
 		}
-		niFiRequestUtil.generateSchemaToInterface(ti);
 		// 新增标准接口
 		this.post(ti);
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准接口新增成功!", null);
@@ -415,10 +420,13 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		String inParamFormatType = dto.getInParamFormatType();
 		String outParamFormatType = dto.getOutParamFormatType();
 
+		String inParamSchema = "";
 		if (StringUtils.isNotBlank(inParamFormat)) {
 			PlatformUtil.strIsJsonOrXml(inParamFormat);
+			inParamSchema = niFiRequestUtil.generateSchemaToInterface(inParamFormat,inParamFormatType);
 		}
 		PlatformUtil.strIsJsonOrXml(outParamFormat);
+		String outParamSchema = niFiRequestUtil.generateSchemaToInterface(outParamFormat, outParamFormatType);
 
 		// 修改标准接口信息
 		long execute = sqlQueryFactory.update(qTInterface).set(qTInterface.interfaceName, interfaceName)
@@ -427,6 +435,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				.set(qTInterface.inParamFormatType, inParamFormatType)
 				.set(qTInterface.outParamFormatType, outParamFormatType).set(qTInterface.updatedTime, new Date())
 				.set(qTInterface.paramOutStatus, "").set(qTInterface.paramOutStatusSuccess, "")
+				.set(qTInterface.inParamSchema, inParamSchema).set(qTInterface.outParamSchema, outParamSchema)
 				.set(qTInterface.updatedBy, loginUserName).where(qTInterface.id.eq(id)).execute();
 		if (execute < 1) {
 			throw new RuntimeException("修改标准接口信息失败!");

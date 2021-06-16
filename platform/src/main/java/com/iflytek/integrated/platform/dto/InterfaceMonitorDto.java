@@ -28,6 +28,16 @@ public class InterfaceMonitorDto {
     private String functionName;
 
     /**
+     * 系统名称
+     */
+    private String sysName;
+
+    /**
+     * 接口名称
+     */
+    private String interfaceName;
+
+    /**
      * 项目名称
      */
     private String projectName;

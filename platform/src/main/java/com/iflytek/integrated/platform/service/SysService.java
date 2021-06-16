@@ -92,7 +92,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 				list.add(qTSys.sysCode.eq(sysCode));
 			}
 			if (StringUtils.isNotBlank(sysName)) {
-				list.add(qTSys.sysCode.like("%" + sysCode + "%"));
+				list.add(qTSys.sysName.like("%" + sysName + "%"));
 			}
 			QueryResults<SysDto> queryResults = queryer.where(list.toArray(new Predicate[list.size()])).groupBy(qTSys.id)
 					.limit(pageSize).offset((pageNo - 1) * pageSize).orderBy(qTSys.createdTime.desc()).fetchResults();
