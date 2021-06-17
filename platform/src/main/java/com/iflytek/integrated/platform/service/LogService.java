@@ -32,7 +32,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 
-import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
 import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
 import static com.iflytek.integrated.platform.entity.QTInterfaceMonitor.qTInterfaceMonitor;
 import static com.iflytek.integrated.platform.entity.QTLog.qTLog;
@@ -40,6 +39,7 @@ import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
 import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
+import static com.iflytek.integrated.platform.entity.QTType.qTType;
 
 /**
  * @author czzhan
@@ -60,8 +60,8 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 	@ApiOperation(value = "查看服务监控列表")
 	@GetMapping("/getListPage")
 	public ResultDto<TableData<InterfaceMonitorDto>> getListPage(String projectId, String platFormId, String sysId,
-			String status, @RequestParam(defaultValue = "1") Integer pageNo,
-			@RequestParam(defaultValue = "10") Integer pageSize) {
+																 String status, @RequestParam(defaultValue = "1") Integer pageNo,
+																 @RequestParam(defaultValue = "10") Integer pageSize) {
 		try {
 			// 查询条件
 			ArrayList<Predicate> list = new ArrayList<>();
@@ -78,13 +78,11 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 							qTInterfaceMonitor.successCount.sum().as("SUCCESS_COUNT"),
 							qTInterfaceMonitor.errorCount.sum().as("ERROR_COUNT"), qTInterfaceMonitor.projectId,
 							qTInterfaceMonitor.platformId, qTInterfaceMonitor.sysId,
-							qTInterfaceMonitor.createdTime)
-					.from(qTInterfaceMonitor).rightJoin(qTBusinessInterface)
-					.on(qTBusinessInterface.id.eq(qTInterfaceMonitor.businessInterfaceId)).rightJoin(qTSysConfig)
-					.on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId)
-							.and(qTSysConfig.platformId.eq(qTInterfaceMonitor.platformId)))
+							qTInterfaceMonitor.createdTime, qTInterfaceMonitor.typeId, qTType.typeName)
+					.from(qTInterfaceMonitor)
+					.leftJoin(qTType).on(qTInterfaceMonitor.typeId.eq(qTType.id))
 					.where(qTInterfaceMonitor.id.isNotNull())
-					.groupBy(qTInterfaceMonitor.platformId, qTInterfaceMonitor.sysId)
+					.groupBy(qTInterfaceMonitor.platformId, qTInterfaceMonitor.sysId, qTInterfaceMonitor.typeId)
 					.orderBy(qTInterfaceMonitor.createdTime.desc());
 
 			// 按条件筛选
@@ -99,14 +97,15 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 			}
 			// 根据结果查询
 			QueryResults<InterfaceMonitorDto> queryResults = sqlQueryFactory
-					.select(Projections.bean(InterfaceMonitorDto.class, monitor.id, monitor.status,
-							monitor.successCount, monitor.errorCount, qTProject.projectName, qTPlatform.platformName,
-							qTSys.sysName, qTInterface.interfaceName))
+					.select(Projections.bean(InterfaceMonitorDto.class, monitor.id, monitor.status,monitor.typeName,
+							monitor.successCount, monitor.errorCount,qTProject.projectName, qTPlatform.platformName,
+							qTSys.sysName))
 					.from(query, queryLabel).leftJoin(qTProject).on(qTProject.id.eq(monitor.projectId))
 					.leftJoin(qTPlatform).on(qTPlatform.id.eq(monitor.platformId)).leftJoin(qTSysConfig)
 					.on(qTSysConfig.platformId.eq(qTPlatform.id).and(qTSysConfig.sysConfigType.eq(1)))
 					.leftJoin(qTSys).on(qTSys.id.eq(qTSysConfig.sysId))
 					.leftJoin(qTInterface).on(qTInterface.sysId.eq(qTSys.id))
+					.groupBy(monitor.platformId, monitor.sysId, monitor.typeId)
 					.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
 					.orderBy(monitor.createdTime.desc()).fetchResults();
 			// 分页
@@ -141,7 +140,8 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 						qTLog.businessRepTime, qTLog.visitAddr))
 				.from(qTLog).leftJoin(qTInterfaceMonitor)
 				.on(qTInterfaceMonitor.platformId.eq(qTLog.platformId)
-						.and(qTInterfaceMonitor.sysId.eq(qTLog.sysId)))
+						.and(qTInterfaceMonitor.sysId.eq(qTLog.sysId))
+						.and(qTInterfaceMonitor.typeId.eq(qTLog.typeId)))
 				.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
 				.orderBy(qTLog.createdTime.desc()).fetchResults();
 		// 分页

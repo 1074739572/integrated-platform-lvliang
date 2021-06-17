@@ -1,13 +1,5 @@
 package com.iflytek.integrated.platform.utils;
 
-import java.text.MessageFormat;
-import java.util.Map;
-
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
 import com.iflytek.integrated.common.dto.HttpResult;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.utils.HttpClientUtil;
@@ -17,6 +9,13 @@ import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.platform.dto.JoltDebuggerDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.querydsl.sql.SQLQueryFactory;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import java.text.MessageFormat;
+import java.util.Map;
 
 /**
  * @author czzhan 调取接nifi接口
@@ -50,7 +49,7 @@ public class NiFiRequestUtil {
 
 	/**
 	 * 根据paramFormat和formatType生成schema
-	 * 
+	 *
 	 * @param paramFormat
 	 * @param formatType
 	 * @return
@@ -62,10 +61,10 @@ public class NiFiRequestUtil {
 			if (StringUtils.isBlank(type) || Constant.ParamFormatType.NONE.getType().equals(type)) {
 				throw new RuntimeException("参数类型无效");
 			}
-			// 解析入参
+			// 解析参数
 			String schema = generateSchema(paramFormat, type);
 			if (StringUtils.isEmpty(schema)) {
-				throw new RuntimeException("入参schema获取失败");
+				throw new RuntimeException("schema获取失败");
 			}
 			return schema;
 		}
@@ -88,7 +87,7 @@ public class NiFiRequestUtil {
 
 	/**
 	 * 调取NiFi接口，获取并保存schema
-	 * 
+	 *
 	 * @param businessInterface
 	 */
 	public void generateSchemaToInterface(TBusinessInterface businessInterface) {
@@ -122,7 +121,7 @@ public class NiFiRequestUtil {
 
 	/**
 	 * 调取jolt调试接口
-	 * 
+	 *
 	 * @param dto
 	 * @return
 	 */
@@ -143,7 +142,7 @@ public class NiFiRequestUtil {
 
 	/**
 	 * 根据format生成schema
-	 * 
+	 *
 	 * @param format
 	 * @param content
 	 * @return
@@ -165,7 +164,7 @@ public class NiFiRequestUtil {
 
 	/**
 	 * 根据format生成jolt
-	 * 
+	 *
 	 * @param format
 	 * @param content
 	 * @return
@@ -182,7 +181,7 @@ public class NiFiRequestUtil {
 
 	/**
 	 * 校验groovy脚本格式是否正确
-	 * 
+	 *
 	 * @param content
 	 * @return
 	 */
@@ -197,7 +196,7 @@ public class NiFiRequestUtil {
 
 	/**
 	 * 调试接口
-	 * 
+	 *
 	 * @param format
 	 * @return
 	 */

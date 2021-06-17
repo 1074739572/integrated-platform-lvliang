@@ -33,9 +33,9 @@ public class InterfaceMonitorDto {
     private String sysName;
 
     /**
-     * 接口名称
+     * 接口分类名称
      */
-    private String interfaceName;
+    private String typeName;
 
     /**
      * 项目名称
