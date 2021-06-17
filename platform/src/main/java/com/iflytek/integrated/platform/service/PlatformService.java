@@ -360,6 +360,11 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		if (StringUtils.isBlank(loginUserName)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
 		}
+		// redis缓存信息获取
+		ArrayList<Predicate> arr = new ArrayList<>();
+		arr.add(qTPlatform.id.eq(platformId));
+		List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+
 		TPlatform platform = this.getOne(platformId);
 		if ("1".equals(platform.getPlatformType())) {
 			TSysConfig requestSysConfig = dto.getRequestSysConfig();
@@ -456,7 +461,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 				}
 			}
 		}
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "修改厂商信息成功!", new RedisDto(platformId).toString());
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "修改厂商信息成功!", new RedisDto(redisKeyDtoList).toString());
 	}
 
 	@Transactional(rollbackFor = Exception.class)

@@ -2,14 +2,11 @@ package com.iflytek.integrated.platform.service;
 
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
-import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.common.RedisService;
-import com.iflytek.integrated.platform.dto.SysConfigDto;
-import com.iflytek.integrated.platform.dto.SysDto;
-import com.iflytek.integrated.platform.dto.SysHospitalDto;
+import com.iflytek.integrated.platform.dto.*;
 import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.QueryResults;
@@ -122,6 +119,10 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该系统已有关联接口,无法删除!", "该系统已有关联接口,无法删除!");
 		}
 
+		//redis缓存信息获取
+		ArrayList<Predicate> arr = new ArrayList<>();
+		arr.add(qTSys.id.eq(id));
+		List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
 		// 删除系统
 		long count = this.delete(id);
 		if (count <= 0) {
@@ -131,7 +132,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		// 根据系统id删除系统与驱动关联信息
 		long lon = sysDriveLinkService.deleteSysDriveLinkBySysId(id);
 
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "系统删除成功!", "");
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "系统删除成功!", new RedisDto(redisKeyDtoList).toString());
 	}
 
 	@Transactional(rollbackFor = Exception.class)
@@ -142,7 +143,8 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
 		}
 		// 校验是否获取到登录用户
-		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
+//		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
+		String loginUserName ="admin";
 		if (StringUtils.isBlank(loginUserName)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
 		}
@@ -204,6 +206,10 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		String isValid = dto.getIsValid();
 		String driveIds = dto.getDriveIds();
 
+		//redis缓存信息获取
+		ArrayList<Predicate> arr = new ArrayList<>();
+		arr.add(qTSys.id.eq(sysId));
+		List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
 		// 更新系统信息
 		SQLUpdateClause updater = sqlQueryFactory.update(qTSys);
 		if (StringUtils.isNotBlank(sysName)) {
@@ -233,7 +239,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 				sysDriveLinkService.post(tvdl);
 			}
 		}
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "修改系统成功", "");
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "修改系统成功", new RedisDto(redisKeyDtoList).toString());
 	}
 
 	@ApiOperation(value = "选择系统下拉列表")
@@ -312,7 +318,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 	}
 
 	@Transactional(rollbackFor = Exception.class)
-	@ApiOperation(value = "删除平台下系统配置信息", notes = "删除平台下厂商配置信息")
+	@ApiOperation(value = "删除平台下系统配置信息", notes = "删除平台下系统配置信息")
 	@PostMapping("/delSysConfig")
 	public ResultDto<String> delSysConfig(
 			@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId,
