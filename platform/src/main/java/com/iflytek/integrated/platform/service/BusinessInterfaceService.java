@@ -3,7 +3,9 @@ package com.iflytek.integrated.platform.service;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
+import com.iflytek.integrated.platform.common.RedisService;
 import com.iflytek.integrated.platform.dto.RedisDto;
+import com.iflytek.integrated.platform.dto.RedisKeyDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
@@ -13,6 +15,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -37,6 +40,9 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 
 	private static final Logger logger = LoggerFactory.getLogger(BusinessInterfaceService.class);
 
+    @Autowired
+    private RedisService redisService;
+
 	public BusinessInterfaceService() {
 		super(qTBusinessInterface, qTBusinessInterface.id);
 	}
@@ -51,6 +57,16 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	public ResultDto<String> updateMockStatus(String id, String mockStatus, String loginUserName) {
 		// 获取多接口，多个接口的id集合
 		List<String> idList = busInterfaceIds(id);
+        String rtnStr = "";
+        for (String idStr : idList) {
+            rtnStr += idStr + ",";
+        }
+        rtnStr = StringUtils.isBlank(rtnStr) ? "" : rtnStr.substring(0, rtnStr.length() - 1);
+        //redis缓存信息获取
+        ArrayList<Predicate> arr = new ArrayList<>();
+        arr.add(qTBusinessInterface.id.in(rtnStr));
+        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+
 		long size = sqlQueryFactory.update(qTBusinessInterface).set(qTBusinessInterface.mockStatus, mockStatus)
 				.set(qTBusinessInterface.updatedTime, new Date()).set(qTBusinessInterface.updatedBy, loginUserName)
 				.where(qTBusinessInterface.id.in(idList)).execute();
@@ -58,12 +74,7 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 		if (idList.size() != size) {
 			throw new RuntimeException("更改mock状态失败!");
 		}
-		String rtnStr = "";
-		for (String idStr : idList) {
-			rtnStr += idStr + ",";
-		}
-		rtnStr = StringUtils.isBlank(rtnStr) ? "" : rtnStr.substring(0, rtnStr.length() - 1);
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "更改mock状态成功!", new RedisDto(rtnStr).toString());
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "更改mock状态成功!", new RedisDto(redisKeyDtoList).toString());
 	}
 
 	/**
@@ -76,6 +87,16 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	public ResultDto updateStatus(String id, String status, String loginUserName) {
 		// 获取多接口，多个接口的id集合
 		List<String> idList = busInterfaceIds(id);
+        String rtnStr = "";
+        for (String idStr : idList) {
+            rtnStr += idStr + ",";
+        }
+        rtnStr = StringUtils.isBlank(rtnStr) ? "" : rtnStr.substring(0, rtnStr.length() - 1);
+        //redis缓存信息获取
+        ArrayList<Predicate> arr = new ArrayList<>();
+        arr.add(qTBusinessInterface.id.in(rtnStr));
+        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+
 		long size = sqlQueryFactory.update(qTBusinessInterface).set(qTBusinessInterface.status, status)
 				.set(qTBusinessInterface.updatedTime, new Date()).set(qTBusinessInterface.updatedBy, loginUserName)
 				.where(qTBusinessInterface.id.in(idList)).execute();
@@ -83,12 +104,7 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 		if (idList.size() != size) {
 			throw new RuntimeException("启停用状态编辑失败!");
 		}
-		String rtnStr = "";
-		for (String idStr : idList) {
-			rtnStr += idStr + ",";
-		}
-		rtnStr = StringUtils.isBlank(rtnStr) ? "" : rtnStr.substring(0, rtnStr.length() - 1);
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "更改接口配置状态成功!", new RedisDto(rtnStr).toString());
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "更改接口配置状态成功!", new RedisDto(redisKeyDtoList).toString());
 	}
 
 	/**

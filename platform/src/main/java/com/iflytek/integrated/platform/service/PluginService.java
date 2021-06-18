@@ -206,7 +206,7 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
         }
         // redis缓存信息获取
         ArrayList<Predicate> arr = new ArrayList<>();
-        arr.add(qTPlugin.id.eq(plugin.getId()));
+        arr.add(qTBusinessInterface.pluginId.in(plugin.getId()));
         List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
         //编辑插件
         plugin.setUpdatedTime(new Date());

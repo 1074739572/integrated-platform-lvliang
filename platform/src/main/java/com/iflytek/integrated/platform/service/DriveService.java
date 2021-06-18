@@ -201,7 +201,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
 		}
 		// redis缓存信息获取
 		ArrayList<Predicate> arr = new ArrayList<>();
-		arr.add(qTDrive.id.eq(drive.getId()));
+        arr.add(qTSysDriveLink.driveId.in(drive.getId()));
 		List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
 		// 编辑驱动
 		drive.setUpdatedBy(loginUserName);

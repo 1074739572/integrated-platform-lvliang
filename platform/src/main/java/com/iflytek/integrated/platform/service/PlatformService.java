@@ -343,7 +343,8 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 				}
 			}
 		}
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "修改平台成功!", new RedisDto(redisKeyDtoList).toString());
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "修改平台成功!",
+				new RedisDto(redisKeyDtoList).toString());
 	}
 
 	@Transactional(rollbackFor = Exception.class)

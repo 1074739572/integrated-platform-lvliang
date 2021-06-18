@@ -88,7 +88,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			@ApiParam(value = "更改后的状态") @RequestParam(value = "mockStatus", required = true) String mockStatus) {
 		// 校验是否获取到登录用户
 		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-		if (StringUtils.isBlank(loginUserName)) {
+        if (StringUtils.isBlank(loginUserName)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
 		}
 		return businessInterfaceService.updateMockStatus(id, mockStatus, loginUserName);
@@ -160,7 +160,11 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			rtnStr += dto.getId() + ",";
 		}
 		rtnStr = StringUtils.isBlank(rtnStr) ? null : rtnStr.substring(0, rtnStr.length() - 1);
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存mock模板成功!", new RedisDto(rtnStr).toString());
+		//redis缓存信息获取
+		ArrayList<Predicate> arr = new ArrayList<>();
+		arr.add(qTBusinessInterface.id.eq(rtnStr));
+		List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存mock模板成功!", new RedisDto(redisKeyDtoList).toString());
 	}
 
 	@ApiOperation(value = "请求方接口调试数据获取", notes = "请求方接口调试数据获取")
@@ -782,7 +786,11 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			}
 		}
 		rtnId = StringUtils.isBlank(rtnId) ? null : rtnId.substring(0, rtnId.length() - 1);
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "编辑接口配置成功", new RedisDto(rtnId).toString());
+		// redis缓存信息获取
+		ArrayList<Predicate> arr = new ArrayList<>();
+		arr.add(qTBusinessInterface.id.in(rtnId));
+		List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "编辑接口配置成功", new RedisDto(redisKeyDtoList).toString());
 	}
 
 	@ApiOperation(value = "根据参数格式获取jolt", notes = "根据参数格式获取jolt")

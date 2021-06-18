@@ -155,6 +155,10 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
 	/** 修改项目 */
 	private ResultDto<String> updateProject(ProjectDto dto, String loginUserName) {
 		String projectId = dto.getId();
+		//redis缓存信息获取
+		ArrayList<Predicate> arr = new ArrayList<>();
+		arr.add(qTProject.id.eq(projectId));
+		List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
 
 		TProject project = new TProject();
 		project.setProjectName(dto.getProjectName());
@@ -166,7 +170,8 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
 			throw new RuntimeException("修改项目失败!");
 		}
 
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "项目修改成功!", new RedisDto(projectId).toString());
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "项目修改成功!",
+				new RedisDto(redisKeyDtoList).toString());
 	}
 
 	@Transactional(rollbackFor = Exception.class)
@@ -221,7 +226,8 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
 				}
 			}
 		}
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "项目删除成功!", new RedisDto(redisKeyDtoList).toString());
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "项目删除成功!",
+				new RedisDto(redisKeyDtoList).toString());
 	}
 
 	@ApiOperation(value = "更改项目启用状态", notes = "更改项目启用状态")
@@ -234,6 +240,10 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
 		if (StringUtils.isBlank(loginUserName)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
 		}
+		// redis缓存信息获取
+		ArrayList<Predicate> arr = new ArrayList<>();
+		arr.add(qTProject.id.eq(id));
+		List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
 		try {
 			long l = sqlQueryFactory.update(qTProject).set(qTProject.projectStatus, projectStatus)
 					.set(qTProject.updatedBy, loginUserName).where(qTProject.id.eq(id)).execute();
@@ -245,7 +255,8 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
 			e.printStackTrace();
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "项目状态修改失败!", ExceptionUtil.dealException(e));
 		}
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "项目状态修改成功!", new RedisDto(id).toString());
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "项目状态修改成功!",
+				new RedisDto(redisKeyDtoList).toString());
 	}
 
 	/**
