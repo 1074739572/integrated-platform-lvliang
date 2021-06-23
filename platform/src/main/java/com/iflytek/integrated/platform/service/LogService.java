@@ -162,8 +162,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 			StringPath queryLabel = Expressions.stringPath(q);
 			QTInterfaceMonitor monitor = new QTInterfaceMonitor(q);
 			SubQueryExpression query = SQLExpressions
-					.select(qTInterfaceMonitor.id, qTInterfaceMonitor.status.max().as("status"),
-							qTInterfaceMonitor.successCount.sum().as("SUCCESS_COUNT"),
+					.select(qTInterfaceMonitor.successCount.sum().as("SUCCESS_COUNT"),
 							qTInterfaceMonitor.errorCount.sum().as("ERROR_COUNT"), qTInterfaceMonitor.projectId,
 							qTInterfaceMonitor.platformId, qTInterfaceMonitor.sysId, qTInterfaceMonitor.typeId,
 							qTInterfaceMonitor.createdTime, qTInterfaceMonitor.businessInterfaceId,
@@ -191,7 +190,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 			}
 			// 根据结果查询
 			QueryResults<InterfaceMonitorDto> queryResults = sqlQueryFactory
-					.select(Projections.bean(InterfaceMonitorDto.class, monitor.id, monitor.status, monitor.successCount,
+					.select(Projections.bean(InterfaceMonitorDto.class, monitor.successCount,
 							monitor.errorCount, monitor.interfaceName, monitor.interfaceId,
 							qTProject.projectName, qTPlatform.platformName, qTSys.sysName))
 					.from(query, queryLabel)
@@ -314,6 +313,26 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		tLog.setBusinessReq(decryptAndFilterSensitive(tLog.getBusinessReq()));
 		tLog.setVenderReq(decryptAndFilterSensitive(tLog.getVenderReq()));
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志详细获取成功!", tLog);
+	}
+
+	@ApiOperation(value = "获取接口请求状态")
+	@GetMapping("/getInterfaceStatus")
+	public String getInterfaceStatus(String interfaceId) {
+		// 查询条件
+		ArrayList<Predicate> list = new ArrayList<>();
+		if (StringUtils.isEmpty(interfaceId)) {
+			throw new RuntimeException("获取接口请求状态，id必传");
+		}
+		list.add(qTInterface.id.eq(interfaceId));
+		String status = sqlQueryFactory
+				.select(qTLog.status)
+				.from(qTLog)
+				.leftJoin(qTInterfaceMonitor).on(qTInterfaceMonitor.businessInterfaceId.eq(qTLog.businessInterfaceId))
+				.leftJoin(qTBusinessInterface).on(qTBusinessInterface.id.eq(qTInterfaceMonitor.businessInterfaceId))
+				.leftJoin(qTInterface).on(qTInterface.id.eq(qTBusinessInterface.requestInterfaceId))
+				.where(list.toArray(new Predicate[list.size()])).limit(1)
+				.orderBy(qTLog.createdTime.desc()).fetchOne();
+		return status;
 	}
 
 	@ApiOperation(value = "下载详细日志")
