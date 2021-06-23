@@ -300,6 +300,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		if (StringUtils.isBlank(interfaceName)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "接口名为空!", "接口名为空!");
 		}
+		String interfaceUrl = dto.getInterfaceUrl();
+		if (StringUtils.isBlank(interfaceUrl)) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "接口方法为空!", "接口方法为空!");
+		}
 		String id = dto.getId();
 		if (StringUtils.isBlank(id)) {
 			return this.saveInterface(dto, loginUserName);
@@ -309,9 +313,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
 	/** 新增标准接口 */
 	private ResultDto saveInterface(InterfaceDto dto, String loginUserName) {
-		String interfaceName = dto.getInterfaceName();
-		if (null != this.getInterfaceByName(interfaceName)) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该接口名已存在!", "该接口名已存在!");
+		String interfaceUrl = dto.getInterfaceUrl();
+		if (null != this.getInterfaceByUrl(interfaceUrl)) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该接口方法已存在!", "该接口方法已存在!");
 		}
 		// 出参
 		List<TInterfaceParam> outParamList = dto.getOutParamList();
@@ -405,14 +409,14 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		ArrayList<Predicate> arr = new ArrayList<>();
 		arr.add(qTInterface.id.eq(id));
 		List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
-		// 传入标准接口名
-		String interfaceName = dto.getInterfaceName();
-		// 查询新接口名是否已存在
+		// 传入标准接口方法
+		String interfaceUrl = dto.getInterfaceUrl();
+		// 查询新接口方法是否已存在
 		tf = sqlQueryFactory.select(qTInterface).from(qTInterface)
-				.where(qTInterface.interfaceName.eq(interfaceName).and(qTInterface.id.notEqualsIgnoreCase(id)))
+				.where(qTInterface.interfaceUrl.eq(interfaceUrl).and(qTInterface.id.notEqualsIgnoreCase(id)))
 				.fetchOne();
 		if (tf != null) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该接口名已存在!", "该接口名已存在!");
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该接口方法已存在!", "该接口方法已存在!");
 		}
 		// 出参
 		List<TInterfaceParam> outParamList = dto.getOutParamList();
@@ -420,8 +424,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "出参不能为空!", "出参不能为空!");
 		}
 
+		String interfaceName = dto.getInterfaceName();
 		String interfaceTypeId = dto.getTypeId();
-		String interfaceUrl = dto.getInterfaceUrl();
 		// 校验出入参格式字符串是否为json或者xml
 		String inParamFormat = dto.getInParamFormat();
 		String outParamFormat = dto.getOutParamFormat();
@@ -982,6 +986,18 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				.fetchFirst();
 	}
 
+	/**
+	 * 根据接口方法获取标准接口
+	 * @param interfaceUrl
+	 * @return
+	 */
+	private TInterface getInterfaceByUrl(String interfaceUrl){
+		if (StringUtils.isBlank(interfaceUrl)) {
+			return null;
+		}
+		return sqlQueryFactory.select(qTInterface).from(qTInterface).where(qTInterface.interfaceUrl.eq(interfaceUrl))
+				.fetchFirst();
+	}
 	/**
 	 * 根据系统id获取所有接口信息
 	 *

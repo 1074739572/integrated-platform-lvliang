@@ -259,6 +259,23 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		if (StringUtils.isNotBlank(visitAddr)) {
 			list.add(qTLog.visitAddr.like(PlatformUtil.createFuzzyText(visitAddr)));
 		}
+		if (StringUtils.isNotBlank(businessReq)) {
+			list.add(Expressions.stringTemplate("AES_DECRYPT(from_base64({0}),{1})", qTLog.businessReq, "w5xv7[Nmc0Z/3U^X")
+					.like(PlatformUtil.createFuzzyText(businessReq)));
+		}
+		if (StringUtils.isNotBlank(businessRep)) {
+			list.add(Expressions.stringTemplate("AES_DECRYPT(from_base64({0}),{1})", qTLog.businessRep, "w5xv7[Nmc0Z/3U^X")
+					.like(PlatformUtil.createFuzzyText(businessRep)));
+		}
+		if (StringUtils.isNotBlank(venderReq)) {
+			list.add(Expressions.stringTemplate("AES_DECRYPT(from_base64({0}),{1})", qTLog.venderReq, "w5xv7[Nmc0Z/3U^X")
+					.like(PlatformUtil.createFuzzyText(venderReq)));
+		}
+		if (StringUtils.isNotBlank(venderRep)) {
+			list.add(Expressions.stringTemplate("AES_DECRYPT(from_base64({0}),{1})", qTLog.venderRep, "w5xv7[Nmc0Z/3U^X")
+					.like(PlatformUtil.createFuzzyText(venderRep)));
+		}
+
 		QueryResults<TLog> queryResults = sqlQueryFactory
 				.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status, qTLog.venderRepTime,
 						qTLog.businessRepTime, qTLog.visitAddr))

@@ -72,6 +72,8 @@ public class TBusinessInterface implements Serializable {
 
     private Integer mockIsUse;
 
+    private Integer asyncFlag;
+
     @Transient
     private String requestInterfaceName;
     @Transient

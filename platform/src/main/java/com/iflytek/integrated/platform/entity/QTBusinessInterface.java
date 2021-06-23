@@ -1,14 +1,15 @@
 package com.iflytek.integrated.platform.entity;
 
-import static com.querydsl.core.types.PathMetadataFactory.*;
-
-import com.querydsl.core.types.dsl.*;
-
-import com.querydsl.core.types.PathMetadata;
 import com.querydsl.core.types.Path;
-
+import com.querydsl.core.types.PathMetadata;
+import com.querydsl.core.types.dsl.DateTimePath;
+import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
+
 import java.sql.Types;
+
+import static com.querydsl.core.types.PathMetadataFactory.forVariable;
 
 
 
@@ -53,6 +54,8 @@ public class QTBusinessInterface extends com.querydsl.sql.RelationalPathBase<TBu
     public final StringPath interfaceType = createString("interfaceType");
 
     public final NumberPath<Integer> mockIsUse = createNumber("mockIsUse", Integer.class);
+
+    public final NumberPath<Integer> asyncFlag = createNumber("asyncFlag", Integer.class);
 
     public final StringPath mockStatus = createString("mockStatus");
 
@@ -137,6 +140,7 @@ public class QTBusinessInterface extends com.querydsl.sql.RelationalPathBase<TBu
         addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(27).ofType(Types.TIMESTAMP).withSize(19).notNull());
         addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(28).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(updatedTime, ColumnMetadata.named("UPDATED_TIME").withIndex(29).ofType(Types.TIMESTAMP).withSize(19).notNull());
+        addMetadata(asyncFlag, ColumnMetadata.named("ASYNC_FLAG").withIndex(30).ofType(Types.TINYINT).withSize(1).notNull());
     }
 
 }
