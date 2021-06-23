@@ -39,7 +39,9 @@ public class QTInterfaceMonitor extends com.querydsl.sql.RelationalPathBase<TInt
 
     public final StringPath typeId = createString("typeId");
 
-    public final StringPath typeName = createString("typeName");
+    public final StringPath interfaceName = createString("interfaceName");
+
+    public final StringPath interfaceId = createString("interfaceId");
 
     public final StringPath projectId = createString("projectId");
 
@@ -92,7 +94,8 @@ public class QTInterfaceMonitor extends com.querydsl.sql.RelationalPathBase<TInt
         addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(11).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(updatedTime, ColumnMetadata.named("UPDATED_TIME").withIndex(12).ofType(Types.TIMESTAMP).withSize(19).notNull());
         addMetadata(typeId, ColumnMetadata.named("TYPE_ID").withIndex(13).ofType(Types.VARCHAR).withSize(32).notNull());
-        addMetadata(typeName, ColumnMetadata.named("TYPE_NAME"));
+        addMetadata(interfaceName, ColumnMetadata.named("INTERFACE_NAME"));
+        addMetadata(interfaceId, ColumnMetadata.named("INTERFACE_ID"));
     }
 
 }

@@ -7,9 +7,7 @@ import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.common.RedisService;
-import com.iflytek.integrated.platform.dto.SysConfigDto;
-import com.iflytek.integrated.platform.dto.SysDto;
-import com.iflytek.integrated.platform.dto.SysHospitalDto;
+import com.iflytek.integrated.platform.dto.*;
 import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.QueryResults;
@@ -122,6 +120,10 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该系统已有关联接口,无法删除!", "该系统已有关联接口,无法删除!");
 		}
 
+		//redis缓存信息获取
+		ArrayList<Predicate> arr = new ArrayList<>();
+		arr.add(qTSysConfig.sysId.in(id));
+		List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
 		// 删除系统
 		long count = this.delete(id);
 		if (count <= 0) {
@@ -131,7 +133,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		// 根据系统id删除系统与驱动关联信息
 		long lon = sysDriveLinkService.deleteSysDriveLinkBySysId(id);
 
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "系统删除成功!", "");
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "系统删除成功!", new RedisDto(redisKeyDtoList).toString());
 	}
 
 	@Transactional(rollbackFor = Exception.class)
@@ -204,6 +206,10 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		String isValid = dto.getIsValid();
 		String driveIds = dto.getDriveIds();
 
+		//redis缓存信息获取
+		ArrayList<Predicate> arr = new ArrayList<>();
+        arr.add(qTSysConfig.sysId.in(sysId));
+		List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
 		// 更新系统信息
 		SQLUpdateClause updater = sqlQueryFactory.update(qTSys);
 		if (StringUtils.isNotBlank(sysName)) {
@@ -233,7 +239,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 				sysDriveLinkService.post(tvdl);
 			}
 		}
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "修改系统成功", "");
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "修改系统成功", new RedisDto(redisKeyDtoList).toString());
 	}
 
 	@ApiOperation(value = "选择系统下拉列表")
@@ -312,7 +318,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 	}
 
 	@Transactional(rollbackFor = Exception.class)
-	@ApiOperation(value = "删除平台下系统配置信息", notes = "删除平台下厂商配置信息")
+	@ApiOperation(value = "删除平台下系统配置信息", notes = "删除平台下系统配置信息")
 	@PostMapping("/delSysConfig")
 	public ResultDto<String> delSysConfig(
 			@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId,
@@ -323,12 +329,18 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 			if (CollectionUtils.isNotEmpty(tbiList)) {
 				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该系统已有接口配置数据相关联,无法删除!", "该厂商已有接口配置数据相关联,无法删除!");
 			}
+            //redis缓存信息获取
+            ArrayList<Predicate> arr = new ArrayList<>();
+            arr.add(qTSysConfig.sysId.in(sysId));
+            arr.add(qTSysConfig.platformId.in(platformId));
+            List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+
 			// 删除系统配置
 			long l = sysConfigService.delete(tvc.getId());
 			if (l < 1) {
 				throw new RuntimeException("系统配置删除失败!");
 			}
-			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "系统配置删除成功!", "系统配置删除成功!");
+			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "系统配置删除成功!", new RedisDto(redisKeyDtoList).toString());
 		}
 		return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据平台id与系统id未查到该系统配置信息!", "根据平台id与系统id未查到该系统配置信息!");
 	}
@@ -342,11 +354,16 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 			@ApiParam(value = "医院id，不传时，删除所有关联的医院") @RequestParam(value = "hospitalId", required = false) String hospitalId) {
 		TSysConfig tvc = sysConfigService.getConfigByPlatformAndSys(platformId, sysId);
 		if (tvc != null) {
+            //redis缓存信息获取
+            ArrayList<Predicate> arr = new ArrayList<>();
+            arr.add(qTSysConfig.sysId.in(sysId));
+            arr.add(qTSysConfig.platformId.in(platformId));
+            List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
 			// 删除厂商配置关联的医院
 			sysConfigService.delSysConfigHospital(tvc, hospitalId);
-			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "系统下医院配置信息删除成功!", null);
+			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "系统下医院配置信息删除成功!", new RedisDto(redisKeyDtoList).toString());
 		}
-		return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据平台与系统id未查到该系统配置信息!", null);
+		return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据平台与系统id未查到该系统配置信息!");
 	}
 
 	@ApiOperation(value = "选择系统下拉(可根据当前项目操作选择)")
@@ -408,11 +425,18 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 				}
 			}
 		}
+        //redis缓存信息获取
+        ArrayList<Predicate> arr = new ArrayList<>();
+		arr.add(qTSysConfig.id.in(id));
+        if (StringUtils.isNotEmpty(platformId)){
+            arr.add(qTSysConfig.platformId.in(platformId));
+        }
+        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
 		long count = sysConfigService.delete(id);
 		if (count < 1) {
 			throw new RuntimeException("删除失败!");
 		}
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "删除成功!", "删除成功!");
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "删除成功!", new RedisDto(redisKeyDtoList).toString());
 	}
 
 }

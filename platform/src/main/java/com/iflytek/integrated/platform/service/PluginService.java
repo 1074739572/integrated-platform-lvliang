@@ -204,6 +204,10 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
             this.post(plugin);
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"插件新增成功", null);
         }
+        // redis缓存信息获取
+        ArrayList<Predicate> arr = new ArrayList<>();
+        arr.add(qTBusinessInterface.pluginId.in(plugin.getId()));
+        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
         //编辑插件
         plugin.setUpdatedTime(new Date());
         plugin.setUpdatedBy(loginUserName);
@@ -211,7 +215,7 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
         if(lon <= 0){
             throw new RuntimeException("插件编辑失败!");
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"插件编辑成功!", new RedisDto(plugin.getId()).toString());
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"插件编辑成功!", new RedisDto(redisKeyDtoList).toString());
     }
 
     /**

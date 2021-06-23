@@ -1,26 +1,5 @@
 package com.iflytek.integrated.platform.service;
 
-import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
@@ -40,11 +19,21 @@ import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.*;
+
+import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
 
 /**
  * 医院管理
@@ -176,6 +165,10 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
 			this.post(hospital);
 			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "医院管理新增成功", null);
 		} else {
+			// redis缓存信息获取
+			ArrayList<Predicate> arr = new ArrayList<>();
+			arr.add(qTHospital.id.in(hospital.getId()));
+			List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
 			// 存在id时，编辑医院
 			hospital.setUpdatedTime(new Date());
 			hospital.setUpdatedBy(loginUserName);
@@ -183,8 +176,9 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
 			if (lon <= 0) {
 				throw new RuntimeException("医院管理编辑失败!");
 			}
+			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "医院管理编辑成功",
+					new RedisDto(redisKeyDtoList).toString());
 		}
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "医院管理编辑成功", new RedisDto(hospital.getId()).toString());
 	}
 
 	@ApiOperation(value = "医院配置")
@@ -201,7 +195,6 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
 	 * 
 	 * @param id
 	 * @param hospitalName
-	 * @param hospitalCode
 	 * @return
 	 */
 	private boolean isExistence(String id, String hospitalName) {

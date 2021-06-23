@@ -199,6 +199,10 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
 			this.post(drive);
 			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "驱动新增成功", null);
 		}
+		// redis缓存信息获取
+		ArrayList<Predicate> arr = new ArrayList<>();
+        arr.add(qTSysDriveLink.driveId.in(drive.getId()));
+		List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
 		// 编辑驱动
 		drive.setUpdatedBy(loginUserName);
 		drive.setUpdatedTime(new Date());
@@ -206,7 +210,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
 		if (lon <= 0) {
 			throw new RuntimeException("驱动编辑失败!");
 		}
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "驱动编辑成功!", new RedisDto(drive.getId()).toString());
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "驱动编辑成功!", new RedisDto(redisKeyDtoList).toString());
 	}
 
 	@ApiOperation(value = "新增厂商弹窗展示的驱动选择信息")
