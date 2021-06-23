@@ -110,6 +110,13 @@
 	  		<artifactId>cxf-rt-transports-http</artifactId>
 	  		<version>3.1.14</version>
 	  	</dependency>
+	  	<!-- https://mvnrepository.com/artifact/com.predic8/soa-model-core -->
+		<dependency>
+		    <groupId>com.predic8</groupId>
+		    <artifactId>soa-model-core</artifactId>
+		    <version>1.6.3</version>
+		</dependency>
+	  	
     </dependencies>
 
     <build>

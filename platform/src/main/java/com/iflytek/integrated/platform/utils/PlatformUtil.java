@@ -2,33 +2,18 @@ package com.iflytek.integrated.platform.utils;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.wsdl.Definition;
-import javax.wsdl.Operation;
-import javax.wsdl.PortType;
-import javax.wsdl.WSDLException;
-import javax.wsdl.factory.WSDLFactory;
-import javax.wsdl.xml.WSDLReader;
-import javax.xml.namespace.QName;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.cxf.Bus;
-import org.apache.cxf.BusFactory;
-import org.apache.cxf.binding.soap.interceptor.ReadHeadersInterceptor;
-import org.apache.cxf.endpoint.Client;
-import org.apache.cxf.endpoint.ClientCallback;
-import org.apache.cxf.interceptor.Interceptor;
 import org.apache.cxf.io.CacheAndWriteOutputStream;
 import org.apache.cxf.io.CachedOutputStream;
 import org.apache.cxf.io.CachedOutputStreamCallback;
-import org.apache.cxf.jaxws.endpoint.dynamic.JaxWsDynamicClientFactory;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.phase.AbstractPhaseInterceptor;
 import org.apache.cxf.phase.Phase;
@@ -41,6 +26,15 @@ import org.json.JSONObject;
 import com.iflytek.integrated.common.utils.JackSonUtils;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.ParamsDto;
+import com.predic8.wsdl.Binding;
+import com.predic8.wsdl.Definitions;
+import com.predic8.wsdl.Port;
+import com.predic8.wsdl.Service;
+import com.predic8.wsdl.WSDLParser;
+import com.predic8.wstool.creator.RequestTemplateCreator;
+import com.predic8.wstool.creator.SOARequestCreator;
+
+import groovy.xml.MarkupBuilder;
 
 /**
  * @author czzhan 公用方法
@@ -178,54 +172,49 @@ public class PlatformUtil {
 	public static List<String> getWsdlOperationNames(String wsdlUrl) {
 		List<String> results = new ArrayList<>();
 		try {
-			WSDLFactory wsdlFactory = WSDLFactory.newInstance();
-			WSDLReader reader = wsdlFactory.newWSDLReader();
-			Definition def = reader.readWSDL(wsdlUrl);
-			Map<QName, PortType> allPorts = def.getAllPortTypes();
-			if (allPorts == null || allPorts.size() == 0) {
-				return results;
-			}
-			List<Operation> ops = new ArrayList<>();
-			allPorts.forEach((key, port) -> {
-				PortType pt = (PortType) port;
-				List<Operation> operations = pt.getOperations();
-				if (operations != null && operations.size() > 0) {
-					ops.addAll(operations);
+			WSDLParser parser = new WSDLParser();
+			Definitions wsdl = parser.parse(wsdlUrl);
+			for (Service service : wsdl.getServices()) {
+				for (Port port : service.getPorts()) {
+					Binding binding = port.getBinding();
+					com.predic8.wsdl.PortType portType = binding.getPortType();
+					for (com.predic8.wsdl.Operation op : portType.getOperations()) {
+						String mixedOpName = op.getName() + "|" + binding.getName() + "|" + port.getName();
+						results.add(mixedOpName);
+					}
 				}
-			});
-			if (ops.size() > 0) {
-				results = ops.stream().map(Operation::getName).collect(Collectors.toList());
 			}
-		} catch (WSDLException e) {
+
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return results;
 	}
 
 	public static String invokeWsService(String wsdlUrl, String methodName, String funCode, String params) {
-		Map<String, String> resultMap = new HashMap<>();
-		Bus bus = BusFactory.getDefaultBus();
-		List<Interceptor<? extends Message>> ininters = bus.getInInterceptors();
-		if (ininters != null && ininters.size() > 0) {
-			for (Interceptor<? extends Message> intc : ininters) {
-				if (intc instanceof ReadHeadersInterceptor) {
-					ininters.remove(intc);
-				}
-			}
+		params = "<![CDATA[" + params + "]]>";
+		WSDLParser parser = new WSDLParser();
+		Definitions wsdl = parser.parse(wsdlUrl);
+		StringWriter writer = new StringWriter();
+		SOARequestCreator creator = new SOARequestCreator(wsdl, new RequestTemplateCreator(),
+				new MarkupBuilder(writer));
+		String[] mixedOpName = methodName.split("\\|");
+		if (mixedOpName.length != 3) {
+			return "";
 		}
+		String opName = mixedOpName[0];
+		String bindingName = mixedOpName[1];
+		String portName = mixedOpName[2];
+		creator.createRequest(portName, opName, bindingName);
+		writer.flush();
+		String soapTpl = writer.toString();
+		writer.getBuffer().setLength(0);
 
-		bus.getInFaultInterceptors().clear();
-		bus.getOutFaultInterceptors().clear();
-		bus.getOutInterceptors().clear();
-		bus.getOutInterceptors().add(new ArtifactOutInterceptor(wsdlUrl, methodName, resultMap));
-		JaxWsDynamicClientFactory clientFactory = JaxWsDynamicClientFactory.newInstance(bus);
-		Client client = clientFactory.createClient(wsdlUrl);
-		ClientCallback cb = new ClientCallback();
-		try {
-			client.invoke(cb, methodName, funCode, params);
-		} catch (Exception e) {
-		}
-		return resultMap.get("data");
+		soapTpl = soapTpl.replaceFirst("\\?XXX\\?", funCode);
+		soapTpl = soapTpl.replaceFirst("\\?XXX\\?", params);
+
+		String responseStr = HttpClientCallSoapUtil.doPostSoap1_1(wsdlUrl, soapTpl, opName);
+		return responseStr;
 	}
 
 	static class ArtifactOutInterceptor extends AbstractPhaseInterceptor<Message> {
@@ -292,8 +281,96 @@ public class PlatformUtil {
 		}
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		String wsdlStr = "http://172.31.184.170:9071/services/v2csxtwd/ahslyycs";
+		String methodName = "postData";
+		WSDLParser parser = new WSDLParser();
+		Definitions wsdl = parser.parse(wsdlStr);
+		StringWriter writer = new StringWriter();
+		SOARequestCreator creator = new SOARequestCreator(wsdl, new RequestTemplateCreator(),
+				new MarkupBuilder(writer));
+
+		String params = "<Request>\r\n" + "	<Header>\r\n" + "		<SourceSystem>pt</SourceSystem> \r\n"
+				+ "		<MessageID>test</MessageID>\r\n" + "	</Header>\r\n" + "	<Body>\r\n"
+				+ "		<PatientRegistryRt>\r\n" + "			<PATPatientID>test</PATPatientID>\r\n"
+				+ "			<PATName>test</PATName>\r\n" + "			<PATDob>test</PATDob>\r\n"
+				+ "			<PATSexCode>test</PATSexCode>\r\n"
+				+ "			<PATMaritalStatusCode>test</PATMaritalStatusCode>\r\n"
+				+ "			<PATNationCode>test</PATNationCode>\r\n"
+				+ "			<PATCountryCode>test</PATCountryCode>\r\n"
+				+ "			<PATDeceasedDate>test</PATDeceasedDate>\r\n"
+				+ "			<PATDeceasedTime>test</PATDeceasedTime>\r\n"
+				+ "			<PATHealthCardID>test</PATHealthCardID>\r\n"
+				+ "			<PATMotherID>test</PATMotherID>\r\n"
+				+ "			<PATOccupationCode>test</PATOccupationCode>\r\n"
+				+ "			<PATWorkPlaceName>test</PATWorkPlaceName>\r\n"
+				+ "			<PATWorkPlaceTelNum>test</PATWorkPlaceTelNum>\r\n" + "<PATAddressList>\r\n"
+				+ "<PATAddress>\r\n" + "				<PATAddressType>test</PATAddressType>\r\n"
+				+ "				<PATAddressDesc>test</PATAddressDesc>\r\n"
+				+ "				<PATHouseNum>test</PATHouseNum>\r\n"
+				+ "				<PATVillage>test</PATVillage>\r\n"
+				+ "				<PATCountryside>test</PATCountryside>\r\n"
+				+ "				<PATCounty>test</PATCounty>\r\n" + "				<PATCity>test</PATCity>\r\n"
+				+ "				<PATProvince>test</PATProvince>\r\n"
+				+ "				<PATPostalCode>test</PATPostalCode>\r\n" + "			</PATAddress>\r\n"
+				+ "			    <PATIdentity>\r\n" + "<PATIdentityNum>test</PATIdentityNum>\r\n"
+				+ "<PATPhotoURL>test</PATPhotoURL>\r\n" + "				 <PATIdType>test</PATIdType>\r\n"
+				+ "			    </PATIdentity>\r\n" + "</PATAddressList>\r\n" + "			<PATRelation>\r\n"
+				+ "				<PATRelationCode>test</PATRelationCode>\r\n"
+				+ "				<PATRelationName>test</PATRelationName>\r\n"
+				+ "				<PATRelationPhone>test</PATRelationPhone>\r\n"
+				+ "				<PATRelationAddress>\r\n"
+				+ "				<PATRelationAddressDesc>test</PATRelationAddressDesc>\r\n"
+				+ "				<PATRelationHouseNum>test</PATRelationHouseNum>\r\n"
+				+ "				<PATRelationVillage>test</PATRelationVillage>\r\n"
+				+ "				<PATRelationCountryside>test</PATRelationCountryside>\r\n"
+				+ "				<PATRelationCounty>test</PATRelationCounty>\r\n"
+				+ "				<PATRelationCity>test</PATRelationCity>\r\n"
+				+ "				<PATRelationProvince>test</PATRelationProvince>\r\n"
+				+ "				<PATRelationPostalCode>test</PATRelationPostalCode>\r\n" + "</PATRelationAddress>\r\n"
+				+ "			</PATRelation>\r\n" + "				<PATTelephone>test</PATTelephone>\r\n"
+				+ "				<PATRemarks>test</PATRemarks>\r\n"
+				+ "				<UpdateUserCode>test</UpdateUserCode>\r\n"
+				+ "				<UpdateDate>test</UpdateDate>\r\n" + "				<UpdateTime>test</UpdateTime>\r\n"
+				+ "		</PatientRegistryRt>\r\n" + "	</Body>\r\n" + "</Request>\r\n" + "";
+		List<String> paramList = new ArrayList<>();
+		paramList.add("S0001");
+		paramList.add(params);
+		String soapTpl = "";
+		boolean breakall = false;
+		for (Service service : wsdl.getServices()) {
+			for (Port port : service.getPorts()) {
+				Binding binding = port.getBinding();
+				com.predic8.wsdl.PortType portType = binding.getPortType();
+				for (com.predic8.wsdl.Operation op : portType.getOperations()) {
+//					System.out.println(op.getName() + " -- " + op.getInput().getName() + " -- "
+//							+ op.getOutput().getMessage().getName());
+					if (methodName.equals(op.getName())) {
+//						System.out.println(
+//								"--------------" + op.getName() + ";" + binding.getName() + ";" + port.getName());
+						creator.createRequest(port.getName(), op.getName(), binding.getName());
+						writer.flush();
+						soapTpl = writer.toString();
+						System.out.println(soapTpl);
+						writer.getBuffer().setLength(0);
+
+						for (String arg : paramList) {
+							soapTpl = soapTpl.replaceFirst("\\?XXX\\?", arg);
+						}
+						System.out.println("========replaced soap xml:" + soapTpl);
+						breakall = true;
+						break;
+					}
+				}
+				if (breakall) {
+					break;
+				}
+			}
+			if (breakall) {
+				break;
+			}
+		}
+
 		List<String> opsNames = getWsdlOperationNames(wsdlStr);
 		System.out.println(opsNames);
 	}

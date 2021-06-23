@@ -12,8 +12,8 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 
 public class HttpClientCallSoapUtil {
-	static int socketTimeout = 30000;// 请求超时时间
-	static int connectTimeout = 30000;// 传输超时时间
+	static int socketTimeout = 15000;// 请求超时时间
+	static int connectTimeout = 5000;// 传输超时时间
 
 	/**
 	 * 使用SOAP1.1发送消息
@@ -32,6 +32,7 @@ public class HttpClientCallSoapUtil {
 		HttpPost httpPost = new HttpPost(postUrl);
 		// 设置请求和传输超时时间
 		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(socketTimeout)
+				.setConnectionRequestTimeout(socketTimeout)
 				.setConnectTimeout(connectTimeout).build();
 		httpPost.setConfig(requestConfig);
 		try {
