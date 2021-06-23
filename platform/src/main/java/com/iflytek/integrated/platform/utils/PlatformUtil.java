@@ -1,22 +1,13 @@
 package com.iflytek.integrated.platform.utils;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.cxf.io.CacheAndWriteOutputStream;
-import org.apache.cxf.io.CachedOutputStream;
-import org.apache.cxf.io.CachedOutputStreamCallback;
-import org.apache.cxf.message.Message;
-import org.apache.cxf.phase.AbstractPhaseInterceptor;
-import org.apache.cxf.phase.Phase;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
 import org.json.JSONArray;
@@ -215,163 +206,5 @@ public class PlatformUtil {
 
 		String responseStr = HttpClientCallSoapUtil.doPostSoap1_1(wsdlUrl, soapTpl, opName);
 		return responseStr;
-	}
-
-	static class ArtifactOutInterceptor extends AbstractPhaseInterceptor<Message> {
-
-		private String postUrl;
-
-		private String methodName;
-
-		private Map<String, String> resultMap;
-
-		public ArtifactOutInterceptor(String postUrl, String methodName, Map<String, String> resultMap) {
-			// 这儿使用pre_stream，意思为在流关闭之前
-			super(Phase.PRE_STREAM);
-			this.postUrl = postUrl;
-			this.methodName = methodName;
-			this.resultMap = resultMap;
-		}
-
-		public void handleMessage(Message message) {
-
-			try {
-				OutputStream os = message.getContent(OutputStream.class);
-				CacheAndWriteOutputStream cwos = new CacheAndWriteOutputStream(os);
-				message.setContent(OutputStream.class, cwos);
-				cwos.registerCallback(new LoggingOutCallBack(postUrl, methodName, resultMap));
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
-	static class LoggingOutCallBack implements CachedOutputStreamCallback {
-
-		private String postUrl;
-
-		private String methodName;
-
-		private Map<String, String> resultMap;
-
-		public LoggingOutCallBack(String postUrl, String methodName, Map<String, String> resultMap) {
-			this.postUrl = postUrl;
-			this.methodName = methodName;
-			this.resultMap = resultMap;
-		}
-
-		@Override
-		public void onClose(CachedOutputStream cos) {
-			try {
-				if (cos != null) {
-					String soapxml = IOUtils.toString(cos.getInputStream());
-					System.out.println("Response XML in out Interceptor : " + soapxml);
-					String responseStr = HttpClientCallSoapUtil.doPostSoap1_1(postUrl, soapxml, methodName);
-					System.out.println(responseStr);
-					resultMap.put("data", responseStr);
-				}
-
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-
-		@Override
-		public void onFlush(CachedOutputStream arg0) {
-		}
-	}
-
-	public static void main(String[] args) throws IOException {
-		String wsdlStr = "http://172.31.184.170:9071/services/v2csxtwd/ahslyycs";
-		String methodName = "postData";
-		WSDLParser parser = new WSDLParser();
-		Definitions wsdl = parser.parse(wsdlStr);
-		StringWriter writer = new StringWriter();
-		SOARequestCreator creator = new SOARequestCreator(wsdl, new RequestTemplateCreator(),
-				new MarkupBuilder(writer));
-
-		String params = "<Request>\r\n" + "	<Header>\r\n" + "		<SourceSystem>pt</SourceSystem> \r\n"
-				+ "		<MessageID>test</MessageID>\r\n" + "	</Header>\r\n" + "	<Body>\r\n"
-				+ "		<PatientRegistryRt>\r\n" + "			<PATPatientID>test</PATPatientID>\r\n"
-				+ "			<PATName>test</PATName>\r\n" + "			<PATDob>test</PATDob>\r\n"
-				+ "			<PATSexCode>test</PATSexCode>\r\n"
-				+ "			<PATMaritalStatusCode>test</PATMaritalStatusCode>\r\n"
-				+ "			<PATNationCode>test</PATNationCode>\r\n"
-				+ "			<PATCountryCode>test</PATCountryCode>\r\n"
-				+ "			<PATDeceasedDate>test</PATDeceasedDate>\r\n"
-				+ "			<PATDeceasedTime>test</PATDeceasedTime>\r\n"
-				+ "			<PATHealthCardID>test</PATHealthCardID>\r\n"
-				+ "			<PATMotherID>test</PATMotherID>\r\n"
-				+ "			<PATOccupationCode>test</PATOccupationCode>\r\n"
-				+ "			<PATWorkPlaceName>test</PATWorkPlaceName>\r\n"
-				+ "			<PATWorkPlaceTelNum>test</PATWorkPlaceTelNum>\r\n" + "<PATAddressList>\r\n"
-				+ "<PATAddress>\r\n" + "				<PATAddressType>test</PATAddressType>\r\n"
-				+ "				<PATAddressDesc>test</PATAddressDesc>\r\n"
-				+ "				<PATHouseNum>test</PATHouseNum>\r\n"
-				+ "				<PATVillage>test</PATVillage>\r\n"
-				+ "				<PATCountryside>test</PATCountryside>\r\n"
-				+ "				<PATCounty>test</PATCounty>\r\n" + "				<PATCity>test</PATCity>\r\n"
-				+ "				<PATProvince>test</PATProvince>\r\n"
-				+ "				<PATPostalCode>test</PATPostalCode>\r\n" + "			</PATAddress>\r\n"
-				+ "			    <PATIdentity>\r\n" + "<PATIdentityNum>test</PATIdentityNum>\r\n"
-				+ "<PATPhotoURL>test</PATPhotoURL>\r\n" + "				 <PATIdType>test</PATIdType>\r\n"
-				+ "			    </PATIdentity>\r\n" + "</PATAddressList>\r\n" + "			<PATRelation>\r\n"
-				+ "				<PATRelationCode>test</PATRelationCode>\r\n"
-				+ "				<PATRelationName>test</PATRelationName>\r\n"
-				+ "				<PATRelationPhone>test</PATRelationPhone>\r\n"
-				+ "				<PATRelationAddress>\r\n"
-				+ "				<PATRelationAddressDesc>test</PATRelationAddressDesc>\r\n"
-				+ "				<PATRelationHouseNum>test</PATRelationHouseNum>\r\n"
-				+ "				<PATRelationVillage>test</PATRelationVillage>\r\n"
-				+ "				<PATRelationCountryside>test</PATRelationCountryside>\r\n"
-				+ "				<PATRelationCounty>test</PATRelationCounty>\r\n"
-				+ "				<PATRelationCity>test</PATRelationCity>\r\n"
-				+ "				<PATRelationProvince>test</PATRelationProvince>\r\n"
-				+ "				<PATRelationPostalCode>test</PATRelationPostalCode>\r\n" + "</PATRelationAddress>\r\n"
-				+ "			</PATRelation>\r\n" + "				<PATTelephone>test</PATTelephone>\r\n"
-				+ "				<PATRemarks>test</PATRemarks>\r\n"
-				+ "				<UpdateUserCode>test</UpdateUserCode>\r\n"
-				+ "				<UpdateDate>test</UpdateDate>\r\n" + "				<UpdateTime>test</UpdateTime>\r\n"
-				+ "		</PatientRegistryRt>\r\n" + "	</Body>\r\n" + "</Request>\r\n" + "";
-		List<String> paramList = new ArrayList<>();
-		paramList.add("S0001");
-		paramList.add(params);
-		String soapTpl = "";
-		boolean breakall = false;
-		for (Service service : wsdl.getServices()) {
-			for (Port port : service.getPorts()) {
-				Binding binding = port.getBinding();
-				com.predic8.wsdl.PortType portType = binding.getPortType();
-				for (com.predic8.wsdl.Operation op : portType.getOperations()) {
-//					System.out.println(op.getName() + " -- " + op.getInput().getName() + " -- "
-//							+ op.getOutput().getMessage().getName());
-					if (methodName.equals(op.getName())) {
-//						System.out.println(
-//								"--------------" + op.getName() + ";" + binding.getName() + ";" + port.getName());
-						creator.createRequest(port.getName(), op.getName(), binding.getName());
-						writer.flush();
-						soapTpl = writer.toString();
-						System.out.println(soapTpl);
-						writer.getBuffer().setLength(0);
-
-						for (String arg : paramList) {
-							soapTpl = soapTpl.replaceFirst("\\?XXX\\?", arg);
-						}
-						System.out.println("========replaced soap xml:" + soapTpl);
-						breakall = true;
-						break;
-					}
-				}
-				if (breakall) {
-					break;
-				}
-			}
-			if (breakall) {
-				break;
-			}
-		}
-
-		List<String> opsNames = getWsdlOperationNames(wsdlStr);
-		System.out.println(opsNames);
 	}
 }
