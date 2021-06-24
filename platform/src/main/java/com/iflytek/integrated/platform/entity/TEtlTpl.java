@@ -1,7 +1,6 @@
 package com.iflytek.integrated.platform.entity;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * TEtlTpl is a Querydsl bean type
@@ -27,6 +26,8 @@ public class TEtlTpl implements Serializable {
     private String updatedBy;
 
     private java.util.Date updatedTime;
+
+	private String suffixName;
 
 	public String getId() {
 		return id;
@@ -108,5 +109,12 @@ public class TEtlTpl implements Serializable {
 		this.tplDesp = tplDesp;
 	}
 
+	public String getSuffixName() {
+		return suffixName;
+	}
+
+	public void setSuffixName(String suffixName) {
+		this.suffixName = suffixName;
+	}
 }
 

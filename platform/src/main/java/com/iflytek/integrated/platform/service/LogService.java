@@ -162,7 +162,8 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 			StringPath queryLabel = Expressions.stringPath(q);
 			QTInterfaceMonitor monitor = new QTInterfaceMonitor(q);
 			SubQueryExpression query = SQLExpressions
-					.select(qTInterfaceMonitor.successCount.sum().as("SUCCESS_COUNT"),
+					.select(qTInterfaceMonitor.status.max().as("status"),
+							qTInterfaceMonitor.successCount.sum().as("SUCCESS_COUNT"),
 							qTInterfaceMonitor.errorCount.sum().as("ERROR_COUNT"), qTInterfaceMonitor.projectId,
 							qTInterfaceMonitor.platformId, qTInterfaceMonitor.sysId, qTInterfaceMonitor.typeId,
 							qTInterfaceMonitor.createdTime, qTInterfaceMonitor.businessInterfaceId,
@@ -190,7 +191,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 			}
 			// 根据结果查询
 			QueryResults<InterfaceMonitorDto> queryResults = sqlQueryFactory
-					.select(Projections.bean(InterfaceMonitorDto.class, monitor.successCount,
+					.select(Projections.bean(InterfaceMonitorDto.class, monitor.status, monitor.successCount,
 							monitor.errorCount, monitor.interfaceName, monitor.interfaceId,
 							qTProject.projectName, qTPlatform.platformName, qTSys.sysName))
 					.from(query, queryLabel)

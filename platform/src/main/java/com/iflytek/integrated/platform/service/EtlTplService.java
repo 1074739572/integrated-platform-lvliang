@@ -1,53 +1,5 @@
 package com.iflytek.integrated.platform.service;
 
-import static com.iflytek.integrated.platform.entity.QTEtlTpl.qTEtlTpl;
-import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
-
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URLEncoder;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.nifi.api.toolkit.ApiClient;
-import org.apache.nifi.api.toolkit.ApiException;
-import org.apache.nifi.api.toolkit.api.AccessApi;
-import org.apache.nifi.api.toolkit.api.FlowApi;
-import org.apache.nifi.api.toolkit.api.ProcessGroupsApi;
-import org.apache.nifi.api.toolkit.model.ProcessGroupEntity;
-import org.apache.nifi.api.toolkit.model.ProcessGroupFlowEntity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
@@ -64,11 +16,39 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.dml.SQLInsertClause;
 import com.querydsl.sql.dml.SQLUpdateClause;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.nifi.api.toolkit.ApiClient;
+import org.apache.nifi.api.toolkit.ApiException;
+import org.apache.nifi.api.toolkit.api.AccessApi;
+import org.apache.nifi.api.toolkit.api.FlowApi;
+import org.apache.nifi.api.toolkit.api.ProcessGroupsApi;
+import org.apache.nifi.api.toolkit.model.ProcessGroupEntity;
+import org.apache.nifi.api.toolkit.model.ProcessGroupFlowEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.net.URLEncoder;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import static com.iflytek.integrated.platform.entity.QTEtlTpl.qTEtlTpl;
+import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
 
 /**
  * @author lsn
@@ -102,7 +82,8 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 			conditon = conditon.and(qTEtlTpl.tplName.like("%" + tplName + "%"));
 		}
 		QueryResults<TEtlTpl> queryResults = sqlQueryFactory
-				.select(Projections.bean(TEtlTpl.class, qTEtlTpl.id, qTEtlTpl.tplType, qTEtlTpl.tplName,
+				.select(Projections.bean(TEtlTpl.class, qTEtlTpl.id, qTEtlTpl.tplType,
+						qTEtlTpl.tplName.append(qTEtlTpl.suffixName).as(qTEtlTpl.tplName),
 						qTEtlTpl.tplFunType, qTEtlTpl.tplDesp, qTEtlTpl.createdBy, qTEtlTpl.createdTime,
 						qTEtlTpl.updatedBy, qTEtlTpl.updatedTime))
 				.from(qTEtlTpl).where(conditon).limit(pageSize).offset((pageNo - 1) * pageSize)
@@ -136,8 +117,8 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 			@RequestParam("tplFiles") MultipartFile[] tplFiles, String tplDesp) {
 
 		// 校验是否获取到登录用户
-//		String loginUserName = "admin";
-		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
+		String loginUserName = "admin";
+//		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
 		if (StringUtils.isBlank(loginUserName)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
 		}
@@ -151,8 +132,9 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 			String exsitsFileNames = "";
 			int insetNum = 0;
 			for (MultipartFile file : tplFiles) {
-				String fileName = file.getOriginalFilename();
-				fileName = fileName.substring(0, fileName.lastIndexOf("."));
+				String originalFilename = file.getOriginalFilename();
+				String fileName = originalFilename.substring(0, originalFilename.lastIndexOf("."));
+				String suffixName = originalFilename.substring(originalFilename.lastIndexOf("."));
 				InputStream is = file.getInputStream();
 				String tplContent = IOUtils.toString(is, "UTF-8");
 				is.close();
@@ -163,8 +145,8 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 					continue;
 				}
 				String id = batchUidService.getUid(qTEtlTpl.getTableName()) + "";
-				insertClause.set(qTEtlTpl.id, id).set(qTEtlTpl.tplName, fileName).set(qTEtlTpl.tplType, tplType)
-						.set(qTEtlTpl.tplFunType, tplFunType).set(qTEtlTpl.tplContent, tplContent)
+				insertClause.set(qTEtlTpl.id, id).set(qTEtlTpl.tplName, fileName).set(qTEtlTpl.suffixName, suffixName)
+						.set(qTEtlTpl.tplType, tplType).set(qTEtlTpl.tplFunType, tplFunType).set(qTEtlTpl.tplContent, tplContent)
 						.set(qTEtlTpl.tplDesp, tplDesp)
 						.set(qTEtlTpl.createdBy, loginUserName != null ? loginUserName : "")
 						.set(qTEtlTpl.createdTime, new Date())
@@ -261,15 +243,11 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 		Map<String, byte[]> filesMap = new HashMap<String, byte[]>();
 		if (result != null && result.size() > 0) {
 			result.forEach(tpl -> {
-				int tplType = tpl.getTplType();
 				String tplName = tpl.getTplName();
-				if (tplType == 1) {
-					tplName = tplName + ".json";
-				} else {
-					tplName = tplName + ".xml";
-				}
+				String suffixName = tpl.getSuffixName();
+				String fileName = tplName + suffixName;
 				String tplContent = tpl.getTplContent();
-				filesMap.put(tplName, tplContent.getBytes());
+				filesMap.put(fileName, tplContent.getBytes());
 			});
 		}
 		try {

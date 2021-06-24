@@ -1,15 +1,15 @@
 package com.iflytek.integrated.platform.entity;
 
-import static com.querydsl.core.types.PathMetadataFactory.forVariable;
-
-import java.sql.Types;
-
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.PathMetadata;
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
+
+import java.sql.Types;
+
+import static com.querydsl.core.types.PathMetadataFactory.forVariable;
 
 /**
  * QTEtlTpl is a Querydsl query type for TEtlTpl
@@ -21,6 +21,8 @@ public class QTEtlTpl extends com.querydsl.sql.RelationalPathBase<TEtlTpl> {
 	public static final QTEtlTpl qTEtlTpl = new QTEtlTpl("t_etl_tpl");
 
 	public final StringPath tplName = createString("tplName");
+
+	public final StringPath suffixName = createString("suffixName");
 
 	public final NumberPath<Integer> tplType = createNumber("tplType", Integer.class);
 
@@ -72,14 +74,15 @@ public class QTEtlTpl extends com.querydsl.sql.RelationalPathBase<TEtlTpl> {
 		addMetadata(tplType, ColumnMetadata.named("TPL_TYPE").withIndex(3).ofType(Types.INTEGER).withSize(1));
 		addMetadata(tplFunType, ColumnMetadata.named("TPL_FUN_TYPE").withIndex(4).ofType(Types.INTEGER).withSize(1));
 		addMetadata(tplContent, ColumnMetadata.named("TPL_CONTENT").withIndex(5).ofType(Types.LONGVARCHAR));
-		addMetadata(tplDesp, ColumnMetadata.named("TPL_DESP").withIndex(5).ofType(Types.VARCHAR));
-		addMetadata(createdBy, ColumnMetadata.named("CREATED_BY").withIndex(6).ofType(Types.VARCHAR).withSize(32));
+		addMetadata(tplDesp, ColumnMetadata.named("TPL_DESP").withIndex(6).ofType(Types.VARCHAR));
+		addMetadata(createdBy, ColumnMetadata.named("CREATED_BY").withIndex(7).ofType(Types.VARCHAR).withSize(32));
 		addMetadata(createdTime,
-				ColumnMetadata.named("CREATED_TIME").withIndex(7).ofType(Types.TIMESTAMP).withSize(19));
+				ColumnMetadata.named("CREATED_TIME").withIndex(8).ofType(Types.TIMESTAMP).withSize(19));
 		addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.VARCHAR).withSize(32).notNull());
-		addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(8).ofType(Types.VARCHAR).withSize(32));
+		addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(9).ofType(Types.VARCHAR).withSize(32));
 		addMetadata(updatedTime,
-				ColumnMetadata.named("UPDATED_TIME").withIndex(9).ofType(Types.TIMESTAMP).withSize(19));
+				ColumnMetadata.named("UPDATED_TIME").withIndex(10).ofType(Types.TIMESTAMP).withSize(19));
+		addMetadata(suffixName, ColumnMetadata.named("SUFFIX_NAME").withIndex(11).ofType(Types.VARCHAR).withSize(10));
 	}
 
 }
