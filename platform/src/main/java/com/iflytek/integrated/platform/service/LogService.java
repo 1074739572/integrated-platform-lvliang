@@ -200,7 +200,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 					.leftJoin(qTSysConfig).on(qTSysConfig.platformId.eq(qTPlatform.id).and(qTSysConfig.sysConfigType.eq(1)))
 					.leftJoin(qTSys).on(qTSys.id.eq(qTSysConfig.sysId))
 					.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
-					.orderBy(monitor.createdTime.desc()).fetchResults();
+					.orderBy(monitor.status.desc(), monitor.createdTime.desc()).fetchResults();
 			// 分页
 			TableData<InterfaceMonitorDto> tableData = new TableData<>(queryResults.getTotal(),
 					queryResults.getResults());

@@ -198,14 +198,14 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
 		if (!CollectionUtils.isEmpty(tpList)) {
 			for (TPlatform obj : tpList) {
 				String platformId = obj.getId();
-				// 获取平台下所有厂商配置
+				// 获取平台下所有系统配置
 				List<TSysConfig> list = sysConfigService.getObjByPlatformId(platformId);
 				if (!CollectionUtils.isEmpty(list)) {
 					for (TSysConfig tvc : list) {
-						// 删除医院与厂商配置关联信息
+						// 删除平台分类与系统配置关联信息
 						long l = sysConfigService.delete(tvc.getId());
 						if (l < 1) {
-							throw new RuntimeException("医院与厂商配置关联信息删除失败!");
+							throw new RuntimeException("平台分类与系统配置关联信息删除失败!");
 						}
 					}
 				}
@@ -218,11 +218,6 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
 							throw new RuntimeException("平台下关联的接口转换配置信息删除失败!");
 						}
 					}
-				}
-				// 删除平台下的所有系统配置信息
-				long l = sysConfigService.delSysConfigAll(platformId);
-				if (l < 1) {
-					throw new RuntimeException("平台下的厂商配置信息删除失败!");
 				}
 			}
 		}

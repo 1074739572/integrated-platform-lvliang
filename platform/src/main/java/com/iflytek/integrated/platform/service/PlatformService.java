@@ -514,18 +514,18 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 				long l = businessInterfaceService.delete(tbi.getId());
 				if (l < 1) {
 					logger.error("平台下所有关联的接口配置删除失败!");
-					throw new RuntimeException("平台删除失败!");
+					throw new RuntimeException("平台下所有关联的接口配置删除失败!");
 				}
 			}
 		}
 		// 删除平台下的所有厂商配置信息
 		long vcCount = sysConfigService.delSysConfigAll(id);
 		if (vcCount < 1) {
-			logger.error("平台下所有厂商配置信息删除失败!");
-			throw new RuntimeException("平台删除失败!");
+			logger.error("平台下所有系统配置信息删除失败!");
+			throw new RuntimeException("平台下所有系统配置信息删除失败!");
 		}
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,
-				"平台" + tp.getPlatformName() + "删除成功,同时删除该平台下" + vcCount + "条厂商配置," + count + "条厂商医院配置!",
+				"平台" + tp.getPlatformName() + "删除成功,同时删除该平台下" + vcCount + "条系统配置",
 				new RedisDto(redisKeyDtoList).toString());
 	}
 
