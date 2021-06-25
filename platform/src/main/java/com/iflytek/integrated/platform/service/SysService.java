@@ -98,7 +98,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 			TableData<SysDto> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
 			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "系统管理列表获取成功", tableData);
 		} catch (Exception e) {
-			logger.error("获取产品管理列表失败! MSG:{}", ExceptionUtil.dealException(e));
+			logger.error("获取系统管理列表失败! MSG:{}", ExceptionUtil.dealException(e));
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取系统管理列表失败");
 		}
 	}
@@ -327,7 +327,8 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		if (tvc != null) {
 			List<TBusinessInterface> tbiList = businessInterfaceService.getListBySysConfigId(tvc.getId());
 			if (CollectionUtils.isNotEmpty(tbiList)) {
-				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该系统已有接口配置数据相关联,无法删除!", "该厂商已有接口配置数据相关联,无法删除!");
+				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该系统已有接口配置数据相关联,无法删除!",
+						"该系统已有接口配置数据相关联,无法删除!");
 			}
             //redis缓存信息获取
             ArrayList<Predicate> arr = new ArrayList<>();
@@ -359,7 +360,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
             arr.add(qTSysConfig.sysId.in(sysId));
             arr.add(qTSysConfig.platformId.in(platformId));
             List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
-			// 删除厂商配置关联的医院
+			// 删除系统配置关联的医院
 			sysConfigService.delSysConfigHospital(tvc, hospitalId);
 			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "系统下医院配置信息删除成功!", new RedisDto(redisKeyDtoList).toString());
 		}
@@ -370,20 +371,20 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 	@GetMapping("/getDisSysByOpt")
 	public ResultDto<List<TSys>> getDisSysByOpt(
 			@ApiParam(value = "项目id") @RequestParam(value = "projectId", required = false) String projectId,
-			@ApiParam(value = "操作 1获取当前项目下的厂商 2获取非当前项目下的厂商") @RequestParam(defaultValue = "1", value = "status", required = false) String status) {
+			@ApiParam(value = "操作 1获取当前项目下的系统 2获取非当前项目下的系统") @RequestParam(defaultValue = "1", value = "status", required = false) String status) {
 		List<TSys> curProjSyss = sqlQueryFactory.select(qTSys).from(qTSys).leftJoin(qTSysConfig)
 				.on(qTSysConfig.sysId.eq(qTSys.id)).leftJoin(qTPlatform).on(qTPlatform.id.eq(qTSysConfig.platformId))
 				.where(qTPlatform.projectId.eq(projectId)).orderBy(qTSys.createdTime.desc()).fetch();
 		if (StringUtils.isNotBlank(projectId) && Constant.Operation.CURRENT.equals(status)) {
-			// 返回当前项目下的厂商
+			// 返回当前项目下的系统
 			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "数据获取成功!", curProjSyss);
 		}
-		// 获取所有厂商
+		// 获取所有系统
 		List<TSys> allSyss = sqlQueryFactory.select(qTSys).from(qTSys).orderBy(qTSys.createdTime.desc()).fetch();
 		if (StringUtils.isBlank(projectId)) {
 			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "数据获取成功!", allSyss);
 		}
-		// 去除当前项目下的厂商
+		// 去除当前项目下的系统
 		allSyss.removeAll(curProjSyss);
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "数据获取成功!", allSyss);
 	}
@@ -412,7 +413,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 			@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = false) String platformId) {
 		TSysConfig tvc = sysConfigService.getOne(id);
 		if (tvc == null) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据id查询不到该厂商配置信息!", id);
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据id查询不到该系统配置信息!", id);
 		}
 		// 获取接口配置列表信息
 		List<TBusinessInterface> queryResults = businessInterfaceService.getInterfaceConfigureList(platformId);

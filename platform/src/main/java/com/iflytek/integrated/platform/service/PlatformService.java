@@ -259,7 +259,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		if (l < 1) {
 			throw new RuntimeException("修改平台失败!");
 		}
-		// 前台传递的新厂商信息
+		// 前台传递的新系统信息
 		SysConfigDto configDto = dto.getSysConfig();
 		if (configDto == null) {
 			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "修改平台成功!", null);
@@ -285,7 +285,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 				tvc.setProjectId(dto.getProjectId());
 				tvc.setPlatformId(platformId);
 				String sysConfigId = tvc.getId();
-				// 新增厂商信息
+				// 新增系统信息
 				if (StringUtils.isBlank(sysConfigId)) {
 					sysConfigId = batchUidService.getUid(qTSysConfig.getTableName()) + "";
 					tvc.setId(sysConfigId);
@@ -409,7 +409,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 					tvc.setSysId("0");
 					tvc.setConnectionType("0");
 				}
-				// 新增厂商信息
+				// 新增系统配置信息
 				if (StringUtils.isBlank(sysConfigId)) {
 					sysConfigId = batchUidService.getUid(qTSysConfig.getTableName()) + "";
 					tvc.setId(sysConfigId);
@@ -462,7 +462,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 				}
 			}
 		}
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "修改厂商信息成功!", new RedisDto(redisKeyDtoList).toString());
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "修改系统配置信息成功!", new RedisDto(redisKeyDtoList).toString());
 	}
 
 	@Transactional(rollbackFor = Exception.class)
@@ -518,7 +518,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 				}
 			}
 		}
-		// 删除平台下的所有厂商配置信息
+		// 删除平台下的所有系统配置信息
 		long vcCount = sysConfigService.delSysConfigAll(id);
 		if (vcCount < 1) {
 			logger.error("平台下所有系统配置信息删除失败!");
