@@ -95,6 +95,11 @@
 	        <artifactId>nifi-toolkit-api</artifactId>
 	        <version>1.11.4</version>
 	    </dependency>
+        <!--<dependency>-->
+            <!--<groupId>com.squareup.okio</groupId>-->
+            <!--<artifactId>okio</artifactId>-->
+            <!--<version>1.6.0</version>-->
+        <!--</dependency>-->
 	    <dependency>
 	    	<groupId>wsdl4j</groupId>
 		    <artifactId>wsdl4j</artifactId>

@@ -391,4 +391,114 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "同步模板文件到服务器失败,平台分类ID入参异常，无法查询平台分类信息", "同步模板文件到服务器失败,平台分类ID入参异常，无法查询平台分类信息");
 		}
 	}
+
+	@ApiOperation(value = "上传模板文件到NIFI服务器")
+	@PostMapping(path = "/uploadEtlTplsToNIFI/{platformId}")
+	public ResultDto<String> uploadEtlTplsToNIFI(@PathVariable String platformId,
+										         @RequestParam("tplFiles") MultipartFile[] tplFiles,
+												 @ApiParam(value = "上传服务器组名，需要具体指定组上传时传入，正常忽略", example = "ETL")
+													 @RequestParam(value = "groupName", required = false) String groupName) {
+		TPlatform platform = sqlQueryFactory.select(qTPlatform).from(qTPlatform).where(qTPlatform.id.eq(platformId))
+				.fetchFirst();
+		if (platform != null) {
+			String serverUrl = platform.getEtlServerUrl();
+			if(StringUtils.isNotBlank(serverUrl) && serverUrl.endsWith("/")) {
+				serverUrl = serverUrl.substring(0 , serverUrl.lastIndexOf("/"));
+			}
+			String userName = platform.getEtlUser();
+			String password = platform.getEtlPwd();
+			ApiClient client = new OAuthApiClient();
+			client.setBasePath(serverUrl);
+			client.addDefaultHeader("Content-Type", "application/json");
+			client.addDefaultHeader("Accept", "application/json");
+			client.addDefaultHeader("responseType", "json");
+			AccessApi api = new AccessApi(client);
+			ProcessGroupsApi groupApi = new ProcessGroupsApi(client);
+			FlowApi flowApi = new FlowApi(client);
+			String uploadGroupId = "";
+			try {
+				client.setVerifyingSsl(false);
+				if (serverUrl.startsWith("https")) {
+					String token = api.createAccessToken(userName, password);
+					client.setAccessToken(token);
+				}
+				ProcessGroupFlowEntity groupFlowEntity = flowApi.getFlow("root");
+				uploadGroupId = groupFlowEntity.getProcessGroupFlow().getId();
+				if (StringUtils.isNotBlank(groupName)) {
+					ProcessGroupEntity groupEntity = groupFlowEntity.getProcessGroupFlow().getFlow().getProcessGroups()
+							.stream().filter(group -> {
+								return group.getComponent().getName().equals(groupName);
+							}).findFirst().orElse(null);
+					if (groupEntity != null) {
+						uploadGroupId = groupEntity.getId();
+					}
+				}
+				if (StringUtils.isBlank(uploadGroupId)) {
+					return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "调用NIFI API异常,未获取到ETL服务器组ID信息", "未获取到ETL服务器组ID信息");
+				}
+			} catch (Exception e) {
+				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "调用NIFI API异常,请检查项目分类下etl服务器配置信息", e.getLocalizedMessage());
+			}
+			if (tplFiles == null || tplFiles.length == 0) {
+				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到上传文件!", "没有获取到上传文件!");
+			}
+			List<String> exsitsFiles = new ArrayList<>();
+			List<String> failUploadFiles = new ArrayList<>();
+			String filename ="";
+			File file = null;
+			try{
+				for (MultipartFile multipartFile : tplFiles) {
+					filename = multipartFile.getOriginalFilename();
+					InputStream is = multipartFile.getInputStream();
+					String tplContent = IOUtils.toString(is, "UTF-8");
+					is.close();
+
+					file = new File(filename);
+					if (!file.exists()) {
+						file.createNewFile();
+					}
+					final FileWriter writer = new FileWriter(file);
+					BufferedWriter bw = new BufferedWriter(writer);
+					bw.write(tplContent);
+					bw.flush();
+					writer.close();
+					bw.close();
+					groupApi.uploadTemplate(uploadGroupId, file, false);
+				}
+			}catch (Exception e) {
+				if (e instanceof ApiException) {
+					ApiException ae = (ApiException) e;
+					if (ae.getCode() == 409) {
+						exsitsFiles.add(filename);
+					} else if (String.valueOf(ae.getCode()).startsWith("2")) {
+						String responseBody = ae.getResponseBody();
+						if(StringUtils.isNotBlank(responseBody) && responseBody.contains("errorResponse")) {
+							failUploadFiles.add(filename);
+						}
+					} else {
+						failUploadFiles.add(filename);
+					}
+				} else {
+					failUploadFiles.add(filename);
+				}
+				logger.error("上传模板文件到服务器失败，文件名：" + filename, e);
+			} finally {
+				file.delete();
+			}
+			String errorMsg = "";
+			if (exsitsFiles.size() > 0) {
+				errorMsg += String.format("模板文件[%s]在服务器已存在，请先删除后再上传！", StringUtils.join(exsitsFiles.toArray(), ","));
+			}
+			if (failUploadFiles.size() > 0) {
+				errorMsg += String.format("模板文件[%s]上传服务器失败，请检查模板文件格式是否正确，或联系系统管理员！",
+						StringUtils.join(failUploadFiles.toArray(), ","));
+			}
+			if (StringUtils.isNotBlank(errorMsg)) {
+				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, errorMsg, errorMsg);
+			}
+			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "上传模板文件到服务器成功", "success");
+		} else {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "上传模板文件到服务器失败,平台分类ID入参异常，无法查询平台分类信息", "上传模板文件到服务器失败,平台分类ID入参异常，无法查询平台分类信息");
+		}
+	}
 }
