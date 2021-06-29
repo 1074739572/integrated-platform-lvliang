@@ -5,6 +5,7 @@ import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.utils.HttpClientUtil;
 import com.iflytek.integrated.common.utils.JackSonUtils;
 import com.iflytek.integrated.platform.common.Constant;
+import com.iflytek.integrated.platform.dto.DbUrlTestDto;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.platform.dto.JoltDebuggerDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
@@ -43,6 +44,9 @@ public class NiFiRequestUtil {
 
 	@Value("${param.xml2json.url}")
 	private String xml2jsonUrl;
+
+	@Value("${param.db.test.url}")
+	private String testDbUrl;
 
 	@Autowired
 	public SQLQueryFactory sqlQueryFactory;
@@ -206,6 +210,21 @@ public class NiFiRequestUtil {
 			return result.getContent();
 		} catch (Exception e) {
 			throw new RuntimeException("调取校验调试接口错误");
+		}
+	}
+
+	/**
+	 * 测试数据库连接
+	 * @param dto
+	 * @return
+	 */
+	public String testDbUrl(DbUrlTestDto dto) {
+		try {
+			String param = JackSonUtils.transferToJson(dto);
+			HttpResult result = HttpClientUtil.doPost(testDbUrl, param);
+			return result.getContent();
+		} catch (Exception e) {
+			throw new RuntimeException("调取数据库测试接口错误");
 		}
 	}
 

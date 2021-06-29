@@ -31,10 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
 import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
@@ -1060,6 +1057,12 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			e.printStackTrace();
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据类型id获取关联接口失败!");
 		}
+	}
+
+	@ApiOperation(value = "测试数据库连接接口")
+	@PostMapping("/testDbUrl")
+	public ResultDto<String> testDbUrl(@RequestBody DbUrlTestDto dto) {
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "", niFiRequestUtil.testDbUrl(dto));
 	}
 
 }
