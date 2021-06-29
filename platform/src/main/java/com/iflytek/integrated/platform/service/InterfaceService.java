@@ -677,6 +677,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		if (dto == null) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求参数不能为空!");
 		}
+		if(StringUtils.isBlank(dto.getRequestInterfaceId())) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求方接口不能为空!");
+		}
 		// 校验是否获取到登录用户
 		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
 		if (StringUtils.isBlank(loginUserName)) {
