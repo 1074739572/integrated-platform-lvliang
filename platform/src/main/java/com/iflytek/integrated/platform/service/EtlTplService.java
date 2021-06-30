@@ -29,6 +29,7 @@ import org.apache.nifi.api.toolkit.api.FlowApi;
 import org.apache.nifi.api.toolkit.api.ProcessGroupsApi;
 import org.apache.nifi.api.toolkit.model.ProcessGroupEntity;
 import org.apache.nifi.api.toolkit.model.ProcessGroupFlowEntity;
+import org.apache.nifi.api.toolkit.model.TemplateEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -411,9 +412,8 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 			client.setBasePath(serverUrl);
 			client.addDefaultHeader("Content-Type", "application/json");
 			client.addDefaultHeader("Accept", "application/json");
-			client.addDefaultHeader("responseType", "json");
+//			client.addDefaultHeader("responseType", "json");
 			AccessApi api = new AccessApi(client);
-			ProcessGroupsApi groupApi = new ProcessGroupsApi(client);
 			FlowApi flowApi = new FlowApi(client);
 			String uploadGroupId = "";
 			try {
@@ -447,6 +447,9 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 			String filename ="";
 			File file = null;
 			try{
+				client.addDefaultHeader("Content-Type", "multipart/form-data");
+				client.addDefaultHeader("Accept", "application/xml");
+				ProcessGroupsApi groupApi = new ProcessGroupsApi(client);
 				for (MultipartFile multipartFile : tplFiles) {
 					filename = multipartFile.getOriginalFilename();
 					InputStream is = multipartFile.getInputStream();
@@ -463,7 +466,7 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 					bw.flush();
 					writer.close();
 					bw.close();
-					groupApi.uploadTemplate(uploadGroupId, file, false);
+					TemplateEntity tplEntity = groupApi.uploadTemplate(uploadGroupId, file, false);
 				}
 			}catch (Exception e) {
 				if (e instanceof ApiException) {
