@@ -136,7 +136,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 	/**
 	 * 按接口名称来展示服务监控列表
 	 * @param projectId
-	 * @param platFormId
+	 * @param platformId
 	 * @param sysId
 	 * @param status
 	 * @param interfaceName
@@ -146,7 +146,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 	 */
 	@ApiOperation(value = "查看服务监控列表")
 	@GetMapping("/getListPage")
-	public ResultDto<TableData<InterfaceMonitorDto>> getListPage(String projectId, String platFormId, String sysId, String status,
+	public ResultDto<TableData<InterfaceMonitorDto>> getListPage(String projectId, String platformId, String sysId, String status,
 																 @ApiParam(value = "接口名称") @RequestParam(value = "interfaceName", required = false) String interfaceName,
 																 @RequestParam(defaultValue = "1") Integer pageNo,
 																 @RequestParam(defaultValue = "10") Integer pageSize) {
@@ -180,8 +180,8 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 			if (StringUtils.isNotBlank(projectId)) {
 				list.add(monitor.projectId.eq(projectId));
 			}
-			if (StringUtils.isNotBlank(platFormId)) {
-				list.add(monitor.platformId.eq(platFormId));
+			if (StringUtils.isNotBlank(platformId)) {
+				list.add(monitor.platformId.eq(platformId));
 			}
 			if (StringUtils.isNotBlank(status)) {
 				list.add(monitor.status.eq(status));

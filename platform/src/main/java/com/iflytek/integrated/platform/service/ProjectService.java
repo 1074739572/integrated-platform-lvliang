@@ -62,6 +62,10 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
 	private BatchUidService batchUidService;
 	@Autowired
 	private RedisService redisService;
+	@Autowired
+	private EtlFlowService etlFlowService;
+	@Autowired
+	private EtlGroupService etlGroupService;
 
 	private static final Logger logger = LoggerFactory.getLogger(ProjectService.class);
 
@@ -218,6 +222,30 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
 							throw new RuntimeException("平台下关联的接口转换配置信息删除失败!");
 						}
 					}
+				}
+				//删除平台下所有关联的ETL流程
+				List<String> tEtlFlowIds = etlFlowService.getTEtlFlowIds(platformId);
+				if (!CollectionUtils.isEmpty(tEtlFlowIds)) {
+					for (String tEtlFlowId : tEtlFlowIds) {
+						long l = etlFlowService.delete(tEtlFlowId);
+						if (l < 1) {
+							throw new RuntimeException("平台下关联的ETL流程信息删除失败!");
+						}
+					}
+				}
+				//删除平台下所有关联的ETL流程组
+				List<String> tEtlGroupIds = etlGroupService.getTEtlGroupIds(platformId);
+				if (!CollectionUtils.isEmpty(tEtlGroupIds)) {
+					for (String tEtlGroupId : tEtlGroupIds) {
+						long l = etlGroupService.delete(tEtlGroupId);
+						if (l < 1) {
+							throw new RuntimeException("平台下关联的ETL流程组信息删除失败!");
+						}
+					}
+				}
+				long deletePlatform = platformService.delete(platformId);
+				if (deletePlatform < 1) {
+					throw new RuntimeException("项目下关联的平台分类删除失败!");
 				}
 			}
 		}

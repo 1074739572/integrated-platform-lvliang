@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static com.iflytek.integrated.platform.entity.QTEtlFlow.qTEtlFlow;
 import static com.iflytek.integrated.platform.entity.QTEtlGroup.qTEtlGroup;
@@ -93,7 +94,6 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 
 		// 分页
 		TableData<TEtlFlow> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取流程列表成功", tableData);
 	}
 
@@ -236,5 +236,17 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 
 		long result = sqlQueryFactory.delete(qTEtlFlow).where(qTEtlFlow.id.eq(id)).execute();
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "删除流程成功", result + "");
+	}
+
+	/**
+	 * 根据平台id查找流程
+	 * @param platformId
+	 * @return
+	 */
+	public List<String> getTEtlFlowIds(String platformId){
+		List<String> etlFlowIds = sqlQueryFactory.select(qTEtlFlow.id).from(qTEtlFlow)
+				.leftJoin(qTEtlGroup).on(qTEtlFlow.groupId.eq(qTEtlGroup.id))
+				.where(qTEtlGroup.platformId.eq(platformId)).fetch();
+		return etlFlowIds;
 	}
 }

@@ -1,19 +1,5 @@
 package com.iflytek.integrated.platform.service;
 
-import static com.iflytek.integrated.platform.entity.QTEtlGroup.qTEtlGroup;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.JackSonUtils;
@@ -25,8 +11,20 @@ import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.dml.SQLUpdateClause;
-
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import static com.iflytek.integrated.platform.entity.QTEtlGroup.qTEtlGroup;
 
 /**
  * @author lsn
@@ -134,5 +132,16 @@ public class EtlGroupService extends BaseService<TEtlGroup, String, StringPath> 
 
 		long result = sqlQueryFactory.delete(qTEtlGroup).where(qTEtlGroup.id.eq(id)).execute();
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "删除流程组成功", result + "");
+	}
+
+	/**
+	 * 根据平台id查找流程组
+	 * @param platformId
+	 * @return
+	 */
+	public List<String> getTEtlGroupIds(String platformId){
+		List<String> etlGroupIds = sqlQueryFactory.select(qTEtlGroup.id).from(qTEtlGroup)
+				.where(qTEtlGroup.platformId.eq(platformId)).fetch();
+		return etlGroupIds;
 	}
 }

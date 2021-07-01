@@ -1,59 +1,5 @@
 package com.iflytek.integrated.platform.service;
 
-import static com.iflytek.integrated.platform.entity.QTEtlTpl.qTEtlTpl;
-import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
-
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Type;
-import java.net.URLEncoder;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.nifi.api.toolkit.ApiClient;
-import org.apache.nifi.api.toolkit.ApiException;
-import org.apache.nifi.api.toolkit.ApiResponse;
-import org.apache.nifi.api.toolkit.Pair;
-import org.apache.nifi.api.toolkit.api.AccessApi;
-import org.apache.nifi.api.toolkit.api.FlowApi;
-import org.apache.nifi.api.toolkit.model.ProcessGroupEntity;
-import org.apache.nifi.api.toolkit.model.ProcessGroupFlowEntity;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.DocumentHelper;
-import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.google.gson.reflect.TypeToken;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
@@ -73,11 +19,45 @@ import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.dml.SQLInsertClause;
 import com.querydsl.sql.dml.SQLUpdateClause;
 import com.squareup.okhttp.Call;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.nifi.api.toolkit.ApiClient;
+import org.apache.nifi.api.toolkit.ApiException;
+import org.apache.nifi.api.toolkit.ApiResponse;
+import org.apache.nifi.api.toolkit.Pair;
+import org.apache.nifi.api.toolkit.api.AccessApi;
+import org.apache.nifi.api.toolkit.api.FlowApi;
+import org.apache.nifi.api.toolkit.model.ProcessGroupEntity;
+import org.apache.nifi.api.toolkit.model.ProcessGroupFlowEntity;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.lang.reflect.Type;
+import java.net.URLEncoder;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import static com.iflytek.integrated.platform.entity.QTEtlTpl.qTEtlTpl;
+import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
 
 /**
  * @author lsn
@@ -209,8 +189,7 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 	public ResultDto<String> editEtlTpl(@PathVariable String id, @RequestBody EtlTplDto tplDto) {
 
 		// 校验是否获取到登录用户
-//		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-		String loginUserName ="admin";
+		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
 		if (StringUtils.isBlank(loginUserName)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
 		}
