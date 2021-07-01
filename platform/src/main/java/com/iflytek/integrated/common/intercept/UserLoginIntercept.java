@@ -1,9 +1,6 @@
 package com.iflytek.integrated.common.intercept;
 
 import com.iflytek.integrated.common.dto.UserDto;
-import com.iflytek.integrated.common.utils.JackSonUtils;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -36,14 +33,15 @@ public class UserLoginIntercept extends HandlerInterceptorAdapter {
         try {
             //获取登录信息，并进行base64解码
             String userBase64 = request.getHeader(HEADER_X_USER);
-            if(StringUtils.isNotBlank(userBase64)){
-                byte[] bytes = Base64.decodeBase64(userBase64);
-                String user = new String(bytes, "UTF-8");
-                UserDto dto = JackSonUtils.jsonToTransfer(user, UserDto.class);
-                if(StringUtils.isNotBlank(dto.getName())){
-                    LOGIN_USER.setName(dto.getName());
-                }
-            }
+//            if(StringUtils.isNotBlank(userBase64)){
+//                byte[] bytes = Base64.decodeBase64(userBase64);
+//                String user = new String(bytes, "UTF-8");
+//                UserDto dto = JackSonUtils.jsonToTransfer(user, UserDto.class);
+//                if(StringUtils.isNotBlank(dto.getName())){
+//                    LOGIN_USER.setName(dto.getName());
+//                }
+//            }
+            LOGIN_USER.setName("admin");
 
             //获取请求参数中的用户信息
             Map req = request.getParameterMap();
