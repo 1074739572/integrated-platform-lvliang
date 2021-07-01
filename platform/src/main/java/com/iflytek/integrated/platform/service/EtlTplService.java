@@ -497,7 +497,6 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 					bw.close();
 					Call call = buildUpdateTemplateCall(uploadGroupId , client , file);
 					Type localVarReturnType = new TypeToken<String>(){}.getType();
-					client.execute(call, localVarReturnType);
 					
 					ApiResponse<String> resp = client.execute(call, localVarReturnType);
 					String tplId = parseResponse(resp.getData());
@@ -575,13 +574,14 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 //        } catch (DocumentException e) {
 //            e.printStackTrace();
 //        }
-//        Element root = doc.getRootElement();// 指向根节点
+//        Element root = doc.getRootElement(); 指向根节点
 //        Element tpl = root.element("template");
 //        String tplId = tpl.element("id").getText();
 //        System.out.println(tplId);
 //	}
 	
 //	public static void main(String[] args) throws IOException {
+//		EtlTplService service = new EtlTplService();
 //		String serverUrl = "http://172.31.184.170/nifi-api";
 //		String tplName = "testtesttest";
 //		tplName = tplName + ".xml";
@@ -635,24 +635,30 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 //			}
 //			String groupId = "238bd1cf-0176-1000-bd56-cfd6c9f3662e";
 //			
-//			String localVarPath = "/process-groups/{id}/templates/upload".replaceAll("\\{format\\}","json")
-//			        .replaceAll("\\{" + "id" + "\\}", client.escapeString(groupId.toString()));
-//			 Map<String, String> localVarHeaderParams = new HashMap<String, String>();
-//			 localVarHeaderParams.put("Content-Type", "multipart/form-data");
-//			 localVarHeaderParams.put("Accept", "application/xml");
-//			 Map<String, Object> localVarFormParams = new HashMap<String, Object>();
-//			 localVarFormParams.put("template", file);
-//			 String[] localVarAuthNames = new String[] {  };
-//			 List<Pair> localVarQueryParams = new ArrayList<Pair>();
-////			localVarPath,"POST" , localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAuthNames, progressRequestListener
-//			 Call call = client.buildCall(localVarPath, "POST", localVarQueryParams, false, localVarHeaderParams, localVarFormParams, localVarAuthNames, null);
-//			 Type localVarReturnType = new TypeToken<String>(){}.getType();
-//			 ApiResponse<String> resp = client.execute(call, localVarReturnType);
-////			TemplateEntity tplEntity = groupApi.uploadTemplate("238bd1cf-0176-1000-bd56-cfd6c9f3662e", file, false);
-//			System.out.println(resp.getData());
+//			Call call = service.buildUpdateTemplateCall(groupId , client , file);
+//			Type localVarReturnType = new TypeToken<String>(){}.getType();
+//			
+//			ApiResponse<String> resp = client.execute(call, localVarReturnType);
+//			String tplId = service.parseResponse(resp.getData());
+//			System.out.println(tplId);
 //			
 //		} catch (Exception e) {
-//			e.printStackTrace();
+//
+//			if (e instanceof ApiException) {
+//				ApiException ae = (ApiException) e;
+//				if (ae.getCode() == 409) {
+//					System.out.println("409");
+//				} else if (String.valueOf(ae.getCode()).startsWith("2")) {
+//					String responseBody = ae.getResponseBody();
+//					if(StringUtils.isNotBlank(responseBody) && responseBody.contains("errorResponse")) {
+//						System.out.println("fail start 2 contains errorResponse");
+//					}
+//				} else {
+//					System.out.println("fail start 2");
+//				}
+//			} else {
+//				System.out.println("fail");
+//			}
 //		} finally {
 //			file.delete();
 //		}
