@@ -564,7 +564,8 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
         String tplId = tpl.element("id").getText();
         String tplName = tpl.element("name").getText();
         if(StringUtils.isNotBlank(tplId)) {
-        	result.put(tplId, tplName);
+        	result.put("flowTplName", tplName);
+        	result.put("flowTplId", tplId);
         }
         return result;
 	}
@@ -572,6 +573,8 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 //	public static void main(String[] args) {
 //		List<Map<String ,String>> tpls = new ArrayList<>();
 //		Map<String , String> tpl = new HashMap<>();
+//		tpl.put("flowTplName", "tplName");
+//		tpl.put("flowTplId", "tplId");
 //		tpls.add(tpl);
 //		System.out.println(JackSonUtils.transferToJson(tpls));
 //		String strXML = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><templateEntity><template encoding-version=\"1.3\"><description></description><groupId>238bd1cf-0176-1000-bd56-cfd6c9f3662e</groupId><id>46b0e0d2-85a3-4730-9327-b5d88cdee60d</id><name>testuploadtpl</name><timestamp>07/01/2021 11:19:11 CST</timestamp><uri>http://172.31.184.170:8080/nifi-api/templates/46b0e0d2-85a3-4730-9327-b5d88cdee60d</uri></template></templateEntity>";
