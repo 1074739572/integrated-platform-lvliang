@@ -1,5 +1,60 @@
 package com.iflytek.integrated.platform.service;
 
+import static com.iflytek.integrated.platform.entity.QTEtlTpl.qTEtlTpl;
+import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Type;
+import java.net.URLEncoder;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.nifi.api.toolkit.ApiClient;
+import org.apache.nifi.api.toolkit.ApiException;
+import org.apache.nifi.api.toolkit.ApiResponse;
+import org.apache.nifi.api.toolkit.Pair;
+import org.apache.nifi.api.toolkit.api.AccessApi;
+import org.apache.nifi.api.toolkit.api.FlowApi;
+import org.apache.nifi.api.toolkit.model.ProcessGroupEntity;
+import org.apache.nifi.api.toolkit.model.ProcessGroupFlowEntity;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.google.gson.reflect.TypeToken;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
@@ -16,40 +71,12 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.dml.SQLInsertClause;
 import com.querydsl.sql.dml.SQLUpdateClause;
+import com.squareup.okhttp.Call;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.nifi.api.toolkit.ApiClient;
-import org.apache.nifi.api.toolkit.ApiException;
-import org.apache.nifi.api.toolkit.api.AccessApi;
-import org.apache.nifi.api.toolkit.api.FlowApi;
-import org.apache.nifi.api.toolkit.api.ProcessGroupsApi;
-import org.apache.nifi.api.toolkit.model.ProcessGroupEntity;
-import org.apache.nifi.api.toolkit.model.ProcessGroupFlowEntity;
-import org.apache.nifi.api.toolkit.model.TemplateEntity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.*;
-import java.net.URLEncoder;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import static com.iflytek.integrated.platform.entity.QTEtlTpl.qTEtlTpl;
-import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
 
 /**
  * @author lsn
@@ -302,7 +329,6 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 			client.addDefaultHeader("Accept", "application/json");
 			client.addDefaultHeader("responseType", "json");
 			AccessApi api = new AccessApi(client);
-			ProcessGroupsApi groupApi = new ProcessGroupsApi(client);
 			FlowApi flowApi = new FlowApi(client);
 			String uploadGroupId = "";
 			try {
@@ -333,6 +359,8 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 			}
 			List<String> exsitsFiles = new ArrayList<>();
 			List<String> failUploadFiles = new ArrayList<>();
+			
+			
 			for (TEtlTpl tpl : result) {
 				String tplName = tpl.getTplName();
 				tplName = tplName + ".xml";
@@ -351,7 +379,9 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 					bw.flush();
 					writer.close();
 					bw.close();
-					groupApi.uploadTemplate(uploadGroupId, file, false);
+					Call call = buildUpdateTemplateCall(uploadGroupId , client , file);
+					Type localVarReturnType = new TypeToken<String>(){}.getType();
+					client.execute(call, localVarReturnType);
 				} catch (Exception e) {
 					if (e instanceof ApiException) {
 						ApiException ae = (ApiException) e;
@@ -412,7 +442,6 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 			client.setBasePath(serverUrl);
 			client.addDefaultHeader("Content-Type", "application/json");
 			client.addDefaultHeader("Accept", "application/json");
-//			client.addDefaultHeader("responseType", "json");
 			AccessApi api = new AccessApi(client);
 			FlowApi flowApi = new FlowApi(client);
 			String uploadGroupId = "";
@@ -446,10 +475,10 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 			List<String> failUploadFiles = new ArrayList<>();
 			String filename ="";
 			File file = null;
+			String uploadedTplIds = "";
 			try{
 				client.addDefaultHeader("Content-Type", "multipart/form-data");
 				client.addDefaultHeader("Accept", "application/xml");
-				ProcessGroupsApi groupApi = new ProcessGroupsApi(client);
 				for (MultipartFile multipartFile : tplFiles) {
 					filename = multipartFile.getOriginalFilename();
 					InputStream is = multipartFile.getInputStream();
@@ -466,7 +495,14 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 					bw.flush();
 					writer.close();
 					bw.close();
-					TemplateEntity tplEntity = groupApi.uploadTemplate(uploadGroupId, file, false);
+					Call call = buildUpdateTemplateCall(uploadGroupId , client , file);
+					Type localVarReturnType = new TypeToken<String>(){}.getType();
+					client.execute(call, localVarReturnType);
+					
+					ApiResponse<String> resp = client.execute(call, localVarReturnType);
+					String tplId = parseResponse(resp.getData());
+					uploadedTplIds = uploadedTplIds + tplId + ",";
+//					TemplateEntity tplEntity = groupApi.uploadTemplate(uploadGroupId, file, false);
 				}
 			}catch (Exception e) {
 				if (e instanceof ApiException) {
@@ -488,6 +524,9 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 			} finally {
 				file.delete();
 			}
+			if(uploadedTplIds.endsWith(",")) {
+				uploadedTplIds = uploadedTplIds.substring(0, uploadedTplIds.lastIndexOf(","));
+			}
 			String errorMsg = "";
 			if (exsitsFiles.size() > 0) {
 				errorMsg += String.format("模板文件[%s]在服务器已存在，请先删除后再上传！", StringUtils.join(exsitsFiles.toArray(), ","));
@@ -497,11 +536,126 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 						StringUtils.join(failUploadFiles.toArray(), ","));
 			}
 			if (StringUtils.isNotBlank(errorMsg)) {
-				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, errorMsg, errorMsg);
+				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, errorMsg, uploadedTplIds);
 			}
-			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "上传模板文件到服务器成功", "success");
+			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "上传模板文件到服务器成功", uploadedTplIds);
 		} else {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "上传模板文件到服务器失败,平台分类ID入参异常，无法查询平台分类信息", "上传模板文件到服务器失败,平台分类ID入参异常，无法查询平台分类信息");
 		}
 	}
+	
+	private Call buildUpdateTemplateCall(String groupId , ApiClient client , File file) throws ApiException {
+		String localVarPath = "/process-groups/{id}/templates/upload".replaceAll("\\{format\\}","json")
+		        .replaceAll("\\{" + "id" + "\\}", client.escapeString(groupId.toString()));
+		 Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+		 localVarHeaderParams.put("Content-Type", "multipart/form-data");
+		 localVarHeaderParams.put("Accept", "application/xml");
+		 Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+		 localVarFormParams.put("template", file);
+		 String[] localVarAuthNames = new String[] {  };
+		 List<Pair> localVarQueryParams = new ArrayList<Pair>();
+		 Call call = client.buildCall(localVarPath, "POST", localVarQueryParams, false, localVarHeaderParams, localVarFormParams, localVarAuthNames, null);
+		 return call;
+	}
+	
+	private String parseResponse(String xml) throws DocumentException {
+		Document doc = null;
+        doc = DocumentHelper.parseText(xml);
+        Element root = doc.getRootElement();// 指向根节点
+        Element tpl = root.element("template");
+        String tplId = tpl.element("id").getText();
+        return tplId;
+	}
+	
+//	public static void main(String[] args) {
+//		String strXML = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><templateEntity><template encoding-version=\"1.3\"><description></description><groupId>238bd1cf-0176-1000-bd56-cfd6c9f3662e</groupId><id>46b0e0d2-85a3-4730-9327-b5d88cdee60d</id><name>testuploadtpl</name><timestamp>07/01/2021 11:19:11 CST</timestamp><uri>http://172.31.184.170:8080/nifi-api/templates/46b0e0d2-85a3-4730-9327-b5d88cdee60d</uri></template></templateEntity>";
+//		Document doc = null;
+//        try {
+//            doc = DocumentHelper.parseText(strXML);
+//        } catch (DocumentException e) {
+//            e.printStackTrace();
+//        }
+//        Element root = doc.getRootElement();// 指向根节点
+//        Element tpl = root.element("template");
+//        String tplId = tpl.element("id").getText();
+//        System.out.println(tplId);
+//	}
+	
+//	public static void main(String[] args) throws IOException {
+//		String serverUrl = "http://172.31.184.170/nifi-api";
+//		String tplName = "testtesttest";
+//		tplName = tplName + ".xml";
+//		String tplContent = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
+//				+ "<template encoding-version=\"1.3\">\n"
+//				+ "    <description></description>\n"
+//				+ "    <groupId>238bd1cf-0176-1000-bd56-cfd6c9f3662e</groupId>\n"
+//				+ "    <name>testuploadtpl</name>\n"
+//				+ "    <snippet>\n"
+//				+ "        <processGroups>\n"
+//				+ "            <id>e26352b7-19f7-3cb5-0000-000000000000</id>\n"
+//				+ "            <parentGroupId>1ed4658e-5fd3-3815-0000-000000000000</parentGroupId>\n"
+//				+ "            <position>\n"
+//				+ "                <x>0.0</x>\n"
+//				+ "                <y>0.0</y>\n"
+//				+ "            </position>\n"
+//				+ "            <comments></comments>\n"
+//				+ "            <contents/>\n"
+//				+ "            <name>testuploadtpl</name>\n"
+//				+ "            <variables/>\n"
+//				+ "        </processGroups>\n"
+//				+ "    </snippet>\n"
+//				+ "    <timestamp>07/01/2021 10:42:53 CST</timestamp>\n"
+//				+ "</template>";
+//		File file = new File(tplName);
+//		if (!file.exists()) {
+//			try {
+//				file.createNewFile();
+//			} catch (IOException e) {
+//				logger.error("创建模板临时文件异常", e);
+//				throw e;
+//			}
+//		}
+//		try (final FileWriter writer = new FileWriter(file); BufferedWriter bw = new BufferedWriter(writer)) {
+//			bw.write(tplContent);
+//			bw.flush();
+//			writer.close();
+//			bw.close();
+//			
+//			ApiClient client = new OAuthApiClient();
+//			client.setBasePath(serverUrl);
+//			client.addDefaultHeader("Content-Type", "multipart/form-data");
+//			client.addDefaultHeader("Accept", "application/xml");
+//			
+//			AccessApi api = new AccessApi(client);
+//			
+//			client.setVerifyingSsl(false);
+//			if (serverUrl.startsWith("https")) {
+////				String token = api.createAccessToken(userName, password);
+////				client.setAccessToken(token);
+//			}
+//			String groupId = "238bd1cf-0176-1000-bd56-cfd6c9f3662e";
+//			
+//			String localVarPath = "/process-groups/{id}/templates/upload".replaceAll("\\{format\\}","json")
+//			        .replaceAll("\\{" + "id" + "\\}", client.escapeString(groupId.toString()));
+//			 Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+//			 localVarHeaderParams.put("Content-Type", "multipart/form-data");
+//			 localVarHeaderParams.put("Accept", "application/xml");
+//			 Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+//			 localVarFormParams.put("template", file);
+//			 String[] localVarAuthNames = new String[] {  };
+//			 List<Pair> localVarQueryParams = new ArrayList<Pair>();
+////			localVarPath,"POST" , localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAuthNames, progressRequestListener
+//			 Call call = client.buildCall(localVarPath, "POST", localVarQueryParams, false, localVarHeaderParams, localVarFormParams, localVarAuthNames, null);
+//			 Type localVarReturnType = new TypeToken<String>(){}.getType();
+//			 ApiResponse<String> resp = client.execute(call, localVarReturnType);
+////			TemplateEntity tplEntity = groupApi.uploadTemplate("238bd1cf-0176-1000-bd56-cfd6c9f3662e", file, false);
+//			System.out.println(resp.getData());
+//			
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		} finally {
+//			file.delete();
+//		}
+//	
+//	}
 }
