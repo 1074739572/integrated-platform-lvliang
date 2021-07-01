@@ -58,6 +58,7 @@ import com.google.gson.reflect.TypeToken;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
+import com.iflytek.integrated.common.utils.JackSonUtils;
 import com.iflytek.integrated.common.utils.OAuthApiClient;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
@@ -475,7 +476,7 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 			List<String> failUploadFiles = new ArrayList<>();
 			String filename ="";
 			File file = null;
-			String uploadedTplIds = "";
+			List<Map<String , String>> uploadedTpls = new ArrayList<>();
 			try{
 				client.addDefaultHeader("Content-Type", "multipart/form-data");
 				client.addDefaultHeader("Accept", "application/xml");
@@ -499,9 +500,8 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 					Type localVarReturnType = new TypeToken<String>(){}.getType();
 					
 					ApiResponse<String> resp = client.execute(call, localVarReturnType);
-					String tplId = parseResponse(resp.getData());
-					uploadedTplIds = uploadedTplIds + tplId + ",";
-//					TemplateEntity tplEntity = groupApi.uploadTemplate(uploadGroupId, file, false);
+					Map<String,String> tpl = parseResponse(resp.getData());
+					uploadedTpls.add(tpl);
 				}
 			}catch (Exception e) {
 				if (e instanceof ApiException) {
@@ -523,9 +523,6 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 			} finally {
 				file.delete();
 			}
-			if(uploadedTplIds.endsWith(",")) {
-				uploadedTplIds = uploadedTplIds.substring(0, uploadedTplIds.lastIndexOf(","));
-			}
 			String errorMsg = "";
 			if (exsitsFiles.size() > 0) {
 				errorMsg += String.format("模板文件[%s]在服务器已存在，请先删除后再上传！", StringUtils.join(exsitsFiles.toArray(), ","));
@@ -534,10 +531,11 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 				errorMsg += String.format("模板文件[%s]上传服务器失败，请检查模板文件格式是否正确，或联系系统管理员！",
 						StringUtils.join(failUploadFiles.toArray(), ","));
 			}
+			String resultStr = JackSonUtils.transferToJson(uploadedTpls);
 			if (StringUtils.isNotBlank(errorMsg)) {
-				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, errorMsg, uploadedTplIds);
+				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, errorMsg, resultStr);
 			}
-			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "上传模板文件到服务器成功", uploadedTplIds);
+			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "上传模板文件到服务器成功", resultStr);
 		} else {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "上传模板文件到服务器失败,平台分类ID入参异常，无法查询平台分类信息", "上传模板文件到服务器失败,平台分类ID入参异常，无法查询平台分类信息");
 		}
@@ -557,16 +555,25 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 		 return call;
 	}
 	
-	private String parseResponse(String xml) throws DocumentException {
+	private Map<String, String> parseResponse(String xml) throws DocumentException {
+		Map<String, String> result = new HashMap<>();
 		Document doc = null;
         doc = DocumentHelper.parseText(xml);
         Element root = doc.getRootElement();// 指向根节点
         Element tpl = root.element("template");
         String tplId = tpl.element("id").getText();
-        return tplId;
+        String tplName = tpl.element("name").getText();
+        if(StringUtils.isNotBlank(tplId)) {
+        	result.put(tplId, tplName);
+        }
+        return result;
 	}
 	
 //	public static void main(String[] args) {
+//		List<Map<String ,String>> tpls = new ArrayList<>();
+//		Map<String , String> tpl = new HashMap<>();
+//		tpls.add(tpl);
+//		System.out.println(JackSonUtils.transferToJson(tpls));
 //		String strXML = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><templateEntity><template encoding-version=\"1.3\"><description></description><groupId>238bd1cf-0176-1000-bd56-cfd6c9f3662e</groupId><id>46b0e0d2-85a3-4730-9327-b5d88cdee60d</id><name>testuploadtpl</name><timestamp>07/01/2021 11:19:11 CST</timestamp><uri>http://172.31.184.170:8080/nifi-api/templates/46b0e0d2-85a3-4730-9327-b5d88cdee60d</uri></template></templateEntity>";
 //		Document doc = null;
 //        try {
