@@ -1,38 +1,5 @@
 package com.iflytek.integrated.platform.service;
 
-import com.iflytek.integrated.common.dto.ResultDto;
-import com.iflytek.integrated.common.dto.TableData;
-import com.iflytek.integrated.common.intercept.UserLoginIntercept;
-import com.iflytek.integrated.common.utils.ExceptionUtil;
-import com.iflytek.integrated.common.validator.ValidationResult;
-import com.iflytek.integrated.common.validator.ValidatorHelper;
-import com.iflytek.integrated.platform.common.BaseService;
-import com.iflytek.integrated.platform.common.Constant;
-import com.iflytek.integrated.platform.common.RedisService;
-import com.iflytek.integrated.platform.dto.*;
-import com.iflytek.integrated.platform.entity.*;
-import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
-import com.iflytek.integrated.platform.utils.PlatformUtil;
-import com.iflytek.medicalboot.core.id.BatchUidService;
-import com.querydsl.core.QueryResults;
-import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.StringPath;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.*;
-
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
 import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
 import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
@@ -43,6 +10,63 @@ import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
 import static com.iflytek.integrated.platform.entity.QTSysHospitalConfig.qTSysHospitalConfig;
 import static com.iflytek.integrated.platform.entity.QTType.qTType;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iflytek.integrated.common.dto.ResultDto;
+import com.iflytek.integrated.common.dto.TableData;
+import com.iflytek.integrated.common.intercept.UserLoginIntercept;
+import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.common.validator.ValidationResult;
+import com.iflytek.integrated.common.validator.ValidatorHelper;
+import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.Constant;
+import com.iflytek.integrated.platform.common.RedisService;
+import com.iflytek.integrated.platform.dto.BusinessInterfaceDto;
+import com.iflytek.integrated.platform.dto.DbUrlTestDto;
+import com.iflytek.integrated.platform.dto.InDebugResDto;
+import com.iflytek.integrated.platform.dto.InterfaceDebugDto;
+import com.iflytek.integrated.platform.dto.InterfaceDto;
+import com.iflytek.integrated.platform.dto.JoltDebuggerDto;
+import com.iflytek.integrated.platform.dto.MockTemplateDto;
+import com.iflytek.integrated.platform.dto.ParamsDto;
+import com.iflytek.integrated.platform.dto.RedisDto;
+import com.iflytek.integrated.platform.dto.RedisKeyDto;
+import com.iflytek.integrated.platform.entity.TBusinessInterface;
+import com.iflytek.integrated.platform.entity.TInterface;
+import com.iflytek.integrated.platform.entity.TInterfaceParam;
+import com.iflytek.integrated.platform.entity.TSysConfig;
+import com.iflytek.integrated.platform.entity.TType;
+import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
+import com.iflytek.integrated.platform.utils.PlatformUtil;
+import com.iflytek.medicalboot.core.id.BatchUidService;
+import com.querydsl.core.QueryResults;
+import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.StringPath;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 接口管理
@@ -752,6 +776,21 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		TSysConfig tvc = sysConfigService.getRequestConfigByPlatformAndSys(dto.getPlatformId(), dto.getRequestSysId());
 		String requestSysConfigId = tvc != null ? tvc.getId() : dto.getRequestSysconfigId();
 
+		// 根据条件判断是否存在该数据
+		TBusinessInterface exsitsBI = businessInterfaceService.getOne(dto.getId());
+		if(exsitsBI != null) {
+			//沒修改過請求方
+			if(exsitsBI.getRequestSysId().equals(dto.getRequestSysId()) && exsitsBI.getRequestInterfaceId().equals(dto.getRequestInterfaceId())){
+//				沒修改過，不校驗是否已存在
+			}else {
+				List<TBusinessInterface> tbiList = businessInterfaceService.getBusinessInterfaceIsExist(dto.getProjectId(),
+						dto.getRequestSysId(), dto.getRequestInterfaceId());
+				if (CollectionUtils.isNotEmpty(tbiList)) {
+					return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据项目id,系统id,请求方接口id匹配到该条件数据已存在!", null);
+				}
+			}
+		}
+		
 		// 返回缓存接口配置id
 		String rtnId = "";
 		List<TBusinessInterface> tbiList = dto.getBusinessInterfaceList();
