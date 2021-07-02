@@ -1,5 +1,28 @@
 package com.iflytek.integrated.platform.service;
 
+import static com.iflytek.integrated.platform.entity.QTEtlFlow.qTEtlFlow;
+import static com.iflytek.integrated.platform.entity.QTEtlGroup.qTEtlGroup;
+import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
+import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
+import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
@@ -14,25 +37,11 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.dml.SQLUpdateClause;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import static com.iflytek.integrated.platform.entity.QTEtlFlow.qTEtlFlow;
-import static com.iflytek.integrated.platform.entity.QTEtlGroup.qTEtlGroup;
-import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
-import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
-import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 
 /**
  * @author lsn
@@ -226,6 +235,7 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 
 	@ApiOperation(value = "删除流程")
 	@PostMapping(path = "/delEtlFlow/{id}")
+	@Transactional(rollbackFor = Exception.class)
 	public ResultDto<String> delEtlFlow(@PathVariable String id) {
 
 		// 校验是否获取到登录用户
@@ -233,8 +243,17 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 //		if (StringUtils.isBlank(loginUserName)) {
 //			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
 //		}
-
-		long result = sqlQueryFactory.delete(qTEtlFlow).where(qTEtlFlow.id.eq(id)).execute();
+		long result = 0;
+		TEtlFlow etlFlow = this.getOne(id);
+		if(etlFlow != null) {
+			try {
+				etlGroupService.delEtlGroup(etlFlow.getGroupId());
+			} catch (Exception e) {
+				throw new RuntimeException("刪除ETL服务器流程异常！异常详情：" + e.getLocalizedMessage());
+			}
+//			long result = sqlQueryFactory.delete(qTEtlFlow).where(qTEtlFlow.id.eq(id)).execute();
+			result = this.delete(id);
+		}
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "删除流程成功", result + "");
 	}
 

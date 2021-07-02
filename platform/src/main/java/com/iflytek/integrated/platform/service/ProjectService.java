@@ -1,5 +1,24 @@
 package com.iflytek.integrated.platform.service;
 
+import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
@@ -14,28 +33,17 @@ import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TPlatform;
 import com.iflytek.integrated.platform.entity.TProject;
 import com.iflytek.integrated.platform.entity.TSysConfig;
+import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringPath;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
 
 /**
  * 项目管理
@@ -66,6 +74,8 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
 	private EtlFlowService etlFlowService;
 	@Autowired
 	private EtlGroupService etlGroupService;
+	@Autowired
+	private NiFiRequestUtil niFiRequestUtil;
 
 	private static final Logger logger = LoggerFactory.getLogger(ProjectService.class);
 
@@ -241,6 +251,11 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
 						if (l < 1) {
 							throw new RuntimeException("平台下关联的ETL流程组信息删除失败!");
 						}
+						try {
+							niFiRequestUtil.deleteNifiEtlFlow(obj , tEtlGroupId);
+						} catch (Exception e) {
+							throw new RuntimeException("删除ETL服务器流程异常！异步详情："+e.getLocalizedMessage());
+						}
 					}
 				}
 				long deletePlatform = platformService.delete(platformId);
@@ -252,7 +267,7 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "项目删除成功!",
 				new RedisDto(redisKeyDtoList).toString());
 	}
-
+	
 	@ApiOperation(value = "更改项目启用状态", notes = "更改项目启用状态")
 	@PostMapping("/updateProjectStatus")
 	public ResultDto<String> updateProjectStatus(

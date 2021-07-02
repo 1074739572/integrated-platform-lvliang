@@ -1,22 +1,35 @@
 package com.iflytek.integrated.platform.utils;
 
+import java.text.MessageFormat;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.nifi.api.toolkit.ApiClient;
+import org.apache.nifi.api.toolkit.api.AccessApi;
+import org.apache.nifi.api.toolkit.api.FlowApi;
+import org.apache.nifi.api.toolkit.api.ProcessGroupsApi;
+import org.apache.nifi.api.toolkit.model.ProcessGroupEntity;
+import org.apache.nifi.api.toolkit.model.RevisionDTO;
+import org.apache.nifi.api.toolkit.model.ScheduleComponentsEntity;
+import org.apache.nifi.api.toolkit.model.ScheduleComponentsEntity.StateEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import com.iflytek.integrated.common.dto.HttpResult;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.utils.HttpClientUtil;
 import com.iflytek.integrated.common.utils.JackSonUtils;
+import com.iflytek.integrated.common.utils.OAuthApiClient;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.DbUrlTestDto;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.platform.dto.JoltDebuggerDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
+import com.iflytek.integrated.platform.entity.TPlatform;
 import com.querydsl.sql.SQLQueryFactory;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
-import java.text.MessageFormat;
-import java.util.Map;
 
 /**
  * @author czzhan 调取接nifi接口
@@ -50,6 +63,8 @@ public class NiFiRequestUtil {
 
 	@Autowired
 	public SQLQueryFactory sqlQueryFactory;
+	
+	private static final Logger logger = LoggerFactory.getLogger(NiFiRequestUtil.class);
 
 	/**
 	 * 根据paramFormat和formatType生成schema
@@ -230,5 +245,44 @@ public class NiFiRequestUtil {
 
 	public String getWsServiceUrl() {
 		return wsdlServiceUrl;
+	}
+	
+	public void deleteNifiEtlFlow(TPlatform platform , String tEtlGroupId) throws Exception {
+		if (platform != null) {
+			String serverUrl = platform.getEtlServerUrl();
+			if(StringUtils.isNotBlank(serverUrl) && serverUrl.endsWith("/")) {
+				serverUrl = serverUrl.substring(0 , serverUrl.lastIndexOf("/"));
+			}
+			String userName = platform.getEtlUser();
+			String password = platform.getEtlPwd();
+			ApiClient client = new OAuthApiClient();
+			client.setBasePath(serverUrl);
+			client.addDefaultHeader("Content-Type", "application/json");
+			client.addDefaultHeader("Accept", "application/json");
+			AccessApi api = new AccessApi(client);
+			
+			try {
+				client.setVerifyingSsl(false);
+				if (serverUrl.startsWith("https")) {
+					String token = api.createAccessToken(userName, password);
+					client.setAccessToken(token);
+				}
+				FlowApi flowApi = new FlowApi(client);
+				ScheduleComponentsEntity compEntity = new ScheduleComponentsEntity();
+				compEntity.setId(tEtlGroupId);
+				compEntity.setState(StateEnum.STOPPED);
+				compEntity.setDisconnectedNodeAcknowledged(false);
+				flowApi.scheduleComponents(tEtlGroupId, compEntity);
+				
+				ProcessGroupsApi groupApi = new ProcessGroupsApi(client);
+				ProcessGroupEntity groupEntity = groupApi.getProcessGroup(tEtlGroupId);
+				RevisionDTO revision = groupEntity.getRevision();
+				
+				groupApi.removeProcessGroup(tEtlGroupId, String.valueOf(revision.getVersion()), revision.getClientId(), groupEntity.getDisconnectedNodeAcknowledged());
+			}catch(Exception e) {
+				logger.error("删除平台[%s]下ETL流程[%s]异常!异常信息："+e.getLocalizedMessage() , platform.getId() , tEtlGroupId);
+				throw e;
+			}
+		}
 	}
 }

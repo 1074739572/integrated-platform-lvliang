@@ -1,5 +1,21 @@
 package com.iflytek.integrated.platform.service;
 
+import static com.iflytek.integrated.platform.entity.QTEtlGroup.qTEtlGroup;
+import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.JackSonUtils;
@@ -7,24 +23,14 @@ import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.EtlGroupDto;
 import com.iflytek.integrated.platform.entity.TEtlGroup;
+import com.iflytek.integrated.platform.entity.TPlatform;
+import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.dml.SQLUpdateClause;
+
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import static com.iflytek.integrated.platform.entity.QTEtlGroup.qTEtlGroup;
 
 /**
  * @author lsn
@@ -37,6 +43,8 @@ public class EtlGroupService extends BaseService<TEtlGroup, String, StringPath> 
 
 	@Autowired
 	private BatchUidService batchUidService;
+	@Autowired
+	private NiFiRequestUtil niFiRequestUtil;
 
 	public EtlGroupService() {
 		super(qTEtlGroup, qTEtlGroup.id);
@@ -122,15 +130,22 @@ public class EtlGroupService extends BaseService<TEtlGroup, String, StringPath> 
 		}
 	}
 
-	public ResultDto<String> delEtlGroup(@PathVariable String id) {
+	@Transactional
+	public ResultDto<String> delEtlGroup(@PathVariable String id) throws Exception {
 
 		// 校验是否获取到登录用户
 		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
 		if (StringUtils.isBlank(loginUserName)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
 		}
-
-		long result = sqlQueryFactory.delete(qTEtlGroup).where(qTEtlGroup.id.eq(id)).execute();
+		TEtlGroup etlGroup = this.getOne(id);
+		long result = 0;
+		if(etlGroup != null) {
+			TPlatform platform = sqlQueryFactory.select(qTPlatform).from(qTPlatform).where(qTPlatform.id.eq(etlGroup.getPlatformId())).fetchOne();
+			result = this.delete(id);
+			niFiRequestUtil.deleteNifiEtlFlow(platform, etlGroup.getEtlGroupId());
+//			long result = sqlQueryFactory.delete(qTEtlGroup).where(qTEtlGroup.id.eq(id)).execute();
+		}
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "删除流程组成功", result + "");
 	}
 
