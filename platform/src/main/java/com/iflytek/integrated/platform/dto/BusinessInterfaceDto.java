@@ -30,6 +30,8 @@ public class BusinessInterfaceDto {
 
     private String requestInterfaceTypeId;
 
+    private Integer interfaceSlowFlag;
+
     /**
      * 多个厂商配置信息
      */

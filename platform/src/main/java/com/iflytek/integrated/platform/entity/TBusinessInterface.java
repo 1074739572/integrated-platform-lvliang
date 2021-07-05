@@ -74,6 +74,8 @@ public class TBusinessInterface implements Serializable {
 
     private Integer asyncFlag;
 
+    private Integer interfaceSlowFlag;
+
     @Transient
     private String requestInterfaceName;
     @Transient
