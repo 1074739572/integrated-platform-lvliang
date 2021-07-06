@@ -5,6 +5,7 @@ import org.hibernate.validator.constraints.Length;
 import com.iflytek.integrated.platform.dto.SysHospitalDto;
 
 import lombok.Data;
+import org.springframework.data.annotation.Transient;
 
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
@@ -78,6 +79,9 @@ public class TSysConfig implements Serializable {
     private String innerIdx;
     
     private String databaseType;
+
+    @Transient
+    private String sysInterface;
 
 }
 

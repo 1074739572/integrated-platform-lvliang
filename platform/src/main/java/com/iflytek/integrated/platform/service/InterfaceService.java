@@ -584,20 +584,35 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				if (StringUtils.isNotBlank(tbi.getBusinessInterfaceName())) {
 					String[] bizNames = tbi.getBusinessInterfaceName().split(",");
 					String bizSysInterfaces = "";
+					String versionIds = "";
 					for (String bizName : bizNames) {
 						String sysConfigId = bizName.split("/")[0];
 						String bizInterfaceName = bizName.substring(sysConfigId.length()+1);
 
-						String sysInterface = sqlQueryFactory.select(qTSys.sysName.append("/").append(bizInterfaceName))
+						TSysConfig sysConfig = sqlQueryFactory.select(Projections.bean(TSysConfig.class,
+								qTSys.sysName.append("/").append(bizInterfaceName).as("sysInterface"),
+								qTSysConfig.versionId))
 								.from(qTSysConfig).join(qTSys).on(qTSys.id.eq(qTSysConfig.sysId))
 								.where(qTSysConfig.id.eq(sysConfigId)).fetchOne();
+						String sysInterface = sysConfig.getSysInterface();
+						String versionId = sysConfig.getVersionId();
+//						String sysInterface = sqlQueryFactory.select(qTSys.sysName.append("/").append(bizInterfaceName))
+//								.from(qTSysConfig).join(qTSys).on(qTSys.id.eq(qTSysConfig.sysId))
+//								.where(qTSysConfig.id.eq(sysConfigId)).fetchOne();
 						bizSysInterfaces += sysInterface + ",";
+						versionIds += versionId + ",";
 					}
 					if (StringUtils.isNotBlank(bizSysInterfaces)) {
 						if (bizSysInterfaces.endsWith(",")) {
 							bizSysInterfaces = bizSysInterfaces.substring(0, bizSysInterfaces.lastIndexOf(","));
 						}
 						tbi.setBusinessInterfaceName(bizSysInterfaces);
+					}
+					if (StringUtils.isNotBlank(versionIds)) {
+						if (versionIds.endsWith(",")) {
+							versionIds = versionIds.substring(0, versionIds.lastIndexOf(","));
+						}
+						tbi.setVersionId(versionIds);
 					}
 				}
 				// 获取请求方系统/接口
@@ -636,6 +651,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			// 请求方标准接口
 			String requestInterfaceId = tbi.getRequestInterfaceId();
 			dto.setRequestInterfaceId(requestInterfaceId);
+			dto.setInterfaceSlowFlag(tbi.getInterfaceSlowFlag());
 			// 获取请求方接口类型
 			ArrayList<Predicate> list = new ArrayList<>();
 			if (StringUtils.isNotEmpty(requestInterfaceId)) {
