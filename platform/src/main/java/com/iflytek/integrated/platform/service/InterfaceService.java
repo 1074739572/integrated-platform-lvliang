@@ -776,7 +776,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		TBusinessInterface exsitsBI = businessInterfaceService.getOne(dto.getId());
 		if(exsitsBI != null) {
 			//沒修改過請求方
-			if(exsitsBI.getRequestSysId().equals(dto.getRequestSysId()) && exsitsBI.getRequestInterfaceId().equals(dto.getRequestInterfaceId())){
+			if(exsitsBI.getRequestSysconfigId().equals(dto.getRequestSysconfigId()) && exsitsBI.getRequestInterfaceId().equals(dto.getRequestInterfaceId())){
 //				沒修改過，不校驗是否已存在
 			}else {
 				List<TBusinessInterface> tbiList = businessInterfaceService.getBusinessInterfaceIsExist(dto.getProjectId(),
