@@ -37,6 +37,8 @@ public class TEtlFlow implements Serializable {
 
     private String status;
     
+    private String etlEntryGroupId;
+    
     @Transient
     private String sysName;
     
@@ -203,5 +205,14 @@ public class TEtlFlow implements Serializable {
 	public void setStatus(String status) {
 		this.status = status;
 	}
+
+	public String getEtlEntryGroupId() {
+		return etlEntryGroupId;
+	}
+
+	public void setEtlEntryGroupId(String etlEntryGroupId) {
+		this.etlEntryGroupId = etlEntryGroupId;
+	}
+	
 }
 

@@ -91,7 +91,7 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 		}
 		QueryResults<TEtlFlow> queryResults = sqlQueryFactory.select(Projections.bean(TEtlFlow.class, qTEtlFlow.id,
 				qTEtlFlow.groupId, qTEtlFlow.flowName, qTEtlFlow.etlGroupId, qTEtlFlow.flowConfig, qTEtlFlow.flowDesp,
-				qTEtlFlow.flowTplName, qTEtlFlow.funTplNames, qTEtlFlow.status,
+				qTEtlFlow.flowTplName, qTEtlFlow.funTplNames, qTEtlFlow.status,qTEtlFlow.etlEntryGroupId,
 //				qTProject.projectCode.as("projectCode"),
 				qTEtlGroup.hospitalId, qTEtlGroup.sysId, qTHospital.hospitalName.as("hospitalName"),
 				qTSys.sysName.as("sysName"))).from(qTEtlFlow).leftJoin(qTEtlGroup)
@@ -111,7 +111,7 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 	public ResultDto<TEtlFlow> getEtlFlowDetails(@PathVariable("id") String id) {
 		TEtlFlow flowDetail = sqlQueryFactory.select(Projections.bean(TEtlFlow.class, qTEtlFlow.id, qTEtlFlow.groupId,
 				qTEtlFlow.flowName, qTEtlFlow.etlGroupId, qTEtlFlow.flowConfig, qTEtlFlow.flowDesp,
-				qTEtlFlow.flowTplName, qTEtlFlow.funTplNames,
+				qTEtlFlow.flowTplName, qTEtlFlow.funTplNames,qTEtlFlow.status,qTEtlFlow.etlEntryGroupId,
 //				qTProject.projectCode.as("projectCode"),
 				qTEtlGroup.hospitalId, qTEtlGroup.sysId, qTHospital.hospitalName.as("hospitalName"),
 				qTSys.sysName.as("sysName"))).from(qTEtlFlow).leftJoin(qTEtlGroup)
@@ -154,6 +154,8 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 		flowEntity.setCreatedTime(new Date());
 		flowEntity.setUpdatedBy(loginUserName != null ? loginUserName : "");
 		flowEntity.setUpdatedTime(new Date());
+		flowEntity.setStatus(flowDto.getStatus());
+		flowEntity.setEtlEntryGroupId(flowDto.getEtlEntryGroupId());
 		String result = this.post(flowEntity);
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存流程配置成功", result);
 	}
@@ -185,20 +187,6 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 
 		SQLUpdateClause updateClause = sqlQueryFactory.update(qTEtlFlow);
 
-//		TEtlFlow flowEntity = new TEtlFlow();
-//		flowEntity.setGroupId(groupId);
-//		flowEntity.setFlowName(flowDto.getFlowName());
-//		flowEntity.setFlowConfig(flowDto.getFlowConfig());
-//		flowEntity.setFlowDesp(flowDto.getFlowDesp());
-//		flowEntity.setEtlGroupId(flowDto.getEtlGroupId());
-//		flowEntity.setFlowTplName(flowDto.getFlowTplName());
-//		flowEntity.setFunTplNames(flowDto.getFunTplNames());
-//		String id = batchUidService.getUid(qTEtlFlow.getTableName()) + "";
-//		flowEntity.setId(id);
-//		flowEntity.setCreatedBy(loginUserName != null ? loginUserName : "");
-//		flowEntity.setCreatedTime(new Date());
-//		flowEntity.setUpdatedBy(loginUserName != null ? loginUserName : "");
-//		flowEntity.setUpdatedTime(new Date());
 		// 流程模板
 		try {
 			if (StringUtils.isNotBlank(flowDto.getFlowName())) {
@@ -212,6 +200,9 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 			}
 			if (StringUtils.isNotBlank(flowDto.getEtlGroupId())) {
 				updateClause.set(qTEtlFlow.etlGroupId, flowDto.getEtlGroupId());
+			}
+			if (StringUtils.isNotBlank(flowDto.getEtlEntryGroupId())) {
+				updateClause.set(qTEtlFlow.etlEntryGroupId, flowDto.getEtlEntryGroupId());
 			}
 			if (StringUtils.isNotBlank(flowDto.getFlowTplName())) {
 				updateClause.set(qTEtlFlow.flowTplName, flowDto.getFlowTplName());

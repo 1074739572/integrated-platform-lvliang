@@ -26,7 +26,9 @@ public class QTEtlFlow extends com.querydsl.sql.RelationalPathBase<TEtlFlow> {
 	public final StringPath flowName = createString("flowName");
 
 	public final StringPath etlGroupId = createString("etlGroupId");
-
+	
+	public final StringPath etlEntryGroupId = createString("etlEntryGroupId");
+	
 	public final StringPath flowConfig = createString("flowConfig");
 	
 	public final StringPath flowDesp = createString("flowDesp");
@@ -90,6 +92,7 @@ public class QTEtlFlow extends com.querydsl.sql.RelationalPathBase<TEtlFlow> {
 		addMetadata(updatedTime,
 				ColumnMetadata.named("UPDATED_TIME").withIndex(13).ofType(Types.TIMESTAMP).withSize(19));
 		addMetadata(tplId, ColumnMetadata.named("TPL_ID").withIndex(14).ofType(Types.VARCHAR).withSize(32));
+		addMetadata(etlEntryGroupId, ColumnMetadata.named("ETL_ENTRY_GROUP_ID").withIndex(15).ofType(Types.VARCHAR).withSize(50));
 	}
 
 }

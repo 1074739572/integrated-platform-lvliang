@@ -29,6 +29,8 @@ public class EtlFlowDto implements Serializable {
 	private EtlGroupDto etlGroupDto;
 
 	private String status;
+	
+	private String etlEntryGroupId;
 
 	public String getId() {
 		return id;
@@ -109,4 +111,13 @@ public class EtlFlowDto implements Serializable {
 	public void setStatus(String status) {
 		this.status = status;
 	}
+
+	public String getEtlEntryGroupId() {
+		return etlEntryGroupId;
+	}
+
+	public void setEtlEntryGroupId(String etlEntryGroupId) {
+		this.etlEntryGroupId = etlEntryGroupId;
+	}
+	
 }
