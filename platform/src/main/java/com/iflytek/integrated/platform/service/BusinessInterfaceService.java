@@ -6,11 +6,15 @@ import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.common.RedisService;
 import com.iflytek.integrated.platform.dto.RedisDto;
 import com.iflytek.integrated.platform.dto.RedisKeyDto;
+import com.iflytek.integrated.platform.entity.QTBusinessInterface;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.SubQueryExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringPath;
+import com.querydsl.sql.SQLExpressions;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -169,29 +173,53 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	 * @param pageSize
 	 * @return
 	 */
-	public QueryResults<TBusinessInterface> getInterfaceConfigureList(ArrayList<Predicate> list, Integer pageNo, Integer pageSize) {
+	public QueryResults<TBusinessInterface> getInterfaceConfigureList(ArrayList<Predicate> list, String requestedInterfaceName, Integer pageNo, Integer pageSize) {
 
-		QueryResults<TBusinessInterface> queryResults = sqlQueryFactory
-				.select(Projections.bean(TBusinessInterface.class, qTBusinessInterface.id,
-						qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId,
+//		QueryResults<TBusinessInterface> queryResults = sqlQueryFactory
+//				.select(Projections.bean(TBusinessInterface.class, qTBusinessInterface.id,
+//						qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId,
+//						groupConcat(qTBusinessInterface.requestedSysconfigId.append("/")
+//								.append(qTBusinessInterface.businessInterfaceName)).as("businessInterfaceName"),
+//						qTBusinessInterface.mockStatus, qTBusinessInterface.status, qTBusinessInterface.createdBy,
+//						qTBusinessInterface.createdTime, qTBusinessInterface.updatedBy, qTBusinessInterface.updatedTime,
+//						qTSysConfig.versionId.as("versionId")))
+//				.from(qTBusinessInterface)
+//				.leftJoin(qTSysConfig).on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId))
+//				.leftJoin(qTInterface).on(qTInterface.id.eq(qTBusinessInterface.requestInterfaceId))
+//				.where(list.toArray(new Predicate[list.size()]))
+//				.groupBy(qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId)
+//				.orderBy(qTBusinessInterface.createdTime.desc()).limit(pageSize).offset((pageNo - 1) * pageSize)
+//				.fetchResults();
+
+		String q = "queryBusinessInterface";
+		StringPath queryLabel = Expressions.stringPath(q);
+		QTBusinessInterface businessInterface = new QTBusinessInterface(q);
+		ArrayList<Predicate> interfaceNameList = new ArrayList<>();
+		if (StringUtils.isNotEmpty(requestedInterfaceName)) {
+			interfaceNameList.add(businessInterface.businessInterfaceName.like("%" + requestedInterfaceName + "%"));
+		}
+		SubQueryExpression query = SQLExpressions
+				.select(qTBusinessInterface.id, qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId,
 						groupConcat(qTBusinessInterface.requestedSysconfigId.append("/")
-								.append(qTBusinessInterface.businessInterfaceName)).as("businessInterfaceName"),
-//						qTBusinessInterface.requestType, qTBusinessInterface.requestConstant,
-//						qTBusinessInterface.interfaceType, qTBusinessInterface.pluginId,
-//						qTBusinessInterface.inParamFormat, qTBusinessInterface.inParamSchema,
-//						qTBusinessInterface.inParamTemplate, qTBusinessInterface.inParamFormatType,
-//						qTBusinessInterface.outParamFormat, qTBusinessInterface.outParamSchema,
-//						qTBusinessInterface.outParamTemplate, qTBusinessInterface.outParamFormatType,
+								.append(qTBusinessInterface.businessInterfaceName)).as("BUSINESS_INTERFACE_NAME"),
 						qTBusinessInterface.mockStatus, qTBusinessInterface.status, qTBusinessInterface.createdBy,
-						qTBusinessInterface.createdTime, qTBusinessInterface.updatedBy, qTBusinessInterface.updatedTime,
-						qTSysConfig.versionId.as("versionId")))
+						qTBusinessInterface.createdTime.max().as("CREATED_TIME"), qTBusinessInterface.updatedBy,
+						qTBusinessInterface.updatedTime)
 				.from(qTBusinessInterface)
 				.leftJoin(qTSysConfig).on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId))
 				.leftJoin(qTInterface).on(qTInterface.id.eq(qTBusinessInterface.requestInterfaceId))
 				.where(list.toArray(new Predicate[list.size()]))
-				.groupBy(qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId)
-				.orderBy(qTBusinessInterface.createdTime.desc()).limit(pageSize).offset((pageNo - 1) * pageSize)
-				.fetchResults();
+				.groupBy(qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId);
+
+		QueryResults<TBusinessInterface> queryResults = sqlQueryFactory
+				.select(Projections.bean(TBusinessInterface.class, businessInterface.id, businessInterface.requestInterfaceId,
+						businessInterface.requestSysconfigId, businessInterface.businessInterfaceName, businessInterface.mockStatus,
+						businessInterface.status, businessInterface.createdBy, businessInterface.createdTime,
+						businessInterface.updatedBy, businessInterface.updatedTime))
+				.from(query, queryLabel)
+				.where(interfaceNameList.toArray(new Predicate[interfaceNameList.size()]))
+				.limit(pageSize).offset((pageNo - 1) * pageSize)
+				.orderBy(businessInterface.createdTime.desc()).fetchResults();
 		return queryResults;
 	}
 
