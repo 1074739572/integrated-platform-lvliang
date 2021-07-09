@@ -411,12 +411,14 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
 		// 传入标准接口方法
 		String interfaceUrl = dto.getInterfaceUrl();
-		// 查询新接口方法是否已存在
-		tf = sqlQueryFactory.select(qTInterface).from(qTInterface)
-				.where(qTInterface.interfaceUrl.eq(interfaceUrl).and(qTInterface.id.notEqualsIgnoreCase(id)))
-				.fetchOne();
-		if (tf != null) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该接口方法已存在!", "该接口方法已存在!");
+		if(!tf.getInterfaceUrl().equals(interfaceUrl)) {
+			// 查询新接口方法是否已存在
+			tf = sqlQueryFactory.select(qTInterface).from(qTInterface)
+					.where(qTInterface.interfaceUrl.eq(interfaceUrl).and(qTInterface.sysId.eq(tf.getSysId())))
+					.fetchOne();
+			if (tf != null) {
+				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该接口方法已存在!", "该接口方法已存在!");
+			}
 		}
 		// 出参
 		List<TInterfaceParam> outParamList = dto.getOutParamList();
