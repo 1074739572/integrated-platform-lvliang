@@ -573,11 +573,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         if (StringUtils.isNotEmpty(requestInterfaceName)) {
             predicateList.add(qTInterface.interfaceName.like("%" + requestInterfaceName + "%"));
         }
-        if (StringUtils.isNotEmpty(requestedInterfaceName)) {
-            predicateList.add(qTBusinessInterface.businessInterfaceName.like("%" + requestedInterfaceName + "%"));
-        }
 	    // 获取接口配置列表信息
-		QueryResults<TBusinessInterface> queryResults = businessInterfaceService.getInterfaceConfigureList(predicateList, pageNo, pageSize);
+		QueryResults<TBusinessInterface> queryResults = businessInterfaceService.getInterfaceConfigureList(predicateList, requestedInterfaceName, pageNo, pageSize);
 		// 匹配列表展示信息
 		List<TBusinessInterface> list = queryResults.getResults();
 		if (CollectionUtils.isNotEmpty(list)) {
