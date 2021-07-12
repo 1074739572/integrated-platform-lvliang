@@ -12,6 +12,7 @@ import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TPlatform;
 import com.iflytek.integrated.platform.entity.TSysConfig;
 import com.iflytek.integrated.platform.entity.TSysHospitalConfig;
+import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.QueryResults;
@@ -59,6 +60,12 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 	private BatchUidService batchUidService;
 	@Autowired
 	private RedisService redisService;
+	@Autowired
+	private EtlFlowService etlFlowService;
+	@Autowired
+	private EtlGroupService etlGroupService;
+	@Autowired
+	private NiFiRequestUtil niFiRequestUtil;
 
 	private static final Logger logger = LoggerFactory.getLogger(PlatformService.class);
 
@@ -524,6 +531,33 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 			logger.error("平台下所有系统配置信息删除失败!");
 			throw new RuntimeException("平台下所有系统配置信息删除失败!");
 		}
+		
+		//删除平台下所有关联的ETL流程
+		List<String> tEtlFlowIds = etlFlowService.getTEtlFlowIds(id);
+		if (!CollectionUtils.isEmpty(tEtlFlowIds)) {
+			for (String tEtlFlowId : tEtlFlowIds) {
+				long l = etlFlowService.delete(tEtlFlowId);
+				if (l < 1) {
+					throw new RuntimeException("平台下关联的ETL流程信息删除失败!");
+				}
+			}
+		}
+		//删除平台下所有关联的ETL流程组
+		List<String> tEtlGroupIds = etlGroupService.getTEtlGroupIds(id);
+		if (!CollectionUtils.isEmpty(tEtlGroupIds)) {
+			for (String tEtlGroupId : tEtlGroupIds) {
+				long l = etlGroupService.delete(tEtlGroupId);
+				if (l < 1) {
+					throw new RuntimeException("平台下关联的ETL流程组信息删除失败!");
+				}
+				try {
+					niFiRequestUtil.deleteNifiEtlFlow(tp , tEtlGroupId);
+				} catch (Exception e) {
+					throw new RuntimeException("删除ETL服务器流程异常！异步详情："+e.getLocalizedMessage());
+				}
+			}
+		}
+		
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,
 				"平台" + tp.getPlatformName() + "删除成功,同时删除该平台下" + vcCount + "条系统配置",
 				new RedisDto(redisKeyDtoList).toString());

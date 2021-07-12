@@ -207,4 +207,25 @@ public class PlatformUtil {
 		String responseStr = HttpClientCallSoapUtil.doPostSoap1_1(wsdlUrl, soapTpl, opName);
 		return responseStr;
 	}
+	
+	
+	public static String secondsToFormat(Long seconds){
+        Long hour =0L;
+        Long min =0L;
+        Long second =0L;
+        String result ="";
+        
+        if (seconds>60) {   //是否大于零
+            min = seconds/60;  //分钟
+            second = seconds%60;  //秒
+            if (min>60) {   //存在时
+                hour=min/60;
+                min=min%60;
+            }
+        }
+        result=hour+"小时";
+        result=result+min+"分";
+        result=result+second+"秒";   //秒必须出现无论是否大于零
+        return result;
+    }
 }

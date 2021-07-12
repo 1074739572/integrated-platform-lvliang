@@ -29,7 +29,7 @@ public class TEtlLog implements Serializable {
 	private String errorInfo;
 	
 	@Transient
-	private Long execTime;
+	private String execTime;
 	
 	@Transient
 	private String projectName;
@@ -99,11 +99,11 @@ public class TEtlLog implements Serializable {
 		this.errorInfo = errorInfo;
 	}
 
-	public Long getExecTime() {
+	public String getExecTime() {
 		return execTime;
 	}
 
-	public void setExecTime(Long execTime) {
+	public void setExecTime(String execTime) {
 		this.execTime = execTime;
 	}
 

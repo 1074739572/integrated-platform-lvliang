@@ -26,6 +26,7 @@ import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.entity.TEtlLog;
+import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
@@ -93,7 +94,9 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 			for(TEtlLog etllog : logs) {
 				long endtime = etllog.getCreatedTime().getTime();
 				long starttime = etllog.getJobTime().getTime();
-				etllog.setExecTime(endtime - starttime);
+				long execTimeSeconds = (endtime - starttime)/1000;
+				etllog.setExecTime(PlatformUtil.secondsToFormat(execTimeSeconds));
+				etllog.setStatus("1".equals(etllog.getStatus()) ? "成功" : "失败");
 			}
 		}
 		// 分页
