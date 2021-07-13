@@ -1,10 +1,20 @@
 package com.iflytek.integrated.platform.utils;
 
-import java.text.MessageFormat;
-import java.util.Map;
-
+import com.iflytek.integrated.common.dto.HttpResult;
+import com.iflytek.integrated.common.dto.ResultDto;
+import com.iflytek.integrated.common.utils.HttpClientUtil;
+import com.iflytek.integrated.common.utils.JackSonUtils;
+import com.iflytek.integrated.common.utils.OAuthApiClient;
+import com.iflytek.integrated.platform.common.Constant;
+import com.iflytek.integrated.platform.dto.DbUrlTestDto;
+import com.iflytek.integrated.platform.dto.GroovyValidateDto;
+import com.iflytek.integrated.platform.dto.JoltDebuggerDto;
+import com.iflytek.integrated.platform.entity.TBusinessInterface;
+import com.iflytek.integrated.platform.entity.TPlatform;
+import com.querydsl.sql.SQLQueryFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.nifi.api.toolkit.ApiClient;
+import org.apache.nifi.api.toolkit.ApiException;
 import org.apache.nifi.api.toolkit.api.AccessApi;
 import org.apache.nifi.api.toolkit.api.FlowApi;
 import org.apache.nifi.api.toolkit.api.ProcessGroupsApi;
@@ -18,18 +28,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.iflytek.integrated.common.dto.HttpResult;
-import com.iflytek.integrated.common.dto.ResultDto;
-import com.iflytek.integrated.common.utils.HttpClientUtil;
-import com.iflytek.integrated.common.utils.JackSonUtils;
-import com.iflytek.integrated.common.utils.OAuthApiClient;
-import com.iflytek.integrated.platform.common.Constant;
-import com.iflytek.integrated.platform.dto.DbUrlTestDto;
-import com.iflytek.integrated.platform.dto.GroovyValidateDto;
-import com.iflytek.integrated.platform.dto.JoltDebuggerDto;
-import com.iflytek.integrated.platform.entity.TBusinessInterface;
-import com.iflytek.integrated.platform.entity.TPlatform;
-import com.querydsl.sql.SQLQueryFactory;
+import java.text.MessageFormat;
+import java.util.Map;
 
 /**
  * @author czzhan 调取接nifi接口
@@ -280,8 +280,16 @@ public class NiFiRequestUtil {
 				
 				groupApi.removeProcessGroup(tEtlGroupId, String.valueOf(revision.getVersion()), revision.getClientId(), groupEntity.getDisconnectedNodeAcknowledged());
 			}catch(Exception e) {
-				logger.error("删除平台[%s]下ETL流程[%s]异常!异常信息："+e.getLocalizedMessage() , platform.getId() , tEtlGroupId);
-				throw e;
+				if (e instanceof ApiException) {
+					ApiException ae = (ApiException) e;
+					if (ae.getCode() != 404) {
+						logger.error("删除平台[%s]下ETL流程[%s]异常!异常信息："+e.getLocalizedMessage() , platform.getId() , tEtlGroupId);
+						throw e;
+					}
+				}else{
+					logger.error("删除平台[%s]下ETL流程[%s]异常!异常信息："+e.getLocalizedMessage() , platform.getId() , tEtlGroupId);
+					throw e;
+				}
 			}
 		}
 	}
