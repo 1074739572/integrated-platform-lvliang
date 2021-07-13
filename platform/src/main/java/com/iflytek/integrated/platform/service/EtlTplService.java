@@ -542,9 +542,11 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
         Element tpl = root.element("template");
         String tplId = tpl.element("id").getText();
         String tplName = tpl.element("name").getText();
+        String desp = tpl.element("description").getText();
         if(StringUtils.isNotBlank(tplId)) {
         	result.put("flowTplName", tplName);
         	result.put("flowTplId", tplId);
+        	result.put("description", desp);
         }
         return result;
 	}
