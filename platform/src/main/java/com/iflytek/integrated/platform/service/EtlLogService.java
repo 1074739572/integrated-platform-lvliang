@@ -1,26 +1,5 @@
 package com.iflytek.integrated.platform.service;
 
-import static com.iflytek.integrated.platform.entity.QTEtlGroup.qTEtlGroup;
-import static com.iflytek.integrated.platform.entity.QTEtlLog.qTEtlLog;
-import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
-import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
-import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
-import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.platform.common.BaseService;
@@ -31,11 +10,24 @@ import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.iflytek.integrated.platform.entity.QTEtlGroup.qTEtlGroup;
+import static com.iflytek.integrated.platform.entity.QTEtlLog.qTEtlLog;
+import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
+import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
+import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
+import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 
 /**
  * @author lsn
@@ -53,29 +45,27 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 	}
 
 	@ApiOperation(value = "获取日志列表")
-	@PostMapping("/getEtlLogs")
-	public ResultDto<TableData<TEtlLog>> getEtlFlows(@RequestBody TEtlLog queryCondition,
+	@GetMapping("/getEtlLogs")
+	public ResultDto<TableData<TEtlLog>> getEtlFlows(String projectId, String platformId, String sysId, String status,
+													 @ApiParam(value = "流程名称") @RequestParam(value = "flowName", required = false) String flowName,
 			@ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
 			@ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
 		// 查询条件
 		ArrayList<Predicate> list = new ArrayList<>();
-		if (StringUtils.isNotBlank(queryCondition.getProjectName())) {
-			list.add(qTProject.projectName.like("%" + queryCondition.getProjectName() + "%"));
+		if (StringUtils.isNotBlank(projectId)) {
+			list.add(qTProject.id.eq(projectId));
 		}
-		if (StringUtils.isNotBlank(queryCondition.getPlatformName())) {
-			list.add(qTPlatform.platformName.like("%" + queryCondition.getPlatformName() + "%"));
+		if (StringUtils.isNotBlank(platformId)) {
+			list.add(qTPlatform.id.eq(platformId));
 		}
-		if (StringUtils.isNotBlank(queryCondition.getSysName())) {
-			list.add(qTSys.sysName.like("%" + queryCondition.getSysName() + "%"));
+		if (StringUtils.isNotBlank(sysId)) {
+			list.add(qTSys.id.eq(sysId));
 		}
-		if (StringUtils.isNotBlank(queryCondition.getHospitalName())) {
-			list.add(qTHospital.hospitalName.like("%" + queryCondition.getHospitalName() + "%"));
+		if(StringUtils.isNotBlank(status)){
+			list.add(qTEtlLog.status.eq(status));
 		}
-		if(StringUtils.isNotBlank(queryCondition.getStatus())){
-			list.add(qTEtlLog.status.eq(queryCondition.getStatus()));
-		}
-		if (StringUtils.isNotBlank(queryCondition.getFlowName())) {
-			list.add(qTEtlLog.flowName.like("%" + queryCondition.getFlowName() + "%"));
+		if (StringUtils.isNotBlank(flowName)) {
+			list.add(qTEtlLog.flowName.like("%" + flowName + "%"));
 		}
 		QueryResults<TEtlLog> queryResults = sqlQueryFactory.select(Projections.bean(TEtlLog.class, qTEtlLog.id,
 				qTEtlLog.etlGroupId, qTEtlLog.flowName, qTEtlLog.createdTime, qTEtlLog.jobTime,qTEtlLog.status,qTEtlLog.errorInfo,

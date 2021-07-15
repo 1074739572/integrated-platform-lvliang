@@ -36,6 +36,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.List;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
 import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
@@ -278,13 +279,24 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 
 		QueryResults<TLog> queryResults = sqlQueryFactory
 				.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status, qTLog.venderRepTime,
-						qTLog.businessRepTime, qTLog.visitAddr))
+						qTLog.businessRepTime, qTLog.visitAddr,
+						qTBusinessInterface.businessInterfaceName.as("businessInterfaceName"),
+						qTBusinessInterface.excErrOrder.add(1).as("excErrOrder")))
 				.from(qTLog)
 				.leftJoin(qTInterfaceMonitor).on(qTInterfaceMonitor.businessInterfaceId.eq(qTLog.businessInterfaceId))
 				.leftJoin(qTBusinessInterface).on(qTBusinessInterface.id.eq(qTInterfaceMonitor.businessInterfaceId))
 				.leftJoin(qTInterface).on(qTInterface.id.eq(qTBusinessInterface.requestInterfaceId))
 				.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
 				.orderBy(qTLog.createdTime.desc()).fetchResults();
+
+		long l = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
+				.where(qTBusinessInterface.requestInterfaceId.eq(interfaceId)).fetchCount();
+		List<TLog> tlogList = queryResults.getResults();
+		for(TLog log : tlogList){
+			String interfaceOrder = log.getExcErrOrder()+"/"+ l;
+			log.setInterfaceOrder(interfaceOrder);
+		}
+
 		// 分页
 		TableData<TLog> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志详细列表获取成功!", tableData);
