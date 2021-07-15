@@ -304,14 +304,26 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 
 	@ApiOperation(value = "查看日志详细信息")
 	@GetMapping("/logInfo")
-	public ResultDto<TLog> logInfo(String id) {
+	public ResultDto<TLog> logInfo(String id, String interfaceId) {
 		if (StringUtils.isEmpty(id)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取日志详细，id必传");
+		}
+		if (StringUtils.isEmpty(interfaceId)) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取被请求方接口条数，interfaceId必传");
 		}
 		// 查询详情
 		TLog tLog = sqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status,
 				qTLog.venderRepTime, qTLog.businessRepTime, qTLog.visitAddr, qTLog.businessReq, qTLog.venderReq,
-				qTLog.businessRep, qTLog.venderRep)).from(qTLog).where(qTLog.id.eq(Long.valueOf(id))).fetchFirst();
+				qTLog.businessRep, qTLog.venderRep,
+				qTBusinessInterface.businessInterfaceName.as("businessInterfaceName"),
+				qTBusinessInterface.excErrOrder.add(1).as("excErrOrder"))).from(qTLog)
+				.leftJoin(qTBusinessInterface).on(qTBusinessInterface.id.eq(qTLog.businessInterfaceId))
+						.where(qTLog.id.eq(Long.valueOf(id))).fetchFirst();
+		long l = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
+				.where(qTBusinessInterface.requestInterfaceId.eq(interfaceId)).fetchCount();
+		String interfaceOrder = tLog.getExcErrOrder()+"/"+ l;
+		tLog.setInterfaceOrder(interfaceOrder);
+
 		// 解密，脱敏处理数据
 		String businessRep = decryptAndFilterSensitive(tLog.getBusinessRep());
 		if (StringUtils.isNotBlank(businessRep)) {
