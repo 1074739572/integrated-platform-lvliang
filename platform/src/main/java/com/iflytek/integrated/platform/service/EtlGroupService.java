@@ -155,7 +155,7 @@ public class EtlGroupService extends BaseService<TEtlGroup, String, StringPath> 
 	 * @return
 	 */
 	public List<String> getTEtlGroupIds(String platformId){
-		List<String> etlGroupIds = sqlQueryFactory.select(qTEtlGroup.id).from(qTEtlGroup)
+		List<String> etlGroupIds = sqlQueryFactory.select(qTEtlGroup.etlGroupId).from(qTEtlGroup)
 				.where(qTEtlGroup.platformId.eq(platformId)).fetch();
 		return etlGroupIds;
 	}

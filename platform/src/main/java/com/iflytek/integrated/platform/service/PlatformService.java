@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static com.iflytek.integrated.platform.entity.QTEtlGroup.qTEtlGroup;
 import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
 import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
 import static com.iflytek.integrated.platform.entity.QTSysHospitalConfig.qTSysHospitalConfig;
@@ -546,7 +547,8 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		List<String> tEtlGroupIds = etlGroupService.getTEtlGroupIds(id);
 		if (!CollectionUtils.isEmpty(tEtlGroupIds)) {
 			for (String tEtlGroupId : tEtlGroupIds) {
-				long l = etlGroupService.delete(tEtlGroupId);
+//				long l = etlGroupService.delete(tEtlGroupId);
+				long l = sqlQueryFactory.delete(qTEtlGroup).where(qTEtlGroup.etlGroupId.eq(tEtlGroupId)).execute();
 				if (l < 1) {
 					throw new RuntimeException("平台下关联的ETL流程组信息删除失败!");
 				}

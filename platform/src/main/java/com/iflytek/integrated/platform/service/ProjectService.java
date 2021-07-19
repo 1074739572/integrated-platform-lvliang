@@ -29,6 +29,7 @@ import com.iflytek.integrated.platform.common.RedisService;
 import com.iflytek.integrated.platform.dto.ProjectDto;
 import com.iflytek.integrated.platform.dto.RedisDto;
 import com.iflytek.integrated.platform.dto.RedisKeyDto;
+import static com.iflytek.integrated.platform.entity.QTEtlGroup.qTEtlGroup;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TPlatform;
 import com.iflytek.integrated.platform.entity.TProject;
@@ -247,7 +248,8 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
 				List<String> tEtlGroupIds = etlGroupService.getTEtlGroupIds(platformId);
 				if (!CollectionUtils.isEmpty(tEtlGroupIds)) {
 					for (String tEtlGroupId : tEtlGroupIds) {
-						long l = etlGroupService.delete(tEtlGroupId);
+						long l = sqlQueryFactory.delete(qTEtlGroup).where(qTEtlGroup.etlGroupId.eq(tEtlGroupId)).execute();
+//						long l = etlGroupService.delete(tEtlGroupId);
 						if (l < 1) {
 							throw new RuntimeException("平台下关联的ETL流程组信息删除失败!");
 						}
