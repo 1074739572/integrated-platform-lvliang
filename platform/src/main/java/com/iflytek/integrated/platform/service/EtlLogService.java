@@ -77,7 +77,7 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 				.leftJoin(qTSys).on(qTSys.id.eq(qTEtlGroup.sysId))
 				.leftJoin(qTHospital).on(qTHospital.id.eq(qTEtlGroup.hospitalId))
 				.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
-				.orderBy(qTEtlGroup.createdTime.desc()).fetchResults();
+				.orderBy(qTEtlLog.jobTime.desc()).fetchResults();
 
 		if(queryResults.getResults() != null) {
 			List<TEtlLog> logs = queryResults.getResults();
