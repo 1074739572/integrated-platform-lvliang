@@ -1,6 +1,7 @@
 package com.iflytek.integrated.platform.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import org.springframework.data.annotation.Transient;
 
 import java.io.Serializable;
 
@@ -47,6 +48,15 @@ public class TLog implements Serializable {
     private java.util.Date updatedTime;
 
     private String typeId;
+
+    @Transient
+    private String businessInterfaceName;
+
+    @Transient
+    private Integer excErrOrder;
+
+    @Transient
+    private String interfaceOrder;
 
     public Long getId() {
         return id;
@@ -198,6 +208,30 @@ public class TLog implements Serializable {
 
     public void setTypeId(String typeId) {
         this.typeId = typeId;
+    }
+
+    public String getBusinessInterfaceName() {
+        return businessInterfaceName;
+    }
+
+    public void setBusinessInterfaceName(String businessInterfaceName) {
+        this.businessInterfaceName = businessInterfaceName;
+    }
+
+    public Integer getExcErrOrder() {
+        return excErrOrder;
+    }
+
+    public void setExcErrOrder(Integer excErrOrder) {
+        this.excErrOrder = excErrOrder;
+    }
+
+    public String getInterfaceOrder() {
+        return interfaceOrder;
+    }
+
+    public void setInterfaceOrder(String interfaceOrder) {
+        this.interfaceOrder = interfaceOrder;
     }
 }
 

@@ -1,11 +1,10 @@
 package com.iflytek.integrated.platform.entity;
 
-import java.io.Serializable;
-import java.util.Date;
-
+import com.fasterxml.jackson.annotation.JsonFormat;
 import org.springframework.data.annotation.Transient;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * TEtlFlow is a Querydsl bean type
@@ -138,6 +137,5 @@ public class TEtlLog implements Serializable {
 	public void setHospitalName(String hospitalName) {
 		this.hospitalName = hospitalName;
 	}
-	
 }
 
