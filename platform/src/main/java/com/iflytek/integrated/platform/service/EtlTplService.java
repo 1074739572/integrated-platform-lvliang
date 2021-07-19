@@ -314,8 +314,10 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 			try {
 				client.setVerifyingSsl(false);
 				if (serverUrl.startsWith("https")) {
-					String token = api.createAccessToken(userName, password);
-					client.setAccessToken(token);
+					if(StringUtils.isNotBlank(userName) && StringUtils.isNotBlank(password)) {
+						String token = api.createAccessToken(userName, password);
+						client.setAccessToken(token);
+					}
 				}
 				ProcessGroupFlowEntity groupFlowEntity = flowApi.getFlow("root");
 				uploadGroupId = groupFlowEntity.getProcessGroupFlow().getId();
@@ -428,8 +430,10 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 			try {
 				client.setVerifyingSsl(false);
 				if (serverUrl.startsWith("https")) {
-					String token = api.createAccessToken(userName, password);
-					client.setAccessToken(token);
+					if(StringUtils.isNotBlank(userName) && StringUtils.isNotBlank(password)) {
+						String token = api.createAccessToken(userName, password);
+						client.setAccessToken(token);
+					}
 				}
 				ProcessGroupFlowEntity groupFlowEntity = flowApi.getFlow("root");
 				uploadGroupId = groupFlowEntity.getProcessGroupFlow().getId();
