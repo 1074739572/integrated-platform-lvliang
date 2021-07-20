@@ -9,6 +9,7 @@ import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringPath;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -68,7 +69,7 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 			list.add(qTEtlLog.flowName.like("%" + flowName + "%"));
 		}
 		QueryResults<TEtlLog> queryResults = sqlQueryFactory.select(Projections.bean(TEtlLog.class, qTEtlLog.id,
-				qTEtlLog.etlGroupId, qTEtlLog.flowName, qTEtlLog.createdTime, qTEtlLog.jobTime,qTEtlLog.status,qTEtlLog.errorInfo,
+				qTEtlLog.etlGroupId, qTEtlLog.flowName, qTEtlLog.createdTime, qTEtlLog.jobTime,qTEtlLog.status,Expressions.stringTemplate("from_base64({0})" , qTEtlLog.errorInfo).as("errorInfo") ,
 				qTProject.projectName.as("projectName"), qTPlatform.platformName.as("platformName"), qTHospital.hospitalName.as("hospitalName"),
 				qTSys.sysName.as("sysName"))).from(qTEtlLog).leftJoin(qTEtlGroup)
 				.on(qTEtlLog.etlGroupId.eq(qTEtlGroup.etlGroupId))
@@ -99,7 +100,7 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 	public ResultDto<TEtlLog> getEtlLogDetails(@PathVariable("id") String id) {
 		TEtlLog logDetail = sqlQueryFactory.select(Projections.bean(TEtlLog.class, 
 				qTProject.projectName.as("projectName"), qTPlatform.platformName.as("platformName"), qTHospital.hospitalName.as("hospitalName"),
-				qTSys.sysName.as("sysName"))).from(qTEtlLog).leftJoin(qTEtlGroup)
+				qTSys.sysName.as("sysName") , Expressions.stringTemplate("from_base64({0})" , qTEtlLog.errorInfo).as("errorInfo") )).from(qTEtlLog).leftJoin(qTEtlGroup)
 				.on(qTEtlLog.etlGroupId.eq(qTEtlGroup.etlGroupId))
 				.leftJoin(qTProject).on(qTProject.id.eq(qTEtlGroup.projectId))
 				.leftJoin(qTPlatform).on(qTPlatform.id.eq(qTEtlGroup.platformId))
