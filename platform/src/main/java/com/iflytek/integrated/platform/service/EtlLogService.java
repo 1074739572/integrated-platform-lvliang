@@ -48,6 +48,7 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 	@GetMapping("/getEtlLogs")
 	public ResultDto<TableData<TEtlLog>> getEtlFlows(String projectId, String platformId, String sysId, String status,
 													 @ApiParam(value = "流程名称") @RequestParam(value = "flowName", required = false) String flowName,
+													 @ApiParam(value = "nifi报错信息") @RequestParam(value = "errorInfo", required = false) String errorInfo,
 			@ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
 			@ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
 		// 查询条件
@@ -66,6 +67,9 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 		}
 		if (StringUtils.isNotBlank(flowName)) {
 			list.add(qTEtlLog.flowName.like("%" + flowName + "%"));
+		}
+		if (StringUtils.isNotBlank(errorInfo)) {
+			list.add(qTEtlLog.errorInfo.like("%" + errorInfo + "%"));
 		}
 		QueryResults<TEtlLog> queryResults = sqlQueryFactory.select(Projections.bean(TEtlLog.class, qTEtlLog.id,
 				qTEtlLog.etlGroupId, qTEtlLog.flowName, qTEtlLog.createdTime, qTEtlLog.jobTime,qTEtlLog.status,qTEtlLog.errorInfo,
