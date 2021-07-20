@@ -36,6 +36,7 @@ public class LoginService {
     public static final String ERROR_CODE_VERIFY_CODE_NEED = "100001";
     public static final String ERROR_CODE_VERIFY_CODE_ERROR = "100002";
     public static final String SERVICE_NAME = "IntegratedPlatform";
+    public static final String SALT = "sjdjpt";
 
     public static final Integer PWD_ERROR_COUNT = 3;
 
@@ -56,7 +57,8 @@ public class LoginService {
         if(LoginConstant.map.containsKey(username)){
             String password = LoginConstant.map.get(username);
             String passwordMd5 = cipherWithMd5(password);
-            if(!dto.getPassword().equals(passwordMd5)){
+            String sha256 = sha256Digest(passwordMd5+SALT);
+            if(!dto.getPassword().equals(sha256)){
                 String cacheCountKey = buildLoginCountCacheKey(username);
                 String loginCountStr = stringRedisTemplate.opsForValue().get(cacheCountKey);
                 int loginCount = 1;
@@ -74,7 +76,7 @@ public class LoginService {
                 throw new MedicalBusinessException("用户名密码不正确");
             }
         }else{
-            throw new MedicalBusinessException("用户不存在");
+            throw new MedicalBusinessException("用户名密码不正确");
         }
         stringRedisTemplate.delete(buildLoginCountCacheKey(username));
         //生成访问nginx接口token
@@ -99,6 +101,20 @@ public class LoginService {
             return Hex.encodeHexString(resultBytes);
         } catch (Exception var4) {
             return null;
+        }
+    }
+
+    private String sha256Digest(String str) {
+        return digest(str, "SHA-256", "UTF-8");
+    }
+
+    private String digest(String str, String alg, String encoding) {
+        try {
+            byte[] data = str.getBytes(encoding);
+            MessageDigest md = MessageDigest.getInstance(alg);
+            return Hex.encodeHexString(md.digest(data));
+        } catch (Exception var5) {
+            throw new RuntimeException("digest fail!", var5);
         }
     }
 

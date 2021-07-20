@@ -49,6 +49,7 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 	@GetMapping("/getEtlLogs")
 	public ResultDto<TableData<TEtlLog>> getEtlFlows(String projectId, String platformId, String sysId, String status,
 													 @ApiParam(value = "流程名称") @RequestParam(value = "flowName", required = false) String flowName,
+													 @ApiParam(value = "nifi报错信息") @RequestParam(value = "errorInfo", required = false) String errorInfo,
 			@ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
 			@ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
 		// 查询条件
@@ -68,6 +69,9 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 		if (StringUtils.isNotBlank(flowName)) {
 			list.add(qTEtlLog.flowName.like("%" + flowName + "%"));
 		}
+		if (StringUtils.isNotBlank(errorInfo)) {
+			list.add(qTEtlLog.errorInfo.like("%" + errorInfo + "%"));
+		}
 		QueryResults<TEtlLog> queryResults = sqlQueryFactory.select(Projections.bean(TEtlLog.class, qTEtlLog.id,
 				qTEtlLog.etlGroupId, qTEtlLog.flowName, qTEtlLog.createdTime, qTEtlLog.jobTime,qTEtlLog.status,Expressions.stringTemplate("from_base64({0})" , qTEtlLog.errorInfo).as("errorInfo") ,
 				qTProject.projectName.as("projectName"), qTPlatform.platformName.as("platformName"), qTHospital.hospitalName.as("hospitalName"),
@@ -78,7 +82,7 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 				.leftJoin(qTSys).on(qTSys.id.eq(qTEtlGroup.sysId))
 				.leftJoin(qTHospital).on(qTHospital.id.eq(qTEtlGroup.hospitalId))
 				.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
-				.orderBy(qTEtlGroup.createdTime.desc()).fetchResults();
+				.orderBy(qTEtlLog.jobTime.desc()).fetchResults();
 
 		if(queryResults.getResults() != null) {
 			List<TEtlLog> logs = queryResults.getResults();
