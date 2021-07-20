@@ -285,6 +285,10 @@ public class NiFiRequestUtil {
 				if (e instanceof ApiException) {
 					ApiException ae = (ApiException) e;
 					if (ae.getCode() != 404) {
+						if(ae.getCode() == 409){
+							logger.error("删除平台[%s]下ETL流程[%s]异常!异常信息：服务器上队列不为空，请先去服务器上删除！" , platform.getId() , tEtlGroupId);
+							throw new Exception("服务器上队列不为空，请先去服务器上删除！");
+						}
 						logger.error("删除平台[%s]下ETL流程[%s]异常!异常信息："+e.getLocalizedMessage() , platform.getId() , tEtlGroupId);
 						throw e;
 					}
