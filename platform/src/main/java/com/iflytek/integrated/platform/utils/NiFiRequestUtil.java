@@ -17,8 +17,13 @@ import org.apache.nifi.api.toolkit.ApiClient;
 import org.apache.nifi.api.toolkit.ApiException;
 import org.apache.nifi.api.toolkit.api.AccessApi;
 import org.apache.nifi.api.toolkit.api.FlowApi;
+import org.apache.nifi.api.toolkit.api.FlowfileQueuesApi;
 import org.apache.nifi.api.toolkit.api.ProcessGroupsApi;
+import org.apache.nifi.api.toolkit.model.ConnectionEntity;
+import org.apache.nifi.api.toolkit.model.DropRequestEntity;
+import org.apache.nifi.api.toolkit.model.FlowDTO;
 import org.apache.nifi.api.toolkit.model.ProcessGroupEntity;
+import org.apache.nifi.api.toolkit.model.ProcessGroupFlowEntity;
 import org.apache.nifi.api.toolkit.model.RevisionDTO;
 import org.apache.nifi.api.toolkit.model.ScheduleComponentsEntity;
 import org.apache.nifi.api.toolkit.model.ScheduleComponentsEntity.StateEnum;
@@ -29,6 +34,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -294,6 +301,70 @@ public class NiFiRequestUtil {
 					}
 				}else{
 					logger.error("删除平台[%s]下ETL流程[%s]异常!异常信息："+e.getLocalizedMessage() , platform.getId() , tEtlGroupId);
+					throw e;
+				}
+			}
+		}
+	}
+	
+	public void emptyNifiCollections(Map<String, Object> params) throws Exception {
+		if (params != null) {
+			String serverUrl = params.containsKey("etlServerUrl") && params.get("etlServerUrl") != null ? params.get("etlServerUrl").toString() : "";
+			if(StringUtils.isNotBlank(serverUrl) && serverUrl.endsWith("/")) {
+				serverUrl = serverUrl.substring(0 , serverUrl.lastIndexOf("/"));
+			}
+			String userName = params.containsKey("etlUser") && params.get("etlUser") != null ? params.get("etlUser").toString() : "";
+			String password = params.containsKey("etlPwd") && params.get("etlPwd") != null ? params.get("etlPwd").toString() : "";
+			String tEtlGroupId = params.containsKey("tEtlGroupId") && params.get("tEtlGroupId") != null ? params.get("tEtlGroupId").toString() : "";
+			ApiClient client = new OAuthApiClient();
+			client.setBasePath(serverUrl);
+			client.addDefaultHeader("Content-Type", "application/json");
+			client.addDefaultHeader("Accept", "application/json");
+			AccessApi api = new AccessApi(client);
+			
+			try {
+				client.setVerifyingSsl(false);
+				if (serverUrl.startsWith("https")) {
+					if(StringUtils.isNotBlank(userName) && StringUtils.isNotBlank(password)) {
+						String token = api.createAccessToken(userName, password);
+						client.setAccessToken(token);
+					}
+				}
+				FlowApi flowApi = new FlowApi(client);
+				FlowfileQueuesApi queueApi = new FlowfileQueuesApi(client);
+				ProcessGroupFlowEntity flowEntity = flowApi.getFlow(tEtlGroupId);
+				FlowDTO flowDto = flowEntity.getProcessGroupFlow().getFlow();
+				List<ConnectionEntity> connections = new ArrayList<ConnectionEntity>();
+				if(flowDto.getConnections() != null) {
+					connections.addAll(flowDto.getConnections());
+				}
+				for(ProcessGroupEntity pgentity : flowDto.getProcessGroups()) {
+					ProcessGroupFlowEntity innerFlowEntity = flowApi.getFlow(pgentity.getId());
+					FlowDTO innerFlowDto = innerFlowEntity.getProcessGroupFlow().getFlow();
+					if(innerFlowDto.getConnections() != null) {
+						connections.addAll(innerFlowDto.getConnections());
+					}
+				}
+				if(connections != null && connections.size() > 0) {
+					for(ConnectionEntity conn : connections) {
+						DropRequestEntity dropEntity = queueApi.createDropRequest(conn.getId());
+						queueApi.removeDropRequest(conn.getId(), dropEntity.getDropRequest().getId());
+					}
+				}
+				
+			}catch(Exception e) {
+				if (e instanceof ApiException) {
+					ApiException ae = (ApiException) e;
+					if (ae.getCode() != 404) {
+						if(ae.getCode() == 409){
+							logger.error("清空ETL流程[%s]操作处理冲突，请稍后重试！" , tEtlGroupId);
+							throw new Exception("清空流程队列操作处理冲突，请稍后重试！");
+						}
+						logger.error("清空ETL流程[%s]队列异常!异常信息："+e.getLocalizedMessage() , tEtlGroupId);
+						throw e;
+					}
+				}else{
+					logger.error("清空ETL流程[%s]队列异常!异常信息："+e.getLocalizedMessage() , tEtlGroupId);
 					throw e;
 				}
 			}

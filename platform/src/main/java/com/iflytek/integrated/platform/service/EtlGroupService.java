@@ -6,6 +6,7 @@ import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -158,5 +159,26 @@ public class EtlGroupService extends BaseService<TEtlGroup, String, StringPath> 
 		List<String> etlGroupIds = sqlQueryFactory.select(qTEtlGroup.etlGroupId).from(qTEtlGroup)
 				.where(qTEtlGroup.platformId.eq(platformId)).fetch();
 		return etlGroupIds;
+	}
+	
+	/**
+	 * 清空etl组队列信息
+	 * @param id
+	 * @return
+	 * @throws Exception
+	 */
+	public ResultDto<String> emptyEtlGroupQueues(Map<String , Object> params){
+
+		// 校验是否获取到登录用户
+		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
+		if (StringUtils.isBlank(loginUserName)) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+		}
+		try {
+			niFiRequestUtil.emptyNifiCollections(params);
+			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "清空流程组队列成功", "");
+		}catch(Exception e) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "清空流程组队列失败", e.getLocalizedMessage());
+		}
 	}
 }

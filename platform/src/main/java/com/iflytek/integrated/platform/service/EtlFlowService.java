@@ -8,7 +8,9 @@ import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -31,6 +33,7 @@ import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.EtlFlowDto;
 import com.iflytek.integrated.platform.dto.EtlGroupDto;
 import com.iflytek.integrated.platform.entity.TEtlFlow;
+import com.iflytek.integrated.platform.entity.TPlatform;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
@@ -258,5 +261,28 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 				.leftJoin(qTEtlGroup).on(qTEtlFlow.groupId.eq(qTEtlGroup.id))
 				.where(qTEtlGroup.platformId.eq(platformId)).fetch();
 		return etlFlowIds;
+	}
+	
+	@ApiOperation(value = "清空流程队列")
+	@PostMapping(path = "/emptyEtlFlow/{id}")
+	@Transactional(rollbackFor = Exception.class)
+	public ResultDto<String> emptyEtlFlow(@PathVariable String id) {
+		TEtlFlow flow = this.getOne(id);
+		if(flow == null) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "清空流程队列失败，流程不存在", "清空流程队列失败，流程不存在");
+		}
+		TPlatform platform = sqlQueryFactory.select(qTPlatform).from(qTEtlFlow).join(qTEtlGroup)
+				.on(qTEtlFlow.groupId.eq(qTEtlGroup.id)).join(qTPlatform).on(qTPlatform.id.eq(qTEtlGroup.platformId))
+				.where(qTEtlFlow.id.eq(id)).fetchFirst();
+		if(platform == null) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "清空流程队列失败，平台分类不存在", "清空流程队列失败，平台分类不存在");
+		}
+		Map<String , Object> params = new HashMap<String , Object>();
+		params.put("tEtlGroupId", flow.getEtlGroupId());
+		params.put("etlServerUrl", platform.getEtlServerUrl());
+		params.put("etlUser", platform.getEtlUser());
+		params.put("etlPwd", platform.getEtlPwd());
+		return etlGroupService.emptyEtlGroupQueues(params);
+		
 	}
 }
