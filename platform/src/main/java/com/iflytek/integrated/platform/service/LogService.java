@@ -477,7 +477,8 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 					String suffix = "services/" + businessInterface.getSysCode() + "/" + hospitalCodes.get(0);
 					wsUrl = wsUrl + suffix;
 					dto.setWsdlUrl(wsUrl);
-					dto.setWsOperationName("");
+					List<String> wsOperationNames = PlatformUtil.getWsdlOperationNames(wsUrl);
+					dto.setWsOperationName(wsOperationNames.get(0));
 					dto.setSysIntfParamFormatType("2");
 				} else {
 					dto.setSysIntfParamFormatType("3");
@@ -501,7 +502,8 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 			}
 		}
 		if(successCount == idArrays.length){
-			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志重放成功", successCount + "");
+			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志重放成功",
+					"成功条数为" +successCount + "");
 		}else if(errorConut > 0 && successCount > 0){
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "部分日志重放成功," + errorIds +"重放失败",
 					"成功条数为" + successCount);
