@@ -41,7 +41,7 @@ public class WebInterceptConfig extends WebMvcConfigurationSupport {
     public void addInterceptors(InterceptorRegistry registry){
         //用户登录拦截器
         InterceptorRegistration rationUserLogin = registry.addInterceptor(userLoginIntercept);
-        rationUserLogin.addPathPatterns("/*/pt/**");
+        rationUserLogin.addPathPatterns("/*/pt/**").excludePathPatterns("/*/pt/**/login");
 
         //通过获取配置文件，接口处理后执行配置文件
         for (String key: map.keySet()){

@@ -1,8 +1,11 @@
 package com.iflytek.integrated.common.intercept;
 
 import com.iflytek.integrated.common.dto.UserDto;
+import com.iflytek.integrated.platform.utils.JwtTokenUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
@@ -28,20 +31,26 @@ public class UserLoginIntercept extends HandlerInterceptorAdapter {
 
     public static String LOGIN_USER_NAME = "loginUserName";
 
+    public static final String TOKEN_HEADER = "Authorization";
+    public static final String TOKEN_PREFIX = "Bearer ";
+
+    @Value("${jwt.username}")
+    private String username;
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception{
         try {
-            //获取登录信息，并进行base64解码
-            String userBase64 = request.getHeader(HEADER_X_USER);
-//            if(StringUtils.isNotBlank(userBase64)){
-//                byte[] bytes = Base64.decodeBase64(userBase64);
-//                String user = new String(bytes, "UTF-8");
-//                UserDto dto = JackSonUtils.jsonToTransfer(user, UserDto.class);
-//                if(StringUtils.isNotBlank(dto.getName())){
-//                    LOGIN_USER.setName(dto.getName());
-//                }
-//            }
-            LOGIN_USER.setName("admin");
+            String authHeader = request.getHeader(TOKEN_HEADER);
+            if (StringUtils.isBlank(authHeader) || !authHeader.startsWith(TOKEN_PREFIX)) {
+                throw new Exception("当前用户没有登录");
+            }
+
+            String token = authHeader.substring(7);
+            String name = (String)JwtTokenUtils.getUsername(token);
+            if(!username.equals(name)){
+                throw new Exception("访问token无效");
+            }
+            LOGIN_USER.setName(username);
 
             //获取请求参数中的用户信息
             Map req = request.getParameterMap();
@@ -60,6 +69,7 @@ public class UserLoginIntercept extends HandlerInterceptorAdapter {
         }
         catch (Exception e){
             logger.error("登录用户获取失败");
+            throw new Exception("访问token无效");
         }
         return super.preHandle(request, response, handler);
     }
