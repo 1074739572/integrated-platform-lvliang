@@ -7,9 +7,12 @@ import com.iflytek.integrated.common.utils.SensitiveUtils;
 import com.iflytek.integrated.common.utils.ase.AesUtil;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
+import com.iflytek.integrated.platform.dto.InterfaceDebugDto;
 import com.iflytek.integrated.platform.dto.InterfaceMonitorDto;
 import com.iflytek.integrated.platform.entity.QTInterfaceMonitor;
+import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TLog;
+import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
@@ -26,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -39,6 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
+import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
 import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
 import static com.iflytek.integrated.platform.entity.QTInterfaceMonitor.qTInterfaceMonitor;
 import static com.iflytek.integrated.platform.entity.QTLog.qTLog;
@@ -46,6 +51,7 @@ import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
 import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
+import static com.iflytek.integrated.platform.entity.QTSysHospitalConfig.qTSysHospitalConfig;
 
 /**
  * @author czzhan
@@ -58,6 +64,9 @@ import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
 @RequestMapping("/{version}/pt/interfaceMonitor")
 public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 	private static final Logger logger = LoggerFactory.getLogger(LogService.class);
+
+	@Autowired
+	private NiFiRequestUtil niFiRequestUtil;
 
 	public LogService() {
 		super(qTLog, qTLog.id);
@@ -279,7 +288,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 
 		QueryResults<TLog> queryResults = sqlQueryFactory
 				.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status, qTLog.venderRepTime,
-						qTLog.businessRepTime, qTLog.visitAddr,
+						qTLog.businessRepTime, qTLog.visitAddr,qTLog.businessInterfaceId,
 						qTBusinessInterface.businessInterfaceName.as("businessInterfaceName"),
 						qTBusinessInterface.excErrOrder.add(1).as("excErrOrder")))
 				.from(qTLog)
@@ -401,6 +410,105 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 			ouputStream.close();
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+
+	@ApiOperation(value = "接口调试重放")
+	@PostMapping("/interfaceDebugRedo")
+	public ResultDto<String> interfaceDebugRedo(
+			@ApiParam(value = "接口转换配置ids") @RequestParam(value = "ids", required = true) String ids) {
+
+		if (StringUtils.isBlank(ids)) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "接口转换配置ids必传");
+		}
+
+		String[] idArrays = ids.split(",");
+		int successCount = 0;
+		int errorConut = 0;
+		String errorIds = "";
+		for(String id : idArrays){
+			//请求方接口调试数据获取
+			try {
+				List<TBusinessInterface> businessInterfaces = sqlQueryFactory
+						.select(Projections.bean(TBusinessInterface.class, qTBusinessInterface.id,
+								qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId,
+								qTProject.projectCode.as("projectCode"), qTInterface.interfaceUrl.as("interfaceUrl"),
+								qTSys.sysCode.as("sysCode"), qTInterface.inParamFormatType.as("sysIntfInParamFormatType"),
+								qTInterface.sysId.as("requestSysId")))
+						.from(qTBusinessInterface).leftJoin(qTInterface)
+						.on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id)).leftJoin(qTSysConfig)
+						.on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId)).leftJoin(qTPlatform)
+						.on(qTPlatform.id.eq(qTSysConfig.platformId)).leftJoin(qTProject)
+						.on(qTProject.id.eq(qTPlatform.projectId)).leftJoin(qTSys).on(qTSys.id.eq(qTSysConfig.sysId))
+						.where(qTBusinessInterface.id.eq(id)).fetch();
+				if (businessInterfaces == null || businessInterfaces.size() == 0) {
+					continue;
+				}
+				// 获取入参列表
+				TBusinessInterface businessInterface = businessInterfaces.get(0);
+				String interfaceId = StringUtils.isNotEmpty(businessInterface.getRequestInterfaceId())
+						? businessInterface.getRequestInterfaceId() : "";
+				// 获取医院名称列表
+				List<String> sysconfigIds = new ArrayList<>();
+				businessInterfaces.forEach(bi -> {
+					if (StringUtils.isNotEmpty(businessInterface.getRequestSysconfigId())) {
+						sysconfigIds.add(businessInterface.getRequestSysconfigId());
+					}
+					if (StringUtils.isNotEmpty(businessInterface.getRequestedSysconfigId())) {
+						sysconfigIds.add(businessInterface.getRequestedSysconfigId());
+					}
+				});
+				List<String> hospitalCodes = sqlQueryFactory.select(qTSysHospitalConfig.hospitalCode)
+						.from(qTSysHospitalConfig).leftJoin(qTSysConfig)
+						.on(qTSysConfig.id.eq(qTSysHospitalConfig.sysConfigId)).leftJoin(qTHospital)
+						.on(qTSysHospitalConfig.hospitalId.eq(qTHospital.id)).where(qTSysConfig.id.in(sysconfigIds))
+						.fetch();
+				// 拼接实体
+				InterfaceDebugDto dto = new InterfaceDebugDto();
+				if ("2".equals(businessInterface.getSysIntfInParamFormatType())) {
+					String inparamFormat = sqlQueryFactory.select(qTInterface.inParamFormat).from(qTInterface).where(
+							qTInterface.id.eq(interfaceId).and(qTInterface.sysId.eq(businessInterface.getRequestSysId())))
+							.fetchFirst();
+					dto.setFormat(inparamFormat);
+					String wsUrl = niFiRequestUtil.getWsServiceUrl();
+					if (!wsUrl.endsWith("/")) {
+						wsUrl = wsUrl + "/";
+					}
+					String suffix = "services/" + businessInterface.getSysCode() + "/" + hospitalCodes.get(0);
+					wsUrl = wsUrl + suffix;
+					dto.setWsdlUrl(wsUrl);
+					List<String> wsOperationNames = PlatformUtil.getWsdlOperationNames(wsUrl);
+					dto.setWsOperationName(wsOperationNames.get(0));
+					dto.setSysIntfParamFormatType("2");
+				} else {
+					dto.setSysIntfParamFormatType("3");
+				}
+				dto.setFuncode(businessInterface.getInterfaceUrl());
+
+				if ("2".equals(dto.getSysIntfParamFormatType())) {
+					String wsdlUrl = dto.getWsdlUrl();
+					String methodName = dto.getWsOperationName();
+					String funcode = dto.getFuncode();
+					String param = dto.getFormat();
+					PlatformUtil.invokeWsService(wsdlUrl, methodName, funcode, param);
+				} else {
+					niFiRequestUtil.interfaceDebug(dto.getFormat());
+				}
+				successCount++;
+			} catch (Exception e) {
+				logger.error("获取接口调试显示数据失败! MSG:{}", ExceptionUtil.dealException(e));
+				errorConut ++;
+				errorIds += id + ",";
+			}
+		}
+		if(successCount == idArrays.length){
+			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志重放成功",
+					"成功条数为" +successCount + "");
+		}else if(errorConut > 0 && successCount > 0){
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "部分日志重放成功," + errorIds +"重放失败",
+					"成功条数为" + successCount);
+		}else{
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "日志重放失败,"+ errorIds +"重放失败");
 		}
 	}
 
