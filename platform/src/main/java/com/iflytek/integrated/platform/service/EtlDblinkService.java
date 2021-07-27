@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
+import static com.iflytek.integrated.platform.entity.QTEtlFlow.qTEtlFlow;
 import com.iflytek.integrated.platform.entity.TEtlDblink;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 
 import io.swagger.annotations.Api;
@@ -41,7 +43,9 @@ public class EtlDblinkService extends BaseService<TEtlDblink, String, StringPath
 	@ApiOperation(value = "根据数据库配置获取关联流程及组件信息")
 	@GetMapping("/getEtlDblinks/{dbConfigId}")
 	public ResultDto<List<TEtlDblink>> getEtlDblinks(@PathVariable("dbConfigId") String dbConfigId ) {
-		List<TEtlDblink> queryResults = sqlQueryFactory.select(qTEtlDblink).from(qTEtlDblink)
+		List<TEtlDblink> queryResults = sqlQueryFactory.select(Projections.bean(TEtlDblink.class, qTEtlDblink.etlGroupId , qTEtlDblink.etlProcessorId , qTEtlDblink.dbConfigId , qTEtlFlow.id.as("flowId")))
+				.from(qTEtlDblink).join(qTEtlFlow)
+				.on(qTEtlDblink.etlGroupId.eq(qTEtlFlow.etlGroupId))
 				.where(qTEtlDblink.dbConfigId.eq(dbConfigId)).fetch();
 		return new ResultDto<List<TEtlDblink>>(Constant.ResultCode.SUCCESS_CODE, "根据数据库配置获取关联流程及组件信息成功", queryResults);
 	}

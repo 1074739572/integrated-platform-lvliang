@@ -15,6 +15,8 @@ public class TEtlDblink implements Serializable {
 	
 	private String dbConfigId;
 	
+	private String flowId;
+	
 	public String getId() {
 		return id;
 	}
@@ -47,5 +49,13 @@ public class TEtlDblink implements Serializable {
 		this.dbConfigId = dbConfigId;
 	}
 
+	public String getFlowId() {
+		return flowId;
+	}
+
+	public void setFlowId(String flowId) {
+		this.flowId = flowId;
+	}
+	
 }
 
