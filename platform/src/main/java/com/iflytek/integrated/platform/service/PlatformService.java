@@ -9,6 +9,7 @@ import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.common.RedisService;
 import com.iflytek.integrated.platform.dto.*;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
+import com.iflytek.integrated.platform.entity.TEtlFlow;
 import com.iflytek.integrated.platform.entity.TPlatform;
 import com.iflytek.integrated.platform.entity.TSysConfig;
 import com.iflytek.integrated.platform.entity.TSysHospitalConfig;
@@ -534,12 +535,17 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 		}
 		
 		//删除平台下所有关联的ETL流程
-		List<String> tEtlFlowIds = etlFlowService.getTEtlFlowIds(id);
+		List<TEtlFlow> tEtlFlowIds = etlFlowService.getTEtlFlowIds(id);
 		if (!CollectionUtils.isEmpty(tEtlFlowIds)) {
-			for (String tEtlFlowId : tEtlFlowIds) {
-				long l = etlFlowService.delete(tEtlFlowId);
+			for (TEtlFlow tEtlFlow : tEtlFlowIds) {
+				long l = etlFlowService.delete(tEtlFlow.getId());
 				if (l < 1) {
 					throw new RuntimeException("平台下关联的ETL流程信息删除失败!");
+				}
+				try {
+					niFiRequestUtil.deleteNifiEtlFlow(tp , tEtlFlow.getEtlGroupId() , tEtlFlow.getParentGroupId());
+				} catch (Exception e) {
+					throw new RuntimeException("删除ETL服务器流程异常！异步详情："+e.getLocalizedMessage());
 				}
 			}
 		}
@@ -552,11 +558,11 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 				if (l < 1) {
 					throw new RuntimeException("平台下关联的ETL流程组信息删除失败!");
 				}
-				try {
-					niFiRequestUtil.deleteNifiEtlFlow(tp , tEtlGroupId);
-				} catch (Exception e) {
-					throw new RuntimeException("删除ETL服务器流程异常！异步详情："+e.getLocalizedMessage());
-				}
+//				try {
+//					niFiRequestUtil.deleteNifiEtlFlow(tp , tEtlGroupId);
+//				} catch (Exception e) {
+//					throw new RuntimeException("删除ETL服务器流程异常！异步详情："+e.getLocalizedMessage());
+//				}
 			}
 		}
 		

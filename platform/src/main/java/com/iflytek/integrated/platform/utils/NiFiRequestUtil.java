@@ -1,25 +1,22 @@
 package com.iflytek.integrated.platform.utils;
 
-import com.iflytek.integrated.common.dto.HttpResult;
-import com.iflytek.integrated.common.dto.ResultDto;
-import com.iflytek.integrated.common.utils.HttpClientUtil;
-import com.iflytek.integrated.common.utils.JackSonUtils;
-import com.iflytek.integrated.common.utils.OAuthApiClient;
-import com.iflytek.integrated.platform.common.Constant;
-import com.iflytek.integrated.platform.dto.DbUrlTestDto;
-import com.iflytek.integrated.platform.dto.GroovyValidateDto;
-import com.iflytek.integrated.platform.dto.JoltDebuggerDto;
-import com.iflytek.integrated.platform.entity.TBusinessInterface;
-import com.iflytek.integrated.platform.entity.TPlatform;
-import com.querydsl.sql.SQLQueryFactory;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.nifi.api.toolkit.ApiClient;
 import org.apache.nifi.api.toolkit.ApiException;
 import org.apache.nifi.api.toolkit.api.AccessApi;
+import org.apache.nifi.api.toolkit.api.ControllerServicesApi;
 import org.apache.nifi.api.toolkit.api.FlowApi;
 import org.apache.nifi.api.toolkit.api.FlowfileQueuesApi;
 import org.apache.nifi.api.toolkit.api.ProcessGroupsApi;
 import org.apache.nifi.api.toolkit.model.ConnectionEntity;
+import org.apache.nifi.api.toolkit.model.ControllerServiceEntity;
+import org.apache.nifi.api.toolkit.model.ControllerServiceRunStatusEntity;
+import org.apache.nifi.api.toolkit.model.ControllerServicesEntity;
 import org.apache.nifi.api.toolkit.model.DropRequestEntity;
 import org.apache.nifi.api.toolkit.model.FlowDTO;
 import org.apache.nifi.api.toolkit.model.ProcessGroupEntity;
@@ -33,10 +30,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import com.iflytek.integrated.common.dto.HttpResult;
+import com.iflytek.integrated.common.dto.ResultDto;
+import com.iflytek.integrated.common.utils.HttpClientUtil;
+import com.iflytek.integrated.common.utils.JackSonUtils;
+import com.iflytek.integrated.common.utils.OAuthApiClient;
+import com.iflytek.integrated.platform.common.Constant;
+import com.iflytek.integrated.platform.dto.DbUrlTestDto;
+import com.iflytek.integrated.platform.dto.GroovyValidateDto;
+import com.iflytek.integrated.platform.dto.JoltDebuggerDto;
+import com.iflytek.integrated.platform.entity.TBusinessInterface;
+import com.iflytek.integrated.platform.entity.TPlatform;
+import com.querydsl.sql.SQLQueryFactory;
 
 /**
  * @author czzhan 调取接nifi接口
@@ -254,7 +259,7 @@ public class NiFiRequestUtil {
 		return wsdlServiceUrl;
 	}
 	
-	public void deleteNifiEtlFlow(TPlatform platform , String tEtlGroupId) throws Exception {
+	public void deleteNifiEtlFlow(TPlatform platform , String tEtlGroupId , String parentGroupId) throws Exception {
 		if (platform != null) {
 			String serverUrl = platform.getEtlServerUrl();
 			if(StringUtils.isNotBlank(serverUrl) && serverUrl.endsWith("/")) {
@@ -284,10 +289,33 @@ public class NiFiRequestUtil {
 				flowApi.scheduleComponents(tEtlGroupId, compEntity);
 				
 				ProcessGroupsApi groupApi = new ProcessGroupsApi(client);
-				ProcessGroupEntity groupEntity = groupApi.getProcessGroup(tEtlGroupId);
-				RevisionDTO revision = groupEntity.getRevision();
 				
-				groupApi.removeProcessGroup(tEtlGroupId, String.valueOf(revision.getVersion()), revision.getClientId(), groupEntity.getDisconnectedNodeAcknowledged());
+				if(StringUtils.isNotBlank(parentGroupId)) {
+					ProcessGroupEntity groupEntity = groupApi.getProcessGroup(parentGroupId);
+					ControllerServicesEntity csEntity = flowApi.getControllerServicesFromGroup(parentGroupId, false, true);
+					if(csEntity != null) {
+						List<ControllerServiceEntity> css = csEntity.getControllerServices();
+						if(css != null && css.size() > 0) {
+							ControllerServicesApi csApi = new ControllerServicesApi(client);
+							for(ControllerServiceEntity cs : css) {
+								ControllerServiceRunStatusEntity csrunstate = new ControllerServiceRunStatusEntity();
+								RevisionDTO rev = cs.getRevision();
+								csrunstate.setDisconnectedNodeAcknowledged(false);
+								csrunstate.setRevision(rev);
+								csrunstate.setState(org.apache.nifi.api.toolkit.model.ControllerServiceRunStatusEntity.StateEnum.DISABLED);
+								csApi.updateRunStatus(cs.getId(), csrunstate);
+								csApi.removeControllerService(cs.getId(), rev.getVersion()+"", rev.getClientId(), false);
+							}
+						}
+					}
+					
+					RevisionDTO revision = groupEntity.getRevision();
+					groupApi.removeProcessGroup(parentGroupId, String.valueOf(revision.getVersion()), revision.getClientId(), groupEntity.getDisconnectedNodeAcknowledged());
+				}else {
+					ProcessGroupEntity groupEntity = groupApi.getProcessGroup(tEtlGroupId);
+					RevisionDTO revision = groupEntity.getRevision();
+					groupApi.removeProcessGroup(tEtlGroupId, String.valueOf(revision.getVersion()), revision.getClientId(), groupEntity.getDisconnectedNodeAcknowledged());
+				}
 			}catch(Exception e) {
 				if (e instanceof ApiException) {
 					ApiException ae = (ApiException) e;

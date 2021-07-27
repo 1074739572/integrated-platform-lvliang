@@ -53,6 +53,8 @@ public class TEtlFlow implements Serializable {
     
     @Transient
     private String platformId;
+    
+    private String parentGroupId;
 
 	public String getId() {
 		return id;
@@ -212,6 +214,14 @@ public class TEtlFlow implements Serializable {
 
 	public void setEtlEntryGroupId(String etlEntryGroupId) {
 		this.etlEntryGroupId = etlEntryGroupId;
+	}
+
+	public String getParentGroupId() {
+		return parentGroupId;
+	}
+
+	public void setParentGroupId(String parentGroupId) {
+		this.parentGroupId = parentGroupId;
 	}
 	
 }

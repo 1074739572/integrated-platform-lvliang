@@ -31,6 +31,7 @@ import com.iflytek.integrated.platform.dto.RedisDto;
 import com.iflytek.integrated.platform.dto.RedisKeyDto;
 import static com.iflytek.integrated.platform.entity.QTEtlGroup.qTEtlGroup;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
+import com.iflytek.integrated.platform.entity.TEtlFlow;
 import com.iflytek.integrated.platform.entity.TPlatform;
 import com.iflytek.integrated.platform.entity.TProject;
 import com.iflytek.integrated.platform.entity.TSysConfig;
@@ -235,12 +236,17 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
 					}
 				}
 				//删除平台下所有关联的ETL流程
-				List<String> tEtlFlowIds = etlFlowService.getTEtlFlowIds(platformId);
+				List<TEtlFlow> tEtlFlowIds = etlFlowService.getTEtlFlowIds(platformId);
 				if (!CollectionUtils.isEmpty(tEtlFlowIds)) {
-					for (String tEtlFlowId : tEtlFlowIds) {
-						long l = etlFlowService.delete(tEtlFlowId);
+					for (TEtlFlow tEtlFlow : tEtlFlowIds) {
+						long l = etlFlowService.delete(tEtlFlow.getId());
 						if (l < 1) {
 							throw new RuntimeException("平台下关联的ETL流程信息删除失败!");
+						}
+						try {
+							niFiRequestUtil.deleteNifiEtlFlow(obj , tEtlFlow.getEtlGroupId() , tEtlFlow.getParentGroupId());
+						} catch (Exception e) {
+							throw new RuntimeException("删除ETL服务器流程异常！异步详情："+e.getLocalizedMessage());
 						}
 					}
 				}
@@ -253,11 +259,11 @@ public class ProjectService extends BaseService<TProject, String, StringPath> {
 						if (l < 1) {
 							throw new RuntimeException("平台下关联的ETL流程组信息删除失败!");
 						}
-						try {
-							niFiRequestUtil.deleteNifiEtlFlow(obj , tEtlGroupId);
-						} catch (Exception e) {
-							throw new RuntimeException("删除ETL服务器流程异常！异步详情："+e.getLocalizedMessage());
-						}
+//						try {
+//							niFiRequestUtil.deleteNifiEtlFlow(obj , tEtlGroupId);
+//						} catch (Exception e) {
+//							throw new RuntimeException("删除ETL服务器流程异常！异步详情："+e.getLocalizedMessage());
+//						}
 					}
 				}
 				long deletePlatform = platformService.delete(platformId);

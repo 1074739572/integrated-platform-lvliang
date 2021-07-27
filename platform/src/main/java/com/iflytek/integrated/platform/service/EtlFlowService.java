@@ -114,7 +114,7 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 	public ResultDto<TEtlFlow> getEtlFlowDetails(@PathVariable("id") String id) {
 		TEtlFlow flowDetail = sqlQueryFactory.select(Projections.bean(TEtlFlow.class, qTEtlFlow.id, qTEtlFlow.groupId,
 				qTEtlFlow.flowName, qTEtlFlow.etlGroupId, qTEtlFlow.flowConfig, qTEtlFlow.flowDesp,
-				qTEtlFlow.flowTplName, qTEtlFlow.funTplNames,qTEtlFlow.status,qTEtlFlow.etlEntryGroupId,
+				qTEtlFlow.flowTplName, qTEtlFlow.funTplNames,qTEtlFlow.status,qTEtlFlow.etlEntryGroupId,qTEtlFlow.parentGroupId,
 //				qTProject.projectCode.as("projectCode"),
 				qTEtlGroup.hospitalId, qTEtlGroup.sysId, qTHospital.hospitalName.as("hospitalName"),
 				qTSys.sysName.as("sysName"))).from(qTEtlFlow).leftJoin(qTEtlGroup)
@@ -151,6 +151,9 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 		flowEntity.setEtlGroupId(flowDto.getEtlGroupId());
 		flowEntity.setFlowTplName(flowDto.getFlowTplName());
 		flowEntity.setFunTplNames(flowDto.getFunTplNames());
+		if(StringUtils.isNotBlank(flowDto.getParentGroupId())) {
+			flowEntity.setParentGroupId(flowDto.getParentGroupId());
+		}
 		String id = batchUidService.getUid(qTEtlFlow.getTableName()) + "";
 		flowEntity.setId(id);
 		flowEntity.setCreatedBy(loginUserName != null ? loginUserName : "");
@@ -204,6 +207,9 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 			if (StringUtils.isNotBlank(flowDto.getEtlGroupId())) {
 				updateClause.set(qTEtlFlow.etlGroupId, flowDto.getEtlGroupId());
 			}
+			if (StringUtils.isNotBlank(flowDto.getParentGroupId())) {
+				updateClause.set(qTEtlFlow.parentGroupId, flowDto.getParentGroupId());
+			}
 			if (StringUtils.isNotBlank(flowDto.getEtlEntryGroupId())) {
 				updateClause.set(qTEtlFlow.etlEntryGroupId, flowDto.getEtlEntryGroupId());
 			}
@@ -241,7 +247,7 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 		TEtlFlow etlFlow = this.getOne(id);
 		if(etlFlow != null) {
 			try {
-				etlGroupService.delEtlGroup(etlFlow.getGroupId());
+				etlGroupService.delEtlGroup(etlFlow.getGroupId() , etlFlow.getParentGroupId());
 			} catch (Exception e) {
 				throw new RuntimeException("刪除ETL服务器流程异常！异常详情：" + e.getLocalizedMessage());
 			}
@@ -256,8 +262,8 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 	 * @param platformId
 	 * @return
 	 */
-	public List<String> getTEtlFlowIds(String platformId){
-		List<String> etlFlowIds = sqlQueryFactory.select(qTEtlFlow.id).from(qTEtlFlow)
+	public List<TEtlFlow> getTEtlFlowIds(String platformId){
+		List<TEtlFlow> etlFlowIds = sqlQueryFactory.select(Projections.bean(TEtlFlow.class, qTEtlFlow.id , qTEtlFlow.parentGroupId , qTEtlFlow.etlGroupId)).from(qTEtlFlow)
 				.leftJoin(qTEtlGroup).on(qTEtlFlow.groupId.eq(qTEtlGroup.id))
 				.where(qTEtlGroup.platformId.eq(platformId)).fetch();
 		return etlFlowIds;

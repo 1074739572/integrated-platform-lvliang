@@ -48,6 +48,8 @@ public class QTEtlFlow extends com.querydsl.sql.RelationalPathBase<TEtlFlow> {
 	public final DateTimePath<java.util.Date> updatedTime = createDateTime("updatedTime", java.util.Date.class);
 
 	public final StringPath status = createString("status");
+	
+	public final StringPath parentGroupId = createString("parentGroupId");
 
 	public final com.querydsl.sql.PrimaryKey<TEtlFlow> primary = createPrimaryKey(id);
 
@@ -93,6 +95,8 @@ public class QTEtlFlow extends com.querydsl.sql.RelationalPathBase<TEtlFlow> {
 				ColumnMetadata.named("UPDATED_TIME").withIndex(13).ofType(Types.TIMESTAMP).withSize(19));
 		addMetadata(tplId, ColumnMetadata.named("TPL_ID").withIndex(14).ofType(Types.VARCHAR).withSize(32));
 		addMetadata(etlEntryGroupId, ColumnMetadata.named("ETL_ENTRY_GROUP_ID").withIndex(15).ofType(Types.VARCHAR).withSize(50));
+		addMetadata(parentGroupId, ColumnMetadata.named("PARENT_GROUP_ID").withIndex(15).ofType(Types.VARCHAR).withSize(50));
+		
 	}
 
 }

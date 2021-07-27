@@ -132,7 +132,7 @@ public class EtlGroupService extends BaseService<TEtlGroup, String, StringPath> 
 	}
 
 	@Transactional
-	public ResultDto<String> delEtlGroup(@PathVariable String id) throws Exception {
+	public ResultDto<String> delEtlGroup(String id , String parentGroupId) throws Exception {
 
 		// 校验是否获取到登录用户
 		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
@@ -144,7 +144,7 @@ public class EtlGroupService extends BaseService<TEtlGroup, String, StringPath> 
 		if(etlGroup != null) {
 			TPlatform platform = sqlQueryFactory.select(qTPlatform).from(qTPlatform).where(qTPlatform.id.eq(etlGroup.getPlatformId())).fetchOne();
 			result = this.delete(id);
-			niFiRequestUtil.deleteNifiEtlFlow(platform, etlGroup.getEtlGroupId());
+			niFiRequestUtil.deleteNifiEtlFlow(platform, etlGroup.getEtlGroupId() , parentGroupId);
 //			long result = sqlQueryFactory.delete(qTEtlGroup).where(qTEtlGroup.id.eq(id)).execute();
 		}
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "删除流程组成功", result + "");
