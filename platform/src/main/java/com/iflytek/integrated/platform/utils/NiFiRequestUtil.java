@@ -318,6 +318,7 @@ public class NiFiRequestUtil {
 				}
 			}catch(Exception e) {
 				if (e instanceof ApiException) {
+					e.printStackTrace();
 					ApiException ae = (ApiException) e;
 					if (ae.getCode() != 404) {
 						if(ae.getCode() == 409){
