@@ -304,7 +304,9 @@ public class NiFiRequestUtil {
 								csrunstate.setRevision(rev);
 								csrunstate.setState(org.apache.nifi.api.toolkit.model.ControllerServiceRunStatusEntity.StateEnum.DISABLED);
 								csApi.updateRunStatus(cs.getId(), csrunstate);
-								csApi.removeControllerService(cs.getId(), rev.getVersion()+"", rev.getClientId(), false);
+								ControllerServiceEntity csEnty = csApi.getControllerService(cs.getId());
+								RevisionDTO revNew = csEnty.getRevision();
+								csApi.removeControllerService(cs.getId(), revNew.getVersion()+"", revNew.getClientId(), false);
 							}
 						}
 					}
