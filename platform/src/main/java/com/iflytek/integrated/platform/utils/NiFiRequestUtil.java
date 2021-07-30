@@ -275,12 +275,12 @@ public class NiFiRequestUtil {
 			
 			try {
 				client.setVerifyingSsl(false);
-				if (serverUrl.startsWith("https")) {
+//				if (serverUrl.startsWith("https")) {
 					if(StringUtils.isNotBlank(userName) && StringUtils.isNotBlank(password)) {
 						String token = api.createAccessToken(userName, password);
 						client.setAccessToken(token);
 					}
-				}
+//				}
 				FlowApi flowApi = new FlowApi(client);
 				ScheduleComponentsEntity compEntity = new ScheduleComponentsEntity();
 				compEntity.setId(tEtlGroupId);
@@ -355,12 +355,12 @@ public class NiFiRequestUtil {
 			
 			try {
 				client.setVerifyingSsl(false);
-				if (serverUrl.startsWith("https")) {
+//				if (serverUrl.startsWith("https")) {
 					if(StringUtils.isNotBlank(userName) && StringUtils.isNotBlank(password)) {
 						String token = api.createAccessToken(userName, password);
 						client.setAccessToken(token);
 					}
-				}
+//				}
 				FlowApi flowApi = new FlowApi(client);
 				FlowfileQueuesApi queueApi = new FlowfileQueuesApi(client);
 				ProcessGroupFlowEntity flowEntity = flowApi.getFlow(tEtlGroupId);
