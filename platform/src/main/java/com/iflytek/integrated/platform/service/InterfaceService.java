@@ -1048,17 +1048,25 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
 	@ApiOperation(value = "被请求方接口调试数据获取")
 	@PostMapping("/getInterfaceDebugger")
-	public ResultDto<List<String>> getInterfaceDebugger(String interfaceId) {
+	public ResultDto<String> getInterfaceDebugger(String interfaceId) {
 		if (StringUtils.isBlank(interfaceId)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求方接口id必传");
 		}
 		try {
 			// 获取入参列表
-			List<String> paramNames = sqlQueryFactory.select(qTInterfaceParam.paramName).from(qTInterfaceParam)
-					.where(qTInterfaceParam.interfaceId.eq(interfaceId)
-							.and(qTInterfaceParam.paramInOut.eq(Constant.ParmInOut.IN)))
-					.fetch();
-			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "入参列表获取成功!", paramNames);
+//			List<String> paramNames = sqlQueryFactory.select(qTInterfaceParam.paramName).from(qTInterfaceParam)
+//					.where(qTInterfaceParam.interfaceId.eq(interfaceId)
+//							.and(qTInterfaceParam.paramInOut.eq(Constant.ParmInOut.IN)))
+//					.fetch();
+			TInterface inter = sqlQueryFactory.select(qTInterface).from(qTInterface).where(qTInterface.id.eq(interfaceId)).fetchFirst();
+			if(inter == null) {
+				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "系统接口不存在，无法获取入参信息，请检查接口配置");
+			}
+			String paramJson = inter.getInParamFormat();
+			if("2".equals(inter.getInParamFormatType())) {
+				paramJson = niFiRequestUtil.xml2json(paramJson);
+			}
+			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "JSON格式入参模板获取成功!", paramJson);
 		} catch (Exception e) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "厂商接口调试数据失败!");
 		}
