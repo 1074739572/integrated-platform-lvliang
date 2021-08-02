@@ -1072,6 +1072,12 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		if (validationResult.isHasErrors()) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, validationResult.getErrorMsg());
 		}
+		if(dto.getJolt() == null && dto.getJslt() == null) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "jolt脚本和jslt脚本参数不能都为空");
+		}
+		if(dto.getJolt() != null && dto.getJslt() != null) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "jolt脚本和jslt脚本参数不能同时存在");
+		}
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "", niFiRequestUtil.joltDebugger(dto));
 	}
 

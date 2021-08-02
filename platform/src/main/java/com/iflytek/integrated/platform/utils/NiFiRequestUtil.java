@@ -63,6 +63,9 @@ public class NiFiRequestUtil {
 
 	@Value("${param.jolt.debugger}")
 	private String joltDebuggerUrl;
+	
+	@Value("${param.jslt.debugger}")
+	private String jsltDebuggerUrl;
 
 	@Value("${param.wsdl.url}")
 	private String wsdlServiceUrl;
@@ -159,14 +162,15 @@ public class NiFiRequestUtil {
 	public Map joltDebugger(JoltDebuggerDto dto) {
 		try {
 			String type = PlatformUtil.strIsJsonOrXml(dto.getOriginObj());
-			String url = joltDebuggerUrl + "?contenttype=" + type;
+			String debuggerUrl = dto.getJslt() != null ? jsltDebuggerUrl : joltDebuggerUrl;
+			String url = debuggerUrl + "?contenttype=" + type;
 			String param = JackSonUtils.transferToJson(dto);
 			HttpResult result = HttpClientUtil.doPost(url, param);
 			if (result != null && StringUtils.isNotBlank(result.getContent())) {
 				return JackSonUtils.jsonToTransfer(result.getContent(), Map.class);
 			}
 		} catch (Exception e) {
-			throw new RuntimeException("jolt调试接口调取失败");
+			throw new RuntimeException("jolt/jslt调试接口调取失败");
 		}
 		return null;
 	}

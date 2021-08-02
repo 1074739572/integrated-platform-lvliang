@@ -18,6 +18,9 @@ public class JoltDebuggerDto {
     @NotBlank(message = "originObj不能为空")
     private String originObj;
 
-    @NotNull(message = "jolt不能为空")
+//    @NotNull(message = "jolt不能为空")
     private Object jolt;
+    
+//    @NotNull(message = "jslt不能为空")
+    private Object jslt;
 }
