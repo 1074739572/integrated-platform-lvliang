@@ -183,6 +183,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 					.leftJoin(qTSysConfig).on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId)
 							.and(qTSysConfig.platformId.eq(qTInterfaceMonitor.platformId)))
 					.leftJoin(qTInterface).on(qTInterface.id.eq(qTBusinessInterface.requestInterfaceId))
+					.where(qTInterface.id.isNotNull())
 					.groupBy(qTInterfaceMonitor.platformId, qTInterfaceMonitor.sysId, qTInterface.id)
 					.orderBy(qTInterfaceMonitor.createdTime.desc());
 
