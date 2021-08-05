@@ -735,6 +735,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		}
 
 		tbiList = dto.getBusinessInterfaceList();
+		String returnId = "";
 		for (int i = 0; i < tbiList.size(); i++) {
 			TBusinessInterface tbi = tbiList.get(i);
 			// 新增接口配置
@@ -751,9 +752,12 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			// 获取schema
 			niFiRequestUtil.generateSchemaToInterface(tbi);
 			// 新增接口配置
-			businessInterfaceService.post(tbi);
+			String id = businessInterfaceService.post(tbi);
+			if(StringUtils.isBlank(returnId)) {
+				returnId = id;
+			}
 		}
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "新增接口配置成功", null);
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "新增接口配置成功", returnId);
 	}
 
 	/**
