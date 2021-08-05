@@ -716,7 +716,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	 * @param loginUserName
 	 * @return
 	 */
-	private ResultDto saveInterfaceConfig(BusinessInterfaceDto dto, String loginUserName) {
+	private ResultDto<String> saveInterfaceConfig(BusinessInterfaceDto dto, String loginUserName) {
 		// 获取厂商配置
 		String requestSysConfigId = "";
 		if (StringUtils.isBlank(dto.getRequestSysconfigId())) {
@@ -752,12 +752,12 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			// 获取schema
 			niFiRequestUtil.generateSchemaToInterface(tbi);
 			// 新增接口配置
-			String id = businessInterfaceService.post(tbi);
+			businessInterfaceService.post(tbi);
 			if(StringUtils.isBlank(returnId)) {
-				returnId = id;
+				returnId = tbi.getId();
 			}
 		}
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "新增接口配置成功", returnId);
+		return new ResultDto<String>(Constant.ResultCode.SUCCESS_CODE, "新增接口配置成功", returnId);
 	}
 
 	/**
