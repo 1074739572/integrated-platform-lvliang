@@ -158,7 +158,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 				if(!requestSysConfig.getSysId().equals(dto.getSysId())){
 					boolean requestSysExsits = sysConfigService.requestSysExsits(requestSysConfig.getSysId());
 					if (requestSysExsits) {
-						return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求方系统id不能重复！", "请求方系统id不能重复!");
+						return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求方系统名称已存在！", "请求方系统名称已存在!");
 					}
 				}
 			}
