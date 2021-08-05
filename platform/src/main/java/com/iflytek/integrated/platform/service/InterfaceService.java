@@ -1,5 +1,6 @@
 package com.iflytek.integrated.platform.service;
 
+import com.alibaba.fastjson.JSON;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
@@ -23,6 +24,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +35,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -687,8 +690,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
 	@Transactional(rollbackFor = Exception.class)
 	@ApiOperation(value = "新增/编辑接口配置", notes = "新增/编辑接口配置")
-	@PostMapping("/saveAndUpdateInterfaceConfig")
-	public ResultDto<String> saveAndUpdateInterfaceConfig(@RequestBody BusinessInterfaceDto dto) {
+	@PostMapping("/saveAndUpdateInterfaceConfig/{opt}")
+	public ResultDto<String> saveAndUpdateInterfaceConfig(@RequestBody BusinessInterfaceDto dto , @PathVariable("opt") String opt) {
 		if (dto == null) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求参数不能为空!");
 		}
@@ -700,6 +703,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		if (StringUtils.isBlank(loginUserName)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
 		}
+		String newReturnId = "";
 		if (Constant.Operation.ADD.equals(dto.getAddOrUpdate())) {
 			return this.saveInterfaceConfig(dto, loginUserName);
 		}
@@ -757,7 +761,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				returnId = tbi.getId();
 			}
 		}
-		return new ResultDto<String>(Constant.ResultCode.SUCCESS_CODE, "新增接口配置成功", returnId);
+		Map<String , String> data = new HashMap<String , String>();
+		data.put("id", returnId);
+		return new ResultDto<String>(Constant.ResultCode.SUCCESS_CODE, "新增接口配置成功", JSON.toJSONString(data));
 	}
 
 	/**
