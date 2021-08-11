@@ -53,6 +53,10 @@ public class LoginService {
     @Value("${jwt.password}")
     private String password;
 
+    //token有限期
+    @Value("${jwt.expiration}")
+    private String expiration;
+
     @ApiOperation(value = "登录获取token", notes = "5分钟内密码错误3次会需要输入验证码 HttpCode=400 需要检查返回body code=100001为需要输入验证码 code=100002为验证码错误 验证码有效期60秒")
     @PostMapping("/login")
     public ResultDto<String> userLogin(@RequestBody LoginDto dto){
@@ -90,7 +94,7 @@ public class LoginService {
 //        String usernameAndPassword = username + ":" + LoginConstant.map.get(username);
 //        String token = getToken(usernameAndPassword);
 //        String base64Token = "Basic " + token;
-        String token = JwtTokenUtils.createToken(name);
+        String token = JwtTokenUtils.createToken(name, expiration);
         String jwtToken = "Bearer " + token;
 
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"登录成功!", jwtToken);

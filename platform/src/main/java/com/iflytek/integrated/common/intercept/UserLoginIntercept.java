@@ -46,11 +46,16 @@ public class UserLoginIntercept extends HandlerInterceptorAdapter {
             }
 
             String token = authHeader.substring(7);
+
             String name = (String)JwtTokenUtils.getUsername(token);
             if(!username.equals(name)){
                 throw new Exception("访问token无效");
             }
             LOGIN_USER.setName(username);
+
+            if(JwtTokenUtils.isExpiration(token)){
+                throw new Exception("访问token无效");
+            }
 
             //获取请求参数中的用户信息
             Map req = request.getParameterMap();
@@ -68,7 +73,6 @@ public class UserLoginIntercept extends HandlerInterceptorAdapter {
             }
         }
         catch (Exception e){
-            logger.error("登录用户获取失败");
             throw new Exception("访问token无效");
         }
         return super.preHandle(request, response, handler);

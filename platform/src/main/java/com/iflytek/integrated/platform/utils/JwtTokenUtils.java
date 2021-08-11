@@ -16,11 +16,8 @@ public class JwtTokenUtils {
     private static final String ISS = "iflytek";
     private static final String SUBJECT = "sjdjpt";
 
-    //默认token有限期为1天
-    public static final Long EXPIRATION = 60*60*24*1L;
-
     // 创建token
-    public static String createToken(String username) {
+    public static String createToken(String username, String expiration) {
         return Jwts.builder()
                 .signWith(SignatureAlgorithm.HS256, SECRET)//签发算法及密钥
                 .claim("user", username)
@@ -28,7 +25,7 @@ public class JwtTokenUtils {
                 .setIssuer(ISS)//签发者
                 .setSubject(SUBJECT)//主题
                 .setIssuedAt(new Date())//签发时间
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION * 1000))//过期时间
+                .setExpiration(new Date(System.currentTimeMillis() + Long.parseLong(expiration) * 1000))//过期时间
                 .compact();
     }
 
@@ -60,11 +57,14 @@ public class JwtTokenUtils {
     /**
      * token是否过期
      * @param token
-     * @param base64Security
      * @return
      */
-    public static boolean isExpiration(String token, String base64Security) throws Exception {
-        return parseJWT(token).getExpiration().before(new Date());
+    public static boolean isExpiration(String token){
+        try{
+            return parseJWT(token).getExpiration().before(new Date());
+        }catch (Exception e) {
+            return true;
+        }
     }
 
 }
