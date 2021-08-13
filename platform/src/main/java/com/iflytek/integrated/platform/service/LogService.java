@@ -424,10 +424,11 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		}
 
 		String[] idArrays = ids.split(",");
-		int successCount = 0;
-		int errorConut = 0;
-		String errorIds = "";
-		for(String id : idArrays){
+		String id = idArrays[0];
+//		int successCount = 0;
+//		int errorConut = 0;
+//		String errorIds = "";
+//		for(String id : idArrays){
 			//请求方接口调试数据获取
 			try {
 				List<TBusinessInterface> businessInterfaces = sqlQueryFactory
@@ -443,27 +444,13 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 						.on(qTProject.id.eq(qTPlatform.projectId)).leftJoin(qTSys).on(qTSys.id.eq(qTSysConfig.sysId))
 						.where(qTBusinessInterface.id.eq(id)).fetch();
 				if (businessInterfaces == null || businessInterfaces.size() == 0) {
-					continue;
+					return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "日志重放失败,接口转换id在数据库不存在");
 				}
 				// 获取入参列表
 				TBusinessInterface businessInterface = businessInterfaces.get(0);
 				String interfaceId = StringUtils.isNotEmpty(businessInterface.getRequestInterfaceId())
 						? businessInterface.getRequestInterfaceId() : "";
-				// 获取医院名称列表
-				List<String> sysconfigIds = new ArrayList<>();
-				businessInterfaces.forEach(bi -> {
-					if (StringUtils.isNotEmpty(businessInterface.getRequestSysconfigId())) {
-						sysconfigIds.add(businessInterface.getRequestSysconfigId());
-					}
-					if (StringUtils.isNotEmpty(businessInterface.getRequestedSysconfigId())) {
-						sysconfigIds.add(businessInterface.getRequestedSysconfigId());
-					}
-				});
-				List<String> hospitalCodes = sqlQueryFactory.select(qTSysHospitalConfig.hospitalCode)
-						.from(qTSysHospitalConfig).leftJoin(qTSysConfig)
-						.on(qTSysConfig.id.eq(qTSysHospitalConfig.sysConfigId)).leftJoin(qTHospital)
-						.on(qTSysHospitalConfig.hospitalId.eq(qTHospital.id)).where(qTSysConfig.id.in(sysconfigIds))
-						.fetch();
+
 				// 拼接实体
 				InterfaceDebugDto dto = new InterfaceDebugDto();
 				if ("2".equals(businessInterface.getSysIntfInParamFormatType())) {
@@ -471,20 +458,38 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 							qTInterface.id.eq(interfaceId).and(qTInterface.sysId.eq(businessInterface.getRequestSysId())))
 							.fetchFirst();
 					dto.setFormat(inparamFormat);
+
 					String wsUrl = niFiRequestUtil.getWsServiceUrl();
 					if (!wsUrl.endsWith("/")) {
 						wsUrl = wsUrl + "/";
 					}
+
+					// 获取医院名称列表
+					List<String> sysconfigIds = new ArrayList<>();
+					businessInterfaces.forEach(bi -> {
+						if (StringUtils.isNotEmpty(businessInterface.getRequestSysconfigId())) {
+							sysconfigIds.add(businessInterface.getRequestSysconfigId());
+						}
+						if (StringUtils.isNotEmpty(businessInterface.getRequestedSysconfigId())) {
+							sysconfigIds.add(businessInterface.getRequestedSysconfigId());
+						}
+					});
+					List<String> hospitalCodes = sqlQueryFactory.select(qTSysHospitalConfig.hospitalCode)
+							.from(qTSysHospitalConfig).leftJoin(qTSysConfig)
+							.on(qTSysConfig.id.eq(qTSysHospitalConfig.sysConfigId)).leftJoin(qTHospital)
+							.on(qTSysHospitalConfig.hospitalId.eq(qTHospital.id)).where(qTSysConfig.id.in(sysconfigIds))
+							.fetch();
+
 					String suffix = "services/" + businessInterface.getSysCode() + "/" + hospitalCodes.get(0);
 					wsUrl = wsUrl + suffix;
 					dto.setWsdlUrl(wsUrl);
 					List<String> wsOperationNames = PlatformUtil.getWsdlOperationNames(wsUrl);
 					dto.setWsOperationName(wsOperationNames.get(0));
 					dto.setSysIntfParamFormatType("2");
+					dto.setFuncode(businessInterface.getInterfaceUrl());
 				} else {
 					dto.setSysIntfParamFormatType("3");
 				}
-				dto.setFuncode(businessInterface.getInterfaceUrl());
 
 				if ("2".equals(dto.getSysIntfParamFormatType())) {
 					String wsdlUrl = dto.getWsdlUrl();
@@ -493,24 +498,32 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 					String param = dto.getFormat();
 					PlatformUtil.invokeWsService(wsdlUrl, methodName, funcode, param);
 				} else {
-					niFiRequestUtil.interfaceDebug(dto.getFormat());
+					List<TLog> logs = sqlQueryFactory.select(qTLog).from(qTLog).where(qTLog.businessInterfaceId.eq(id)).fetch();
+					String format = "";
+					if(logs.size()>0){
+						TLog tLog = logs.get(0);
+						format = decryptAndFilterSensitive(tLog.getBusinessReq());
+					}
+					niFiRequestUtil.interfaceDebug(format);
 				}
-				successCount++;
+//				successCount++;
 			} catch (Exception e) {
 				logger.error("获取接口调试显示数据失败! MSG:{}", ExceptionUtil.dealException(e));
-				errorConut ++;
-				errorIds += id + ",";
+				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "日志重放失败");
+//				errorConut ++;
+//				errorIds += id + ",";
 			}
-		}
-		if(successCount == idArrays.length){
-			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志重放成功",
-					"成功条数为" +successCount + "");
-		}else if(errorConut > 0 && successCount > 0){
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "部分日志重放成功," + errorIds +"重放失败",
-					"成功条数为" + successCount);
-		}else{
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "日志重放失败,"+ errorIds +"重放失败");
-		}
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志重放成功");
+//		}
+//		if(successCount == idArrays.length){
+//			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志重放成功",
+//					"成功条数为" +successCount + "");
+//		}else if(errorConut > 0 && successCount > 0){
+//			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "部分日志重放成功," + errorIds +"重放失败",
+//					"成功条数为" + successCount);
+//		}else{
+//			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "日志重放失败,"+ errorIds +"重放失败");
+//		}
 	}
 
 	/**
