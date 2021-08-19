@@ -189,8 +189,8 @@ public class RedisService {
 	 */
 	public void delRedisKey(List<RedisKeyDto> list) {
 		for (RedisKeyDto obj : list) {
-			String key = "IntegratedPlatform:Configs:_" + obj.getOrgId() + "_" + obj.getSysCode() + "_"
-					+ obj.getFunCode();
+			String key = "IntegratedPlatform:Configs:_" + obj.getSysCode() + "_"
+					+ obj.getFunCode() + "_" + obj.getOrgId();
 			redisUtil.del(key);
 		}
 		logger.info("删除缓存{}条", list.size());
