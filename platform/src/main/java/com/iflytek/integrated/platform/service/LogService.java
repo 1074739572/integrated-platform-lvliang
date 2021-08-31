@@ -434,9 +434,71 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 				for(int i = 0 ; i < idArrays.length ; i++) {
 					realIds[i] = Long.valueOf(idArrays[i]);
 				}
+//<<<<<<< HEAD
 				List<TLog> logs = sqlQueryFactory.select(qTLog).from(qTLog).where(qTLog.id.in(realIds)).fetch();
 				for(TLog tlog: logs) {
 					String format = decryptAndFilterSensitive(tlog.getBusinessReq());
+//=======
+//				// 获取入参列表
+//				TBusinessInterface businessInterface = businessInterfaces.get(0);
+//				String interfaceId = StringUtils.isNotEmpty(businessInterface.getRequestInterfaceId())
+//						? businessInterface.getRequestInterfaceId() : "";
+//
+//				// 拼接实体
+//				InterfaceDebugDto dto = new InterfaceDebugDto();
+//				if ("2".equals(businessInterface.getSysIntfInParamFormatType())) {
+//					String inparamFormat = sqlQueryFactory.select(qTInterface.inParamFormat).from(qTInterface).where(
+//							qTInterface.id.eq(interfaceId).and(qTInterface.sysId.eq(businessInterface.getRequestSysId())))
+//							.fetchFirst();
+//					dto.setFormat(inparamFormat);
+//
+//					String wsUrl = niFiRequestUtil.getWsServiceUrl();
+//					if (!wsUrl.endsWith("/")) {
+//						wsUrl = wsUrl + "/";
+//					}
+//
+//					// 获取医院名称列表
+//					List<String> sysconfigIds = new ArrayList<>();
+//					businessInterfaces.forEach(bi -> {
+//						if (StringUtils.isNotEmpty(businessInterface.getRequestSysconfigId())) {
+//							sysconfigIds.add(businessInterface.getRequestSysconfigId());
+//						}
+//						if (StringUtils.isNotEmpty(businessInterface.getRequestedSysconfigId())) {
+//							sysconfigIds.add(businessInterface.getRequestedSysconfigId());
+//						}
+//					});
+//					List<String> hospitalCodes = sqlQueryFactory.select(qTSysHospitalConfig.hospitalCode)
+//							.from(qTSysHospitalConfig).leftJoin(qTSysConfig)
+//							.on(qTSysConfig.id.eq(qTSysHospitalConfig.sysConfigId)).leftJoin(qTHospital)
+//							.on(qTSysHospitalConfig.hospitalId.eq(qTHospital.id)).where(qTSysConfig.id.in(sysconfigIds))
+//							.fetch();
+//
+//					String suffix = "services/" + businessInterface.getSysCode() + "/" + hospitalCodes.get(0);
+//					wsUrl = wsUrl + suffix;
+//					dto.setWsdlUrl(wsUrl);
+//					List<String> wsOperationNames = PlatformUtil.getWsdlOperationNames(wsUrl);
+//					dto.setWsOperationName(wsOperationNames.get(0));
+//					dto.setSysIntfParamFormatType("2");
+//					dto.setFuncode(businessInterface.getInterfaceUrl());
+//				} else {
+//					dto.setSysIntfParamFormatType("3");
+//				}
+//
+//				if ("2".equals(dto.getSysIntfParamFormatType())) {
+//					String wsdlUrl = dto.getWsdlUrl();
+//					String methodName = dto.getWsOperationName();
+//					String funcode = dto.getFuncode();
+//					String param = dto.getFormat();
+//					PlatformUtil.invokeWsService(wsdlUrl, methodName, funcode, param);
+//				} else {
+//					List<TLog> logs = sqlQueryFactory.select(qTLog).from(qTLog).where(qTLog.businessInterfaceId.eq(id))
+//							.orderBy(qTLog.updatedTime.desc()).fetch();
+//					String format = "";
+//					if(logs.size()>0){
+//						TLog tLog = logs.get(0);
+//						format = decryptAndFilterSensitive(tLog.getBusinessReq());
+//					}
+//>>>>>>> branch 'dev_2.0' of https://git.iflytek.com/MED_HosPlatform/integrated-platform.git
 					niFiRequestUtil.interfaceDebug(format);
 				}
 			} catch (Exception e) {
