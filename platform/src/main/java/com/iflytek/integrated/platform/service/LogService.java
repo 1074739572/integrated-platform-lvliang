@@ -498,7 +498,8 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 					String param = dto.getFormat();
 					PlatformUtil.invokeWsService(wsdlUrl, methodName, funcode, param);
 				} else {
-					List<TLog> logs = sqlQueryFactory.select(qTLog).from(qTLog).where(qTLog.businessInterfaceId.eq(id)).fetch();
+					List<TLog> logs = sqlQueryFactory.select(qTLog).from(qTLog).where(qTLog.businessInterfaceId.eq(id))
+							.orderBy(qTLog.updatedTime.desc()).fetch();
 					String format = "";
 					if(logs.size()>0){
 						TLog tLog = logs.get(0);
