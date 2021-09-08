@@ -222,6 +222,8 @@ public class PlatformUtil {
                 hour=min/60;
                 min=min%60;
             }
+        }else {
+        	second = seconds;
         }
         result=hour+"小时";
         result=result+min+"分";
