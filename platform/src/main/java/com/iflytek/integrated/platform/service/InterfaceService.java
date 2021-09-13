@@ -145,7 +145,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到mock模板!");
 		}
 		// 返回缓存操作数据
-		String rtnStr = "";
+		List<String> rtnStr = new ArrayList<>();
 		for (MockTemplateDto dto : dtoList) {
 			// 校验参数是否完整
 			ValidationResult validationResult = validatorHelper.validate(dto);
@@ -160,12 +160,11 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			if (lon <= 0) {
 				throw new RuntimeException("保存mock模板失败!");
 			}
-			rtnStr += dto.getId() + ",";
+			rtnStr.add(dto.getId());
 		}
-		rtnStr = StringUtils.isBlank(rtnStr) ? null : rtnStr.substring(0, rtnStr.length() - 1);
 		//redis缓存信息获取
 		ArrayList<Predicate> arr = new ArrayList<>();
-		arr.add(qTBusinessInterface.id.eq(rtnStr));
+		arr.add(qTBusinessInterface.id.in(rtnStr));
 		List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存mock模板成功!", new RedisDto(redisKeyDtoList).toString());
 	}
@@ -797,7 +796,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		}
 		
 		// 返回缓存接口配置id
-		String rtnId = "";
+		List<String> rtnId = new ArrayList<>();
 		List<TBusinessInterface> tbiList = dto.getBusinessInterfaceList();
 		for (int i = 0; i < tbiList.size(); i++) {
 			TBusinessInterface tbi = tbiList.get(i);
@@ -832,10 +831,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				if (l < 1) {
 					throw new RuntimeException("修改新增接口配置信息失败!");
 				}
-				rtnId += tbi.getId() + ",";
+				rtnId.add(tbi.getId());
 			}
 		}
-		rtnId = StringUtils.isBlank(rtnId) ? null : rtnId.substring(0, rtnId.length() - 1);
 		// redis缓存信息获取
 		ArrayList<Predicate> arr = new ArrayList<>();
 		arr.add(qTBusinessInterface.id.in(rtnId));
@@ -867,13 +865,12 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		List<TBusinessInterface> list = businessInterfaceService.getListByCondition(tbi.getRequestInterfaceId(),
 				tbi.getRequestSysconfigId());
 		// 获取返回缓存id
-		String rtnStr = "";
+		List<String> rtnStr = new ArrayList<>();
 		if (CollectionUtils.isNotEmpty(list)) {
 			for (TBusinessInterface obj : list) {
-				rtnStr += obj.getId() + ",";
+				rtnStr.add(obj.getId());
 			}
 		}
-		rtnStr = StringUtils.isBlank(rtnStr) ? null : rtnStr.substring(0, rtnStr.length() - 1);
 		// redis缓存信息获取
 		ArrayList<Predicate> arr = new ArrayList<>();
 		arr.add(qTBusinessInterface.id.in(rtnStr));
