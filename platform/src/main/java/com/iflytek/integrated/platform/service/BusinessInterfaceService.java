@@ -61,14 +61,9 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	public ResultDto<String> updateMockStatus(String id, String mockStatus, String loginUserName) {
 		// 获取多接口，多个接口的id集合
 		List<String> idList = busInterfaceIds(id);
-        String rtnStr = "";
-        for (String idStr : idList) {
-            rtnStr += idStr + ",";
-        }
-        rtnStr = StringUtils.isBlank(rtnStr) ? "" : rtnStr.substring(0, rtnStr.length() - 1);
         //redis缓存信息获取
         ArrayList<Predicate> arr = new ArrayList<>();
-        arr.add(qTBusinessInterface.id.in(rtnStr));
+        arr.add(qTBusinessInterface.id.in(idList));
         List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
 
 		long size = sqlQueryFactory.update(qTBusinessInterface).set(qTBusinessInterface.mockStatus, mockStatus)
@@ -91,14 +86,9 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	public ResultDto updateStatus(String id, String status, String loginUserName) {
 		// 获取多接口，多个接口的id集合
 		List<String> idList = busInterfaceIds(id);
-        String rtnStr = "";
-        for (String idStr : idList) {
-            rtnStr += idStr + ",";
-        }
-        rtnStr = StringUtils.isBlank(rtnStr) ? "" : rtnStr.substring(0, rtnStr.length() - 1);
         //redis缓存信息获取
         ArrayList<Predicate> arr = new ArrayList<>();
-        arr.add(qTBusinessInterface.id.in(rtnStr));
+        arr.add(qTBusinessInterface.id.in(idList));
         List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
 
 		long size = sqlQueryFactory.update(qTBusinessInterface).set(qTBusinessInterface.status, status)
