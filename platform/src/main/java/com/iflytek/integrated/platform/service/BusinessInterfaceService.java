@@ -86,9 +86,11 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	public ResultDto updateStatus(String id, String status, String loginUserName) {
 		// 获取多接口，多个接口的id集合
 		List<String> idList = busInterfaceIds(id);
+		List<String> retrn=new ArrayList<>();
+		for(String str:idList) retrn.add(str);
         //redis缓存信息获取
         ArrayList<Predicate> arr = new ArrayList<>();
-        arr.add(qTBusinessInterface.id.in(idList));
+        arr.add(qTBusinessInterface.id.in(retrn));
         List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
 
 		long size = sqlQueryFactory.update(qTBusinessInterface).set(qTBusinessInterface.status, status)
