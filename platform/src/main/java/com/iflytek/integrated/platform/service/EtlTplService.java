@@ -551,7 +551,6 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
         	result.put("flowTplName", tplName);
         	result.put("flowTplId", tplId);
         	result.put("description", desp);
-			result.put("groupId",groupId);
         }
         return result;
 	}
