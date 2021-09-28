@@ -469,9 +469,6 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 					String tplContent = IOUtils.toString(is, "UTF-8");
 					is.close();
 
-                    JSONObject jsonObject= JSONObject.parseObject(XmlJsonUtils.convertXmlToJsonObject(tplContent));
-                    String groupId=(String) jsonObject.getJSONObject("template").get("groupId");//获取模板中的groupId
-
 					file = new File(filename);
 					if (!file.exists()) {
 						file.createNewFile();
@@ -486,7 +483,7 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 					Type localVarReturnType = new TypeToken<String>(){}.getType();
 					
 					ApiResponse<String> resp = client.execute(call, localVarReturnType);
-					Map<String,String> tpl = parseResponse(resp.getData(),groupId);
+					Map<String,String> tpl = parseResponse(resp.getData());
 					uploadedTpls.add(tpl);
 				}
 			}catch (Exception e) {
@@ -541,7 +538,7 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 		 return call;
 	}
 	
-	private Map<String, String> parseResponse(String xml,String groupId) throws DocumentException {
+	private Map<String, String> parseResponse(String xml) throws DocumentException {
 		Map<String, String> result = new HashMap<>();
 		Document doc = null;
         doc = DocumentHelper.parseText(xml);
