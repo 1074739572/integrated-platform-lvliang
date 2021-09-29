@@ -86,4 +86,12 @@ public class EtlDblinkService extends BaseService<TEtlDblink, String, StringPath
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "批量更新流程数据库配置失败", e.getLocalizedMessage());
 		}
 	}
+
+	@ApiOperation(value = "查询流程数据库配置是否存在")
+	@GetMapping("/etlCheckDblinks/{etlGroupId}")
+	public ResultDto<List<TEtlDblink>> getEtlD(@PathVariable("etlGroupId") String etlGroupId ) {
+		List<TEtlDblink> queryResults = sqlQueryFactory.select(Projections.bean(TEtlDblink.class, qTEtlDblink.etlGroupId , qTEtlDblink.etlProcessorId , qTEtlDblink.dbConfigId))
+				.from(qTEtlDblink).where(qTEtlDblink.etlGroupId.eq(etlGroupId)).fetch();
+		return new ResultDto<List<TEtlDblink>>(Constant.ResultCode.SUCCESS_CODE, "查询etlDbLinks配置成功", queryResults);
+	}
 }
