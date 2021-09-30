@@ -177,14 +177,13 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			List<TBusinessInterface> businessInterfaces = sqlQueryFactory
 					.select(Projections.bean(TBusinessInterface.class, qTBusinessInterface.id,
 							qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId,
-							qTProject.projectCode.as("projectCode"), qTInterface.interfaceUrl.as("interfaceUrl"),
+							qTInterface.interfaceUrl.as("interfaceUrl"),
 							qTSys.sysCode.as("sysCode"), qTInterface.inParamFormatType.as("sysIntfInParamFormatType"),
 							qTInterface.sysId.as("requestSysId")))
 					.from(qTBusinessInterface).leftJoin(qTInterface)
 					.on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id)).leftJoin(qTSysConfig)
 					.on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId)).leftJoin(qTPlatform)
-					.on(qTPlatform.id.eq(qTSysConfig.platformId)).leftJoin(qTProject)
-					.on(qTProject.id.eq(qTPlatform.projectId)).leftJoin(qTSys).on(qTSys.id.eq(qTSysConfig.sysId))
+					.on(qTPlatform.id.eq(qTSysConfig.platformId)).leftJoin(qTSys).on(qTSys.id.eq(qTSysConfig.sysId))
 					.where(qTBusinessInterface.id.eq(id)).fetch();
 			if (businessInterfaces == null || businessInterfaces.size() == 0) {
 				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有查询到接口配置信息");
@@ -236,7 +235,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			}
 			resDto.setFuncode(businessInterface.getInterfaceUrl());
 			resDto.setProductcode(businessInterface.getSysCode());
-			resDto.setProjectcode(businessInterface.getProjectCode());
 			resDto.setOrgids(hospitalCodes);
 			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取接口调试显示数据成功!", resDto);
 		} catch (Exception e) {
