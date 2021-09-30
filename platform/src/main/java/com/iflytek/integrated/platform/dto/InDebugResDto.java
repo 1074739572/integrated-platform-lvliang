@@ -22,11 +22,6 @@ public class InDebugResDto {
 	private String funcode;
 
 	/**
-	 * 项目code
-	 */
-	private String projectcode;
-
-	/**
 	 * 产品code
 	 */
 	private String productcode;
