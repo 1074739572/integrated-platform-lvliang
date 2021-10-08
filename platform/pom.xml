@@ -146,6 +146,10 @@
 		    <artifactId>okio</artifactId>
 		    <version>1.6.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.alibaba.spring</groupId>
+            <artifactId>spring-context-support</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
