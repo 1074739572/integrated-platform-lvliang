@@ -1141,7 +1141,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		String [] businessInterfaceIds=Ids.split(",");
 
 		StringBuilder sqlStringBuffer = new StringBuilder();
-		if (businessInterfaceIds.size() > 0)
 			for (String businessInterfaceId : businessInterfaceIds) {
 				List<String> requestInterfaceIds = sqlQueryFactory.select(qTBusinessInterface.requestInterfaceId).from(qTBusinessInterface)
 						.where(qTBusinessInterface.id.eq(businessInterfaceId)).fetch();
