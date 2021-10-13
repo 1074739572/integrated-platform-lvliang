@@ -1132,12 +1132,13 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "", niFiRequestUtil.testDbUrl(dto));
 	}
 
-		@ApiOperation(value = "导出选中的接口转换相关配置")
-	@RequestMapping("/downloadInterfaceConfigs")
-	public void getSqlConfig(HttpServletResponse response,@ApiParam("接口Id") @RequestBody List<String> businessInterfaceIds) {
+	@ApiOperation(value = "导出选中的接口转换相关配置")
+	@RequestMapping("/downloadInterfaceConfigs/{Ids}")
+	public void getSqlConfig(HttpServletResponse response,@ApiParam("接口Id") @PathVariable String Ids) {
 		List<String> interfaceIds=new ArrayList<>();
 		List<String> sysConfigIds=new ArrayList<>();
 		List<String> pluginIds=new ArrayList<>();
+		String [] businessInterfaceIds=Ids.split(",");
 
 		StringBuilder sqlStringBuffer = new StringBuilder();
 		if (businessInterfaceIds.size() > 0)
