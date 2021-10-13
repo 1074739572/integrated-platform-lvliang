@@ -1133,8 +1133,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	}
 
 	@ApiOperation(value = "导出选中的接口转换相关配置")
-	@RequestMapping("/downloadInterfaceConfigs/{Ids}")
-	public void getSqlConfig(HttpServletResponse response,@ApiParam("接口Id")  String Ids) {
+	@GetMapping("/downloadInterfaceConfigs/{Ids}")
+	public void getSqlConfig(HttpServletResponse response,@ApiParam("接口Id")  @PathVariable String Ids) {
 		List<String> interfaceIds=new ArrayList<>();
 		List<String> sysConfigIds=new ArrayList<>();
 		List<String> pluginIds=new ArrayList<>();
