@@ -33,6 +33,8 @@ public class EtlFlowDto implements Serializable {
 	private String etlEntryGroupId;
 	
 	private String parentGroupId;
+	
+	private String etlControlId;
 
 	public String getId() {
 		return id;
@@ -128,6 +130,14 @@ public class EtlFlowDto implements Serializable {
 
 	public void setParentGroupId(String parentGroupId) {
 		this.parentGroupId = parentGroupId;
+	}
+
+	public String getEtlControlId() {
+		return etlControlId;
+	}
+
+	public void setEtlControlId(String etlControlId) {
+		this.etlControlId = etlControlId;
 	}
 	
 }
