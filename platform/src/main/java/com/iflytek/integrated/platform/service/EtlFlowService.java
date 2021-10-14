@@ -170,6 +170,9 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 		if(StringUtils.isNotBlank(flowDto.getParentGroupId())) {
 			flowEntity.setParentGroupId(flowDto.getParentGroupId());
 		}
+		if(StringUtils.isNotBlank(flowDto.getEtlControlId())) {
+			flowEntity.setEtlControlId(flowDto.getEtlControlId());
+		}
 		String id = batchUidService.getUid(qTEtlFlow.getTableName()) + "";
 		flowEntity.setId(id);
 		flowEntity.setCreatedBy(loginUserName != null ? loginUserName : "");
