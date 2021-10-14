@@ -108,6 +108,21 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 		TableData<TEtlFlow> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取流程列表成功", tableData);
 	}
+	
+	@ApiOperation(value = "根据分类ID获取分类下所有流程列表")
+	@GetMapping("/getEtlFlowsByPlatform/{platformId}")
+	public ResultDto<List<TEtlFlow>> getEtlFlowsByPlatform(@PathVariable String platformId) {
+		List<TEtlFlow> queryResults = sqlQueryFactory.select(Projections.bean(TEtlFlow.class, qTEtlFlow.id,
+		qTEtlFlow.groupId, qTEtlFlow.flowName, qTEtlFlow.etlGroupId, qTEtlFlow.flowConfig, qTEtlFlow.flowDesp,
+		qTEtlFlow.flowTplName, qTEtlFlow.funTplNames, qTEtlFlow.status,qTEtlFlow.etlEntryGroupId,qTEtlFlow.parentGroupId,
+		qTEtlGroup.hospitalId, qTEtlGroup.sysId, qTHospital.hospitalName.as("hospitalName"),
+		qTSys.sysName.as("sysName"))).from(qTEtlFlow).leftJoin(qTEtlGroup)
+		.on(qTEtlFlow.groupId.eq(qTEtlGroup.id)).leftJoin(qTPlatform)
+		.on(qTEtlGroup.platformId.eq(qTPlatform.id)).leftJoin(qTSys).on(qTEtlGroup.sysId.eq(qTSys.id))
+		.leftJoin(qTHospital).on(qTEtlGroup.hospitalId.eq(qTHospital.id))
+		.where(qTEtlGroup.platformId.eq(platformId)).fetch();
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取流程列表成功", queryResults);
+	}
 
 	@ApiOperation(value = "获取流程详情")
 	@GetMapping("/getEtlFlows/{id}")
