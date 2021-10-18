@@ -1261,7 +1261,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	}
 
 	@ApiOperation(value = "上传接口转换配sql文件")
-	@@PostMapping(path = "/uploadInterFaceSql/{platformId}/{projectId}")
+	@PostMapping(path = "/uploadInterFaceSql/{platformId}/{projectId}")
 	public ResultDto<String> uploadEtlTpls(@PathVariable String platformId, @PathVariable String projectId,@RequestParam("sqlFiles") MultipartFile[] sqlFiles) throws IOException, SQLException {
 		// 校验是否获取到登录用户
 		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
