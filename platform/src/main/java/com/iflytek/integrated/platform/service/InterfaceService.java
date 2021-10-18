@@ -31,13 +31,15 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
+import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -1255,6 +1257,74 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			bos.close();
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+
+	@ApiOperation(value = "上传接口转换配sql文件")
+	@RequestMapping(path = "/uploadInterFaceSql/{platformId}/{projectId}")
+	public ResultDto<String> uploadEtlTpls(@PathVariable String platformId, @PathVariable String projectId,@RequestParam("sqlFiles") MultipartFile[] sqlFiles) throws IOException, SQLException {
+		// 校验是否获取到登录用户
+		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
+		if (org.apache.commons.lang3.StringUtils.isBlank(loginUserName)) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+		}
+		Connection connection = sqlQueryFactory.getConnection();
+		Statement statement = connection.createStatement();
+		BufferedReader bufferedReader = null;
+		StringBuilder message=new StringBuilder();
+		try {
+			if (sqlFiles == null || sqlFiles.length == 0) {
+				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到上传文件!", "没有获取到上传文件!");
+			}
+			//sql分批sql语句
+			int insetNum = 0;
+			for (MultipartFile file : sqlFiles) {
+				InputStream is = file.getInputStream();
+				//获取字符缓冲流
+				bufferedReader = new BufferedReader(new InputStreamReader(is));
+				int l;
+				StringBuilder sql = new StringBuilder();
+				while ((l = bufferedReader.read()) != -1) {
+					try{
+						char read = (char) l;
+						sql.append(read);
+						if (read == ';') { // 一个完整的SQL语句
+							if(sql.toString().trim().startsWith("INSERT")){
+								sql=new StringBuilder(sql.toString().replace("'newProjectId'",projectId).replace("'newPlatformId'",platformId));
+								statement.addBatch(sql.toString());
+								statement.executeBatch();
+								//清除StringBuilder中的SQL语句
+								statement.clearBatch();
+								sql.delete(0, sql.length());
+							}
+						}
+					}catch (Exception e){
+						//报错保存信息继续执行sql
+						statement.clearBatch();
+						sql.delete(0, sql.length());
+						message.append(e.getMessage());
+					}
+				}
+				insetNum++;
+				is.close();
+			}
+			if (message.length()==0) {
+				return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "sql脚本全部执行成功", insetNum+"");
+			} else {
+				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "sql脚本执行完成，部分报错",message.toString() );
+			}
+		} catch (Exception e) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "执行sql脚本失败", e.getLocalizedMessage());
+		}finally {
+			if (bufferedReader != null) {
+				bufferedReader.close();
+			}
+			if (connection != null) {
+				connection.close();
+			}
+			if (statement != null) {
+				statement.close();
+			}
 		}
 	}
 
