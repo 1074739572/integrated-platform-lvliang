@@ -1311,7 +1311,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			if (message.length()==0) {
 				return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "sql脚本全部执行成功", insetNum+"");
 			} else {
-				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "sql脚本执行完成，部分报错",message.toString() );
+				return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "sql脚本执行完成，部分报错",message.toString() );
 			}
 		} catch (Exception e) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "执行sql脚本失败", e.getLocalizedMessage());
