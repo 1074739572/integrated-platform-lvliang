@@ -1262,68 +1262,80 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
 	@ApiOperation(value = "上传接口转换配sql文件")
 	@PostMapping(path = "/uploadInterFaceSql/{platformId}/{projectId}")
-	public ResultDto<String> uploadEtlTpls(@PathVariable String platformId, @PathVariable String projectId,@RequestParam("sqlFiles") MultipartFile[] sqlFiles) throws IOException, SQLException {
+	public ResultDto<String> uploadEtlTpls(@PathVariable String platformId, @PathVariable String projectId,@RequestParam("sqlFiles") MultipartFile[] sqlFiles) {
 		// 校验是否获取到登录用户
 		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
 		if (org.apache.commons.lang3.StringUtils.isBlank(loginUserName)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
 		}
+		//获取数据库连接
 		Connection connection = sqlQueryFactory.getConnection();
-		Statement statement = connection.createStatement();
+		Statement statement=null;
 		BufferedReader bufferedReader = null;
 		StringBuilder message=new StringBuilder();
 		try {
+			statement = connection.createStatement();
+			//判断是否获取到文件
 			if (sqlFiles == null || sqlFiles.length == 0) {
 				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到上传文件!", "没有获取到上传文件!");
 			}
 			//sql分批sql语句
+			InputStream is=null;
 			int insetNum = 0;
 			for (MultipartFile file : sqlFiles) {
-				InputStream is = file.getInputStream();
-				//获取字符缓冲流
-				bufferedReader = new BufferedReader(new InputStreamReader(is));
-				int l;
-				StringBuilder sql = new StringBuilder();
-				while ((l = bufferedReader.read()) != -1) {
-					try{
+				try{
+					//获取字符缓冲流
+					is = file.getInputStream();
+					bufferedReader = new BufferedReader(new InputStreamReader(is));
+					int l;
+					StringBuilder sql = new StringBuilder();
+					connection.setAutoCommit(false);
+					while ((l = bufferedReader.read()) != -1) {
 						char read = (char) l;
 						sql.append(read);
-						if (read == ';') { // 一个完整的SQL语句
-							if(sql.toString().trim().startsWith("INSERT")){
+								//将sys_config表中的平台id以及项目id进行替换
 								sql=new StringBuilder(sql.toString().replace("'newProjectId'",projectId).replace("'newPlatformId'",platformId));
 								statement.addBatch(sql.toString());
-								statement.executeBatch();
-								//清除StringBuilder中的SQL语句
-								statement.clearBatch();
-								sql.delete(0, sql.length());
-							}
-						}
-					}catch (Exception e){
-						//报错保存信息继续执行sql
-						statement.clearBatch();
-						sql.delete(0, sql.length());
-						message.append(e.getMessage());
 					}
+					//事务提交，整体成功或失败
+					statement.executeBatch();
+					connection.commit();
+					//清除SQL语句
+					statement.clearBatch();
+					insetNum++;
+					is.close();
+				}catch (Exception e){
+					connection.rollback();
+					statement.clearBatch();
+					if(is!=null)
+					is.close();
+					message.append(e.getMessage());
 				}
-				insetNum++;
-				is.close();
 			}
-			if (message.length()==0) {
+			if (insetNum==sqlFiles.length) {
 				return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "sql脚本全部执行成功", insetNum+"");
 			} else {
-				return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "sql脚本执行完成，部分报错",message.toString() );
+				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "sql脚本部分执行错误",message.toString());
 			}
 		} catch (Exception e) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "执行sql脚本失败", e.getLocalizedMessage());
 		}finally {
 			if (bufferedReader != null) {
-				bufferedReader.close();
+				try {
+					bufferedReader.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
-			if (connection != null) {
-				connection.close();
-			}
-			if (statement != null) {
-				statement.close();
+			try{
+				if (connection != null) {
+					connection.close();
+				}
+				if (statement != null) {
+					statement.close();
+				}
+			}catch (SQLException sqlException){
+				sqlException.printStackTrace();
 			}
 		}
 	}
