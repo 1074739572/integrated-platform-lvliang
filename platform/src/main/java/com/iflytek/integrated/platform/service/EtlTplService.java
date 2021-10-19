@@ -7,6 +7,7 @@ import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.JackSonUtils;
 import com.iflytek.integrated.common.utils.XmlJsonUtils;
+import com.iflytek.integrated.common.utils.ase.AesUtil;
 import com.iflytek.integrated.common.utils.OAuthApiClient;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
@@ -25,6 +26,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.nifi.api.toolkit.ApiClient;
@@ -317,6 +320,9 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 				client.setVerifyingSsl(false);
 //				if (serverUrl.startsWith("https")) {
 					if(StringUtils.isNotBlank(userName) && StringUtils.isNotBlank(password)) {
+						if(Base64.isBase64(password)) {
+							password = AesUtil.decrypt(password);
+						}
 						String token = api.createAccessToken(userName, password);
 						client.setAccessToken(token);
 					}
@@ -433,6 +439,9 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 				client.setVerifyingSsl(false);
 //				if (serverUrl.startsWith("https")) {
 					if(StringUtils.isNotBlank(userName) && StringUtils.isNotBlank(password)) {
+						if(Base64.isBase64(password)) {
+							password = AesUtil.decrypt(password);
+						}
 						String token = api.createAccessToken(userName, password);
 						client.setAccessToken(token);
 					}
