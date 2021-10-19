@@ -1291,12 +1291,11 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 					StringBuilder sql = new StringBuilder();
 					connection.setAutoCommit(false);
 					while ((l = bufferedReader.read()) != -1) {
-						char read = (char) l;
-						sql.append(read);
-								//将sys_config表中的平台id以及项目id进行替换
-								sql=new StringBuilder(sql.toString().replace("'newProjectId'",projectId).replace("'newPlatformId'",platformId));
-								statement.addBatch(sql.toString());
+						sql.append((char) l);
 					}
+					//将sys_config表中的平台id以及项目id进行替换
+					sql=new StringBuilder(sql.toString().replace("'newProjectId'",projectId).replace("'newPlatformId'",platformId));
+					statement.addBatch(sql.toString());
 					//事务提交，整体成功或失败
 					statement.executeBatch();
 					connection.commit();
@@ -1315,7 +1314,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			if (insetNum==sqlFiles.length) {
 				return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "sql脚本全部执行成功", insetNum+"");
 			} else {
-				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "sql脚本部分执行错误",message.toString());
+				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "sql脚本部分执行错误,"+insetNum+"条成功",message.toString());
 			}
 		} catch (Exception e) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "执行sql脚本失败", e.getLocalizedMessage());
