@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.nifi.api.toolkit.ApiClient;
 import org.apache.nifi.api.toolkit.ApiException;
@@ -35,6 +36,7 @@ import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.utils.HttpClientUtil;
 import com.iflytek.integrated.common.utils.JackSonUtils;
 import com.iflytek.integrated.common.utils.OAuthApiClient;
+import com.iflytek.integrated.common.utils.ase.AesUtil;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.DbUrlTestDto;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
@@ -281,6 +283,9 @@ public class NiFiRequestUtil {
 				client.setVerifyingSsl(false);
 //				if (serverUrl.startsWith("https")) {
 					if(StringUtils.isNotBlank(userName) && StringUtils.isNotBlank(password)) {
+						if(Base64.isBase64(password)) {
+							password = AesUtil.decrypt(password);
+						}
 						String token = api.createAccessToken(userName, password);
 						client.setAccessToken(token);
 					}
@@ -361,6 +366,9 @@ public class NiFiRequestUtil {
 				client.setVerifyingSsl(false);
 //				if (serverUrl.startsWith("https")) {
 					if(StringUtils.isNotBlank(userName) && StringUtils.isNotBlank(password)) {
+						if(Base64.isBase64(password)) {
+							password = AesUtil.decrypt(password);
+						}
 						String token = api.createAccessToken(userName, password);
 						client.setAccessToken(token);
 					}
