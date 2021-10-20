@@ -1190,7 +1190,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 					sysIds.add(sysConfig.getSysId());
 					sqlStringBuffer.append("INSERT INTO `esb-plus3`.`t_sys_config` (`ID`, `PROJECT_ID`, `PLATFORM_ID`, `SYS_ID`, `SYS_CONFIG_TYPE`, `HOSPITAL_CONFIGS`, `VERSION_ID`, `CONNECTION_TYPE`, `ADDRESS_URL`, `ENDPOINT_URL`," +
 							" `NAMESPACE_URL`, `DATABASE_NAME`, `DATABASE_URL`, `DATABASE_TYPE`, `DATABASE_DRIVER`, `DRIVER_URL`, `JSON_PARAMS`, `USER_NAME`, `USER_PASSWORD`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, " +
-							"`INNER_IDX`) VALUES ('" + sysConfig.getId() + "', 'ProjectId', 'PlatformId', '" + sysConfig.getSysId() + "', " + sysConfig.getSysConfigType() + ", " +
+							"`INNER_IDX`) VALUES ('" + sysConfig.getId() + "', 'newProjectId', 'newPlatformId', '" + sysConfig.getSysId() + "', " + sysConfig.getSysConfigType() + ", " +
 							sysConfig.getHospitalConfigs() + ", '" + sysConfig.getVersionId() + "', '" + sysConfig.getConnectionType() + "', '" + sysConfig.getAddressUrl() + "', '" + sysConfig.getEndpointUrl() + "', " +
 							"'" + sysConfig.getNamespaceUrl() + "', '" + sysConfig.getDatabaseName() + "', '" + sysConfig.getDatabaseUrl() + "', '" + sysConfig.getDatabaseType() + "', '" + sysConfig.getDatabaseDriver() + "', " +
 							"'" + sysConfig.getDriverUrl() + "', '" + sysConfig.getJsonParams() + "', '" + sysConfig.getUserName() + "', '" + sysConfig.getUserPassword() + "','admin', now() , 'admin', now(), '" + sysConfig.getInnerIdx() + "');\n");
