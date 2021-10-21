@@ -1168,7 +1168,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                         "'" + tBusinessInterface.getOutParamSchema() + "', " + tBusinessInterface.getOutParamTemplateType() + ", '" + tBusinessInterface.getOutParamTemplate() + "', '" + tBusinessInterface.getOutParamFormatType() + "', " +
                         "'" + tBusinessInterface.getMockTemplate() + "', '" + tBusinessInterface.getMockStatus() + "', '" + tBusinessInterface.getStatus() + "', '" + tBusinessInterface.getExcErrStatus() + "', " +
                         "" + tBusinessInterface.getExcErrOrder() + ", " + tBusinessInterface.getMockIsUse() + ", 'admin', now() , 'admin', now() , " + tBusinessInterface.getAsyncFlag() + ", " + tBusinessInterface.getInterfaceSlowFlag() + "); \n");
-                sqlStringBuffer.append("END_OF_SQL");
+                sqlStringBuffer.append("END_OF_SQL\n");
             }
             List<TInterface> tInterfaces = sqlQueryFactory.select(qTInterface).from(qTInterface).where(qTInterface.id.in(interfaceIds)).fetch();
             for (TInterface tInterface : tInterfaces) {
@@ -1178,14 +1178,14 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                         "`OUT_PARAM_SCHEMA`, `OUT_PARAM_FORMAT_TYPE`) VALUES ('" + tInterface.getId() + "', '" + tInterface.getSysId() + "', '" + tInterface.getInterfaceName() + "', '" + tInterface.getTypeId() + "', " +
                         "'" + tInterface.getInterfaceUrl() + "', '" + tInterface.getInParamFormat() + "', '" + tInterface.getOutParamFormat() + "', '" + tInterface.getParamOutStatus() + "', '" + tInterface.getParamOutStatusSuccess() +
                         "', 'admin', now() , 'admin', now(), '" + tInterface.getInParamSchema() + "', '" + tInterface.getInParamFormatType() + "', '" + tInterface.getOutParamSchema() + "', '" + tInterface.getOutParamFormatType() + "');\n");
-                sqlStringBuffer.append("END_OF_SQL");
+                sqlStringBuffer.append("END_OF_SQL\n");
             }
             List<TInterfaceParam> tInterfaceParams = sqlQueryFactory.select(qTInterfaceParam).from(qTInterfaceParam).where(qTInterfaceParam.interfaceId.in(interfaceIds)).fetch();
             for (TInterfaceParam tInterfaceParam : tInterfaceParams) {
                 sqlStringBuffer.append("INSERT INTO `esb-plus3`.`t_interface_param` (`ID`, `PARAM_NAME`, `PARAM_INSTRUCTION`, `INTERFACE_ID`, `PARAM_TYPE`, `PARAM_LENGTH`, `PARAM_IN_OUT`, `CREATED_BY`, `CREATED_TIME`, " +
                         "`UPDATED_BY`, `UPDATED_TIME`) VALUES ('" + tInterfaceParam.getId() + "', '" + tInterfaceParam.getParamName() + "', '" + tInterfaceParam.getParamInstruction() + "', '" + tInterfaceParam.getInterfaceId() + "'," +
                         " '" + tInterfaceParam.getParamType() + "', " + tInterfaceParam.getParamLength() + ", '" + tInterfaceParam.getParamInOut() + "', 'admin', now() , 'admin', now());\n");
-                sqlStringBuffer.append("END_OF_SQL");
+                sqlStringBuffer.append("END_OF_SQL\n");
             }
             List<String> sysIds = new ArrayList<>();
             List<TSysConfig> tSysConfigs = sqlQueryFactory.select(qTSysConfig).from(qTSysConfig).where(qTSysConfig.id.in(sysConfigIds)).fetch();
@@ -1197,19 +1197,19 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                         sysConfig.getHospitalConfigs() + ", '" + sysConfig.getVersionId() + "', '" + sysConfig.getConnectionType() + "', '" + sysConfig.getAddressUrl() + "', '" + sysConfig.getEndpointUrl() + "', " +
                         "'" + sysConfig.getNamespaceUrl() + "', '" + sysConfig.getDatabaseName() + "', '" + sysConfig.getDatabaseUrl() + "', '" + sysConfig.getDatabaseType() + "', '" + sysConfig.getDatabaseDriver() + "', " +
                         "'" + sysConfig.getDriverUrl() + "', '" + sysConfig.getJsonParams() + "', '" + sysConfig.getUserName() + "', '" + sysConfig.getUserPassword() + "','admin', now() , 'admin', now(), '" + sysConfig.getInnerIdx() + "');\n");
-                sqlStringBuffer.append("END_OF_SQL");
+                sqlStringBuffer.append("END_OF_SQL\n");
             }
             List<TPlugin> tPlugins = sqlQueryFactory.select(qTPlugin).from(qTPlugin).where(qTPlugin.id.in(pluginIds)).fetch();
             for (TPlugin tPlugin : tPlugins) {
                 sqlStringBuffer.append("INSERT INTO `esb-plus3`.`t_plugin` (`ID`, `PLUGIN_NAME`, `PLUGIN_CODE`, `TYPE_ID`, `PLUGIN_INSTRUCTION`, `PLUGIN_CONTENT`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, `DEPENDENT_PATH`) " +
                         "VALUES ('" + tPlugin.getId() + "', '" + tPlugin.getPluginName() + "', '" + tPlugin.getPluginCode() + "', '" + tPlugin.getTypeId() + "', '" + tPlugin.getPluginInstruction() + "', '" + tPlugin.getPluginContent() + "', 'admin', now() , 'admin', now(), '" + tPlugin.getDependentPath() + "');\n");
-                sqlStringBuffer.append("END_OF_SQL");
+                sqlStringBuffer.append("END_OF_SQL\n");
             }
             List<TSys> tSyss = sqlQueryFactory.select(qTSys).from(qTSys).where(qTSys.id.in(sysIds)).fetch();
             for (TSys tSys : tSyss) {
                 sqlStringBuffer.append("INSERT INTO `esb-plus3`.`t_sys` (`ID`, `SYS_NAME`, `SYS_CODE`, `IS_VALID`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`) VALUES " +
                         "('" + tSys.getId() + "', '" + tSys.getSysName() + "', '" + tSys.getSysCode() + "', '" + tSys.getIsValid() + "', 'admin', now() , 'admin', now());\n");
-                sqlStringBuffer.append("END_OF_SQL");
+                sqlStringBuffer.append("END_OF_SQL\n");
             }
             List<String> driverIds = new ArrayList<>();
             List<TSysDriveLink> tSysDriveLinks = sqlQueryFactory.select(qTSysDriveLink).from(qTSysDriveLink).where(qTSysDriveLink.sysId.in(sysIds)).fetch();
@@ -1217,13 +1217,13 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 driverIds.add(tSysDriveLink.getDriveId());
                 sqlStringBuffer.append("INSERT INTO `esb-plus3`.`t_sys_drive_link` (`ID`, `SYS_ID`, `DRIVE_ID`, `DRIVE_ORDER`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`) VALUES " +
                         "('" + tSysDriveLink.getId() + "', '" + tSysDriveLink.getSysId() + "', '" + tSysDriveLink.getDriveId() + "', " + tSysDriveLink.getDriveOrder() + ", 'admin', now() , 'admin', now());\n");
-                sqlStringBuffer.append("END_OF_SQL");
+                sqlStringBuffer.append("END_OF_SQL\n");
             }
             List<TDrive> tDrives = sqlQueryFactory.select(qTDrive).from(qTDrive).where(qTDrive.id.in(driverIds)).fetch();
             for (TDrive tDrive : tDrives) {
                 sqlStringBuffer.append("INSERT INTO `esb-plus3`.`t_drive` (`ID`, `DRIVE_NAME`, `DRIVE_CODE`, `TYPE_ID`, `DRIVE_INSTRUCTION`, `DRIVE_CONTENT`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, `DRIVE_CALL_TYPE`, `DEPENDENT_PATH`) VALUES " +
                         "('" + tDrive.getId() + "', '" + tDrive.getDriveName() + "', '" + tDrive.getDriveCode() + "', '" + tDrive.getTypeId() + "', '" + tDrive.getDriveInstruction() + "', '" + tDrive.getDriveContent() + "', 'admin', now() , 'admin', now(), '" + tDrive.getDriveCallType() + "', '" + tDrive.getDependentPath() + "');\n");
-                sqlStringBuffer.append("END_OF_SQL");
+                sqlStringBuffer.append("END_OF_SQL\n");
             }
             List<String> hospitalIds = new ArrayList<>();
             List<TSysHospitalConfig> tSysHospitalConfigs = sqlQueryFactory.select(qTSysHospitalConfig).from(qTSysHospitalConfig).where(qTSysHospitalConfig.sysConfigId.in(sysConfigIds)).fetch();
@@ -1231,13 +1231,13 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 hospitalIds.add(tSysHospitalConfig.getHospitalId());
                 sqlStringBuffer.append("INSERT INTO `esb-plus3`.`t_sys_hospital_config` (`id`, `sys_config_id`, `hospital_id`, `hospital_code`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`) VALUES " +
                         "('" + tSysHospitalConfig.getId() + "', '" + tSysHospitalConfig.getSysConfigId() + "', '" + tSysHospitalConfig.getHospitalId() + "', '" + tSysHospitalConfig.getHospitalCode() + "', 'admin', now() , 'admin', now());\n");
-                sqlStringBuffer.append("END_OF_SQL");
+                sqlStringBuffer.append("END_OF_SQL\n");
             }
             List<THospital> tHospitals = sqlQueryFactory.select(qTHospital).from(qTHospital).where(qTHospital.id.in(hospitalIds)).fetch();
             for (THospital tHospital : tHospitals) {
                 sqlStringBuffer.append("INSERT INTO `esb-plus3`.`t_hospital` (`ID`, `HOSPITAL_NAME`, `STATUS`, `AREA_ID`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`) VALUES " +
                         "('" + tHospital.getId() + "', '" + tHospital.getHospitalName() + "', '" + tHospital.getStatus() + "', '" + tHospital.getAreaId() + "', 'admin', now() , 'admin', now());\n");
-                sqlStringBuffer.append("END_OF_SQL");
+                sqlStringBuffer.append("END_OF_SQL\n");
             }
         }
 
