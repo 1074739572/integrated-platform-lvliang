@@ -1285,24 +1285,28 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			for (MultipartFile file : sqlFiles) {
 				try{
 					//获取字符缓冲流
-					is = file.getInputStream();
-					bufferedReader = new BufferedReader(new InputStreamReader(is));
-					int l;
-					StringBuilder sql = new StringBuilder();
-					connection.setAutoCommit(false);
-					while ((l = bufferedReader.read()) != -1) {
-						sql.append((char) l);
-					}
-					//将sys_config表中的平台id以及项目id进行替换
-					sql=new StringBuilder(sql.toString().replace("'newProjectId'",projectId).replace("'newPlatformId'",platformId));
-					statement.addBatch(sql.toString());
-					//事务提交，整体成功或失败
-					statement.executeBatch();
-					connection.commit();
-					//清除SQL语句
-					statement.clearBatch();
-					insetNum++;
-					is.close();
+					is = new FileInputStream(new File("C:\\Users\\leiwang81\\Desktop\\导入.sql"));
+                    //StringBuilder sql = new StringBuilder();
+                    connection.setAutoCommit(false);
+                    int l;
+                    StringBuilder sql = new StringBuilder();
+                    while ((l = is.read()) != -1) {
+                        char read = (char) l;
+                        sql.append(read);
+                        if (read == ';') {
+							//将sys_config表中的平台id以及项目id进行替换
+                            statement.addBatch(sql.toString().replaceAll("'newProjectId'",projectId).replace("'newPlatformId'",platformId));
+                            //清除StringBuilder中的SQL语句
+                            sql.delete(0, sql.length());
+                        }
+                    }
+                    //事务提交，整体成功或失败
+                    statement.executeBatch();
+                    connection.commit();
+                    //清除SQL语句
+                    statement.clearBatch();
+                    insetNum++;
+                    is.close();
 				}catch (Exception e){
 					connection.rollback();
 					statement.clearBatch();
