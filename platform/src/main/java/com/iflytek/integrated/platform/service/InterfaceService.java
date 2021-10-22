@@ -1135,208 +1135,214 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	}
 
 	@ApiOperation(value = "导出选中的接口转换相关配置")
-	@GetMapping("/downloadInterfaceConfigs/{Ids}")
-	public void getSqlConfig(HttpServletResponse response,@ApiParam("接口Id")  @PathVariable String Ids) {
-		List<String> interfaceIds=new ArrayList<>();
-		List<String> sysConfigIds=new ArrayList<>();
-		List<String> pluginIds=new ArrayList<>();
-		String [] businessInterfaceIds=Ids.split(",");
+    @GetMapping("/downloadInterfaceConfigs/{Ids}")
+    public void getSqlConfig(HttpServletResponse response,@ApiParam("接口Id")  @PathVariable String Ids) {
+        List<String> interfaceIds = new ArrayList<>();
+        List<String> sysConfigIds = new ArrayList<>();
+        List<String> pluginIds = new ArrayList<>();
+        String[] businessInterfaceIds = Ids.split(",");
 
-		StringBuilder sqlStringBuffer = new StringBuilder();
-			for (String businessInterfaceId : businessInterfaceIds) {
-				List<String> requestInterfaceIds = sqlQueryFactory.select(qTBusinessInterface.requestInterfaceId).from(qTBusinessInterface)
-						.where(qTBusinessInterface.id.eq(businessInterfaceId)).fetch();
-				List<TBusinessInterface> tBusinessInterfaces = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
-						.where(qTBusinessInterface.requestInterfaceId.eq(requestInterfaceIds.get(0))).fetch();
-				for (TBusinessInterface tBusinessInterface : tBusinessInterfaces) {
+        StringBuilder sqlStringBuffer = new StringBuilder();
+        for (String businessInterfaceId : businessInterfaceIds) {
+            List<String> requestInterfaceIds = sqlQueryFactory.select(qTBusinessInterface.requestInterfaceId).from(qTBusinessInterface)
+                    .where(qTBusinessInterface.id.eq(businessInterfaceId)).fetch();
+            List<TBusinessInterface> tBusinessInterfaces = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
+                    .where(qTBusinessInterface.requestInterfaceId.eq(requestInterfaceIds.get(0))).fetch();
+            for (TBusinessInterface tBusinessInterface : tBusinessInterfaces) {
 
-					interfaceIds.add(tBusinessInterface.getRequestInterfaceId());//
-					sysConfigIds.add(tBusinessInterface.getRequestSysconfigId());
-					sysConfigIds.add(tBusinessInterface.getRequestedSysconfigId());
-					pluginIds.add(tBusinessInterface.getPluginId());
+                interfaceIds.add(tBusinessInterface.getRequestInterfaceId());//
+                sysConfigIds.add(tBusinessInterface.getRequestSysconfigId());
+                sysConfigIds.add(tBusinessInterface.getRequestedSysconfigId());
+                pluginIds.add(tBusinessInterface.getPluginId());
 
-					sqlStringBuffer.append("INSERT INTO `esb-plus3`.`t_business_interface` (`ID`, `REQUEST_SYSCONFIG_ID`, " +
-							"`REQUEST_INTERFACE_ID`, `REQUESTED_SYSCONFIG_ID`, `BUSINESS_INTERFACE_NAME`, `REQUEST_TYPE`, " +
-							"`REQUEST_CONSTANT`, `INTERFACE_TYPE`, `PLUGIN_ID`, `IN_PARAM_FORMAT`, `IN_PARAM_SCHEMA`, `IN_PARAM_TEMPLATE_TYPE`, " +
-							"`IN_PARAM_TEMPLATE`, `IN_PARAM_FORMAT_TYPE`, `OUT_PARAM_FORMAT`, `OUT_PARAM_SCHEMA`, `OUT_PARAM_TEMPLATE_TYPE`, " +
-							"`OUT_PARAM_TEMPLATE`, `OUT_PARAM_FORMAT_TYPE`, `MOCK_TEMPLATE`, `MOCK_STATUS`, `STATUS`, `EXC_ERR_STATUS`, " +
-							"`EXC_ERR_ORDER`, `MOCK_IS_USE`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, `ASYNC_FLAG`, " +
-							"`INTERFACE_SLOW_FLAG`) VALUES ('" + tBusinessInterface.getId() + "', '" + tBusinessInterface.getRequestSysconfigId() + "', '" + tBusinessInterface.getRequestInterfaceId() + "', " +
-							"'" + tBusinessInterface.getRequestedSysconfigId() + "', '" + tBusinessInterface.getBusinessInterfaceName() + "', '" + tBusinessInterface.getRequestType() + "', '" + tBusinessInterface.getRequestConstant() + "', " +
-							"'" + tBusinessInterface.getInterfaceType() + "', '" + tBusinessInterface.getPluginId() + "', '" + tBusinessInterface.getInParamFormat() + "', '" + tBusinessInterface.getInParamSchema() + "', " +
-							"" + tBusinessInterface.getInParamTemplateType() + ", '" + tBusinessInterface.getInParamTemplate() + "', '" + tBusinessInterface.getInParamFormatType() + "', '" + tBusinessInterface.getOutParamFormat() + "', " +
-							"'" + tBusinessInterface.getOutParamSchema() + "', " + tBusinessInterface.getOutParamTemplateType() + ", '" + tBusinessInterface.getOutParamTemplate() + "', '" + tBusinessInterface.getOutParamFormatType() + "', " +
-							"'" + tBusinessInterface.getMockTemplate() + "', '" + tBusinessInterface.getMockStatus() + "', '" + tBusinessInterface.getStatus() + "', '" + tBusinessInterface.getExcErrStatus() + "', " +
-							"" + tBusinessInterface.getExcErrOrder() + ", " + tBusinessInterface.getMockIsUse() + ", 'admin', now() , 'admin', now() , " + tBusinessInterface.getAsyncFlag() + ", " + tBusinessInterface.getInterfaceSlowFlag() + "); \n");
-				}
-				List<TInterface> tInterfaces=sqlQueryFactory.select(qTInterface).from(qTInterface).where(qTInterface.id.in(interfaceIds)).fetch();
-				for(TInterface tInterface:tInterfaces){
-					sqlStringBuffer.append("INSERT INTO `esb-plus3`.`t_interface` (`ID`, `SYS_ID`, `INTERFACE_NAME`, `TYPE_ID`, " +
-							"`INTERFACE_URL`, `IN_PARAM_FORMAT`, `OUT_PARAM_FORMAT`, `PARAM_OUT_STATUS`, `PARAM_OUT_STATUS_SUCCESS`," +
-							" `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, `IN_PARAM_SCHEMA`, `IN_PARAM_FORMAT_TYPE`, " +
-							"`OUT_PARAM_SCHEMA`, `OUT_PARAM_FORMAT_TYPE`) VALUES ('" + tInterface.getId() + "', '" + tInterface.getSysId() + "', '" + tInterface.getInterfaceName() + "', '" + tInterface.getTypeId() + "', " +
-							"'" + tInterface.getInterfaceUrl() + "', '" + tInterface.getInParamFormat() + "', '" + tInterface.getOutParamFormat() + "', '" + tInterface.getParamOutStatus() + "', '" + tInterface.getParamOutStatusSuccess() +
-							"', 'admin', now() , 'admin', now(), '" + tInterface.getInParamSchema() + "', '" + tInterface.getInParamFormatType() + "', '" + tInterface.getOutParamSchema() + "', '" + tInterface.getOutParamFormatType() + "');\n");
-				}
-				List<TInterfaceParam> tInterfaceParams=sqlQueryFactory.select(qTInterfaceParam).from(qTInterfaceParam).where(qTInterfaceParam.interfaceId.in(interfaceIds)).fetch();
-				for(TInterfaceParam tInterfaceParam:tInterfaceParams){
-					sqlStringBuffer.append("INSERT INTO `esb-plus3`.`t_interface_param` (`ID`, `PARAM_NAME`, `PARAM_INSTRUCTION`, `INTERFACE_ID`, `PARAM_TYPE`, `PARAM_LENGTH`, `PARAM_IN_OUT`, `CREATED_BY`, `CREATED_TIME`, " +
-							"`UPDATED_BY`, `UPDATED_TIME`) VALUES ('" + tInterfaceParam.getId() + "', '" + tInterfaceParam.getParamName() + "', '" + tInterfaceParam.getParamInstruction() + "', '" + tInterfaceParam.getInterfaceId() + "'," +
-							" '" + tInterfaceParam.getParamType() + "', " + tInterfaceParam.getParamLength() + ", '" + tInterfaceParam.getParamInOut() + "', 'admin', now() , 'admin', now());\n");
-				}
-				List<String> sysIds=new ArrayList<>();
-				List<TSysConfig> tSysConfigs=sqlQueryFactory.select(qTSysConfig).from(qTSysConfig).where(qTSysConfig.id.in(sysConfigIds)).fetch();
-				for(TSysConfig sysConfig:tSysConfigs){
-					sysIds.add(sysConfig.getSysId());
-					sqlStringBuffer.append("INSERT INTO `esb-plus3`.`t_sys_config` (`ID`, `PROJECT_ID`, `PLATFORM_ID`, `SYS_ID`, `SYS_CONFIG_TYPE`, `HOSPITAL_CONFIGS`, `VERSION_ID`, `CONNECTION_TYPE`, `ADDRESS_URL`, `ENDPOINT_URL`," +
-							" `NAMESPACE_URL`, `DATABASE_NAME`, `DATABASE_URL`, `DATABASE_TYPE`, `DATABASE_DRIVER`, `DRIVER_URL`, `JSON_PARAMS`, `USER_NAME`, `USER_PASSWORD`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, " +
-							"`INNER_IDX`) VALUES ('" + sysConfig.getId() + "', 'ProjectId', 'PlatformId', '" + sysConfig.getSysId() + "', " + sysConfig.getSysConfigType() + ", " +
-							sysConfig.getHospitalConfigs() + ", '" + sysConfig.getVersionId() + "', '" + sysConfig.getConnectionType() + "', '" + sysConfig.getAddressUrl() + "', '" + sysConfig.getEndpointUrl() + "', " +
-							"'" + sysConfig.getNamespaceUrl() + "', '" + sysConfig.getDatabaseName() + "', '" + sysConfig.getDatabaseUrl() + "', '" + sysConfig.getDatabaseType() + "', '" + sysConfig.getDatabaseDriver() + "', " +
-							"'" + sysConfig.getDriverUrl() + "', '" + sysConfig.getJsonParams() + "', '" + sysConfig.getUserName() + "', '" + sysConfig.getUserPassword() + "','admin', now() , 'admin', now(), '" + sysConfig.getInnerIdx() + "');\n");
-				}
-				List<TPlugin> tPlugins=sqlQueryFactory.select(qTPlugin).from(qTPlugin).where(qTPlugin.id.in(pluginIds)).fetch();
-				for(TPlugin tPlugin:tPlugins){
-					sqlStringBuffer.append("INSERT INTO `esb-plus3`.`t_plugin` (`ID`, `PLUGIN_NAME`, `PLUGIN_CODE`, `TYPE_ID`, `PLUGIN_INSTRUCTION`, `PLUGIN_CONTENT`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, `DEPENDENT_PATH`) " +
-							"VALUES ('" + tPlugin.getId() + "', '" + tPlugin.getPluginName() + "', '" + tPlugin.getPluginCode() + "', '" + tPlugin.getTypeId() + "', '" + tPlugin.getPluginInstruction() + "', '" + tPlugin.getPluginContent() + "', 'admin', now() , 'admin', now(), '" + tPlugin.getDependentPath() + "');\n");
-				}
-				List<TSys> tSyss=sqlQueryFactory.select(qTSys).from(qTSys).where(qTSys.id.in(sysIds)).fetch();
-				for(TSys tSys:tSyss){
-					sqlStringBuffer.append("INSERT INTO `esb-plus3`.`t_sys` (`ID`, `SYS_NAME`, `SYS_CODE`, `IS_VALID`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`) VALUES " +
-							"('" + tSys.getId() + "', '" + tSys.getSysName() + "', '" + tSys.getSysCode() + "', '" + tSys.getIsValid() + "', 'admin', now() , 'admin', now());\n");
-				}
-				List<String> driverIds=new ArrayList<>();
-				List<TSysDriveLink> tSysDriveLinks=sqlQueryFactory.select(qTSysDriveLink).from(qTSysDriveLink).where(qTSysDriveLink.sysId.in(sysIds)).fetch();
-				for(TSysDriveLink tSysDriveLink:tSysDriveLinks){
-					driverIds.add(tSysDriveLink.getDriveId());
-					sqlStringBuffer.append("INSERT INTO `esb-plus3`.`t_sys_drive_link` (`ID`, `SYS_ID`, `DRIVE_ID`, `DRIVE_ORDER`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`) VALUES " +
-							"('" + tSysDriveLink.getId() + "', '" + tSysDriveLink.getSysId() + "', '" + tSysDriveLink.getDriveId() + "', " + tSysDriveLink.getDriveOrder() + ", 'admin', now() , 'admin', now());\n");
-				}
-				List<TDrive> tDrives=sqlQueryFactory.select(qTDrive).from(qTDrive).where(qTDrive.id.in(driverIds)).fetch();
-				for(TDrive tDrive:tDrives){
-					sqlStringBuffer.append("INSERT INTO `esb-plus3`.`t_drive` (`ID`, `DRIVE_NAME`, `DRIVE_CODE`, `TYPE_ID`, `DRIVE_INSTRUCTION`, `DRIVE_CONTENT`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, `DRIVE_CALL_TYPE`, `DEPENDENT_PATH`) VALUES " +
-							"('" + tDrive.getId() + "', '" + tDrive.getDriveName() + "', '" + tDrive.getDriveCode() + "', '" + tDrive.getTypeId() + "', '" + tDrive.getDriveInstruction() + "', '" + tDrive.getDriveContent() + "', 'admin', now() , 'admin', now(), '" + tDrive.getDriveCallType() + "', '" + tDrive.getDependentPath() + "');\n");
-				}
-				List<String> hospitalIds=new ArrayList<>();
-				List<TSysHospitalConfig> tSysHospitalConfigs=sqlQueryFactory.select(qTSysHospitalConfig).from(qTSysHospitalConfig).where(qTSysHospitalConfig.sysConfigId.in(sysConfigIds)).fetch();
-				for(TSysHospitalConfig tSysHospitalConfig:tSysHospitalConfigs){
-					hospitalIds.add(tSysHospitalConfig.getHospitalId());
-					sqlStringBuffer.append("INSERT INTO `esb-plus3`.`t_sys_hospital_config` (`id`, `sys_config_id`, `hospital_id`, `hospital_code`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`) VALUES " +
-							"('" + tSysHospitalConfig.getId()+ "', '" + tSysHospitalConfig.getSysConfigId()+ "', '" + tSysHospitalConfig.getHospitalId()+ "', '" + tSysHospitalConfig.getHospitalCode()+ "', 'admin', now() , 'admin', now());\n");
-				}
-				List<THospital> tHospitals=sqlQueryFactory.select(qTHospital).from(qTHospital).where(qTHospital.id.in(hospitalIds)).fetch();
-				for(THospital tHospital:tHospitals){
-					sqlStringBuffer.append("INSERT INTO `esb-plus3`.`t_hospital` (`ID`, `HOSPITAL_NAME`, `STATUS`, `AREA_ID`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`) VALUES " +
-							"('" + tHospital.getId() + "', '" + tHospital.getHospitalName()+ "', '" + tHospital.getStatus() + "', '" + tHospital.getAreaId() + "', 'admin', now() , 'admin', now());\n");
-				}
-			}
+                sqlStringBuffer.append("INSERT INTO `t_business_interface` (`ID`, `REQUEST_SYSCONFIG_ID`, " +
+                        "`REQUEST_INTERFACE_ID`, `REQUESTED_SYSCONFIG_ID`, `BUSINESS_INTERFACE_NAME`, `REQUEST_TYPE`, " +
+                        "`REQUEST_CONSTANT`, `INTERFACE_TYPE`, `PLUGIN_ID`, `IN_PARAM_FORMAT`, `IN_PARAM_SCHEMA`, `IN_PARAM_TEMPLATE_TYPE`, " +
+                        "`IN_PARAM_TEMPLATE`, `IN_PARAM_FORMAT_TYPE`, `OUT_PARAM_FORMAT`, `OUT_PARAM_SCHEMA`, `OUT_PARAM_TEMPLATE_TYPE`, " +
+                        "`OUT_PARAM_TEMPLATE`, `OUT_PARAM_FORMAT_TYPE`, `MOCK_TEMPLATE`, `MOCK_STATUS`, `STATUS`, `EXC_ERR_STATUS`, " +
+                        "`EXC_ERR_ORDER`, `MOCK_IS_USE`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, `ASYNC_FLAG`, " +
+                        "`INTERFACE_SLOW_FLAG`) VALUES ('" + tBusinessInterface.getId() + "', '" + tBusinessInterface.getRequestSysconfigId() + "', '" + tBusinessInterface.getRequestInterfaceId() + "', " +
+                        "'" + tBusinessInterface.getRequestedSysconfigId() + "', '" + tBusinessInterface.getBusinessInterfaceName() + "', '" + tBusinessInterface.getRequestType() + "', '" + tBusinessInterface.getRequestConstant() + "', " +
+                        "'" + tBusinessInterface.getInterfaceType() + "', '" + tBusinessInterface.getPluginId() + "', '" + tBusinessInterface.getInParamFormat() + "', '" + tBusinessInterface.getInParamSchema() + "', " +
+                        "" + tBusinessInterface.getInParamTemplateType() + ", '" + tBusinessInterface.getInParamTemplate() + "', '" + tBusinessInterface.getInParamFormatType() + "', '" + tBusinessInterface.getOutParamFormat() + "', " +
+                        "'" + tBusinessInterface.getOutParamSchema() + "', " + tBusinessInterface.getOutParamTemplateType() + ", '" + tBusinessInterface.getOutParamTemplate() + "', '" + tBusinessInterface.getOutParamFormatType() + "', " +
+                        "'" + tBusinessInterface.getMockTemplate() + "', '" + tBusinessInterface.getMockStatus() + "', '" + tBusinessInterface.getStatus() + "', '" + tBusinessInterface.getExcErrStatus() + "', " +
+                        "" + tBusinessInterface.getExcErrOrder() + ", " + tBusinessInterface.getMockIsUse() + ", 'admin', now() , 'admin', now() , " + tBusinessInterface.getAsyncFlag() + ", " + tBusinessInterface.getInterfaceSlowFlag() + "); \n");
+                sqlStringBuffer.append("END_OF_SQL\n");
+            }
+            List<TInterface> tInterfaces = sqlQueryFactory.select(qTInterface).from(qTInterface).where(qTInterface.id.in(interfaceIds)).fetch();
+            for (TInterface tInterface : tInterfaces) {
+                sqlStringBuffer.append("INSERT INTO `t_interface` (`ID`, `SYS_ID`, `INTERFACE_NAME`, `TYPE_ID`, " +
+                        "`INTERFACE_URL`, `IN_PARAM_FORMAT`, `OUT_PARAM_FORMAT`, `PARAM_OUT_STATUS`, `PARAM_OUT_STATUS_SUCCESS`," +
+                        " `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, `IN_PARAM_SCHEMA`, `IN_PARAM_FORMAT_TYPE`, " +
+                        "`OUT_PARAM_SCHEMA`, `OUT_PARAM_FORMAT_TYPE`) VALUES ('" + tInterface.getId() + "', '" + tInterface.getSysId() + "', '" + tInterface.getInterfaceName() + "', '" + tInterface.getTypeId() + "', " +
+                        "'" + tInterface.getInterfaceUrl() + "', '" + tInterface.getInParamFormat() + "', '" + tInterface.getOutParamFormat() + "', '" + tInterface.getParamOutStatus() + "', '" + tInterface.getParamOutStatusSuccess() +
+                        "', 'admin', now() , 'admin', now(), '" + tInterface.getInParamSchema() + "', '" + tInterface.getInParamFormatType() + "', '" + tInterface.getOutParamSchema() + "', '" + tInterface.getOutParamFormatType() + "');\n");
+                sqlStringBuffer.append("END_OF_SQL\n");
+            }
+            List<TInterfaceParam> tInterfaceParams = sqlQueryFactory.select(qTInterfaceParam).from(qTInterfaceParam).where(qTInterfaceParam.interfaceId.in(interfaceIds)).fetch();
+            for (TInterfaceParam tInterfaceParam : tInterfaceParams) {
+                sqlStringBuffer.append("INSERT INTO `t_interface_param` (`ID`, `PARAM_NAME`, `PARAM_INSTRUCTION`, `INTERFACE_ID`, `PARAM_TYPE`, `PARAM_LENGTH`, `PARAM_IN_OUT`, `CREATED_BY`, `CREATED_TIME`, " +
+                        "`UPDATED_BY`, `UPDATED_TIME`) VALUES ('" + tInterfaceParam.getId() + "', '" + tInterfaceParam.getParamName() + "', '" + tInterfaceParam.getParamInstruction() + "', '" + tInterfaceParam.getInterfaceId() + "'," +
+                        " '" + tInterfaceParam.getParamType() + "', " + tInterfaceParam.getParamLength() + ", '" + tInterfaceParam.getParamInOut() + "', 'admin', now() , 'admin', now());\n");
+                sqlStringBuffer.append("END_OF_SQL\n");
+            }
+            List<String> sysIds = new ArrayList<>();
+            List<TSysConfig> tSysConfigs = sqlQueryFactory.select(qTSysConfig).from(qTSysConfig).where(qTSysConfig.id.in(sysConfigIds)).fetch();
+            for (TSysConfig sysConfig : tSysConfigs) {
+                sysIds.add(sysConfig.getSysId());
+                sqlStringBuffer.append("INSERT INTO `t_sys_config` (`ID`, `PROJECT_ID`, `PLATFORM_ID`, `SYS_ID`, `SYS_CONFIG_TYPE`, `HOSPITAL_CONFIGS`, `VERSION_ID`, `CONNECTION_TYPE`, `ADDRESS_URL`, `ENDPOINT_URL`," +
+                        " `NAMESPACE_URL`, `DATABASE_NAME`, `DATABASE_URL`, `DATABASE_TYPE`, `DATABASE_DRIVER`, `DRIVER_URL`, `JSON_PARAMS`, `USER_NAME`, `USER_PASSWORD`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, " +
+                        "`INNER_IDX`) VALUES ('" + sysConfig.getId() + "', 'newProjectId', 'newPlatformId', '" + sysConfig.getSysId() + "', " + sysConfig.getSysConfigType() + ", " +
+                        sysConfig.getHospitalConfigs() + ", '" + sysConfig.getVersionId() + "', '" + sysConfig.getConnectionType() + "', '" + sysConfig.getAddressUrl() + "', '" + sysConfig.getEndpointUrl() + "', " +
+                        "'" + sysConfig.getNamespaceUrl() + "', '" + sysConfig.getDatabaseName() + "', '" + sysConfig.getDatabaseUrl() + "', '" + sysConfig.getDatabaseType() + "', '" + sysConfig.getDatabaseDriver() + "', " +
+                        "'" + sysConfig.getDriverUrl() + "', '" + sysConfig.getJsonParams() + "', '" + sysConfig.getUserName() + "', '" + sysConfig.getUserPassword() + "','admin', now() , 'admin', now(), '" + sysConfig.getInnerIdx() + "');\n");
+                sqlStringBuffer.append("END_OF_SQL\n");
+            }
+            List<TPlugin> tPlugins = sqlQueryFactory.select(qTPlugin).from(qTPlugin).where(qTPlugin.id.in(pluginIds)).fetch();
+            for (TPlugin tPlugin : tPlugins) {
+                sqlStringBuffer.append("INSERT INTO `t_plugin` (`ID`, `PLUGIN_NAME`, `PLUGIN_CODE`, `TYPE_ID`, `PLUGIN_INSTRUCTION`, `PLUGIN_CONTENT`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, `DEPENDENT_PATH`) " +
+                        "VALUES ('" + tPlugin.getId() + "', '" + tPlugin.getPluginName() + "', '" + tPlugin.getPluginCode() + "', '" + tPlugin.getTypeId() + "', '" + tPlugin.getPluginInstruction() + "', '" + tPlugin.getPluginContent() + "', 'admin', now() , 'admin', now(), '" + tPlugin.getDependentPath() + "');\n");
+                sqlStringBuffer.append("END_OF_SQL\n");
+            }
+            List<TSys> tSyss = sqlQueryFactory.select(qTSys).from(qTSys).where(qTSys.id.in(sysIds)).fetch();
+            for (TSys tSys : tSyss) {
+                sqlStringBuffer.append("INSERT INTO `t_sys` (`ID`, `SYS_NAME`, `SYS_CODE`, `IS_VALID`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`) VALUES " +
+                        "('" + tSys.getId() + "', '" + tSys.getSysName() + "', '" + tSys.getSysCode() + "', '" + tSys.getIsValid() + "', 'admin', now() , 'admin', now());\n");
+                sqlStringBuffer.append("END_OF_SQL\n");
+            }
+            List<String> driverIds = new ArrayList<>();
+            List<TSysDriveLink> tSysDriveLinks = sqlQueryFactory.select(qTSysDriveLink).from(qTSysDriveLink).where(qTSysDriveLink.sysId.in(sysIds)).fetch();
+            for (TSysDriveLink tSysDriveLink : tSysDriveLinks) {
+                driverIds.add(tSysDriveLink.getDriveId());
+                sqlStringBuffer.append("INSERT INTO `t_sys_drive_link` (`ID`, `SYS_ID`, `DRIVE_ID`, `DRIVE_ORDER`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`) VALUES " +
+                        "('" + tSysDriveLink.getId() + "', '" + tSysDriveLink.getSysId() + "', '" + tSysDriveLink.getDriveId() + "', " + tSysDriveLink.getDriveOrder() + ", 'admin', now() , 'admin', now());\n");
+                sqlStringBuffer.append("END_OF_SQL\n");
+            }
+            List<TDrive> tDrives = sqlQueryFactory.select(qTDrive).from(qTDrive).where(qTDrive.id.in(driverIds)).fetch();
+            for (TDrive tDrive : tDrives) {
+                sqlStringBuffer.append("INSERT INTO `t_drive` (`ID`, `DRIVE_NAME`, `DRIVE_CODE`, `TYPE_ID`, `DRIVE_INSTRUCTION`, `DRIVE_CONTENT`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, `DRIVE_CALL_TYPE`, `DEPENDENT_PATH`) VALUES " +
+                        "('" + tDrive.getId() + "', '" + tDrive.getDriveName() + "', '" + tDrive.getDriveCode() + "', '" + tDrive.getTypeId() + "', '" + tDrive.getDriveInstruction() + "', '" + tDrive.getDriveContent() + "', 'admin', now() , 'admin', now(), '" + tDrive.getDriveCallType() + "', '" + tDrive.getDependentPath() + "');\n");
+                sqlStringBuffer.append("END_OF_SQL\n");
+            }
+            List<String> hospitalIds = new ArrayList<>();
+            List<TSysHospitalConfig> tSysHospitalConfigs = sqlQueryFactory.select(qTSysHospitalConfig).from(qTSysHospitalConfig).where(qTSysHospitalConfig.sysConfigId.in(sysConfigIds)).fetch();
+            for (TSysHospitalConfig tSysHospitalConfig : tSysHospitalConfigs) {
+                hospitalIds.add(tSysHospitalConfig.getHospitalId());
+                sqlStringBuffer.append("INSERT INTO `t_sys_hospital_config` (`id`, `sys_config_id`, `hospital_id`, `hospital_code`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`) VALUES " +
+                        "('" + tSysHospitalConfig.getId() + "', '" + tSysHospitalConfig.getSysConfigId() + "', '" + tSysHospitalConfig.getHospitalId() + "', '" + tSysHospitalConfig.getHospitalCode() + "', 'admin', now() , 'admin', now());\n");
+                sqlStringBuffer.append("END_OF_SQL\n");
+            }
+            List<THospital> tHospitals = sqlQueryFactory.select(qTHospital).from(qTHospital).where(qTHospital.id.in(hospitalIds)).fetch();
+            for (THospital tHospital : tHospitals) {
+                sqlStringBuffer.append("INSERT INTO `t_hospital` (`ID`, `HOSPITAL_NAME`, `STATUS`, `AREA_ID`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`) VALUES " +
+                        "('" + tHospital.getId() + "', '" + tHospital.getHospitalName() + "', '" + tHospital.getStatus() + "', '" + tHospital.getAreaId() + "', 'admin', now() , 'admin', now());\n");
+                sqlStringBuffer.append("END_OF_SQL\n");
+            }
+        }
 
 
-		String dateStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-		String sqlName = "interface_" + dateStr + ".sql";
-		try {
-			response.setContentType("application/x-msdownload");
-			response.setHeader("content-disposition", "attachment;filename=" + URLEncoder.encode("interface_" + dateStr + ".zip", "utf-8"));
+        String dateStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        String sqlName = "interface_" + dateStr + ".sql";
+        try {
+            response.setContentType("application/x-msdownload");
+            response.setHeader("content-disposition", "attachment;filename=" + URLEncoder.encode("interface_" + dateStr + ".zip", "utf-8"));
 
-			ZipOutputStream zos = new ZipOutputStream(response.getOutputStream());
-			BufferedOutputStream bos = new BufferedOutputStream(zos);
+            ZipOutputStream zos = new ZipOutputStream(response.getOutputStream());
+            BufferedOutputStream bos = new BufferedOutputStream(zos);
 
-			String fileName = sqlName; // 每个zip文件名
-			byte[] file = sqlStringBuffer.toString().getBytes(StandardCharsets.UTF_8); // 这个zip文件的字节
+            String fileName = sqlName; // 每个zip文件名
+            byte[] file = sqlStringBuffer.toString().getBytes(StandardCharsets.UTF_8); // 这个zip文件的字节
 
-			BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(file));
-			zos.putNextEntry(new ZipEntry(fileName));
+            BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(file));
+            zos.putNextEntry(new ZipEntry(fileName));
 
-			int len = 0;
-			byte[] buf = new byte[10 * 1024];
-			while ((len = bis.read(buf, 0, buf.length)) != -1) {
-				bos.write(buf, 0, len);
-			}
-			bis.close();
-			bos.flush();
-			bos.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+            int len = 0;
+            byte[] buf = new byte[10 * 1024];
+            while ((len = bis.read(buf, 0, buf.length)) != -1) {
+                bos.write(buf, 0, len);
+            }
+            bis.close();
+            bos.flush();
+            bos.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 	@ApiOperation(value = "上传接口转换配sql文件")
-	@PostMapping(path = "/uploadInterFaceSql/{platformId}/{projectId}")
-	public ResultDto<String> uploadEtlTpls(@PathVariable String platformId, @PathVariable String projectId,@RequestParam("sqlFiles") MultipartFile[] sqlFiles) {
-		// 校验是否获取到登录用户
-		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-		if (org.apache.commons.lang3.StringUtils.isBlank(loginUserName)) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
-		}
-		//获取数据库连接
-		Connection connection = sqlQueryFactory.getConnection();
-		Statement statement=null;
-		BufferedReader bufferedReader = null;
-		StringBuilder message=new StringBuilder();
-		try {
-			statement = connection.createStatement();
-			//判断是否获取到文件
-			if (sqlFiles == null || sqlFiles.length == 0) {
-				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到上传文件!", "没有获取到上传文件!");
-			}
-			//sql分批sql语句
-			InputStream is=null;
-			int insetNum = 0;
-			for (MultipartFile file : sqlFiles) {
-				try{
-					//获取字符缓冲流
-					is = file.getInputStream();
-					bufferedReader = new BufferedReader(new InputStreamReader(is));
-					int l;
-					StringBuilder sql = new StringBuilder();
-					connection.setAutoCommit(false);
-					while ((l = bufferedReader.read()) != -1) {
-						sql.append((char) l);
-					}
-					//将sys_config表中的平台id以及项目id进行替换
-					sql=new StringBuilder(sql.toString().replace("'newProjectId'",projectId).replace("'newPlatformId'",platformId));
-					statement.addBatch(sql.toString());
-					//事务提交，整体成功或失败
-					statement.executeBatch();
-					connection.commit();
-					//清除SQL语句
-					statement.clearBatch();
-					insetNum++;
-					is.close();
-				}catch (Exception e){
-					connection.rollback();
-					statement.clearBatch();
-					if(is!=null)
-					is.close();
-					message.append(e.getMessage());
-				}
-			}
-			if (insetNum==sqlFiles.length) {
-				return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "sql脚本全部执行成功", insetNum+"");
-			} else {
-				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "sql脚本部分执行错误,"+insetNum+"条成功",message.toString());
-			}
-		} catch (Exception e) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "执行sql脚本失败", e.getLocalizedMessage());
-		}finally {
-			if (bufferedReader != null) {
-				try {
-					bufferedReader.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-			try{
-				if (connection != null) {
-					connection.close();
-				}
-				if (statement != null) {
-					statement.close();
-				}
-			}catch (SQLException sqlException){
-				sqlException.printStackTrace();
-			}
-		}
-	}
+    @PostMapping(path = "/uploadInterFaceSql/{platformId}/{projectId}")
+    public ResultDto<String> uploadEtlTpls(@PathVariable String platformId, @PathVariable String projectId,@RequestParam("sqlFiles") MultipartFile[] sqlFiles) {
+         //校验是否获取到登录用户
+        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
+        if (org.apache.commons.lang3.StringUtils.isBlank(loginUserName)) {
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+        }
+        //获取数据库连接
+        Connection connection = sqlQueryFactory.getConnection();
+        Statement statement=null;
+        StringBuilder message=new StringBuilder();
+        try {
+            statement = connection.createStatement();
+            //判断是否获取到文件
+            if (sqlFiles == null || sqlFiles.length == 0) {
+                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到上传文件!", "没有获取到上传文件!");
+            }
+            //sql分批sql语句
+            InputStream is=null;
+            int insetNum = 0;
+            for (MultipartFile file : sqlFiles) {
+                try{
+                    //获取字符缓冲流
+                    is =file.getInputStream();
+                    int len;
+                    StringBuilder sql = new StringBuilder();
+                    connection.setAutoCommit(false);//不自动提交
+                    byte [] bytes=new byte[1024];
+                    while ((len = is.read(bytes)) != -1) {
+                        sql.append(new String(bytes,0,len));
+                    }
+                    //将sys_config表中的平台id以及项目id进行替换
+                    sql=new StringBuilder(sql.toString().replaceAll("'newProjectId'",projectId).replace("'newPlatformId'",platformId));
+                    String [] sqls=sql.toString().split("END_OF_SQL");
+                    for(String str:sqls){
+                        if(str.trim().startsWith("INSERT"))
+                            statement.addBatch(str);
+                    }
+                    //事务提交，整体成功或失败
+                    statement.executeBatch();
+                    connection.commit();
+                    //清除SQL语句
+                    statement.clearBatch();
+                    insetNum++;
+                    is.close();
+                }catch (Exception e){
+                    connection.rollback();
+                    statement.clearBatch();
+                    if(is!=null)
+                        is.close();
+                    message.append(e.getMessage());
+                }
+            }
+            if (insetNum==sqlFiles.length) {
+                return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "sql脚本全部执行成功", insetNum+"");
+            } else {
+                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "sql脚本部分执行错误"+message,insetNum+"");
+            }
+        } catch (Exception e) {
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "执行sql脚本失败", e.getLocalizedMessage());
+        }finally {
+            try{
+                if (connection != null) {
+                    connection.close();
+                }
+                if (statement != null) {
+                    statement.close();
+                }
+            }catch (SQLException sqlException){
+                sqlException.printStackTrace();
+            }
+        }
+    }
 
 }
