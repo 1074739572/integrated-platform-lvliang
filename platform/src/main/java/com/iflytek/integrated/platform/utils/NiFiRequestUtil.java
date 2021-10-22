@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.crypto.IllegalBlockSizeException;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.nifi.api.toolkit.ApiClient;
@@ -283,8 +285,10 @@ public class NiFiRequestUtil {
 				client.setVerifyingSsl(false);
 //				if (serverUrl.startsWith("https")) {
 					if(StringUtils.isNotBlank(userName) && StringUtils.isNotBlank(password)) {
-						if(Base64.isBase64(password)) {
+						try {
 							password = AesUtil.decrypt(password);
+						}catch(IllegalBlockSizeException de) {
+							logger.error("解密etl服务器密码失败，将使用原配置密码："+password);
 						}
 						String token = api.createAccessToken(userName, password);
 						client.setAccessToken(token);
@@ -366,8 +370,10 @@ public class NiFiRequestUtil {
 				client.setVerifyingSsl(false);
 //				if (serverUrl.startsWith("https")) {
 					if(StringUtils.isNotBlank(userName) && StringUtils.isNotBlank(password)) {
-						if(Base64.isBase64(password)) {
+						try {
 							password = AesUtil.decrypt(password);
+						}catch(IllegalBlockSizeException de) {
+							logger.error("解密etl服务器密码失败，将使用原配置密码："+password);
 						}
 						String token = api.createAccessToken(userName, password);
 						client.setAccessToken(token);

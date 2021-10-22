@@ -49,6 +49,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.crypto.IllegalBlockSizeException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
@@ -320,8 +321,10 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 				client.setVerifyingSsl(false);
 //				if (serverUrl.startsWith("https")) {
 					if(StringUtils.isNotBlank(userName) && StringUtils.isNotBlank(password)) {
-						if(Base64.isBase64(password)) {
+						try {
 							password = AesUtil.decrypt(password);
+						}catch(IllegalBlockSizeException de) {
+							logger.error("解密etl服务器密码失败，将使用原配置密码："+password);
 						}
 						String token = api.createAccessToken(userName, password);
 						client.setAccessToken(token);
@@ -439,8 +442,10 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 				client.setVerifyingSsl(false);
 //				if (serverUrl.startsWith("https")) {
 					if(StringUtils.isNotBlank(userName) && StringUtils.isNotBlank(password)) {
-						if(Base64.isBase64(password)) {
+						try {
 							password = AesUtil.decrypt(password);
+						}catch(IllegalBlockSizeException de) {
+							logger.error("解密etl服务器密码失败，将使用原配置密码："+password);
 						}
 						String token = api.createAccessToken(userName, password);
 						client.setAccessToken(token);
