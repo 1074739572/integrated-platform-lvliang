@@ -325,6 +325,9 @@ public class NiFiRequestUtil {
 	public String getWsServiceUrlWithAuth() {
 		return wsdlServiceUrlWithAuth;
 	}
+	public String getInterfaceDebugWithAuth() {
+		return interfaceDebugWithAuth;
+	}
 	
 	public void deleteNifiEtlFlow(TPlatform platform , String tEtlGroupId , String parentGroupId) throws Exception {
 		if (platform != null) {
