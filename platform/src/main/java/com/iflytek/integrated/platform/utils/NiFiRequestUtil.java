@@ -1,6 +1,5 @@
 package com.iflytek.integrated.platform.utils;
 
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,7 +8,6 @@ import java.util.Map;
 
 import javax.crypto.IllegalBlockSizeException;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.nifi.api.toolkit.ApiClient;
 import org.apache.nifi.api.toolkit.ApiException;
