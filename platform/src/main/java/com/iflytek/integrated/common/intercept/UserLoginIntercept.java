@@ -40,22 +40,22 @@ public class UserLoginIntercept extends HandlerInterceptorAdapter {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception{
         try {
-            String authHeader = request.getHeader(TOKEN_HEADER);
-            if (StringUtils.isBlank(authHeader) || !authHeader.startsWith(TOKEN_PREFIX)) {
-                throw new Exception("当前用户没有登录");
-            }
-
-            String token = authHeader.substring(7);
-
-            String name = (String)JwtTokenUtils.getUsername(token);
-            if(!username.equals(name)){
-                throw new Exception("访问token无效");
-            }
-            LOGIN_USER.setName(username);
-
-            if(JwtTokenUtils.isExpiration(token)){
-                throw new Exception("访问token无效");
-            }
+//            String authHeader = request.getHeader(TOKEN_HEADER);
+//            if (StringUtils.isBlank(authHeader) || !authHeader.startsWith(TOKEN_PREFIX)) {
+//                throw new Exception("当前用户没有登录");
+//            }
+//
+//            String token = authHeader.substring(7);
+//
+//            String name = (String)JwtTokenUtils.getUsername(token);
+//            if(!username.equals(name)){
+//                throw new Exception("访问token无效");
+//            }
+//            LOGIN_USER.setName(username);
+//
+//            if(JwtTokenUtils.isExpiration(token)){
+//                throw new Exception("访问token无效");
+//            }
 
             //获取请求参数中的用户信息
             Map req = request.getParameterMap();

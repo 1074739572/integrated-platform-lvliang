@@ -1,8 +1,11 @@
 package com.iflytek.integrated.platform.utils;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,9 +18,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.iflytek.integrated.common.dto.HttpResult;
+import com.iflytek.integrated.common.utils.HttpClientUtil;
 import com.iflytek.integrated.common.utils.JackSonUtils;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.ParamsDto;
+import com.iflytek.integrated.platform.service.InterfaceService;
 import com.predic8.wsdl.Binding;
 import com.predic8.wsdl.Definitions;
 import com.predic8.wsdl.Port;
@@ -27,11 +33,18 @@ import com.predic8.wstool.creator.RequestTemplateCreator;
 import com.predic8.wstool.creator.SOARequestCreator;
 
 import groovy.xml.MarkupBuilder;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author czzhan 公用方法
  */
+@Slf4j
 public class PlatformUtil {
+	
+	public static final Map<String , String> headerParams = new HashMap<>();
+	static {
+		headerParams.put("Accept", "*/*");
+	}
 
 	/**
 	 * 获取模糊查询
@@ -183,16 +196,36 @@ public class PlatformUtil {
 		return results;
 	}
 
-	public static String invokeWsService(String wsdlUrl, String methodName, String funCode, String params , Map<String , String> headerMap) {
+	public static String invokeWsService(String wsdlUrl, String methodName, String funCode, String params , Map<String , String> headerMap){
 		params = "<![CDATA[" + params + "]]>";
 		WSDLParser parser = new WSDLParser();
-		Definitions wsdl = parser.parse(wsdlUrl);
+		if(headerMap!= null) {
+			headerMap.putAll(headerParams);
+		}
+		Definitions wsdl = null;
+		if(wsdlUrl.startsWith("https")) {
+			HttpResult result = null;
+			try {
+				result = HttpClientUtil.doGet(wsdlUrl, headerMap, null);
+				try (InputStream is = new ByteArrayInputStream(result.getContent().getBytes())){
+					wsdl = parser.parse(is);
+				}catch(Exception e) {
+					log.error("https协议调用webservice接口解析wsdl文件异常" , e);
+					return "https调用webservice接口解析wsdl文件异常:" + e.getLocalizedMessage();
+				}
+			}catch(Exception e1) {
+				log.error("https协议获取wsdl文件内容异常" , e1);
+				return "https协议获取wsdl文件内容异常:" + e1.getLocalizedMessage();
+			}
+		}else {
+			wsdl = parser.parse(wsdlUrl);
+		}
 		StringWriter writer = new StringWriter();
 		SOARequestCreator creator = new SOARequestCreator(wsdl, new RequestTemplateCreator(),
 				new MarkupBuilder(writer));
 		String[] mixedOpName = methodName.split("\\|");
 		if (mixedOpName.length != 3) {
-			return "";
+			return "传入方法名参数[" + methodName + "]不正确！";
 		}
 		String opName = mixedOpName[0];
 		String bindingName = mixedOpName[1];
@@ -204,8 +237,13 @@ public class PlatformUtil {
 
 		soapTpl = soapTpl.replaceFirst("\\?XXX\\?", funCode);
 		soapTpl = soapTpl.replaceFirst("\\?XXX\\?", params);
-
-		String responseStr = HttpClientCallSoapUtil.doPostSoap1_1(wsdlUrl, soapTpl, opName , headerMap);
+		String responseStr = "";
+		try {
+			responseStr = HttpClientCallSoapUtil.doPostSoap1_1(wsdlUrl, soapTpl, opName , headerMap);
+		}catch(Exception e ) {
+			log.error("发起webservice接口调用请求异常" , e);
+			return "发起webservice接口调用请求异常" + e.getLocalizedMessage();
+		}
 		return responseStr;
 	}
 	

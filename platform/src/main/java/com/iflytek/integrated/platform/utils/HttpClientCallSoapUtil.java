@@ -1,17 +1,32 @@
 package com.iflytek.integrated.platform.utils;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.Objects;
-import java.util.Set;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.ParseException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 
@@ -36,35 +51,58 @@ public class HttpClientCallSoapUtil {
 	 * @param soapXml
 	 * @param soapAction
 	 * @return
+	 * @throws NoSuchAlgorithmException 
+	 * @throws IOException 
+	 * @throws ParseException 
+	 * @throws KeyManagementException 
 	 */
-	public static String doPostSoap1_1(String postUrl, String soapXml, String soapAction , Map<String , String> headerMap) {
+	public static String doPostSoap1_1(String postUrl, String soapXml, String soapAction , Map<String , String> headerMap) throws NoSuchAlgorithmException, ParseException, IOException, KeyManagementException {
 		String retStr = "";
 		// 创建HttpClientBuilder
 		HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
+		if(postUrl.startsWith("https")) {
+			SSLContext ctx = SSLContext.getInstance("TLS");
+	        X509TrustManager tm = new X509TrustManager() {
+	                @Override
+	                public void checkClientTrusted(X509Certificate[] chain,
+	                        String authType) throws CertificateException {
+	                }
+	                @Override
+	                public void checkServerTrusted(X509Certificate[] chain,
+	                        String authType) throws CertificateException {
+	                }
+	                @Override
+	                public X509Certificate[] getAcceptedIssuers() {
+	                    return null;
+	                }
+	        };
+	        ctx.init(null, new TrustManager[]{tm}, null);
+			httpClientBuilder.setSSLContext(ctx);
+			httpClientBuilder.setSSLHostnameVerifier((hostName, sslSession) -> {
+				   return true; // 证书校验通过
+			});
+		}
 		// HttpClient
 		CloseableHttpClient closeableHttpClient = httpClientBuilder.build();
 		HttpPost httpPost = new HttpPost(postUrl);
 		// 设置请求和传输超时时间
-		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(socketTimeout)
+		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(socketTimeout).setAuthenticationEnabled(true)
 				.setConnectionRequestTimeout(socketTimeout)
 				.setConnectTimeout(connectTimeout).build();
 		httpPost.setConfig(requestConfig);
-		try {
-			httpPost.setHeader("Content-Type", "text/xml;charset=UTF-8");
-			httpPost.setHeader("SOAPAction", soapAction);
-			packageHeaders(httpPost , headerMap);
-			StringEntity data = new StringEntity(soapXml, Charset.forName("UTF-8"));
-			httpPost.setEntity(data);
-			CloseableHttpResponse response = closeableHttpClient.execute(httpPost);
-			HttpEntity httpEntity = response.getEntity();
-			if (httpEntity != null) {
-				// 打印响应内容
-				retStr = EntityUtils.toString(httpEntity, "UTF-8");
-			}
-			// 释放资源
-			closeableHttpClient.close();
-		} catch (Exception e) {
+		httpPost.setHeader("Content-Type", "text/xml;charset=UTF-8");
+		httpPost.setHeader("SOAPAction", soapAction);
+		packageHeaders(httpPost , headerMap);
+		StringEntity data = new StringEntity(soapXml, Charset.forName("UTF-8"));
+		httpPost.setEntity(data);
+		CloseableHttpResponse response = closeableHttpClient.execute(httpPost);
+		HttpEntity httpEntity = response.getEntity();
+		if (httpEntity != null) {
+			// 打印响应内容
+			retStr = EntityUtils.toString(httpEntity, "UTF-8");
 		}
+		// 释放资源
+		closeableHttpClient.close();
 		return retStr;
 	}
 
@@ -105,4 +143,5 @@ public class HttpClientCallSoapUtil {
 		}
 		return retStr;
 	}
+	
 }
