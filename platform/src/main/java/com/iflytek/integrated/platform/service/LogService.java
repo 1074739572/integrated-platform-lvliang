@@ -431,7 +431,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		Map<String , String> headerMap = new HashMap<>();
 		String loginUrlPrefix = niFiRequestUtil.getInterfaceDebugWithAuth();
 		if("1".equals(authFlag)) {
-			headerMap.putAll(niFiRequestUtil.interfaceAuthLogin(loginUrlPrefix));
+			headerMap.putAll(niFiRequestUtil.interfaceAuthLogin(loginUrlPrefix , false));
 		}
 
 		String[] idArrays = ids.split(",");

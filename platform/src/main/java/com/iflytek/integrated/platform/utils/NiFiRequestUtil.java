@@ -97,9 +97,13 @@ public class NiFiRequestUtil {
 	
 	private static final Logger logger = LoggerFactory.getLogger(NiFiRequestUtil.class);
 	
-	private static volatile String authHeaderName = "";
+	private static volatile String restAuthHeaderName = "";
 	
-	private static final String tokenCacheKey = "integrated:nifiapi:token";
+	private static volatile String wsAuthHeaderName = "";
+	
+	private static final String restTokenCacheKey = "integrated:restapi:token";
+	
+	private static final String wsTokenCacheKey = "integrated:wsapi:token";
 	
 	private static final Map<String , Object> loginMap = new HashMap<String , Object>();
 	
@@ -273,11 +277,11 @@ public class NiFiRequestUtil {
 		}
 	}
 	
-	public Map<String , String> interfaceAuthLogin(String loginUrl) {
+	public Map<String , String> interfaceAuthLogin(String loginUrl , boolean isws) {
 		Map<String , String> headerMap = new HashMap<>();
 		try {
-			Object cachetoken = redisUtil.get(tokenCacheKey);
-			if(cachetoken == null || StringUtils.isBlank(authHeaderName)) {
+			Object cachetoken = redisUtil.get(isws? wsTokenCacheKey : restTokenCacheKey);
+			if(cachetoken == null || (isws ? StringUtils.isBlank(wsAuthHeaderName) :StringUtils.isBlank(restAuthHeaderName))) {
 				HttpResult httpResult = HttpClientUtil.doPost(loginUrl + "auth/login", HttpClientUtil.JSON , loginMap);
 				String tokenResult = httpResult.getContent();
 				String token = "";
@@ -287,16 +291,20 @@ public class NiFiRequestUtil {
 					if("200".equals(String.valueOf(tokenMap.get("result")))){
 						token = tokenMap.get("data").toString();
 						String expiration = tokenMap.get("expiration").toString();
-						authHeaderName = tokenMap.get("tokenHeaderName").toString();
-						headerMap.put(authHeaderName, token);
-						redisUtil.set(tokenCacheKey, token);
+						if(isws) {
+							wsAuthHeaderName = tokenMap.get("tokenHeaderName").toString();
+						}else {
+							restAuthHeaderName = tokenMap.get("tokenHeaderName").toString();
+						}
+						headerMap.put(isws ? wsAuthHeaderName : restAuthHeaderName, token);
+						redisUtil.set(isws ? wsTokenCacheKey : restTokenCacheKey, token);
 						redisUtil.expire(token, Long.valueOf(expiration) -10);
 					}
 					
 				}
 			}else {
 				String token = String.valueOf(cachetoken);
-				headerMap.put(authHeaderName, token);
+				headerMap.put(isws ? wsAuthHeaderName : restAuthHeaderName, token);
 			}
 			return headerMap;
 		} catch (Exception e) {

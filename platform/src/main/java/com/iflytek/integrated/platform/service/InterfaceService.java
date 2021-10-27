@@ -294,11 +294,12 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		String result = "";
 		Map<String , String> headerMap = new HashMap<>();
 		String loginUrlPrefix = niFiRequestUtil.getInterfaceDebugWithAuth();
-		if("2".equals(degubDto.getSysIntfParamFormatType())) {
+		boolean isws = "2".equals(degubDto.getSysIntfParamFormatType());
+		if(isws) {
 			loginUrlPrefix = niFiRequestUtil.getWsServiceUrlWithAuth() + "/services/";
 		}
 		if("1".equals(authFlag)) {
-			headerMap.putAll(niFiRequestUtil.interfaceAuthLogin(loginUrlPrefix));
+			headerMap.putAll(niFiRequestUtil.interfaceAuthLogin(loginUrlPrefix , isws));
 		}
 		if ("2".equals(degubDto.getSysIntfParamFormatType())) {
 			String wsdlUrl = degubDto.getWsdlUrl();
