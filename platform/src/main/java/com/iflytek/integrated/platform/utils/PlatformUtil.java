@@ -5,6 +5,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
@@ -182,7 +183,7 @@ public class PlatformUtil {
 		return results;
 	}
 
-	public static String invokeWsService(String wsdlUrl, String methodName, String funCode, String params) {
+	public static String invokeWsService(String wsdlUrl, String methodName, String funCode, String params , Map<String , String> headerMap) {
 		params = "<![CDATA[" + params + "]]>";
 		WSDLParser parser = new WSDLParser();
 		Definitions wsdl = parser.parse(wsdlUrl);
@@ -204,7 +205,7 @@ public class PlatformUtil {
 		soapTpl = soapTpl.replaceFirst("\\?XXX\\?", funCode);
 		soapTpl = soapTpl.replaceFirst("\\?XXX\\?", params);
 
-		String responseStr = HttpClientCallSoapUtil.doPostSoap1_1(wsdlUrl, soapTpl, opName);
+		String responseStr = HttpClientCallSoapUtil.doPostSoap1_1(wsdlUrl, soapTpl, opName , headerMap);
 		return responseStr;
 	}
 	

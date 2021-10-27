@@ -1,40 +1,22 @@
 package com.iflytek.integrated.platform.service;
 
-import com.alibaba.fastjson.JSON;
-import com.iflytek.integrated.common.dto.ResultDto;
-import com.iflytek.integrated.common.dto.TableData;
-import com.iflytek.integrated.common.intercept.UserLoginIntercept;
-import com.iflytek.integrated.common.utils.ExceptionUtil;
-import com.iflytek.integrated.common.validator.ValidationResult;
-import com.iflytek.integrated.common.validator.ValidatorHelper;
-import com.iflytek.integrated.platform.common.BaseService;
-import com.iflytek.integrated.platform.common.Constant;
-import com.iflytek.integrated.platform.common.RedisService;
-import com.iflytek.integrated.platform.dto.*;
-import com.iflytek.integrated.platform.entity.*;
-import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
-import com.iflytek.integrated.platform.utils.PlatformUtil;
-import com.iflytek.medicalboot.core.id.BatchUidService;
-import com.querydsl.core.QueryResults;
-import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.StringPath;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
+import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
+import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
+import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
+import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
+import static com.iflytek.integrated.platform.entity.QTInterfaceParam.qTInterfaceParam;
+import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
+import static com.iflytek.integrated.platform.entity.QTPlugin.qTPlugin;
+import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
+import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
+import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
+import static com.iflytek.integrated.platform.entity.QTSysHospitalConfig.qTSysHospitalConfig;
+import static com.iflytek.integrated.platform.entity.QTType.qTType;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -50,19 +32,67 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
-import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
-import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
-import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
-import static com.iflytek.integrated.platform.entity.QTInterfaceParam.qTInterfaceParam;
-import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
-import static com.iflytek.integrated.platform.entity.QTPlugin.qTPlugin;
-import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
-import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
-import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
-import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
-import static com.iflytek.integrated.platform.entity.QTSysHospitalConfig.qTSysHospitalConfig;
-import static com.iflytek.integrated.platform.entity.QTType.qTType;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.alibaba.fastjson.JSON;
+import com.iflytek.integrated.common.dto.ResultDto;
+import com.iflytek.integrated.common.dto.TableData;
+import com.iflytek.integrated.common.intercept.UserLoginIntercept;
+import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.common.validator.ValidationResult;
+import com.iflytek.integrated.common.validator.ValidatorHelper;
+import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.Constant;
+import com.iflytek.integrated.platform.common.RedisService;
+import com.iflytek.integrated.platform.dto.BusinessInterfaceDto;
+import com.iflytek.integrated.platform.dto.DbUrlTestDto;
+import com.iflytek.integrated.platform.dto.InDebugResDto;
+import com.iflytek.integrated.platform.dto.InterfaceDebugDto;
+import com.iflytek.integrated.platform.dto.InterfaceDto;
+import com.iflytek.integrated.platform.dto.JoltDebuggerDto;
+import com.iflytek.integrated.platform.dto.MockTemplateDto;
+import com.iflytek.integrated.platform.dto.ParamsDto;
+import com.iflytek.integrated.platform.dto.RedisDto;
+import com.iflytek.integrated.platform.dto.RedisKeyDto;
+import com.iflytek.integrated.platform.entity.TBusinessInterface;
+import com.iflytek.integrated.platform.entity.TDrive;
+import com.iflytek.integrated.platform.entity.THospital;
+import com.iflytek.integrated.platform.entity.TInterface;
+import com.iflytek.integrated.platform.entity.TInterfaceParam;
+import com.iflytek.integrated.platform.entity.TPlugin;
+import com.iflytek.integrated.platform.entity.TSys;
+import com.iflytek.integrated.platform.entity.TSysConfig;
+import com.iflytek.integrated.platform.entity.TSysDriveLink;
+import com.iflytek.integrated.platform.entity.TSysHospitalConfig;
+import com.iflytek.integrated.platform.entity.TType;
+import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
+import com.iflytek.integrated.platform.utils.PlatformUtil;
+import com.iflytek.medicalboot.core.id.BatchUidService;
+import com.querydsl.core.QueryResults;
+import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.StringPath;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 接口管理
@@ -90,9 +120,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	private ValidatorHelper validatorHelper;
 	@Autowired
 	private RedisService redisService;
-
+	
 	private static final Logger logger = LoggerFactory.getLogger(InterfaceService.class);
-
+	
 	public InterfaceService() {
 		super(qTInterface, qTInterface.id);
 	}
@@ -258,18 +288,22 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		}
 	}
 
-	@PostMapping("/interfaceDebug")
+	@PostMapping("/interfaceDebug/{authFlag}")
 	@ApiOperation(value = "请求方接口调试", notes = "请求方接口调试")
-	public ResultDto<String> interfaceDebug(@RequestBody InterfaceDebugDto degubDto) {
+	public ResultDto<String> interfaceDebug(@RequestBody InterfaceDebugDto degubDto , @PathVariable("authFlag") String authFlag) {
 		String result = "";
+		Map<String , String> headerMap = new HashMap<>();
+		if("1".equals(authFlag)) {
+			headerMap.putAll(niFiRequestUtil.interfaceAuthLogin());
+		}
 		if ("2".equals(degubDto.getSysIntfParamFormatType())) {
 			String wsdlUrl = degubDto.getWsdlUrl();
 			String methodName = degubDto.getWsOperationName();
 			String funcode = degubDto.getFuncode();
 			String param = degubDto.getFormat();
-			result = PlatformUtil.invokeWsService(wsdlUrl, methodName, funcode, param);
+			result = PlatformUtil.invokeWsService(wsdlUrl, methodName, funcode, param , headerMap);
 		} else {
-			result = niFiRequestUtil.interfaceDebug(degubDto.getFormat());
+			result = niFiRequestUtil.interfaceDebug(degubDto.getFormat() , headerMap);
 		}
 		if (StringUtils.isBlank(result)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "接口调试失败");

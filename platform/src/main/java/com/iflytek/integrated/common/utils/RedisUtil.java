@@ -1,14 +1,15 @@
 package com.iflytek.integrated.common.utils;
 
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.Resource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-
-import javax.annotation.Resource;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
 * redis 工具类
@@ -78,6 +79,15 @@ public class RedisUtil<T> {
         } catch (Exception e) {
             logger.error("redis存储出现异常；异常信息：" + e);
             return false;
+        }
+    }
+    
+    public Object get(String key) {
+        try {
+            return redisTemplate.opsForValue().get(key);
+        } catch (Exception e) {
+            logger.error("redis获取指定key缓存出现异常；异常信息：" + e);
+            return null;
         }
     }
 

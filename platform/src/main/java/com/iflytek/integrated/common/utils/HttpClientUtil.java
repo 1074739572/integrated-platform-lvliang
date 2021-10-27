@@ -253,6 +253,27 @@ public class HttpClientUtil {
         httpPost.setEntity(new StringEntity(body, ENCODING));
         return resolveHttpClientResult(httpClient, httpPost);
     }
+    
+    public static HttpResult doPostWithHeaders(String url, String body , Map<String , String> headerMap) throws Exception {
+        // 创建httpClient对象
+        CloseableHttpClient httpClient = HttpClientUtil.createHttpClient(MAX_TOTAL_CONNECT, MAX_CONNECT_PER_ROUTE, RETRY_TIMES);
+        // 创建http对象
+        HttpPost httpPost = new HttpPost(url);
+        RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(CONNECTION_REQUEST_TIMEOUT).setConnectTimeout(CONNECT_TIMEOUT).setSocketTimeout(READ_TIMEOUT).build();
+        httpPost.setConfig(requestConfig);
+        // 设置请求头
+        httpPost.setHeader("Connection", "Keep-Alive");
+        httpPost.setHeader("Accept", "application/json");
+        httpPost.setHeader("Accept-Language", "zh-CN,zh;q=0.9");
+        httpPost.setHeader("Accept-Encoding", "gzip, deflate, br");
+        httpPost.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36");
+        packageHeader(headerMap, httpPost);
+        // 封装请求参数
+        httpPost.setHeader("Content-Type", "application/json;charset=UTF-8");
+        // 设置到请求的http对象中
+        httpPost.setEntity(new StringEntity(body, ENCODING));
+        return resolveHttpClientResult(httpClient, httpPost);
+    }
 
     /**
      * 上传文件操作

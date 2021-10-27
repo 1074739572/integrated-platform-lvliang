@@ -1,6 +1,10 @@
 package com.iflytek.integrated.platform.utils;
 
 import java.nio.charset.Charset;
+import java.util.Objects;
+import java.util.Set;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.config.RequestConfig;
@@ -15,6 +19,16 @@ public class HttpClientCallSoapUtil {
 	static int socketTimeout = 15000;// 请求超时时间
 	static int connectTimeout = 5000;// 传输超时时间
 
+	static void packageHeaders(HttpPost httpPost , Map<String , String> headerMap ) {
+		 if (!Objects.isNull(headerMap)) {
+	         Set<Entry<String, String>> entrySet = headerMap.entrySet();
+	         for (Entry<String, String> entry : entrySet) {
+	             // 设置到请求头到HttpRequestBase对象中
+	        	 httpPost.setHeader(entry.getKey(), entry.getValue());
+	         }
+	     }
+	}
+	 
 	/**
 	 * 使用SOAP1.1发送消息
 	 * 
@@ -23,7 +37,7 @@ public class HttpClientCallSoapUtil {
 	 * @param soapAction
 	 * @return
 	 */
-	public static String doPostSoap1_1(String postUrl, String soapXml, String soapAction) {
+	public static String doPostSoap1_1(String postUrl, String soapXml, String soapAction , Map<String , String> headerMap) {
 		String retStr = "";
 		// 创建HttpClientBuilder
 		HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
@@ -38,6 +52,7 @@ public class HttpClientCallSoapUtil {
 		try {
 			httpPost.setHeader("Content-Type", "text/xml;charset=UTF-8");
 			httpPost.setHeader("SOAPAction", soapAction);
+			packageHeaders(httpPost , headerMap);
 			StringEntity data = new StringEntity(soapXml, Charset.forName("UTF-8"));
 			httpPost.setEntity(data);
 			CloseableHttpResponse response = closeableHttpClient.execute(httpPost);
@@ -61,7 +76,7 @@ public class HttpClientCallSoapUtil {
 	 * @param soapAction
 	 * @return
 	 */
-	public static String doPostSoap1_2(String postUrl, String soapXml, String soapAction) {
+	public static String doPostSoap1_2(String postUrl, String soapXml, String soapAction , Map<String , String> headerMap) {
 		String retStr = "";
 		// 创建HttpClientBuilder
 		HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
@@ -75,6 +90,7 @@ public class HttpClientCallSoapUtil {
 		try {
 			httpPost.setHeader("Content-Type", "application/soap+xml;charset=UTF-8");
 			httpPost.setHeader("SOAPAction", soapAction);
+			packageHeaders(httpPost, headerMap);
 			StringEntity data = new StringEntity(soapXml, Charset.forName("UTF-8"));
 			httpPost.setEntity(data);
 			CloseableHttpResponse response = closeableHttpClient.execute(httpPost);

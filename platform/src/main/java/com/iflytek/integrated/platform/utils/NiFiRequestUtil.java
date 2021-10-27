@@ -1,7 +1,9 @@
 package com.iflytek.integrated.platform.utils;
 
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,11 +35,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iflytek.integrated.common.dto.HttpResult;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.utils.HttpClientUtil;
 import com.iflytek.integrated.common.utils.JackSonUtils;
 import com.iflytek.integrated.common.utils.OAuthApiClient;
+import com.iflytek.integrated.common.utils.RedisUtil;
 import com.iflytek.integrated.common.utils.ase.AesUtil;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.DbUrlTestDto;
@@ -83,7 +88,23 @@ public class NiFiRequestUtil {
 	@Autowired
 	public SQLQueryFactory sqlQueryFactory;
 	
+	@Autowired
+	private RedisUtil redisUtil;
+	
 	private static final Logger logger = LoggerFactory.getLogger(NiFiRequestUtil.class);
+	
+	private static volatile String authHeaderName = "";
+	
+	private static final String tokenCacheKey = "integrated:nifiapi:token";
+	
+	private static final Map<String , Object> loginMap = new HashMap<String , Object>();
+	
+	static {
+		loginMap.put("uname", "esb/admin");
+		loginMap.put("upwd", "iflytek@ESB-PLUS");
+	}
+	
+	private ObjectMapper om = new ObjectMapper();
 
 	/**
 	 * 根据paramFormat和formatType生成schema
@@ -239,12 +260,43 @@ public class NiFiRequestUtil {
 	 * @param format
 	 * @return
 	 */
-	public String interfaceDebug(String format) {
+	public String interfaceDebug(String format , Map<String , String> headerMap) {
 		try {
-			HttpResult result = HttpClientUtil.doPost(interfaceDebug, format);
+			HttpResult result = HttpClientUtil.doPostWithHeaders(interfaceDebug, format , headerMap);
 			return result.getContent();
 		} catch (Exception e) {
-			throw new RuntimeException("调取校验调试接口错误");
+			throw new RuntimeException("调取校验调试接口错误" , e);
+		}
+	}
+	
+	public Map<String , String> interfaceAuthLogin() {
+		Map<String , String> headerMap = new HashMap<>();
+		try {
+			Object cachetoken = redisUtil.get(tokenCacheKey);
+			if(cachetoken == null || StringUtils.isBlank(authHeaderName)) {
+				HttpResult httpResult = HttpClientUtil.doPost(interfaceDebug + "auth/login", HttpClientUtil.JSON , loginMap);
+				String tokenResult = httpResult.getContent();
+				String token = "";
+				if(StringUtils.isNotBlank(tokenResult)) {
+					Map<String , Object> tokenMap = om.readValue(tokenResult, new TypeReference<Map<String, Object>>() {
+					});
+					if("200".equals(String.valueOf(tokenMap.get("result")))){
+						token = tokenMap.get("data").toString();
+						String expiration = tokenMap.get("expiration").toString();
+						authHeaderName = tokenMap.get("tokenHeaderName").toString();
+						headerMap.put(authHeaderName, token);
+						redisUtil.set(tokenCacheKey, token);
+						redisUtil.expire(token, Long.valueOf(expiration) -10);
+					}
+					
+				}
+			}else {
+				String token = String.valueOf(cachetoken);
+				headerMap.put(authHeaderName, token);
+			}
+			return headerMap;
+		} catch (Exception e) {
+			throw new RuntimeException("登陆认证解析token内容失败" , e);
 		}
 	}
 
