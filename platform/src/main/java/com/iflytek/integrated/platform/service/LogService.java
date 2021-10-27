@@ -429,8 +429,9 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "接口转换配置ids必传");
 		}
 		Map<String , String> headerMap = new HashMap<>();
+		String loginUrlPrefix = niFiRequestUtil.getWsServiceUrlWithAuth();
 		if("1".equals(authFlag)) {
-			headerMap.putAll(niFiRequestUtil.interfaceAuthLogin());
+			headerMap.putAll(niFiRequestUtil.interfaceAuthLogin(loginUrlPrefix));
 		}
 
 		String[] idArrays = ids.split(",");

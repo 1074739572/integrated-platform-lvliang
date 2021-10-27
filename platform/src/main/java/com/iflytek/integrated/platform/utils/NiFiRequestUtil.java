@@ -275,12 +275,12 @@ public class NiFiRequestUtil {
 		}
 	}
 	
-	public Map<String , String> interfaceAuthLogin() {
+	public Map<String , String> interfaceAuthLogin(String loginUrl) {
 		Map<String , String> headerMap = new HashMap<>();
 		try {
 			Object cachetoken = redisUtil.get(tokenCacheKey);
 			if(cachetoken == null || StringUtils.isBlank(authHeaderName)) {
-				HttpResult httpResult = HttpClientUtil.doPost(interfaceDebugWithAuth + "auth/login", HttpClientUtil.JSON , loginMap);
+				HttpResult httpResult = HttpClientUtil.doPost(loginUrl + "auth/login", HttpClientUtil.JSON , loginMap);
 				String tokenResult = httpResult.getContent();
 				String token = "";
 				if(StringUtils.isNotBlank(tokenResult)) {
