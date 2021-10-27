@@ -9,7 +9,6 @@ import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -34,7 +33,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
@@ -445,7 +443,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 				List<TLog> logs = sqlQueryFactory.select(qTLog).from(qTLog).where(qTLog.id.in(realIds)).fetch();
 				for(TLog tlog: logs) {
 					String format = decryptAndFilterSensitive(tlog.getBusinessReq());
-					niFiRequestUtil.interfaceDebug(format , headerMap);
+					niFiRequestUtil.interfaceDebug(format , headerMap , "1".equals(authFlag));
 				}
 			} catch (Exception e) {
 				logger.error("获取接口调试显示数据失败! MSG:{}", ExceptionUtil.dealException(e));

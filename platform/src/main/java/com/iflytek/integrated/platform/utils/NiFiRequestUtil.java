@@ -66,6 +66,9 @@ public class NiFiRequestUtil {
 
 	@Value("${param.interface.debug}")
 	private String interfaceDebug;
+	
+	@Value("${param.interface.debugWithAuth}")
+	private String interfaceDebugWithAuth;
 
 	@Value("${param.groovy.url}")
 	private String groovyUrl;
@@ -78,6 +81,9 @@ public class NiFiRequestUtil {
 
 	@Value("${param.wsdl.url}")
 	private String wsdlServiceUrl;
+	
+	@Value("${param.wsdl.urlWithAuth}")
+	private String wsdlServiceUrlWithAuth;
 
 	@Value("${param.xml2json.url}")
 	private String xml2jsonUrl;
@@ -260,9 +266,9 @@ public class NiFiRequestUtil {
 	 * @param format
 	 * @return
 	 */
-	public String interfaceDebug(String format , Map<String , String> headerMap) {
+	public String interfaceDebug(String format , Map<String , String> headerMap , boolean withAuth) {
 		try {
-			HttpResult result = HttpClientUtil.doPostWithHeaders(interfaceDebug, format , headerMap);
+			HttpResult result = HttpClientUtil.doPostWithHeaders(withAuth ? interfaceDebugWithAuth : interfaceDebug, format , headerMap);
 			return result.getContent();
 		} catch (Exception e) {
 			throw new RuntimeException("调取校验调试接口错误" , e);
@@ -274,7 +280,7 @@ public class NiFiRequestUtil {
 		try {
 			Object cachetoken = redisUtil.get(tokenCacheKey);
 			if(cachetoken == null || StringUtils.isBlank(authHeaderName)) {
-				HttpResult httpResult = HttpClientUtil.doPost(interfaceDebug + "auth/login", HttpClientUtil.JSON , loginMap);
+				HttpResult httpResult = HttpClientUtil.doPost(interfaceDebugWithAuth + "auth/login", HttpClientUtil.JSON , loginMap);
 				String tokenResult = httpResult.getContent();
 				String token = "";
 				if(StringUtils.isNotBlank(tokenResult)) {
@@ -317,6 +323,9 @@ public class NiFiRequestUtil {
 
 	public String getWsServiceUrl() {
 		return wsdlServiceUrl;
+	}
+	public String getWsServiceUrlWithAuth() {
+		return wsdlServiceUrlWithAuth;
 	}
 	
 	public void deleteNifiEtlFlow(TPlatform platform , String tEtlGroupId , String parentGroupId) throws Exception {

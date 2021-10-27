@@ -301,9 +301,13 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			String methodName = degubDto.getWsOperationName();
 			String funcode = degubDto.getFuncode();
 			String param = degubDto.getFormat();
+			if("1".equals(authFlag)) {
+				String path = wsdlUrl.substring(wsdlUrl.indexOf("/services"));
+				wsdlUrl = niFiRequestUtil.getWsServiceUrlWithAuth() + path;
+			}
 			result = PlatformUtil.invokeWsService(wsdlUrl, methodName, funcode, param , headerMap);
 		} else {
-			result = niFiRequestUtil.interfaceDebug(degubDto.getFormat() , headerMap);
+			result = niFiRequestUtil.interfaceDebug(degubDto.getFormat() , headerMap , "1".equals(authFlag));
 		}
 		if (StringUtils.isBlank(result)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "接口调试失败");
