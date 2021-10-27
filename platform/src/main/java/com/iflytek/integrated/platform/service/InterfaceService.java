@@ -298,8 +298,13 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		if(isws) {
 			loginUrlPrefix = niFiRequestUtil.getWsServiceUrlWithAuth() + "/services/";
 		}
+		
 		if("1".equals(authFlag)) {
-			headerMap.putAll(niFiRequestUtil.interfaceAuthLogin(loginUrlPrefix , isws));
+			log.info("isws:" + isws + ",loginurlprefix:" + loginUrlPrefix);
+			Map<String , String> tokenInfo = niFiRequestUtil.interfaceAuthLogin(loginUrlPrefix , isws);
+			if(tokenInfo != null && tokenInfo.size()> 0) {
+				headerMap.putAll(tokenInfo);
+			}
 		}
 		if ("2".equals(degubDto.getSysIntfParamFormatType())) {
 			String wsdlUrl = degubDto.getWsdlUrl();
@@ -309,6 +314,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			if("1".equals(authFlag)) {
 				String path = wsdlUrl.substring(wsdlUrl.indexOf("/services"));
 				wsdlUrl = niFiRequestUtil.getWsServiceUrlWithAuth() + path;
+				log.info("wsinvokeurl:" + wsdlUrl);
 			}
 			result = PlatformUtil.invokeWsService(wsdlUrl, methodName, funcode, param , headerMap);
 		} else {

@@ -298,7 +298,7 @@ public class NiFiRequestUtil {
 						}
 						headerMap.put(isws ? wsAuthHeaderName : restAuthHeaderName, token);
 						redisUtil.set(isws ? wsTokenCacheKey : restTokenCacheKey, token);
-						redisUtil.expire(token, Long.valueOf(expiration) -10);
+						redisUtil.expire(isws ? wsTokenCacheKey : restTokenCacheKey, Long.valueOf(expiration) -10);
 					}
 					
 				}
