@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -203,23 +204,23 @@ public class PlatformUtil {
 			headerMap.putAll(headerParams);
 		}
 		Definitions wsdl = null;
-		if(wsdlUrl.startsWith("https")) {
-			HttpResult result = null;
-			try {
-				result = HttpClientUtil.doGet(wsdlUrl, headerMap, null);
-				try (InputStream is = new ByteArrayInputStream(result.getContent().getBytes())){
-					wsdl = parser.parse(is);
-				}catch(Exception e) {
-					log.error("https协议调用webservice接口解析wsdl文件异常" , e);
-					return "https调用webservice接口解析wsdl文件异常:" + e.getLocalizedMessage();
-				}
-			}catch(Exception e1) {
-				log.error("https协议获取wsdl文件内容异常" , e1);
-				return "https协议获取wsdl文件内容异常:" + e1.getLocalizedMessage();
+//		if(wsdlUrl.startsWith("https")) {
+		HttpResult result = null;
+		try {
+			result = HttpClientUtil.doGet(wsdlUrl, headerMap, null);
+			try (InputStream is = new ByteArrayInputStream(result.getContent().getBytes())){
+				wsdl = parser.parse(is);
+			}catch(Exception e) {
+				log.error("https协议调用webservice接口解析wsdl文件异常" , e);
+				return "https调用webservice接口解析wsdl文件异常:" + e.getLocalizedMessage();
 			}
-		}else {
-			wsdl = parser.parse(wsdlUrl);
+		}catch(Exception e1) {
+			log.error("https协议获取wsdl文件内容异常" , e1);
+			return "https协议获取wsdl文件内容异常:" + e1.getLocalizedMessage();
 		}
+//		}else {
+//			wsdl = parser.parse(wsdlUrl);
+//		}
 		StringWriter writer = new StringWriter();
 		SOARequestCreator creator = new SOARequestCreator(wsdl, new RequestTemplateCreator(),
 				new MarkupBuilder(writer));
