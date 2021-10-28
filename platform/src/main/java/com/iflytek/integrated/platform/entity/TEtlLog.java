@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Transient;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  * TEtlFlow is a Querydsl bean type
@@ -20,10 +21,21 @@ public class TEtlLog implements Serializable {
 	@JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone="GMT+8")
 	private Date jobTime;
 	
+	private String exeJobId;
+	
+	private Integer exeBatchNo;
+	
+	private Integer batchReadCount;
+	
+	private Integer batchWriteErrorcount;
+	
 	@JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone="GMT+8")
 	private Date createdTime;
 	
 	private String status;
+	
+	@Transient
+	private Integer statusCode;
 	
 	private String errorInfo;
 	
@@ -41,6 +53,15 @@ public class TEtlLog implements Serializable {
 	
 	@Transient
 	private String hospitalName;
+	
+	@Transient
+	private Integer allReadCount;
+	
+	@Transient
+	private Integer allWriteErrorcount;
+	
+	private List<TEtlLog> batchErrorLogs;
+	
 
 	public String getId() {
 		return id;
@@ -137,5 +158,70 @@ public class TEtlLog implements Serializable {
 	public void setHospitalName(String hospitalName) {
 		this.hospitalName = hospitalName;
 	}
+
+	public String getExeJobId() {
+		return exeJobId;
+	}
+
+	public void setExeJobId(String exeJobId) {
+		this.exeJobId = exeJobId;
+	}
+
+	public Integer getExeBatchNo() {
+		return exeBatchNo;
+	}
+
+	public void setExeBatchNo(Integer exeBatchNo) {
+		this.exeBatchNo = exeBatchNo;
+	}
+
+	public Integer getBatchReadCount() {
+		return batchReadCount;
+	}
+
+	public void setBatchReadCount(Integer batchReadCount) {
+		this.batchReadCount = batchReadCount;
+	}
+
+	public Integer getBatchWriteErrorcount() {
+		return batchWriteErrorcount;
+	}
+
+	public void setBatchWriteErrorcount(Integer batchWriteErrorcount) {
+		this.batchWriteErrorcount = batchWriteErrorcount;
+	}
+
+	public Integer getAllReadCount() {
+		return allReadCount;
+	}
+
+	public void setAllReadCount(Integer allReadCount) {
+		this.allReadCount = allReadCount;
+	}
+
+	public Integer getAllWriteErrorcount() {
+		return allWriteErrorcount;
+	}
+
+	public void setAllWriteErrorcount(Integer allWriteErrorcount) {
+		this.allWriteErrorcount = allWriteErrorcount;
+	}
+
+	public Integer getStatusCode() {
+		return statusCode;
+	}
+
+	public void setStatusCode(Integer statusCode) {
+		this.statusCode = statusCode;
+	}
+
+	public List<TEtlLog> getBatchErrorLogs() {
+		return batchErrorLogs;
+	}
+
+	public void setBatchErrorLogs(List<TEtlLog> batchErrorLogs) {
+		this.batchErrorLogs = batchErrorLogs;
+	}
+	
 }
 

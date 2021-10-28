@@ -7,6 +7,7 @@ import java.sql.Types;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.PathMetadata;
 import com.querydsl.core.types.dsl.DateTimePath;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 
@@ -32,9 +33,17 @@ public class QTEtlLog extends com.querydsl.sql.RelationalPathBase<TEtlLog> {
 	
 	public final DateTimePath<java.util.Date> jobTime  = createDateTime("jobTime", java.util.Date.class);
 	
-	public final StringPath status = createString("status");
+	public final StringPath exeJobId = createString("exeJobId");
+	
+	public final NumberPath<Integer> exeBatchNo = createNumber("exeBatchNo", Integer.class);
+	
+	public final NumberPath<Integer> status = createNumber("status" , Integer.class);
 	
 	public final StringPath errorInfo = createString("errorInfo");
+	
+	public final NumberPath<Integer> batchReadCount = createNumber("batchReadCount", Integer.class);
+	
+	public final NumberPath<Integer> batchWriteErrorcount = createNumber("batchWriteErrorcount", Integer.class);
 
     public final com.querydsl.sql.PrimaryKey<TEtlLog> primary = createPrimaryKey(id);
 
@@ -68,9 +77,13 @@ public class QTEtlLog extends com.querydsl.sql.RelationalPathBase<TEtlLog> {
         addMetadata(etlGroupId, ColumnMetadata.named("ETL_GROUP_ID").withIndex(2).ofType(Types.VARCHAR).withSize(50));
         addMetadata(flowName, ColumnMetadata.named("FLOW_NAME").withIndex(3).ofType(Types.VARCHAR).withSize(255));
         addMetadata(jobTime, ColumnMetadata.named("JOB_TIME").withIndex(4).ofType(Types.TIMESTAMP).withSize(19));
-        addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(5).ofType(Types.TIMESTAMP).withSize(19));
-        addMetadata(status, ColumnMetadata.named("status").withIndex(6).ofType(Types.TINYINT).withSize(1));
-        addMetadata(errorInfo, ColumnMetadata.named("ERROR_INFO").withIndex(7).ofType(Types.LONGVARCHAR));
+        addMetadata(exeJobId, ColumnMetadata.named("exe_job_id").withIndex(5).ofType(Types.VARCHAR).withSize(50));
+        addMetadata(exeBatchNo, ColumnMetadata.named("exe_batch_no").withIndex(6).ofType(Types.INTEGER).withSize(11));
+        addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(7).ofType(Types.TIMESTAMP).withSize(19));
+        addMetadata(status, ColumnMetadata.named("status").withIndex(8).ofType(Types.TINYINT).withSize(1));
+        addMetadata(errorInfo, ColumnMetadata.named("ERROR_INFO").withIndex(9).ofType(Types.LONGVARCHAR));
+        addMetadata(batchReadCount, ColumnMetadata.named("batch_read_count").withIndex(10).ofType(Types.INTEGER).withSize(11));
+        addMetadata(batchWriteErrorcount, ColumnMetadata.named("batch_write_errorcount").withIndex(11).ofType(Types.INTEGER).withSize(11));
     }
 
 }
