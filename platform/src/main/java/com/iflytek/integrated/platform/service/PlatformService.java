@@ -167,7 +167,7 @@ public class PlatformService extends BaseService<TPlatform, String, StringPath> 
 			if (CollectionUtils.isNotEmpty(jsonArr)) {
 				String vendorIdStr = "";
 				for (TSysConfig vcd : jsonArr) {
-					if (vendorIdStr.contains(vcd.getSysId())) {
+					if (StringUtils.isNotBlank(vcd.getSysId()) && vendorIdStr.contains(vcd.getSysId())) {
 						return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "系统名称不能重复!", "系统名称不能重复!");
 					}
 					vendorIdStr += vcd.getSysId();

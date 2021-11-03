@@ -377,7 +377,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	/** 新增标准接口 */
 	private ResultDto saveInterface(InterfaceDto dto, String loginUserName) {
 		String interfaceUrl = dto.getInterfaceUrl();
-		if (null != this.getInterfaceByUrl(interfaceUrl)) {
+		if (null != this.getInterfaceByUrl(interfaceUrl , dto.getSysId())) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该接口方法已存在!", "该接口方法已存在!");
 		}
 		// 出参
@@ -1095,11 +1095,11 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	 * @param interfaceUrl
 	 * @return
 	 */
-	private TInterface getInterfaceByUrl(String interfaceUrl){
+	private TInterface getInterfaceByUrl(String interfaceUrl , String sysId){
 		if (StringUtils.isBlank(interfaceUrl)) {
 			return null;
 		}
-		return sqlQueryFactory.select(qTInterface).from(qTInterface).where(qTInterface.interfaceUrl.eq(interfaceUrl))
+		return sqlQueryFactory.select(qTInterface).from(qTInterface).where(qTInterface.interfaceUrl.eq(interfaceUrl).and(qTSys.id.eq(sysId)))
 				.fetchFirst();
 	}
 	/**
