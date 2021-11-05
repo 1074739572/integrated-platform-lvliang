@@ -25,6 +25,7 @@ import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -86,6 +87,7 @@ import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.QueryResults;
+import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
@@ -1199,11 +1201,14 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		String[] businessInterfaceIds = Ids.split(",");
 
 		StringBuilder sqlStringBuffer = new StringBuilder();
-
+		List<Path<?>> lists = new ArrayList<>();
+		lists.addAll(Arrays.asList(qTBusinessInterface.all()));
+		lists.add(qTSysConfig.platformId);
 		for (String businessInterfaceId : businessInterfaceIds) {
 			requestInterfaceIds = sqlQueryFactory.select(qTBusinessInterface.requestInterfaceId).from(qTBusinessInterface)
 					.where(qTBusinessInterface.id.eq(businessInterfaceId)).fetch();
-			List<TBusinessInterface> tBusinessInterfaces = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
+			List<TBusinessInterface> tBusinessInterfaces = sqlQueryFactory.select(Projections.bean(TBusinessInterface.class , lists.toArray(new Path[0]))).from(qTBusinessInterface)
+					.join(qTSysConfig).on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId))
 					.where(qTBusinessInterface.requestInterfaceId.eq(requestInterfaceIds.get(0))).fetch();
 			for (TBusinessInterface tBusinessInterface : tBusinessInterfaces) {
 
