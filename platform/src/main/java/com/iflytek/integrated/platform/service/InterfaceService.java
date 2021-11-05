@@ -75,6 +75,7 @@ import com.iflytek.integrated.platform.entity.TDrive;
 import com.iflytek.integrated.platform.entity.THospital;
 import com.iflytek.integrated.platform.entity.TInterface;
 import com.iflytek.integrated.platform.entity.TInterfaceParam;
+import com.iflytek.integrated.platform.entity.TPlatform;
 import com.iflytek.integrated.platform.entity.TPlugin;
 import com.iflytek.integrated.platform.entity.TSys;
 import com.iflytek.integrated.platform.entity.TSysConfig;
@@ -1193,6 +1194,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		List<String> sysIds = new ArrayList<>();
 		List<String> driverIds = new ArrayList<>();
 		List<String> hospitalIds = new ArrayList<>();
+		List<String> platformIds = new ArrayList<>();
 
 		String[] businessInterfaceIds = Ids.split(",");
 
@@ -1209,7 +1211,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				sysConfigIds.add(tBusinessInterface.getRequestSysconfigId());
 				sysConfigIds.add(tBusinessInterface.getRequestedSysconfigId());
 				pluginIds.add(tBusinessInterface.getPluginId());
-
+				platformIds.add(tBusinessInterface.getPlatformId());
 				sqlStringBuffer.append("INSERT INTO `t_business_interface` (`ID`, `REQUEST_SYSCONFIG_ID`, " +
 						"`REQUEST_INTERFACE_ID`, `REQUESTED_SYSCONFIG_ID`, `BUSINESS_INTERFACE_NAME`, `REQUEST_TYPE`, " +
 						"`REQUEST_CONSTANT`, `INTERFACE_TYPE`, `PLUGIN_ID`, `IN_PARAM_FORMAT`, `IN_PARAM_SCHEMA`, `IN_PARAM_TEMPLATE_TYPE`, " +
@@ -1226,6 +1228,16 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				sqlStringBuffer.append("END_OF_SQL\n");
 			}
 		}
+		List<TPlatform> tPlatforms = sqlQueryFactory.select(qTPlatform).from(qTPlatform).where(qTPlatform.id.in(platformIds)).fetch();
+		for(TPlatform tp : tPlatforms) {
+			sqlStringBuffer.append("INSERT INTO `t_platform` (`ID`, `PROJECT_ID`, `PLATFORM_NAME`, `PLATFORM_CODE`, " +
+					"`PLATFORM_STATUS`, `PLATFORM_TYPE`, `ETL_SERVER_URL`, `ETL_USER`, `ETL_PWD`," +
+					" `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`) VALUES ('" + tp.getId() + "', 'newProjectId', '" + tp.getPlatformName() + "', '" + tp.getPlatformCode() + "', " +
+					"'" + tp.getPlatformStatus() + "', '" + tp.getPlatformType() + "', '" + tp.getEtlServerUrl() + "', '" + tp.getEtlUser() + "', '" + tp.getEtlPwd() +
+					"', 'admin', now() , 'admin', now());\n");
+			sqlStringBuffer.append("END_OF_SQL\n");
+		}
+		
 		List<TInterface> tInterfaces = sqlQueryFactory.select(qTInterface).from(qTInterface).where(qTInterface.id.in(interfaceIds)).fetch();
 		for (TInterface tInterface : tInterfaces) {
 			sqlStringBuffer.append("INSERT INTO `t_interface` (`ID`, `SYS_ID`, `INTERFACE_NAME`, `TYPE_ID`, " +
@@ -1249,7 +1261,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			sysIds.add(sysConfig.getSysId());
 			sqlStringBuffer.append("INSERT INTO `t_sys_config` (`ID`, `PROJECT_ID`, `PLATFORM_ID`, `SYS_ID`, `SYS_CONFIG_TYPE`, `HOSPITAL_CONFIGS`, `VERSION_ID`, `CONNECTION_TYPE`, `ADDRESS_URL`, `ENDPOINT_URL`," +
 					" `NAMESPACE_URL`, `DATABASE_NAME`, `DATABASE_URL`, `DATABASE_TYPE`, `DATABASE_DRIVER`, `DRIVER_URL`, `JSON_PARAMS`, `USER_NAME`, `USER_PASSWORD`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, " +
-					"`INNER_IDX`) VALUES ('" + sysConfig.getId() + "', 'newProjectId', 'newPlatformId', '" + sysConfig.getSysId() + "', " + sysConfig.getSysConfigType() + ", " +
+					"`INNER_IDX`) VALUES ('" + sysConfig.getId() + "', 'newProjectId', '"+ sysConfig.getPlatformId() +"', '" + sysConfig.getSysId() + "', " + sysConfig.getSysConfigType() + ", " +
 					sysConfig.getHospitalConfigs() + ", '" + sysConfig.getVersionId() + "', '" + sysConfig.getConnectionType() + "', '" + sysConfig.getAddressUrl() + "', '" + sysConfig.getEndpointUrl() + "', " +
 					"'" + sysConfig.getNamespaceUrl() + "', '" + sysConfig.getDatabaseName() + "', '" + sysConfig.getDatabaseUrl() + "', '" + sysConfig.getDatabaseType() + "', '" + sysConfig.getDatabaseDriver() + "', " +
 					"'" + sysConfig.getDriverUrl() + "', '" + sysConfig.getJsonParams() + "', '" + sysConfig.getUserName() + "', '" + sysConfig.getUserPassword() + "','admin', now() , 'admin', now(), '" + sysConfig.getInnerIdx() + "');\n");
@@ -1324,8 +1336,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	}
 
 	@ApiOperation(value = "上传接口转换配sql文件")
-    @PostMapping(path = "/uploadInterFaceSql/{platformId}/{projectId}")
-    public ResultDto<String> uploadEtlTpls(@PathVariable String platformId, @PathVariable String projectId,@RequestParam("sqlFiles") MultipartFile[] sqlFiles) {
+    @PostMapping(path = "/uploadInterFaceSql/{projectId}")
+    public ResultDto<String> uploadInterFaceSql(@PathVariable String projectId,@RequestParam("sqlFiles") MultipartFile[] sqlFiles) {
          //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if (org.apache.commons.lang3.StringUtils.isBlank(loginUserName)) {
@@ -1356,7 +1368,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                         sql.append(new String(bytes,0,len));
                     }
                     //将sys_config表中的平台id以及项目id进行替换
-                    sql=new StringBuilder(sql.toString().replaceAll("'newProjectId'",projectId).replace("'newPlatformId'",platformId));
+                    sql=new StringBuilder(sql.toString().replaceAll("'newProjectId'",projectId));
                     String [] sqls=sql.toString().split("END_OF_SQL");
                     for(String str:sqls){
                         if(str.trim().startsWith("INSERT"))
