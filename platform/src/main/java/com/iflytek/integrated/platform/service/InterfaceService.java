@@ -1340,6 +1340,65 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		}
 	}
 	
+	private void getResourcesBySys(List<String> sysIds , StringBuilder sqlStringBuffer) {
+		List<String> driverIds = new ArrayList<>();
+		List<TSys> tSyss = sqlQueryFactory.select(qTSys).from(qTSys).where(qTSys.id.in(sysIds)).fetch();
+		for (TSys tSys : tSyss) {
+			sqlStringBuffer.append("INSERT INTO `t_sys` (`ID`, `SYS_NAME`, `SYS_CODE`, `IS_VALID`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`) VALUES " +
+					"('" + tSys.getId() + "', '" + tSys.getSysName() + "', '" + tSys.getSysCode() + "', '" + tSys.getIsValid() + "', 'admin', now() , 'admin', now());\n");
+			sqlStringBuffer.append("END_OF_SQL\n");
+		}
+		List<TSysDriveLink> tSysDriveLinks = sqlQueryFactory.select(qTSysDriveLink).from(qTSysDriveLink).where(qTSysDriveLink.sysId.in(sysIds)).fetch();
+		for (TSysDriveLink tSysDriveLink : tSysDriveLinks) {
+			driverIds.add(tSysDriveLink.getDriveId());
+			sqlStringBuffer.append("INSERT INTO `t_sys_drive_link` (`ID`, `SYS_ID`, `DRIVE_ID`, `DRIVE_ORDER`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`) VALUES " +
+					"('" + tSysDriveLink.getId() + "', '" + tSysDriveLink.getSysId() + "', '" + tSysDriveLink.getDriveId() + "', " + tSysDriveLink.getDriveOrder() + ", 'admin', now() , 'admin', now());\n");
+			sqlStringBuffer.append("END_OF_SQL\n");
+		}
+		List<TDrive> tDrives = sqlQueryFactory.select(qTDrive).from(qTDrive).where(qTDrive.id.in(driverIds)).fetch();
+		for (TDrive tDrive : tDrives) {
+			sqlStringBuffer.append("INSERT INTO `t_drive` (`ID`, `DRIVE_NAME`, `DRIVE_CODE`, `TYPE_ID`, `DRIVE_INSTRUCTION`, `DRIVE_CONTENT`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, `DRIVE_CALL_TYPE`, `DEPENDENT_PATH`) VALUES " +
+					"('" + tDrive.getId() + "', '" + tDrive.getDriveName() + "', '" + tDrive.getDriveCode() + "', '" + tDrive.getTypeId() + "', '" + tDrive.getDriveInstruction() + "', '" + tDrive.getDriveContent() + "', 'admin', now() , 'admin', now(), '" + tDrive.getDriveCallType() + "', '" + tDrive.getDependentPath() + "');\n");
+			sqlStringBuffer.append("END_OF_SQL\n");
+		}
+		List<String> interfaceIds = sqlQueryFactory.select(qTInterface.id).from(qTInterface).where(qTInterface.sysId.in(sysIds)).fetch();
+		List<TInterface> tInterfaces = sqlQueryFactory.select(qTInterface).from(qTInterface).where(qTInterface.id.in(interfaceIds)).fetch();
+		for (TInterface tInterface : tInterfaces) {
+			sqlStringBuffer.append("INSERT INTO `t_interface` (`ID`, `SYS_ID`, `INTERFACE_NAME`, `TYPE_ID`, " +
+					"`INTERFACE_URL`, `IN_PARAM_FORMAT`, `OUT_PARAM_FORMAT`, `PARAM_OUT_STATUS`, `PARAM_OUT_STATUS_SUCCESS`," +
+					" `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, `IN_PARAM_SCHEMA`, `IN_PARAM_FORMAT_TYPE`, " +
+					"`OUT_PARAM_SCHEMA`, `OUT_PARAM_FORMAT_TYPE`) VALUES ('" + tInterface.getId() + "', '" + tInterface.getSysId() + "', '" + tInterface.getInterfaceName() + "', '" + tInterface.getTypeId() + "', " +
+					"'" + tInterface.getInterfaceUrl() + "', '" + tInterface.getInParamFormat() + "', '" + tInterface.getOutParamFormat() + "', '" + tInterface.getParamOutStatus() + "', '" + tInterface.getParamOutStatusSuccess() +
+					"', 'admin', now() , 'admin', now(), '" + tInterface.getInParamSchema() + "', '" + tInterface.getInParamFormatType() + "', '" + tInterface.getOutParamSchema() + "', '" + tInterface.getOutParamFormatType() + "');\n");
+			sqlStringBuffer.append("END_OF_SQL\n");
+		}
+		List<TInterfaceParam> tInterfaceParams = sqlQueryFactory.select(qTInterfaceParam).from(qTInterfaceParam).where(qTInterfaceParam.interfaceId.in(interfaceIds)).fetch();
+		for (TInterfaceParam tInterfaceParam : tInterfaceParams) {
+			sqlStringBuffer.append("INSERT INTO `t_interface_param` (`ID`, `PARAM_NAME`, `PARAM_INSTRUCTION`, `INTERFACE_ID`, `PARAM_TYPE`, `PARAM_LENGTH`, `PARAM_IN_OUT`, `CREATED_BY`, `CREATED_TIME`, " +
+					"`UPDATED_BY`, `UPDATED_TIME`) VALUES ('" + tInterfaceParam.getId() + "', '" + tInterfaceParam.getParamName() + "', '" + tInterfaceParam.getParamInstruction() + "', '" + tInterfaceParam.getInterfaceId() + "'," +
+					" '" + tInterfaceParam.getParamType() + "', " + tInterfaceParam.getParamLength() + ", '" + tInterfaceParam.getParamInOut() + "', 'admin', now() , 'admin', now());\n");
+			sqlStringBuffer.append("END_OF_SQL\n");
+		}
+	}
+	
+	private void getResourcesByDriver(List<String> driverIds , StringBuilder sqlStringBuffer) {
+		List<TDrive> tDrives = sqlQueryFactory.select(qTDrive).from(qTDrive).where(qTDrive.id.in(driverIds)).fetch();
+		for (TDrive tDrive : tDrives) {
+			sqlStringBuffer.append("INSERT INTO `t_drive` (`ID`, `DRIVE_NAME`, `DRIVE_CODE`, `TYPE_ID`, `DRIVE_INSTRUCTION`, `DRIVE_CONTENT`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, `DRIVE_CALL_TYPE`, `DEPENDENT_PATH`) VALUES " +
+					"('" + tDrive.getId() + "', '" + tDrive.getDriveName() + "', '" + tDrive.getDriveCode() + "', '" + tDrive.getTypeId() + "', '" + tDrive.getDriveInstruction() + "', '" + tDrive.getDriveContent() + "', 'admin', now() , 'admin', now(), '" + tDrive.getDriveCallType() + "', '" + tDrive.getDependentPath() + "');\n");
+			sqlStringBuffer.append("END_OF_SQL\n");
+		}
+	}
+	
+	private void getResourcesByPlugin(List<String> pluginIds , StringBuilder sqlStringBuffer) {
+		List<TPlugin> tPlugins = sqlQueryFactory.select(qTPlugin).from(qTPlugin).where(qTPlugin.id.in(pluginIds)).fetch();
+		for (TPlugin tPlugin : tPlugins) {
+			sqlStringBuffer.append("INSERT INTO `t_plugin` (`ID`, `PLUGIN_NAME`, `PLUGIN_CODE`, `TYPE_ID`, `PLUGIN_INSTRUCTION`, `PLUGIN_CONTENT`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, `DEPENDENT_PATH`) " +
+					"VALUES ('" + tPlugin.getId() + "', '" + tPlugin.getPluginName() + "', '" + tPlugin.getPluginCode() + "', '" + tPlugin.getTypeId() + "', '" + tPlugin.getPluginInstruction() + "', '" + tPlugin.getPluginContent() + "', 'admin', now() , 'admin', now(), '" + tPlugin.getDependentPath() + "');\n");
+			sqlStringBuffer.append("END_OF_SQL\n");
+		}
+	}
+	
 	@ApiOperation(value = "导出资源中心模块配置")
 	@GetMapping("/downloadResources/{Ids}")
 	public void downloadResources(HttpServletResponse response,@ApiParam("接口Id")  @PathVariable String Ids) {

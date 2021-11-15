@@ -198,7 +198,7 @@ public class PlatformUtil {
 	}
 
 	public static String invokeWsService(String wsdlUrl, String methodName, String funCode, String params , Map<String , String> headerMap){
-		params = "<![CDATA[" + params + "]]>";
+//		params = "<![CDATA[" + params + "]]>";
 		WSDLParser parser = new WSDLParser();
 		if(headerMap!= null) {
 			headerMap.putAll(headerParams);
