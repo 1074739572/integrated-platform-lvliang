@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
@@ -42,6 +43,7 @@ import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.InterfaceMonitorDto;
 import com.iflytek.integrated.platform.entity.QTInterfaceMonitor;
+import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TLog;
 import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
@@ -77,77 +79,6 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 	public LogService() {
 		super(qTLog, qTLog.id);
 	}
-
-	/**
-	 * 按接口分类来展示服务监控列表
-	 * @param projectId
-	 * @param platFormId
-	 * @param sysId
-	 * @param status
-	 * @param pageNo
-	 * @param pageSize
-	 * @return
-	 */
-//	@ApiOperation(value = "查看服务监控列表")
-//	@GetMapping("/getListPage")
-//	public ResultDto<TableData<InterfaceMonitorDto>> getListPage(String projectId, String platFormId, String sysId,
-//																 String status, @RequestParam(defaultValue = "1") Integer pageNo,
-//																 @RequestParam(defaultValue = "10") Integer pageSize) {
-//		try {
-//			// 查询条件
-//			ArrayList<Predicate> list = new ArrayList<>();
-//			// 判断条件是否为空
-//			if (StringUtils.isNotBlank(sysId)) {
-//				list.add(qTSys.id.eq(sysId));
-//			}
-//			// 先合并t_interface_monitor，再根据三合一结果进行查询
-//			String q = "queryMonitor";
-//			StringPath queryLabel = Expressions.stringPath(q);
-//			QTInterfaceMonitor monitor = new QTInterfaceMonitor(q);
-//			SubQueryExpression query = SQLExpressions
-//					.select(qTInterfaceMonitor.id, qTInterfaceMonitor.status.max().as("status"),
-//							qTInterfaceMonitor.successCount.sum().as("SUCCESS_COUNT"),
-//							qTInterfaceMonitor.errorCount.sum().as("ERROR_COUNT"), qTInterfaceMonitor.projectId,
-//							qTInterfaceMonitor.platformId, qTInterfaceMonitor.sysId,
-//							qTInterfaceMonitor.createdTime, qTInterfaceMonitor.typeId, qTType.typeName)
-//					.from(qTInterfaceMonitor)
-//					.leftJoin(qTType).on(qTInterfaceMonitor.typeId.eq(qTType.id))
-//					.where(qTInterfaceMonitor.id.isNotNull())
-//					.groupBy(qTInterfaceMonitor.platformId, qTInterfaceMonitor.sysId, qTInterfaceMonitor.typeId)
-//					.orderBy(qTInterfaceMonitor.createdTime.desc());
-//
-//			// 按条件筛选
-//			if (StringUtils.isNotBlank(projectId)) {
-//				list.add(monitor.projectId.eq(projectId));
-//			}
-//			if (StringUtils.isNotBlank(platFormId)) {
-//				list.add(monitor.platformId.eq(platFormId));
-//			}
-//			if (StringUtils.isNotBlank(status)) {
-//				list.add(monitor.status.eq(status));
-//			}
-//			// 根据结果查询
-//			QueryResults<InterfaceMonitorDto> queryResults = sqlQueryFactory
-//					.select(Projections.bean(InterfaceMonitorDto.class, monitor.id, monitor.status,monitor.typeName,
-//							monitor.successCount, monitor.errorCount,qTProject.projectName, qTPlatform.platformName,
-//							qTSys.sysName))
-//					.from(query, queryLabel).leftJoin(qTProject).on(qTProject.id.eq(monitor.projectId))
-//					.leftJoin(qTPlatform).on(qTPlatform.id.eq(monitor.platformId)).leftJoin(qTSysConfig)
-//					.on(qTSysConfig.platformId.eq(qTPlatform.id).and(qTSysConfig.sysConfigType.eq(1)))
-//					.leftJoin(qTSys).on(qTSys.id.eq(qTSysConfig.sysId))
-//					.leftJoin(qTInterface).on(qTInterface.sysId.eq(qTSys.id))
-//					.groupBy(monitor.platformId, monitor.sysId, monitor.typeId)
-//					.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
-//					.orderBy(monitor.createdTime.desc()).fetchResults();
-//			// 分页
-//			TableData<InterfaceMonitorDto> tableData = new TableData<>(queryResults.getTotal(),
-//					queryResults.getResults());
-//			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "", tableData);
-//		} catch (Exception e) {
-//			logger.error("查看服务监控列表失败! MSG:{}", ExceptionUtil.dealException(e));
-//			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "服务监控列表获取失败");
-//		}
-//	}
 
 	/**
 	 * 按接口名称来展示服务监控列表
@@ -244,7 +175,6 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		if (StringUtils.isEmpty(interfaceId)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取日志详细列表，id必传");
 		}
-		list.add(qTInterface.id.eq(interfaceId));
 		if (StringUtils.isNotBlank(status)) {
 			list.add(qTLog.status.eq(status));
 		}
@@ -255,23 +185,6 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		}catch (ParseException e){
 			e.printStackTrace();
 		}
-//		try{
-//			if (StringUtils.isNotBlank(startTime) && StringUtils.isNotBlank(endTime)) {
-//				list.add(qTLog.createdTime.goe(sdf.parse(startTime)));
-//				list.add(qTLog.createdTime.loe(sdf.parse(endTime)));
-//			}else{
-//				String dateStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-//				Calendar calendar = Calendar.getInstance();
-//				Date endDate = sdf.parse(dateStr);
-//				calendar.setTime(endDate);
-//				calendar.set(Calendar.HOUR_OF_DAY,calendar.get(Calendar.HOUR_OF_DAY) - 2);
-//				Date startDate = calendar.getTime();
-//				list.add(qTLog.createdTime.goe(startDate));
-//				list.add(qTLog.createdTime.loe(endDate));
-//			}
-//		}catch (ParseException e){
-//			e.printStackTrace();
-//		}
 		// 模糊查询接口地址
 		if (StringUtils.isNotBlank(visitAddr)) {
 			list.add(qTLog.visitAddr.like(PlatformUtil.createFuzzyText(visitAddr)));
@@ -292,24 +205,27 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 			list.add(Expressions.stringTemplate("AES_DECRYPT(from_base64({0}),{1})", qTLog.venderRep, "w5xv7[Nmc0Z/3U^X")
 					.like(PlatformUtil.createFuzzyText(venderRep)));
 		}
-
+		List<TBusinessInterface> bis = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface).where(qTBusinessInterface.requestInterfaceId.eq(interfaceId)).fetch();
+		Map<String , Integer> biorderMap = new Hashtable<String , Integer>();
+		bis.forEach(tbis->{
+			biorderMap.put(tbis.getId(), tbis.getExcErrOrder());
+		});
+		list.add(qTLog.businessInterfaceId.in(biorderMap.keySet()));
 		QueryResults<TLog> queryResults = sqlQueryFactory
 				.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status, qTLog.venderRepTime,
-						qTLog.businessRepTime, qTLog.visitAddr,qTLog.businessInterfaceId,
-						qTBusinessInterface.businessInterfaceName.as("businessInterfaceName"),
-						qTBusinessInterface.excErrOrder.add(1).as("excErrOrder")))
+						qTLog.businessRepTime, qTLog.visitAddr,qTLog.businessInterfaceId))
 				.from(qTLog)
-				.leftJoin(qTInterfaceMonitor).on(qTInterfaceMonitor.businessInterfaceId.eq(qTLog.businessInterfaceId))
-				.leftJoin(qTBusinessInterface).on(qTBusinessInterface.id.eq(qTInterfaceMonitor.businessInterfaceId))
-				.leftJoin(qTInterface).on(qTInterface.id.eq(qTBusinessInterface.requestInterfaceId))
 				.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
 				.orderBy(qTLog.createdTime.desc()).fetchResults();
 
-		long l = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
-				.where(qTBusinessInterface.requestInterfaceId.eq(interfaceId)).fetchCount();
+		long l = biorderMap.size();
 		List<TLog> tlogList = queryResults.getResults();
 		for(TLog log : tlogList){
-			String interfaceOrder = log.getExcErrOrder()+"/"+ l;
+			Integer order = biorderMap.get(log.getBusinessInterfaceId());
+			if(order == null) {
+				order = 0;
+			}
+			String interfaceOrder = (order + 1)+"/"+ l;
 			log.setInterfaceOrder(interfaceOrder);
 		}
 
