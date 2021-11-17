@@ -53,7 +53,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
@@ -281,9 +280,12 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 								.and(qTInterfaceParam.paramInOut.eq(Constant.ParmInOut.IN)))
 						.fetch();
 				resDto.setInParams(paramNames);
+				Map<String , Object> paramsMap = new HashMap<>();
 				ObjectMapper objectMapper = new ObjectMapper();
-				Map<String , Object> paramsMap = objectMapper.readValue(inparamFormat, new TypeReference<Map<String, Object>>() {
-				});
+				if(StringUtils.isNotBlank(inparamFormat)) {
+					paramsMap = objectMapper.readValue(inparamFormat, new TypeReference<Map<String, Object>>() {
+					});
+				}
 				paramsMap.put("funcode", businessInterface.getInterfaceUrl());
 				paramsMap.put("productcode", businessInterface.getSysCode());
 				paramsMap.put("orgid", hospitalCodes.get(0));
