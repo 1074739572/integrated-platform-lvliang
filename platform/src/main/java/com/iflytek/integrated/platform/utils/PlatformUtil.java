@@ -132,7 +132,8 @@ public class PlatformUtil {
 				dto.setParamKey((String) key);
 				if (o instanceof LinkedHashMap) {
 					dto.setParamValue("");
-					dto.setParamType("object");
+					dto.setParamType("Object");
+					dtoListAddParamsDto(dtoList , dto);
 				} else {
 					dto.setParamType(o != null ? o.getClass().getSimpleName() : "");
 					dto.setParamValue(o);
@@ -144,13 +145,13 @@ public class PlatformUtil {
 			List list = (List) object;
 			for (int i = 0; i < list.size(); i++) {
 				if (list.get(i) instanceof LinkedHashMap) {
-					paramsDto.setParamType("object[]");
+					paramsDto.setParamType("Object[]");
 					paramsDto.setParamValue("");
-					dtoListAddParamsDto(dtoList, paramsDto);
 				} else {
 					paramsDto.setParamType("List");
 					paramsDto.setParamValue(list.get(i));
 				}
+				dtoListAddParamsDto(dtoList, paramsDto);
 				format(list.get(i), dtoList, paramsDto);
 			}
 		} else {

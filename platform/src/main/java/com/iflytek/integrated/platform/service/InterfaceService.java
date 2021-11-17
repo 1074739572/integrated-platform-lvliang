@@ -52,6 +52,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.alibaba.fastjson.JSON;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
@@ -257,10 +260,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 					.fetch();
 			// 拼接实体
 			InDebugResDto resDto = new InDebugResDto();
+			String inparamFormat = sqlQueryFactory.select(qTInterface.inParamFormat).from(qTInterface).where(
+					qTInterface.id.eq(interfaceId).and(qTInterface.sysId.eq(businessInterface.getRequestSysId())))
+					.fetchFirst();
 			if ("2".equals(businessInterface.getSysIntfInParamFormatType())) {
-				String inparamFormat = sqlQueryFactory.select(qTInterface.inParamFormat).from(qTInterface).where(
-						qTInterface.id.eq(interfaceId).and(qTInterface.sysId.eq(businessInterface.getRequestSysId())))
-						.fetchFirst();
 				resDto.setWsInParams(inparamFormat);
 				String wsUrl = niFiRequestUtil.getWsServiceUrl();
 				if (!wsUrl.endsWith("/")) {
@@ -278,7 +281,14 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 								.and(qTInterfaceParam.paramInOut.eq(Constant.ParmInOut.IN)))
 						.fetch();
 				resDto.setInParams(paramNames);
+				ObjectMapper objectMapper = new ObjectMapper();
+				Map<String , Object> paramsMap = objectMapper.readValue(inparamFormat, new TypeReference<Map<String, Object>>() {
+				});
+				paramsMap.put("funcode", businessInterface.getInterfaceUrl());
+				paramsMap.put("productcode", businessInterface.getSysCode());
+				paramsMap.put("orgid", hospitalCodes.get(0));
 				resDto.setSysIntfParamFormatType("3");
+				resDto.setWsInParams(objectMapper.writeValueAsString(paramsMap));
 			}
 			resDto.setFuncode(businessInterface.getInterfaceUrl());
 			resDto.setProductcode(businessInterface.getSysCode());
