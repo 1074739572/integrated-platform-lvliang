@@ -47,6 +47,8 @@ import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TLog;
 import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
+import com.querydsl.core.QueryFlag;
+import com.querydsl.core.QueryFlag.Position;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
@@ -170,13 +172,18 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 												   @ApiParam(value = "被请求方响应") @RequestParam(value = "venderRep", required = false) String venderRep,
 												   @RequestParam(defaultValue = "1") Integer pageNo,
 												   @RequestParam(defaultValue = "10") Integer pageSize) {
+		List<TBusinessInterface> bis = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface).where(qTBusinessInterface.requestInterfaceId.eq(interfaceId)).fetch();
+		Map<String , Integer> biorderMap = new Hashtable<String , Integer>();
+		Map<String , String> biNameMap = new Hashtable<>();
+		bis.forEach(tbis->{
+			biorderMap.put(tbis.getId(), tbis.getExcErrOrder());
+			biNameMap.put(tbis.getId(), tbis.getBusinessInterfaceName());
+		});
 		// 查询条件
 		ArrayList<Predicate> list = new ArrayList<>();
+		list.add(qTLog.businessInterfaceId.in(biorderMap.keySet()));
 		if (StringUtils.isEmpty(interfaceId)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取日志详细列表，id必传");
-		}
-		if (StringUtils.isNotBlank(status)) {
-			list.add(qTLog.status.eq(status));
 		}
 		try{
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -184,6 +191,10 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 			list.add(qTLog.createdTime.loe(sdf.parse(endTime)));
 		}catch (ParseException e){
 			e.printStackTrace();
+		}
+		
+		if (StringUtils.isNotBlank(status)) {
+			list.add(qTLog.status.eq(status));
 		}
 		// 模糊查询接口地址
 		if (StringUtils.isNotBlank(visitAddr)) {
@@ -205,16 +216,10 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 			list.add(Expressions.stringTemplate("AES_DECRYPT(from_base64({0}),{1})", qTLog.venderRep, "w5xv7[Nmc0Z/3U^X")
 					.like(PlatformUtil.createFuzzyText(venderRep)));
 		}
-		List<TBusinessInterface> bis = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface).where(qTBusinessInterface.requestInterfaceId.eq(interfaceId)).fetch();
-		Map<String , Integer> biorderMap = new Hashtable<String , Integer>();
-		bis.forEach(tbis->{
-			biorderMap.put(tbis.getId(), tbis.getExcErrOrder());
-		});
-		list.add(qTLog.businessInterfaceId.in(biorderMap.keySet()));
 		QueryResults<TLog> queryResults = sqlQueryFactory
 				.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status, qTLog.venderRepTime,
 						qTLog.businessRepTime, qTLog.visitAddr,qTLog.businessInterfaceId))
-				.from(qTLog)
+				.from(qTLog).addFlag(new QueryFlag(Position.BEFORE_FILTERS, Expressions.stringTemplate(" FORCE INDEX ( log_query_idx )")))
 				.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
 				.orderBy(qTLog.createdTime.desc()).fetchResults();
 
@@ -227,6 +232,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 			}
 			String interfaceOrder = (order + 1)+"/"+ l;
 			log.setInterfaceOrder(interfaceOrder);
+			log.setBusinessInterfaceName(biNameMap.get(log.getBusinessInterfaceId()));
 		}
 
 		// 分页
