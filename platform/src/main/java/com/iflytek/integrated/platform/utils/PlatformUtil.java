@@ -4,7 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -24,7 +23,6 @@ import com.iflytek.integrated.common.utils.HttpClientUtil;
 import com.iflytek.integrated.common.utils.JackSonUtils;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.ParamsDto;
-import com.iflytek.integrated.platform.service.InterfaceService;
 import com.predic8.wsdl.Binding;
 import com.predic8.wsdl.Definitions;
 import com.predic8.wsdl.Port;
@@ -271,4 +269,14 @@ public class PlatformUtil {
         result=result+second+"秒";   //秒必须出现无论是否大于零
         return result;
     }
+	
+	public static String escapeSqlSingleQuotes(String sql) {
+		if(StringUtils.isBlank(sql)) {
+			return sql;
+		}
+		if(sql.indexOf("'") > -1) {
+			sql = sql.replaceAll("'", "''");
+		}
+		return sql;
+	}
 }
