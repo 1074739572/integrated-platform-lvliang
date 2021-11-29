@@ -99,7 +99,7 @@ public class ResourceCenterService {
 			@ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
     	
     	Path[] fields = new Path[10];
-    	StringPath idPath = Expressions.stringPath("ID");
+    	StringPath idPath = Expressions.stringPath("id");
         StringPath typePath = Expressions.stringPath("type");
         StringPath typeNamePath = Expressions.stringPath("typeName");
         StringPath resourceNamePath = Expressions.stringPath("resourceName");
