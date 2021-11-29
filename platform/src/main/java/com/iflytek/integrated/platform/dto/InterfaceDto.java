@@ -63,5 +63,7 @@ public class InterfaceDto {
     private String outParamSchema;
     
     private String outParamFormatType;
+    
+    private String allowLogDiscard;
 
 }

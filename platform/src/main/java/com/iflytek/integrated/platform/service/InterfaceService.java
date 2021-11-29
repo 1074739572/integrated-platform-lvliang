@@ -430,6 +430,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		ti.setOutParamFormat(outParamFormat);
 		ti.setCreatedTime(new Date());
 		ti.setCreatedBy(loginUserName);
+		ti.setAllowLogDiscard(dto.getAllowLogDiscard());
 
 		// 新增接口参数
 		// 入参
@@ -511,6 +512,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		String outParamFormat = dto.getOutParamFormat();
 		String inParamFormatType = dto.getInParamFormatType();
 		String outParamFormatType = dto.getOutParamFormatType();
+		String allowLogDiscard = dto.getAllowLogDiscard();
 
 		String inParamSchema = "";
 		if (StringUtils.isNotBlank(inParamFormat)) {
@@ -528,7 +530,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				.set(qTInterface.outParamFormatType, outParamFormatType).set(qTInterface.updatedTime, new Date())
 				.set(qTInterface.paramOutStatus, "").set(qTInterface.paramOutStatusSuccess, "")
 				.set(qTInterface.inParamSchema, inParamSchema).set(qTInterface.outParamSchema, outParamSchema)
-				.set(qTInterface.updatedBy, loginUserName).where(qTInterface.id.eq(id)).execute();
+				.set(qTInterface.updatedBy, loginUserName).set(qTInterface.allowLogDiscard, allowLogDiscard)
+				.where(qTInterface.id.eq(id)).execute();
 		if (execute < 1) {
 			throw new RuntimeException("修改标准接口信息失败!");
 		}
@@ -610,7 +613,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			list.add(qTInterface.interfaceName.like(PlatformUtil.createFuzzyText(name)));
 		}
 		QueryResults<TInterface> queryResults = sqlQueryFactory
-				.select(Projections.bean(TInterface.class, qTInterface.id, qTInterface.interfaceName,
+				.select(Projections.bean(TInterface.class, qTInterface.id, qTInterface.interfaceName,qTInterface.allowLogDiscard,
 						qTInterface.interfaceUrl, qTInterface.inParamFormat, qTInterface.outParamFormat,
 						qTInterface.createdTime, qTInterface.typeId, qTType.typeName.as("interfaceTypeName"),
 						sqlQueryFactory.select(qTInterfaceParam.id.count()).from(qTInterfaceParam)

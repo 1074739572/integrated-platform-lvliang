@@ -94,7 +94,7 @@ public class ResourceCenterService {
 	
     @GetMapping("/getAllResources")
     @ApiOperation(value = "获取全部资源")
-	public ResultDto<TableData<TResource>> getAllResources(@RequestParam(value = "resourceName", required = false) String resourceName,
+	public ResultDto<TableData<TResource>> getAllResources(@RequestParam(value = "resourceName", required = false) String resourceName,@RequestParam(value = "type", required = false) String type,
 			@ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
 			@ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
     	
@@ -164,6 +164,7 @@ public class ResourceCenterService {
 		SimpleTemplate<String> projName = Expressions.template(String.class, "intf.PROJECT_NAME");
 		SimpleExpression<String> projType = Expressions.constantAs("4", typePath);
 		SimpleExpression<String> projTypeName = Expressions.constantAs("项目", typeNamePath);
+		
     	SubQueryExpression<Tuple> intfQuery = 
 				SQLExpressions.select(qTProject.id , qTProject.projectName , qTBusinessInterface.id.max().as("intfTransCount")).from(qTProject)
 				.leftJoin(qTSysConfig).on(qTProject.id.eq(qTSysConfig.projectId))
@@ -175,17 +176,34 @@ public class ResourceCenterService {
 				.leftJoin(etlQuery , etl).on(etlprojId.eq(intfprojId)).groupBy(intfprojId);
 		
 		
-		SubQueryExpression<TResource> unionQuery = SQLExpressions.select(Projections.bean(TResource.class, fields)).unionAll(SQLExpressions.select(Projections.bean(TResource.class, fields)).from(sysQuery , sys),
-				SQLExpressions.select(Projections.bean(TResource.class, fields)).from(pluginQuery , plugin) , 
-				SQLExpressions.select(Projections.bean(TResource.class, fields)).from(driveQuery , drive) , 
-				SQLExpressions.select(Projections.bean(TResource.class, fields)).from(projQuery , proj));
+		SubQueryExpression<TResource> unionQuery = null;
+		switch (type) {
+		case "1":
+			unionQuery = SQLExpressions.select(Projections.bean(TResource.class, fields)).from(sysQuery , sys);
+			break;
+		case "2":
+			unionQuery = SQLExpressions.select(Projections.bean(TResource.class, fields)).from(pluginQuery , plugin);
+			break;
+		case "3":
+			unionQuery = SQLExpressions.select(Projections.bean(TResource.class, fields)).from(driveQuery , drive);
+			break;
+		case "4":
+			unionQuery = SQLExpressions.select(Projections.bean(TResource.class, fields)).from(projQuery , proj);
+			break;
+		default:
+			unionQuery = SQLExpressions.select(Projections.bean(TResource.class, fields)).unionAll(SQLExpressions.select(Projections.bean(TResource.class, fields)).from(sysQuery , sys),
+					SQLExpressions.select(Projections.bean(TResource.class, fields)).from(pluginQuery , plugin) , 
+					SQLExpressions.select(Projections.bean(TResource.class, fields)).from(driveQuery , drive) , 
+					SQLExpressions.select(Projections.bean(TResource.class, fields)).from(projQuery , proj));
+			break;
+		}
 		QueryResults<TResource> queryResults = sqlQueryFactory.select(Projections.bean(TResource.class, fields)).from(unionQuery , all)
 				.where(list.toArray(new Predicate[list.size()]))
 				.limit(pageSize).offset((pageNo - 1) * pageSize).fetchResults();
 		
 		TableData<TResource> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
 		
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取项目信息成功!", tableData);
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取资源成功!", tableData);
 	}
     
     private void getResourcesByBizInterfaceIds(List<String> ids , StringBuilder sqlStringBuffer) {

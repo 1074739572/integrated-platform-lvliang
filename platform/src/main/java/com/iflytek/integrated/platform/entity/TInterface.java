@@ -58,6 +58,8 @@ public class TInterface implements Serializable {
     private String outParamSchema;
     
     private String outParamFormatType;
+    
+    private String allowLogDiscard;
 
 }
 

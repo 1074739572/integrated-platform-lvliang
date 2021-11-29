@@ -53,7 +53,9 @@ public class QTInterface extends com.querydsl.sql.RelationalPathBase<TInterface>
     public final StringPath outParamSchema = createString("outParamSchema");
     
     public final StringPath outParamFormatType = createString("outParamFormatType");
-
+    
+    public final StringPath allowLogDiscard = createString("allowLogDiscard");
+    
     public final DateTimePath<java.util.Date> updatedTime = createDateTime("updatedTime", java.util.Date.class);
 
     public final com.querydsl.sql.PrimaryKey<TInterface> primary = createPrimaryKey(id);
@@ -102,6 +104,8 @@ public class QTInterface extends com.querydsl.sql.RelationalPathBase<TInterface>
         addMetadata(inParamFormatType, ColumnMetadata.named("IN_PARAM_FORMAT_TYPE").withIndex(15).ofType(Types.VARCHAR).withSize(1).notNull());
         addMetadata(outParamSchema, ColumnMetadata.named("OUT_PARAM_SCHEMA").withIndex(16).ofType(Types.LONGVARCHAR));
         addMetadata(outParamFormatType, ColumnMetadata.named("OUT_PARAM_FORMAT_TYPE").withIndex(17).ofType(Types.VARCHAR).withSize(1).notNull());
+        addMetadata(allowLogDiscard, ColumnMetadata.named("ALLOW_LOG_DISCARD").withIndex(18).ofType(Types.VARCHAR).withSize(1).notNull());
+        
     }
 
 }
