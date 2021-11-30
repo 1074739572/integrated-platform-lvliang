@@ -434,6 +434,7 @@ public class NiFiRequestUtil {
 			client.setBasePath(serverUrl);
 			client.addDefaultHeader("Content-Type", "application/json");
 			client.addDefaultHeader("Accept", "application/json");
+			client.addDefaultHeader("Connection", "close");
 			AccessApi api = new AccessApi(client);
 			
 			try {

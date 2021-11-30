@@ -71,6 +71,7 @@ import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.core.types.dsl.SimpleTemplate;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.SQLExpressions;
+import com.querydsl.sql.SQLQuery;
 import com.querydsl.sql.SQLQueryFactory;
 
 import io.swagger.annotations.Api;
@@ -334,44 +335,62 @@ public class ResourceCenterService {
 					"('" + tSys.getId() + "', '" + tSys.getSysName() + "', '" + tSys.getSysCode() + "', '" + tSys.getIsValid() + "', 'admin', now() , 'admin', now());\n");
 			sqlStringBuffer.append("END_OF_SQL\n");
 		}
+		List<Predicate> driveLinkFilters = new ArrayList<>();
+		driveLinkFilters.add(qTSysDriveLink.sysId.eq(sysId));
 		if(driverIds != null && driverIds.size() > 0) {
-			List<TSysDriveLink> tSysDriveLinks = sqlQueryFactory.select(qTSysDriveLink).from(qTSysDriveLink).where(qTSysDriveLink.sysId.eq(sysId).and(qTSysDriveLink.driveId.in(driverIds))).fetch();
-			for (TSysDriveLink tSysDriveLink : tSysDriveLinks) {
-				driverIds.add(tSysDriveLink.getDriveId());
-				sqlStringBuffer.append("REPLACE INTO `t_sys_drive_link` (`ID`, `SYS_ID`, `DRIVE_ID`, `DRIVE_ORDER`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`) VALUES " +
-						"('" + tSysDriveLink.getId() + "', '" + tSysDriveLink.getSysId() + "', '" + tSysDriveLink.getDriveId() + "', " + tSysDriveLink.getDriveOrder() + ", 'admin', now() , 'admin', now());\n");
-				sqlStringBuffer.append("END_OF_SQL\n");
-			}
-			List<TDrive> tDrives = sqlQueryFactory.select(qTDrive).from(qTDrive).where(qTDrive.id.in(driverIds)).fetch();
-			for (TDrive tDrive : tDrives) {
-				sqlStringBuffer.append("REPLACE INTO `t_drive` (`ID`, `DRIVE_NAME`, `DRIVE_CODE`, `TYPE_ID`, `DRIVE_INSTRUCTION`, `DRIVE_CONTENT`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, `DRIVE_CALL_TYPE`, `DEPENDENT_PATH`) VALUES " +
-						"('" + tDrive.getId() + "', '" + tDrive.getDriveName() + "', '" + tDrive.getDriveCode() + "', '" + tDrive.getTypeId() + "', '" + tDrive.getDriveInstruction() + "', '" + tDrive.getDriveContent() + "', 'admin', now() , 'admin', now(), '" + tDrive.getDriveCallType() + "', '" + tDrive.getDependentPath() + "');\n");
-				sqlStringBuffer.append("END_OF_SQL\n");
-			}
+			driveLinkFilters.add(qTSysDriveLink.driveId.in(driverIds));
 		}
+		List<TSysDriveLink> tSysDriveLinks = sqlQueryFactory.select(qTSysDriveLink).from(qTSysDriveLink).where(driveLinkFilters.toArray(new Predicate[driveLinkFilters.size()])).fetch();
+		List<String> driveIds = new ArrayList<>();
+		for (TSysDriveLink tSysDriveLink : tSysDriveLinks) {
+			driverIds.add(tSysDriveLink.getDriveId());
+			sqlStringBuffer.append("REPLACE INTO `t_sys_drive_link` (`ID`, `SYS_ID`, `DRIVE_ID`, `DRIVE_ORDER`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`) VALUES " +
+					"('" + tSysDriveLink.getId() + "', '" + tSysDriveLink.getSysId() + "', '" + tSysDriveLink.getDriveId() + "', " + tSysDriveLink.getDriveOrder() + ", 'admin', now() , 'admin', now());\n");
+			sqlStringBuffer.append("END_OF_SQL\n");
+			driveIds.add(tSysDriveLink.getId());
+		}
+		List<TDrive> tDrives = sqlQueryFactory.select(qTDrive).from(qTDrive)
+				.where(qTDrive.id.in(driveIds)).fetch();
+		for (TDrive tDrive : tDrives) {
+			sqlStringBuffer.append("REPLACE INTO `t_drive` (`ID`, `DRIVE_NAME`, `DRIVE_CODE`, `TYPE_ID`, `DRIVE_INSTRUCTION`, `DRIVE_CONTENT`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, `DRIVE_CALL_TYPE`, `DEPENDENT_PATH`) VALUES " +
+					"('" + tDrive.getId() + "', '" + tDrive.getDriveName() + "', '" + tDrive.getDriveCode() + "', '" + tDrive.getTypeId() + "', '" + tDrive.getDriveInstruction() + "', '" + tDrive.getDriveContent() + "', 'admin', now() , 'admin', now(), '" + tDrive.getDriveCallType() + "', '" + tDrive.getDependentPath() + "');\n");
+			sqlStringBuffer.append("END_OF_SQL\n");
+		}
+		
+		List<Predicate> sysInftFilters = new ArrayList<>();
+		sysInftFilters.add(qTInterface.sysId.eq(sysId));
 		if(interfaceIds != null && interfaceIds.size()> 0) {
-			List<TInterface> tInterfaces = sqlQueryFactory.select(qTInterface).from(qTInterface).where(qTInterface.id.in(interfaceIds)).fetch();
-			for (TInterface tInterface : tInterfaces) {
-				sqlStringBuffer.append("REPLACE INTO `t_interface` (`ID`, `SYS_ID`, `INTERFACE_NAME`, `TYPE_ID`, " +
-						"`INTERFACE_URL`, `IN_PARAM_FORMAT`, `OUT_PARAM_FORMAT`, `PARAM_OUT_STATUS`, `PARAM_OUT_STATUS_SUCCESS`," +
-						" `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, `IN_PARAM_SCHEMA`, `IN_PARAM_FORMAT_TYPE`, " +
-						"`OUT_PARAM_SCHEMA`, `OUT_PARAM_FORMAT_TYPE`) VALUES ('" + tInterface.getId() + "', '" + tInterface.getSysId() + "', '" + tInterface.getInterfaceName() + "', '" + tInterface.getTypeId() + "', " +
-						"'" + tInterface.getInterfaceUrl() + "', '" + tInterface.getInParamFormat() + "', '" + tInterface.getOutParamFormat() + "', '" + tInterface.getParamOutStatus() + "', '" + tInterface.getParamOutStatusSuccess() +
-						"', 'admin', now() , 'admin', now(), '" + tInterface.getInParamSchema() + "', '" + tInterface.getInParamFormatType() + "', '" + tInterface.getOutParamSchema() + "', '" + tInterface.getOutParamFormatType() + "');\n");
-				sqlStringBuffer.append("END_OF_SQL\n");
-			}
-			List<TInterfaceParam> tInterfaceParams = sqlQueryFactory.select(qTInterfaceParam).from(qTInterfaceParam).where(qTInterfaceParam.interfaceId.in(interfaceIds)).fetch();
-			for (TInterfaceParam tInterfaceParam : tInterfaceParams) {
-				sqlStringBuffer.append("REPLACE INTO `t_interface_param` (`ID`, `PARAM_NAME`, `PARAM_INSTRUCTION`, `INTERFACE_ID`, `PARAM_TYPE`, `PARAM_LENGTH`, `PARAM_IN_OUT`, `CREATED_BY`, `CREATED_TIME`, " +
-						"`UPDATED_BY`, `UPDATED_TIME`) VALUES ('" + tInterfaceParam.getId() + "', '" + tInterfaceParam.getParamName() + "', '" + tInterfaceParam.getParamInstruction() + "', '" + tInterfaceParam.getInterfaceId() + "'," +
-						" '" + tInterfaceParam.getParamType() + "', " + tInterfaceParam.getParamLength() + ", '" + tInterfaceParam.getParamInOut() + "', 'admin', now() , 'admin', now());\n");
-				sqlStringBuffer.append("END_OF_SQL\n");
-			}
+			sysInftFilters.add(qTInterface.id.in(interfaceIds));
+		}
+		List<TInterface> tInterfaces = sqlQueryFactory.select(qTInterface).from(qTInterface).where(sysInftFilters.toArray(new Predicate[sysInftFilters.size()])).fetch();
+		List<String> intfIds = new ArrayList<>();
+		for (TInterface tInterface : tInterfaces) {
+			sqlStringBuffer.append("REPLACE INTO `t_interface` (`ID`, `SYS_ID`, `INTERFACE_NAME`, `TYPE_ID`, " +
+					"`INTERFACE_URL`, `IN_PARAM_FORMAT`, `OUT_PARAM_FORMAT`, `PARAM_OUT_STATUS`, `PARAM_OUT_STATUS_SUCCESS`," +
+					" `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, `IN_PARAM_SCHEMA`, `IN_PARAM_FORMAT_TYPE`, " +
+					"`OUT_PARAM_SCHEMA`, `OUT_PARAM_FORMAT_TYPE`) VALUES ('" + tInterface.getId() + "', '" + tInterface.getSysId() + "', '" + tInterface.getInterfaceName() + "', '" + tInterface.getTypeId() + "', " +
+					"'" + tInterface.getInterfaceUrl() + "', '" + tInterface.getInParamFormat() + "', '" + tInterface.getOutParamFormat() + "', '" + tInterface.getParamOutStatus() + "', '" + tInterface.getParamOutStatusSuccess() +
+					"', 'admin', now() , 'admin', now(), '" + tInterface.getInParamSchema() + "', '" + tInterface.getInParamFormatType() + "', '" + tInterface.getOutParamSchema() + "', '" + tInterface.getOutParamFormatType() + "');\n");
+			sqlStringBuffer.append("END_OF_SQL\n");
+			intfIds.add(tInterface.getId());
+		}
+		List<TInterfaceParam> tInterfaceParams = sqlQueryFactory.select(qTInterfaceParam).from(qTInterfaceParam).where(qTInterfaceParam.interfaceId.in(intfIds)).fetch();
+		for (TInterfaceParam tInterfaceParam : tInterfaceParams) {
+			sqlStringBuffer.append("REPLACE INTO `t_interface_param` (`ID`, `PARAM_NAME`, `PARAM_INSTRUCTION`, `INTERFACE_ID`, `PARAM_TYPE`, `PARAM_LENGTH`, `PARAM_IN_OUT`, `CREATED_BY`, `CREATED_TIME`, " +
+					"`UPDATED_BY`, `UPDATED_TIME`) VALUES ('" + tInterfaceParam.getId() + "', '" + tInterfaceParam.getParamName() + "', '" + tInterfaceParam.getParamInstruction() + "', '" + tInterfaceParam.getInterfaceId() + "'," +
+					" '" + tInterfaceParam.getParamType() + "', " + tInterfaceParam.getParamLength() + ", '" + tInterfaceParam.getParamInOut() + "', 'admin', now() , 'admin', now());\n");
+			sqlStringBuffer.append("END_OF_SQL\n");
 		}
 	}
 	
 	private void getResourcesByDriver(List<String> driverIds , StringBuilder sqlStringBuffer) {
-		List<TDrive> tDrives = sqlQueryFactory.select(qTDrive).from(qTDrive).where(qTDrive.id.in(driverIds)).fetch();
+		SQLQuery<TDrive> sqlQuery = null;
+		if(driverIds != null && driverIds.size() > 0) {
+			sqlQuery = sqlQueryFactory.select(qTDrive).from(qTDrive).where(qTDrive.id.in(driverIds));
+		}else {
+			sqlQuery = sqlQueryFactory.select(qTDrive).from(qTDrive);
+		}
+		List<TDrive> tDrives = sqlQuery.fetch();
 		for (TDrive tDrive : tDrives) {
 			sqlStringBuffer.append("REPLACE INTO `t_drive` (`ID`, `DRIVE_NAME`, `DRIVE_CODE`, `TYPE_ID`, `DRIVE_INSTRUCTION`, `DRIVE_CONTENT`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, `DRIVE_CALL_TYPE`, `DEPENDENT_PATH`) VALUES " +
 					"('" + tDrive.getId() + "', '" + tDrive.getDriveName() + "', '" + tDrive.getDriveCode() + "', '" + tDrive.getTypeId() + "', '" + tDrive.getDriveInstruction() + "', '" + tDrive.getDriveContent() + "', 'admin', now() , 'admin', now(), '" + tDrive.getDriveCallType() + "', '" + tDrive.getDependentPath() + "');\n");
@@ -380,7 +399,13 @@ public class ResourceCenterService {
 	}
 	
 	private void getResourcesByPlugin(List<String> pluginIds , StringBuilder sqlStringBuffer) {
-		List<TPlugin> tPlugins = sqlQueryFactory.select(qTPlugin).from(qTPlugin).where(qTPlugin.id.in(pluginIds)).fetch();
+		SQLQuery<TPlugin> sqlQuery = null;
+		if(pluginIds != null && pluginIds.size() > 0) {
+			sqlQuery = sqlQueryFactory.select(qTPlugin).from(qTPlugin).where(qTPlugin.id.in(pluginIds));
+		}else {
+			sqlQuery = sqlQueryFactory.select(qTPlugin).from(qTPlugin);
+		}
+		List<TPlugin> tPlugins = sqlQuery.fetch();
 		for (TPlugin tPlugin : tPlugins) {
 			sqlStringBuffer.append("REPLACE INTO `t_plugin` (`ID`, `PLUGIN_NAME`, `PLUGIN_CODE`, `TYPE_ID`, `PLUGIN_INSTRUCTION`, `PLUGIN_CONTENT`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, `DEPENDENT_PATH`) " +
 					"VALUES ('" + tPlugin.getId() + "', '" + tPlugin.getPluginName() + "', '" + tPlugin.getPluginCode() + "', '" + tPlugin.getTypeId() + "', '" + tPlugin.getPluginInstruction() + "', '" + tPlugin.getPluginContent() + "', 'admin', now() , 'admin', now(), '" + tPlugin.getDependentPath() + "');\n");
@@ -395,18 +420,22 @@ public class ResourceCenterService {
 		StringBuilder sqlStringBuffer = new StringBuilder();
 		String type = resourceDto.getType();
 		List<String> ids = resourceDto.getIds();
+		String sqlFileNamePrifix = "sql_";
 		switch (type) {
 		case "1":
 			String sysId = resourceDto.getSysId();
 			List<String> sysDriveIds = resourceDto.getSysDriveIds();
 			List<String> sysIntfIds = resourceDto.getSysIntfIds();
 			this.getResourcesBySys(sysId, sysDriveIds, sysIntfIds, sqlStringBuffer);
+			sqlFileNamePrifix = "system_";
 			break;
 		case "2":
 			this.getResourcesByDriver(ids, sqlStringBuffer);
+			sqlFileNamePrifix = "driver_";
 			break;
 		case "3":
 			this.getResourcesByPlugin(ids, sqlStringBuffer);
+			sqlFileNamePrifix = "plugin_";
 			break;
 		case "4":
 			String platformId = resourceDto.getPlatformId();
@@ -416,16 +445,17 @@ public class ResourceCenterService {
 				biids.add(bi.getId());
 			});
 			this.getResourcesByBizInterfaceIds(biids, sqlStringBuffer);
+			sqlFileNamePrifix = "project_";
 			break;
 		default:
 			break;
 		}
 
 		String dateStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-		String sqlName = "interface_" + dateStr + ".sql";
+		String sqlName = sqlFileNamePrifix + dateStr + ".sql";
 		try {
 			response.setContentType("application/x-msdownload");
-			response.setHeader("content-disposition", "attachment;filename=" + URLEncoder.encode("interface_" + dateStr + ".zip", "utf-8"));
+			response.setHeader("content-disposition", "attachment;filename=" + URLEncoder.encode(sqlFileNamePrifix + dateStr + ".zip", "utf-8"));
 
 			ZipOutputStream zos = new ZipOutputStream(response.getOutputStream());
 			BufferedOutputStream bos = new BufferedOutputStream(zos);
