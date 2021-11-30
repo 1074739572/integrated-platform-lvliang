@@ -178,7 +178,8 @@ public class EtlGroupService extends BaseService<TEtlGroup, String, StringPath> 
 			niFiRequestUtil.emptyNifiCollections(params);
 			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "清空流程组队列成功", "");
 		}catch(Exception e) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "清空流程组队列失败", e.getLocalizedMessage());
+			logger.error("清空流程组队列失败" , e);
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "清空流程组队列失败:" + e.getLocalizedMessage(), e.getLocalizedMessage());
 		}
 	}
 }

@@ -475,6 +475,9 @@ public class NiFiRequestUtil {
 			}catch(Exception e) {
 				if (e instanceof ApiException) {
 					ApiException ae = (ApiException) e;
+					if(ae.getCode() == 0) {
+						throw new RuntimeException("etl服务器配置信息错误，请求检查服务器地址、用户名和密码配置");
+					}
 					if (ae.getCode() != 404) {
 						if(ae.getCode() == 409){
 							logger.error("清空ETL流程[%s]操作处理冲突，请稍后重试！" , tEtlGroupId);
