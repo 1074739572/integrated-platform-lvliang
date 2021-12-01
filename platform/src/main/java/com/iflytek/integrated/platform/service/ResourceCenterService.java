@@ -141,7 +141,7 @@ public class ResourceCenterService {
 		SimpleExpression<String> sysTypeName = Expressions.constantAs("系统", typeNamePath);
 		
 		SubQueryExpression<Tuple> sysQuery = SQLExpressions.select(qTSys.id.as("id") , qTSys.sysName.as("resourceName") , sysType , sysTypeName,
-				qTDrive.id.count().as("sysDriverCount") , qTInterface.id.count().as("sysInftCount") , 
+				qTDrive.id.countDistinct().as("sysDriverCount") , qTInterface.id.countDistinct().as("sysInftCount") , 
 				Expressions.constantAs(0, intfTransCountPath),Expressions.constantAs(0, etlCountPath),Expressions.constantAs(0, pluginCountPath),Expressions.constantAs(0, driverCountPath)).from(qTSys)
 				.leftJoin(qTSysDriveLink).on(qTSysDriveLink.sysId.eq(qTSys.id)).leftJoin(qTDrive).on(qTDrive.id.eq(qTSysDriveLink.driveId))
 				.leftJoin(qTInterface).on(qTInterface.sysId.eq(qTSys.id)).groupBy(qTSys.id , qTSys.sysName);
@@ -167,12 +167,13 @@ public class ResourceCenterService {
 		SimpleExpression<String> projTypeName = Expressions.constantAs("项目", typeNamePath);
 		
     	SubQueryExpression<Tuple> intfQuery = 
-				SQLExpressions.select(qTProject.id , qTProject.projectName , qTBusinessInterface.id.max().as("intfTransCount")).from(qTProject)
+				SQLExpressions.select(qTProject.id , qTProject.projectName , qTBusinessInterface.requestInterfaceId.as("intfTransCount")).from(qTProject)
 				.leftJoin(qTSysConfig).on(qTProject.id.eq(qTSysConfig.projectId))
-				.leftJoin(qTBusinessInterface).on(qTBusinessInterface.requestSysconfigId.eq(qTSysConfig.id)).groupBy(qTProject.id , qTBusinessInterface.requestInterfaceId);
-		SubQueryExpression<Tuple> etlQuery = SQLExpressions.select(qTEtlGroup.projectId , qTEtlFlow.etlGroupId.count().as("etlCount"))
+				.leftJoin(qTBusinessInterface).on(qTBusinessInterface.requestSysconfigId.eq(qTSysConfig.id))
+				.where(qTBusinessInterface.requestInterfaceId.isNotNull()).groupBy(qTProject.id , qTBusinessInterface.requestInterfaceId);
+		SubQueryExpression<Tuple> etlQuery = SQLExpressions.select(qTEtlGroup.projectId , qTEtlFlow.id.countDistinct().as("etlCount"))
 				.from(qTEtlGroup).join(qTEtlFlow).on(qTEtlFlow.groupId.eq(qTEtlGroup.id)).groupBy(qTEtlGroup.projectId);
-		SubQueryExpression<Tuple> projQuery = SQLExpressions.select(intfprojId.as("id") , projName.as("resourceName"), intfTransCount.count().as("intfTransCount") , etlCount.as("etlCount") , projType, projTypeName,
+		SubQueryExpression<Tuple> projQuery = SQLExpressions.select(intfprojId.as("id") , projName.as("resourceName"), intfTransCount.countDistinct().as("intfTransCount") , etlCount.as("etlCount") , projType, projTypeName,
 				Expressions.constantAs(0, sysDriverCountPath) , Expressions.constantAs(0, sysInftCountPath),Expressions.constantAs(0, pluginCountPath),Expressions.constantAs(0, driverCountPath)).from(intfQuery , intf)
 				.leftJoin(etlQuery , etl).on(etlprojId.eq(intfprojId)).groupBy(intfprojId);
 		
@@ -343,11 +344,11 @@ public class ResourceCenterService {
 		List<TSysDriveLink> tSysDriveLinks = sqlQueryFactory.select(qTSysDriveLink).from(qTSysDriveLink).where(driveLinkFilters.toArray(new Predicate[driveLinkFilters.size()])).fetch();
 		List<String> driveIds = new ArrayList<>();
 		for (TSysDriveLink tSysDriveLink : tSysDriveLinks) {
-			driverIds.add(tSysDriveLink.getDriveId());
+//			driveIds.add(tSysDriveLink.getDriveId());
 			sqlStringBuffer.append("REPLACE INTO `t_sys_drive_link` (`ID`, `SYS_ID`, `DRIVE_ID`, `DRIVE_ORDER`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`) VALUES " +
 					"('" + tSysDriveLink.getId() + "', '" + tSysDriveLink.getSysId() + "', '" + tSysDriveLink.getDriveId() + "', " + tSysDriveLink.getDriveOrder() + ", 'admin', now() , 'admin', now());\n");
 			sqlStringBuffer.append("END_OF_SQL\n");
-			driveIds.add(tSysDriveLink.getId());
+			driveIds.add(tSysDriveLink.getDriveId());
 		}
 		List<TDrive> tDrives = sqlQueryFactory.select(qTDrive).from(qTDrive)
 				.where(qTDrive.id.in(driveIds)).fetch();
