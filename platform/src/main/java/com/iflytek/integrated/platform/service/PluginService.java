@@ -99,7 +99,7 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
     public ResultDto<TableData<TPlugin>> getPluginList(@ApiParam(value = "插件名称") @RequestParam(value = "pluginName", required = false) String pluginName,
                                    @ApiParam(value = "插件分类id") @RequestParam(value = "typeId", required = false) String typeId,
                                    @ApiParam(value = "页码") @RequestParam(defaultValue = "1")Integer pageNo,
-                                   @ApiParam(value = "每页大小") @RequestParam(defaultValue = "10")Integer pageSize){
+                                   @ApiParam(value = "每页大小") @RequestParam(defaultValue = "10")Integer pageSize , @RequestParam(value = "id", required = false) String id){
         try {
             //查询条件
             ArrayList<Predicate> list = new ArrayList<>();
@@ -109,6 +109,9 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
             }
             if(StringUtils.isNotEmpty(typeId)) {
                 list.add(qTPlugin.typeId.eq(typeId));
+            }
+            if(StringUtils.isNotBlank(id)) {
+            	list.add(qTPlugin.id.eq(id));
             }
             //根据查询条件获取插件列表
             QueryResults<TPlugin> queryResults = sqlQueryFactory.select(

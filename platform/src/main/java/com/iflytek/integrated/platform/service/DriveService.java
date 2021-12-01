@@ -101,7 +101,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
 	public ResultDto<TableData<TDrive>> getDriveList(
 			@ApiParam(value = "驱动名称") @RequestParam(value = "driveName", required = false) String driveName,
 			@ApiParam(value = "驱动分类id") @RequestParam(value = "typeId", required = false) String typeId,
-			@RequestParam(defaultValue = "1") Integer pageNo, @RequestParam(defaultValue = "10") Integer pageSize) {
+			@RequestParam(defaultValue = "1") Integer pageNo, @RequestParam(defaultValue = "10") Integer pageSize,@RequestParam(value = "id", required = false) String id) {
 		try {
 			// 查询条件
 			ArrayList<Predicate> list = new ArrayList<>();
@@ -111,6 +111,9 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
 			}
 			if (StringUtils.isNotEmpty(typeId)) {
 				list.add(qTDrive.typeId.eq(typeId));
+			}
+			if (StringUtils.isNotEmpty(id)) {
+				list.add(qTDrive.id.eq(id));
 			}
 			// 根据查询条件获取驱动列表
 			QueryResults<TDrive> queryResults = sqlQueryFactory
