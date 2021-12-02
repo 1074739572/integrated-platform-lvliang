@@ -45,6 +45,7 @@ import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.ResourceDto;
+import static com.iflytek.integrated.platform.entity.QTType.qTType;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TDrive;
 import com.iflytek.integrated.platform.entity.THospital;
@@ -64,11 +65,13 @@ import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.SubQueryExpression;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.NumberTemplate;
 import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.core.types.dsl.SimpleTemplate;
+import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.SQLExpressions;
 import com.querydsl.sql.SQLQuery;
@@ -486,8 +489,13 @@ public class ResourceCenterService {
 			@ApiParam(value = "系统id") @RequestParam(value = "sysId", required = true) String sysId,
 			@ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
 			@ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
-		QueryResults<TDrive> queryResults = sqlQueryFactory.select(qTDrive).from(qTSysDriveLink).leftJoin(qTDrive)
-				.on(qTDrive.id.eq(qTSysDriveLink.driveId)).where(qTSysDriveLink.sysId.eq(sysId))
+		StringExpression callTypeNameExp = new CaseBuilder().when(qTDrive.driveCallType.eq("1")).then("请求方").otherwise("被请求方");
+		QueryResults<TDrive> queryResults = sqlQueryFactory.select(Projections.bean(TDrive.class, qTDrive.id,qTDrive.driveCode , qTDrive.driveName, qTDrive.typeId,
+				qTDrive.driveInstruction, qTDrive.driveContent, qTDrive.createdBy , qTDrive.createdTime, qTDrive.updatedBy , qTDrive.updatedTime, qTDrive.driveCallType,
+				qTDrive.dependentPath , callTypeNameExp.as("driveCallTypeName") , qTType.typeName.as("driveTypeName")))
+				.from(qTSysDriveLink).leftJoin(qTDrive)
+				.on(qTDrive.id.eq(qTSysDriveLink.driveId))
+				.leftJoin(qTType).on(qTType.id.eq(qTDrive.typeId)).where(qTSysDriveLink.sysId.eq(sysId))
 				.limit(pageSize).offset((pageNo - 1) * pageSize)
 				.orderBy(qTDrive.createdTime.desc()).fetchResults();
 		// 分页
