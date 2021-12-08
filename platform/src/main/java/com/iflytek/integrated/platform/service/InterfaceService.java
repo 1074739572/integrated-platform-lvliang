@@ -1282,7 +1282,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		for(TPlatform tp : tPlatforms) {
 			sqlStringBuffer.append("REPLACE INTO `t_platform` (`ID`, `PROJECT_ID`, `PLATFORM_NAME`, `PLATFORM_CODE`, " +
 					"`PLATFORM_STATUS`, `PLATFORM_TYPE`, `ETL_SERVER_URL`, `ETL_USER`, `ETL_PWD`," +
-					" `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`) VALUES ('" + tp.getId() + "', 'newProjectId', '" + PlatformUtil.escapeSqlSingleQuotes(tp.getPlatformName()) + "', '" + tp.getPlatformCode() + "', " +
+					" `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`) VALUES ('" + tp.getId() + "', 'newProjectId_"+tp.getProjectId()+"', '" + PlatformUtil.escapeSqlSingleQuotes(tp.getPlatformName()) + "', '" + tp.getPlatformCode() + "', " +
 					"'" + tp.getPlatformStatus() + "', '" + tp.getPlatformType() + "', '" + tp.getEtlServerUrl() + "', '" + tp.getEtlUser() + "', '" + tp.getEtlPwd() +
 					"', 'admin', now() , 'admin', now());\n");
 			sqlStringBuffer.append("END_OF_SQL\n");
@@ -1311,7 +1311,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			sysIds.add(sysConfig.getSysId());
 			sqlStringBuffer.append("REPLACE INTO `t_sys_config` (`ID`, `PROJECT_ID`, `PLATFORM_ID`, `SYS_ID`, `SYS_CONFIG_TYPE`, `HOSPITAL_CONFIGS`, `VERSION_ID`, `CONNECTION_TYPE`, `ADDRESS_URL`, `ENDPOINT_URL`," +
 					" `NAMESPACE_URL`, `DATABASE_NAME`, `DATABASE_URL`, `DATABASE_TYPE`, `DATABASE_DRIVER`, `DRIVER_URL`, `JSON_PARAMS`, `USER_NAME`, `USER_PASSWORD`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, " +
-					"`INNER_IDX`) VALUES ('" + sysConfig.getId() + "', 'newProjectId', '"+ sysConfig.getPlatformId() +"', '" + sysConfig.getSysId() + "', " + sysConfig.getSysConfigType() + ", " +
+					"`INNER_IDX`) VALUES ('" + sysConfig.getId() + "', 'newProjectId_"+ sysConfig.getProjectId()+"', '"+ sysConfig.getPlatformId() +"', '" + sysConfig.getSysId() + "', " + sysConfig.getSysConfigType() + ", " +
 					sysConfig.getHospitalConfigs() + ", '" + sysConfig.getVersionId() + "', '" + sysConfig.getConnectionType() + "', '" + sysConfig.getAddressUrl() + "', '" + sysConfig.getEndpointUrl() + "', " +
 					"'" + sysConfig.getNamespaceUrl() + "', '" + sysConfig.getDatabaseName() + "', '" + sysConfig.getDatabaseUrl() + "', '" + sysConfig.getDatabaseType() + "', '" + sysConfig.getDatabaseDriver() + "', " +
 					"'" + sysConfig.getDriverUrl() + "', '" + sysConfig.getJsonParams() + "', '" + sysConfig.getUserName() + "', '" + sysConfig.getUserPassword() + "','admin', now() , 'admin', now(), '" + sysConfig.getInnerIdx() + "');\n");
@@ -1390,7 +1390,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                         sql.append(new String(bytes,0,len));
                     }
                     //将sys_config表中的平台id以及项目id进行替换
-                    sql=new StringBuilder(sql.toString().replaceAll("'newProjectId'",projectId));
+                    sql=new StringBuilder(sql.toString().replaceAll("'newProjectId_\\d+'", "'"+projectId+"'"));
                     String [] sqls=sql.toString().split("END_OF_SQL");
                     for(String str:sqls){
                         if(str.trim().startsWith("INSERT") || str.trim().startsWith("REPLACE"))
@@ -1432,4 +1432,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         }
     }
 
+    public static void main(String[] args) {
+    	String sql = "REPLACE INTO `t_platform` (`ID`, `PROJECT_ID`, `PLATFORM_NAME`, `PLATFORM_CODE`, `PLATFORM_STATUS`, `PLATFORM_TYPE`, `ETL_SERVER_URL`, `ETL_USER`, `ETL_PWD`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`) VALUES ('61195408071721089', 'newProjectId_48109769075982460', '孙思邈医院-智联网', 'ssmyyzhmz', '1', '1', 'null', 'admin', 'wPjVysmnNUWL9sKMJgyKzQ==', 'admin', now() , 'admin', now());";
+    	String replaced = sql.replaceAll("'newProjectId_\\d+'", "'11111111'");
+    	System.out.println(replaced);
+    }
 }

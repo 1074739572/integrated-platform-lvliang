@@ -15,17 +15,19 @@ public class TResource implements Serializable {
 
     private String resourceName;
     
-    private Integer sysDriverCount;
+    private Long sysDriverCount;
     
-    private Integer sysInftCount;
+    private Long sysInftCount;
     
-    private Integer pluginCount;
+    private Long pluginCount;
     
-    private Integer driverCount;
+    private Long driverCount;
     
-    private Integer intfTransCount;
+    private Long intfTransCount;
     
-    private Integer etlCount;
+    private Long etlCount;
+    
+    private Long hospitalCount;
 
 	public String getId() {
 		return id;
@@ -59,52 +61,60 @@ public class TResource implements Serializable {
 		this.resourceName = resourceName;
 	}
 
-	public Integer getSysDriverCount() {
+	public Long getSysDriverCount() {
 		return sysDriverCount;
 	}
 
-	public void setSysDriverCount(Integer sysDriverCount) {
+	public void setSysDriverCount(Long sysDriverCount) {
 		this.sysDriverCount = sysDriverCount;
 	}
 
-	public Integer getSysInftCount() {
+	public Long getSysInftCount() {
 		return sysInftCount;
 	}
 
-	public void setSysInftCount(Integer sysInftCount) {
+	public void setSysInftCount(Long sysInftCount) {
 		this.sysInftCount = sysInftCount;
 	}
 
-	public Integer getPluginCount() {
+	public Long getPluginCount() {
 		return pluginCount;
 	}
 
-	public void setPluginCount(Integer pluginCount) {
+	public void setPluginCount(Long pluginCount) {
 		this.pluginCount = pluginCount;
 	}
 
-	public Integer getDriverCount() {
+	public Long getDriverCount() {
 		return driverCount;
 	}
 
-	public void setDriverCount(Integer driverCount) {
+	public void setDriverCount(Long driverCount) {
 		this.driverCount = driverCount;
 	}
 
-	public Integer getIntfTransCount() {
+	public Long getIntfTransCount() {
 		return intfTransCount;
 	}
 
-	public void setIntfTransCount(Integer intfTransCount) {
+	public void setIntfTransCount(Long intfTransCount) {
 		this.intfTransCount = intfTransCount;
 	}
 
-	public Integer getEtlCount() {
+	public Long getEtlCount() {
 		return etlCount;
 	}
 
-	public void setEtlCount(Integer etlCount) {
+	public void setEtlCount(Long etlCount) {
 		this.etlCount = etlCount;
+	}
+
+	public Long getHospitalCount() {
+		return hospitalCount;
+	}
+
+	public void setHospitalCount(Long hospitalCount) {
+		this.hospitalCount = hospitalCount;
 	}
 
 }

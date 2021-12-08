@@ -3,6 +3,7 @@ package com.iflytek.integrated.platform.service;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.LoginDto;
+import com.iflytek.integrated.platform.dto.LoginResultDto;
 import com.iflytek.integrated.platform.utils.JwtTokenUtils;
 import com.iflytek.medicalboot.core.dto.Response;
 import com.iflytek.medicalboot.core.exception.MedicalBusinessException;
@@ -56,10 +57,13 @@ public class LoginService {
     //token有限期
     @Value("${jwt.expiration}")
     private String expiration;
+    
+    @Value("${app.funtype:0}")
+    private String appFuntype;
 
     @ApiOperation(value = "登录获取token", notes = "5分钟内密码错误3次会需要输入验证码 HttpCode=400 需要检查返回body code=100001为需要输入验证码 code=100002为验证码错误 验证码有效期60秒")
     @PostMapping("/login")
-    public ResultDto<String> userLogin(@RequestBody LoginDto dto){
+    public ResultDto<LoginResultDto> userLogin(@RequestBody LoginDto dto){
         //不同登录类型错误分开
         checkLoginErrorCount(dto);
 
@@ -96,8 +100,10 @@ public class LoginService {
 //        String base64Token = "Basic " + token;
         String token = JwtTokenUtils.createToken(name, expiration);
         String jwtToken = "Bearer " + token;
-
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"登录成功!", jwtToken);
+        LoginResultDto result = new LoginResultDto();
+        result.setToken(jwtToken);
+        result.setEnvFlag(appFuntype);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"登录成功!", result);
     }
 
     public String getToken(String src)  {
