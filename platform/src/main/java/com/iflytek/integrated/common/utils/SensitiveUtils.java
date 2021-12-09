@@ -16,7 +16,8 @@ public class SensitiveUtils {
     /**
      * 手机号正则匹配
      */
-    private static final String PHONE_REGEX = "1[3|4|5|7|8][0-9]\\d{8}";
+//    private static final String PHONE_REGEX = "1[3|4|5|7|8][0-9]\\d{8}";
+    private static final String PHONE_REGEX = "\\D1[34578][0-9]\\d{8}";
 
     /**
      * 身份证号正则匹配
