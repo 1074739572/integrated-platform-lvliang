@@ -277,9 +277,14 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 				qTBusinessInterface.excErrOrder.add(1).as("excErrOrder"))).from(qTLog)
 				.leftJoin(qTBusinessInterface).on(qTBusinessInterface.id.eq(qTLog.businessInterfaceId))
 						.where(qTLog.id.eq(Long.valueOf(id))).fetchFirst();
-		long l = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
-				.where(qTBusinessInterface.requestInterfaceId.eq(interfaceId)).fetchCount();
-		String interfaceOrder = tLog.getExcErrOrder()+"/"+ l;
+		String interfaceOrder = "";
+		if("0".equals(interfaceId)) {
+			interfaceOrder = "1/1";
+		}else {
+			long l = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
+					.where(qTBusinessInterface.requestInterfaceId.eq(interfaceId)).fetchCount();
+			interfaceOrder = tLog.getExcErrOrder()+"/"+ l;
+		}
 		tLog.setInterfaceOrder(interfaceOrder);
 
 		// 解密，脱敏处理数据
