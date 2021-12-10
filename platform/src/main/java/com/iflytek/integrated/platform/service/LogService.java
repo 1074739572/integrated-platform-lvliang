@@ -1,6 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
+import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
 import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
 import static com.iflytek.integrated.platform.entity.QTInterfaceMonitor.qTInterfaceMonitor;
 import static com.iflytek.integrated.platform.entity.QTLog.qTLog;
@@ -53,8 +54,10 @@ import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.SubQueryExpression;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.SQLExpressions;
 
@@ -110,6 +113,9 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 			String q = "queryMonitor";
 			StringPath queryLabel = Expressions.stringPath(q);
 			QTInterfaceMonitor monitor = new QTInterfaceMonitor(q);
+			
+//			StringExpression intfId = new CaseBuilder().when(qTInterface.interfaceId.isNull()).then("0").otherwise(monitor.interfaceId).as("interfaceId");
+			
 			SubQueryExpression query = SQLExpressions
 					.select(qTInterfaceMonitor.status.max().as("status"),
 							qTInterfaceMonitor.successCount.sum().as("SUCCESS_COUNT"),
@@ -122,7 +128,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 					.leftJoin(qTSysConfig).on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId)
 							.and(qTSysConfig.platformId.eq(qTInterfaceMonitor.platformId)))
 					.leftJoin(qTInterface).on(qTInterface.id.eq(qTBusinessInterface.requestInterfaceId))
-					.where(qTInterface.id.isNotNull())
+					.where(qTInterfaceMonitor.projectId.eq("0").or(qTInterfaceMonitor.projectId.notEqualsIgnoreCase("0").and(qTInterface.id.isNotNull())))
 					.groupBy(qTInterfaceMonitor.platformId, qTInterfaceMonitor.sysId, qTInterface.id)
 					.orderBy(qTInterfaceMonitor.createdTime.desc());
 
@@ -140,10 +146,15 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 				list.add(monitor.interfaceName.like(PlatformUtil.createFuzzyText(interfaceName)));
 			}
 			// 根据结果查询
+			StringExpression projName = new CaseBuilder().when(qTProject.id.eq("0").or(qTProject.id.isNull())).then("未关联接口配置异常类项目").otherwise(qTProject.projectName).as("projectName");
+			StringExpression platName = new CaseBuilder().when(qTPlatform.id.eq("0").or(qTPlatform.id.isNull())).then("未关联接口配置异常类分类").otherwise(qTPlatform.platformName).as("platformName");
+			StringExpression sysName = new CaseBuilder().when(qTSys.id.eq("0").or(qTSys.id.isNull())).then("未关联接口配置异常类系统").otherwise(qTSys.sysName).as("sysName");
+			StringExpression intfName = new CaseBuilder().when(monitor.interfaceId.eq("0").or(monitor.interfaceId.isNull())).then("未关联接口配置异常类接口").otherwise(monitor.interfaceName).as("interfaceName");
+			StringExpression intfId = new CaseBuilder().when(monitor.interfaceId.isNull()).then("0").otherwise(monitor.interfaceId).as("interfaceId");
 			QueryResults<InterfaceMonitorDto> queryResults = sqlQueryFactory
-					.select(Projections.bean(InterfaceMonitorDto.class, monitor.status, monitor.successCount,
-							monitor.errorCount, monitor.interfaceName, monitor.interfaceId,
-							qTProject.projectName, qTPlatform.platformName, qTSys.sysName))
+					.selectDistinct(Projections.bean(InterfaceMonitorDto.class, monitor.status, monitor.successCount,
+							monitor.errorCount, intfName, intfId,
+							projName, platName, sysName))
 					.from(query, queryLabel)
 					.leftJoin(qTProject).on(qTProject.id.eq(monitor.projectId))
 					.leftJoin(qTPlatform).on(qTPlatform.id.eq(monitor.platformId))
@@ -171,20 +182,26 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 												   @ApiParam(value = "被请求方请求") @RequestParam(value = "venderReq", required = false) String venderReq,
 												   @ApiParam(value = "被请求方响应") @RequestParam(value = "venderRep", required = false) String venderRep,
 												   @RequestParam(defaultValue = "1") Integer pageNo,
-												   @RequestParam(defaultValue = "10") Integer pageSize) {
-		List<TBusinessInterface> bis = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface).where(qTBusinessInterface.requestInterfaceId.eq(interfaceId)).fetch();
-		Map<String , Integer> biorderMap = new Hashtable<String , Integer>();
-		Map<String , String> biNameMap = new Hashtable<>();
-		bis.forEach(tbis->{
-			biorderMap.put(tbis.getId(), tbis.getExcErrOrder());
-			biNameMap.put(tbis.getId(), tbis.getBusinessInterfaceName());
-		});
-		// 查询条件
-		ArrayList<Predicate> list = new ArrayList<>();
-		list.add(qTLog.businessInterfaceId.in(biorderMap.keySet()));
+											   @RequestParam(defaultValue = "10") Integer pageSize) {
+		
 		if (StringUtils.isEmpty(interfaceId)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取日志详细列表，id必传");
 		}
+		Map<String , Integer> biorderMap = new Hashtable<String , Integer>();
+		Map<String , String> biNameMap = new Hashtable<>();
+		// 查询条件
+		ArrayList<Predicate> list = new ArrayList<>();
+		if(!"0".equals(interfaceId)) {
+			List<TBusinessInterface> bis = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface).where(qTBusinessInterface.requestInterfaceId.eq(interfaceId)).fetch();
+			bis.forEach(tbis->{
+				biorderMap.put(tbis.getId(), tbis.getExcErrOrder());
+				biNameMap.put(tbis.getId(), tbis.getBusinessInterfaceName());
+			});
+			list.add(qTLog.businessInterfaceId.in(biorderMap.keySet()));
+		}else {
+			list.add(qTLog.businessInterfaceId.eq("0"));
+		}
+		
 		try{
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			list.add(qTLog.createdTime.goe(sdf.parse(startTime)));
@@ -222,10 +239,14 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 				.from(qTLog).addFlag(new QueryFlag(Position.BEFORE_FILTERS, Expressions.stringTemplate(" FORCE INDEX ( log_query_idx )")))
 				.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
 				.orderBy(qTLog.createdTime.desc()).fetchResults();
-
+		
 		long l = biorderMap.size();
 		List<TLog> tlogList = queryResults.getResults();
 		for(TLog log : tlogList){
+			if("0".equals(interfaceId)) {
+				log.setInterfaceOrder("1/1");
+				continue;
+			}
 			Integer order = biorderMap.get(log.getBusinessInterfaceId());
 			if(order == null) {
 				order = 0;
@@ -234,7 +255,6 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 			log.setInterfaceOrder(interfaceOrder);
 			log.setBusinessInterfaceName(biNameMap.get(log.getBusinessInterfaceId()));
 		}
-
 		// 分页
 		TableData<TLog> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志详细列表获取成功!", tableData);
@@ -366,6 +386,19 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 				List<TLog> logs = sqlQueryFactory.select(qTLog).from(qTLog).where(qTLog.id.in(realIds)).fetch();
 				for(TLog tlog: logs) {
 					String format = decryptAndFilterSensitive(tlog.getBusinessReq());
+					if("0".equals(tlog.getProjectId()) || "0".equals(tlog.getBusinessInterfaceId())) {
+						if(StringUtils.isBlank(tlog.getVisitAddr())){
+							continue;
+						}
+						String wsdlUrl = tlog.getVisitAddr();
+						List<String> wsOperationNames = PlatformUtil.getWsdlOperationNames(wsdlUrl);
+						if(wsOperationNames == null || wsOperationNames.size() == 0) {
+							continue;
+						}
+						String methodName = wsOperationNames.get(0);
+						PlatformUtil.invokeWsServiceWithOrigin(wsdlUrl, methodName, format , headerMap);
+						continue;
+					}
 					niFiRequestUtil.interfaceDebug(format , headerMap , "1".equals(authFlag));
 				}
 			} catch (Exception e) {

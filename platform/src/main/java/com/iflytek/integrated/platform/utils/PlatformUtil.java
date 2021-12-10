@@ -247,6 +247,21 @@ public class PlatformUtil {
 		return responseStr;
 	}
 	
+	public static String invokeWsServiceWithOrigin(String wsdlUrl, String methodName, String params , Map<String , String> headerMap){
+		String[] mixedOpName = methodName.split("\\|");
+		if (mixedOpName.length != 3) {
+			return "传入方法名参数[" + methodName + "]不正确！";
+		}
+		String opName = mixedOpName[0];
+		String responseStr = "";
+		try {
+			responseStr = HttpClientCallSoapUtil.doPostSoap1_1(wsdlUrl, params, opName , headerMap);
+		}catch(Exception e ) {
+			log.error("发起webservice接口调用请求异常" , e);
+			return "发起webservice接口调用请求异常" + e.getLocalizedMessage();
+		}
+		return responseStr;
+	}
 	
 	public static String secondsToFormat(Long seconds){
         Long hour =0L;
