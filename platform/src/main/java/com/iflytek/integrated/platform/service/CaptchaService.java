@@ -49,6 +49,7 @@ public class CaptchaService {
         BufferedImage bufferedImage = defaultKaptcha.createImage(captchaText);
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             ImageIO.write(bufferedImage, "jpg", baos);
+            baos.flush();
             captcha.setBase64Image(Base64Utils.encodeToString(baos.toByteArray()));
 
             String meta = (System.currentTimeMillis() + timeoutSeconds * 1000) + ":" + captchaText;
