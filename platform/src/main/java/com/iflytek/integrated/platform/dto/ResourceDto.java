@@ -21,6 +21,8 @@ public class ResourceDto implements Serializable {
     
     private String platformId;
     
+    private List<String> projectIds;
+    
     private List<String> ids;
 
 	public String getType() {
@@ -69,6 +71,14 @@ public class ResourceDto implements Serializable {
 
 	public void setIds(List<String> ids) {
 		this.ids = ids;
+	}
+
+	public List<String> getProjectIds() {
+		return projectIds;
+	}
+
+	public void setProjectIds(List<String> projectIds) {
+		this.projectIds = projectIds;
 	}
 	
 }

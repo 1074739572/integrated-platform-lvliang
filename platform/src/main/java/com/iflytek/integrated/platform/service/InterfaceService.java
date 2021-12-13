@@ -7,6 +7,7 @@ import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
 import static com.iflytek.integrated.platform.entity.QTInterfaceParam.qTInterfaceParam;
 import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
 import static com.iflytek.integrated.platform.entity.QTPlugin.qTPlugin;
+import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
 import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
@@ -80,6 +81,7 @@ import com.iflytek.integrated.platform.entity.TInterface;
 import com.iflytek.integrated.platform.entity.TInterfaceParam;
 import com.iflytek.integrated.platform.entity.TPlatform;
 import com.iflytek.integrated.platform.entity.TPlugin;
+import com.iflytek.integrated.platform.entity.TProject;
 import com.iflytek.integrated.platform.entity.TSys;
 import com.iflytek.integrated.platform.entity.TSysConfig;
 import com.iflytek.integrated.platform.entity.TSysDriveLink;
@@ -1244,6 +1246,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		List<String> driverIds = new ArrayList<>();
 		List<String> hospitalIds = new ArrayList<>();
 		List<String> platformIds = new ArrayList<>();
+		List<String> projectIds = new ArrayList<>();
 
 		List<Path<?>> lists = new ArrayList<>();
 		lists.addAll(Arrays.asList(qTBusinessInterface.all()));
@@ -1285,6 +1288,15 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 					" `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`) VALUES ('" + tp.getId() + "', 'newProjectId_"+tp.getProjectId()+"', '" + PlatformUtil.escapeSqlSingleQuotes(tp.getPlatformName()) + "', '" + tp.getPlatformCode() + "', " +
 					"'" + tp.getPlatformStatus() + "', '" + tp.getPlatformType() + "', '" + tp.getEtlServerUrl() + "', '" + tp.getEtlUser() + "', '" + tp.getEtlPwd() +
 					"', 'admin', now() , 'admin', now());\n");
+			sqlStringBuffer.append("END_OF_SQL\n");
+			projectIds.add(tp.getProjectId());
+		}
+		
+		List<TProject> tProjs = sqlQueryFactory.select(qTProject).from(qTProject).where(qTProject.id.in(projectIds)).fetch();
+		for(TProject tproj : tProjs) {
+			sqlStringBuffer.append("REPLACE INTO `t_project` (`ID`, `PROJECT_NAME`, `PROJECT_CODE`, `PROJECT_STATUS`, `PROJECT_TYPE`, " +
+					" `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`) VALUES ('" + tproj.getId() + "','"+ tproj.getProjectName()+ "', '" + tproj.getProjectCode() + "', '" + tproj.getProjectStatus() + "', " +
+					"'" + tproj.getProjectType() + "','admin', now() , 'admin', now());\\n");
 			sqlStringBuffer.append("END_OF_SQL\n");
 		}
 		

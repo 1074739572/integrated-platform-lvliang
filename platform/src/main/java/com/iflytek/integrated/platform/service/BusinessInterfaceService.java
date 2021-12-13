@@ -324,6 +324,15 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 				.where(qTSysConfig.platformId.eq(platformId)).fetch();
 		return list;
 	}
+	
+	public List<TBusinessInterface> getListByPlatforms(List<String> platformIds) {
+		List<TBusinessInterface> list = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
+				.leftJoin(qTSysConfig)
+				.on((qTBusinessInterface.requestSysconfigId.eq(qTSysConfig.id)
+						.or(qTBusinessInterface.requestedSysconfigId.eq(qTSysConfig.id))))
+				.where(qTSysConfig.platformId.in(platformIds)).fetch();
+		return list;
+	}
 
 	/**
 	 * 根据id获取多接口配置下全部接口

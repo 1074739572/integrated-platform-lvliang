@@ -17,6 +17,8 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.DESKeySpec;
 import javax.crypto.spec.IvParameterSpec;
 import javax.imageio.ImageIO;
+
+import java.awt.Font;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 
@@ -43,7 +45,18 @@ public class CaptchaService {
 
     public Captcha get(long timeoutSeconds) {
         Captcha captcha = new Captcha();
-
+        try {
+        	int fontSize = defaultKaptcha.getConfig().getTextProducerFontSize();
+        	log.info("------------fontsize:" + fontSize);
+        	Font[] fonts = defaultKaptcha.getConfig().getTextProducerFonts(fontSize);
+        	if(fonts != null && fonts.length > 0) {
+        		for(Font f : fonts) {
+        			log.info("------------fontName:" + f.getFontName());
+        		}
+        	}
+        }catch(Exception e) {
+        	log.error("==========getfontsinfoerror" , e);
+        }
         //获取验证码字符串
         String captchaText = defaultKaptcha.createText();
         BufferedImage bufferedImage = defaultKaptcha.createImage(captchaText);

@@ -487,16 +487,27 @@ public class ResourceCenterService {
 			sqlFileNamePrifix = "system_";
 			break;
 		case "2":
-			this.getResourcesByDriver(ids, sqlStringBuffer);
-			sqlFileNamePrifix = "driver_";
-			break;
-		case "3":
 			this.getResourcesByPlugin(ids, sqlStringBuffer);
 			sqlFileNamePrifix = "plugin_";
 			break;
+		case "3":
+			this.getResourcesByDriver(ids, sqlStringBuffer);
+			sqlFileNamePrifix = "driver_";
+			break;
 		case "4":
 			String platformId = resourceDto.getPlatformId();
-			List<TBusinessInterface> bis = biService.getListByPlatform(platformId);
+			List<String> projecIds = resourceDto.getProjectIds();
+			List<String> platformIds = new ArrayList<>();
+			if(projecIds != null && projecIds.size() > 0) {
+				List<String> platIds = sqlQueryFactory.select(qTPlatform.id).from(qTPlatform).where(qTPlatform.projectId.in(projecIds)).fetch();
+				if(platIds != null && platIds.size() > 0) {
+					platformIds.addAll(platIds);
+				}
+			}
+			if(StringUtils.isNotBlank(platformId)) {
+				platformIds.add(platformId);
+			}
+			List<TBusinessInterface> bis = biService.getListByPlatforms(platformIds);
 			List<String> biids = new ArrayList<>();
 			bis.forEach(bi->{
 				biids.add(bi.getId());
