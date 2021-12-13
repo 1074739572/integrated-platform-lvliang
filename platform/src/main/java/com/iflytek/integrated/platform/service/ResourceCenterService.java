@@ -298,7 +298,7 @@ public class ResourceCenterService {
 		for(TProject tproj : tProjs) {
 			sqlStringBuffer.append("REPLACE INTO `t_project` (`ID`, `PROJECT_NAME`, `PROJECT_CODE`, `PROJECT_STATUS`, `PROJECT_TYPE`, " +
 					" `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`) VALUES ('" + tproj.getId() + "','"+ tproj.getProjectName()+ "', '" + tproj.getProjectCode() + "', '" + tproj.getProjectStatus() + "', " +
-					"'" + tproj.getProjectType() + "','admin', now() , 'admin', now());\\n");
+					"'" + tproj.getProjectType() + "','admin', now() , 'admin', now());\n");
 			sqlStringBuffer.append("END_OF_SQL\n");
 		}
 		
