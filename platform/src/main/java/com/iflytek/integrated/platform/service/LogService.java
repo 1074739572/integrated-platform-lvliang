@@ -112,6 +112,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 			// 先合并t_interface_monitor，再根据三合一结果进行查询
 			String q = "queryMonitor";
 			StringPath queryLabel = Expressions.stringPath(q);
+			StringPath reqInterPath = Expressions.stringPath("REQUEST_INTERFACE_ID");
 			QTInterfaceMonitor monitor = new QTInterfaceMonitor(q);
 			
 //			StringExpression intfId = new CaseBuilder().when(qTInterface.interfaceId.isNull()).then("0").otherwise(monitor.interfaceId).as("interfaceId");
@@ -122,14 +123,14 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 							qTInterfaceMonitor.errorCount.sum().as("ERROR_COUNT"), qTInterfaceMonitor.projectId,
 							qTInterfaceMonitor.platformId, qTInterfaceMonitor.sysId, qTInterfaceMonitor.typeId,
 							qTInterfaceMonitor.createdTime, qTInterfaceMonitor.businessInterfaceId,
-							qTInterface.id.as("INTERFACE_ID"), qTInterface.interfaceName)
+							qTBusinessInterface.requestInterfaceId)
 					.from(qTInterfaceMonitor)
 					.leftJoin(qTBusinessInterface).on(qTBusinessInterface.id.eq(qTInterfaceMonitor.businessInterfaceId))
 					.leftJoin(qTSysConfig).on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId)
 							.and(qTSysConfig.platformId.eq(qTInterfaceMonitor.platformId)))
-					.leftJoin(qTInterface).on(qTInterface.id.eq(qTBusinessInterface.requestInterfaceId))
-					.where(qTInterfaceMonitor.projectId.eq("0").or(qTInterfaceMonitor.projectId.notEqualsIgnoreCase("0").and(qTInterface.id.isNotNull())))
-					.groupBy(qTInterfaceMonitor.platformId, qTInterfaceMonitor.sysId, qTInterface.id)
+//					.leftJoin(qTInterface).on(qTInterface.id.eq(qTBusinessInterface.requestInterfaceId))
+					.where(qTInterfaceMonitor.projectId.eq("0").or(qTInterfaceMonitor.projectId.notEqualsIgnoreCase("0").and(qTBusinessInterface.requestInterfaceId.isNotNull())))
+					.groupBy(qTInterfaceMonitor.platformId, qTInterfaceMonitor.sysId, qTBusinessInterface.requestInterfaceId)
 					.orderBy(qTInterfaceMonitor.createdTime.desc());
 
 			// 按条件筛选
@@ -143,14 +144,14 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 				list.add(monitor.status.eq(status));
 			}
 			if (StringUtils.isNotBlank(interfaceName)) {
-				list.add(monitor.interfaceName.like(PlatformUtil.createFuzzyText(interfaceName)));
+				list.add(qTInterface.interfaceName.like(PlatformUtil.createFuzzyText(interfaceName)));
 			}
 			// 根据结果查询
 			StringExpression projName = new CaseBuilder().when(qTProject.id.eq("0").or(qTProject.id.isNull())).then("未关联接口配置异常类项目").otherwise(qTProject.projectName).as("projectName");
 			StringExpression platName = new CaseBuilder().when(qTPlatform.id.eq("0").or(qTPlatform.id.isNull())).then("未关联接口配置异常类分类").otherwise(qTPlatform.platformName).as("platformName");
 			StringExpression sysName = new CaseBuilder().when(qTSys.id.eq("0").or(qTSys.id.isNull())).then("未关联接口配置异常类系统").otherwise(qTSys.sysName).as("sysName");
-			StringExpression intfName = new CaseBuilder().when(monitor.interfaceId.eq("0").or(monitor.interfaceId.isNull())).then("未关联接口配置异常类接口").otherwise(monitor.interfaceName).as("interfaceName");
-			StringExpression intfId = new CaseBuilder().when(monitor.interfaceId.isNull()).then("0").otherwise(monitor.interfaceId).as("interfaceId");
+			StringExpression intfName = new CaseBuilder().when(qTInterface.id.eq("0").or(qTInterface.id.isNull())).then("未关联接口配置异常类接口").otherwise(qTInterface.interfaceName).as("interfaceName");
+			StringExpression intfId = new CaseBuilder().when(qTInterface.id.isNull()).then("0").otherwise(qTInterface.id).as("interfaceId");
 			QueryResults<InterfaceMonitorDto> queryResults = sqlQueryFactory
 					.selectDistinct(Projections.bean(InterfaceMonitorDto.class, monitor.status, monitor.successCount,
 							monitor.errorCount, intfName, intfId,
@@ -160,6 +161,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 					.leftJoin(qTPlatform).on(qTPlatform.id.eq(monitor.platformId))
 					.leftJoin(qTSysConfig).on(qTSysConfig.platformId.eq(qTPlatform.id).and(qTSysConfig.sysConfigType.eq(1)))
 					.leftJoin(qTSys).on(qTSys.id.eq(qTSysConfig.sysId))
+					.leftJoin(qTInterface).on(qTInterface.sysId.eq(qTSys.id).and(qTInterface.id.eq(reqInterPath)))
 					.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
 					.orderBy(monitor.status.desc(), monitor.createdTime.desc()).fetchResults();
 			// 分页
