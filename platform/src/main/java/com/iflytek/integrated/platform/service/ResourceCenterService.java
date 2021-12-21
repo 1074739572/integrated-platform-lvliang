@@ -29,6 +29,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -104,6 +105,9 @@ public class ResourceCenterService {
 	
 	@Autowired
 	protected BusinessInterfaceService biService;
+	
+	@Autowired
+	private AreaService areaService;
 	
     @GetMapping("/getAllResources")
     @ApiOperation(value = "获取全部资源")
@@ -687,7 +691,7 @@ public class ResourceCenterService {
 	@ApiOperation(value = "按区域获取医院列表")
 	@GetMapping("/getPageHosByArea/{areaId}")
 	public ResultDto<TableData<THospital>> getPageHosByArea(@PathVariable("areaId") String areaId,
-			@ApiParam(value = "驱动名称") @RequestParam(value = "hospitalName", required = false) String hospitalName,
+			@ApiParam(value = "医院名称") @RequestParam(value = "hospitalName", required = false) String hospitalName,
 			@ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
 			@ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
 		//查询条件
@@ -705,6 +709,12 @@ public class ResourceCenterService {
 				.orderBy(qTHospital.createdTime.desc()).fetchResults();
 		// 分页
 		TableData<THospital> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
+		List<THospital> rows = tableData.getRows();
+		for (THospital th : rows) {
+			List<String> areaCodes = areaService.getAreaCodes(new ArrayList<>(), th.getAreaId());
+			Collections.reverse(areaCodes);
+			th.setAreaCodes(areaCodes);
+		}
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "根据区域获取医院列表成功", tableData);
 	}
 	
