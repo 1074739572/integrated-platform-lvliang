@@ -103,4 +103,12 @@ public class AreaService extends BaseService<TArea, String, StringPath> {
         return list;
     }
 
+    public List<String> getAreaNames(List<String> areaCodes) {
+    	List<String> areaNamess = new ArrayList<>();
+    	for(String areaCode: areaCodes) {
+    		String name = sqlQueryFactory.select(qTArea.areaName).from(qTArea).where(qTArea.areaCode.eq(areaCode)).fetchFirst();
+    		areaNamess.add(name);
+    	}
+        return areaNamess;
+    }
 }

@@ -238,8 +238,18 @@ public class ResourceCenterService {
 		QueryResults<TResource> queryResults = sqlQueryFactory.select(Projections.bean(TResource.class, fields)).from(unionQuery , all)
 				.where(list.toArray(new Predicate[list.size()]))
 				.limit(pageSize).offset((pageNo - 1) * pageSize).fetchResults();
-		
 		TableData<TResource> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
+		
+		List<TResource> rows = tableData.getRows();
+		for (TResource th : rows) {
+			if(th.getType().equals("5")) {
+				List<String> areaCodes = areaService.getAreaCodes(new ArrayList<>(), th.getId());
+				Collections.reverse(areaCodes);
+				List<String> names = areaService.getAreaNames(areaCodes);
+				String hospitalArea = StringUtils.join(names, "/");
+				th.setResourceName(hospitalArea);
+			}
+		}
 		
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取资源成功!", tableData);
 	}
