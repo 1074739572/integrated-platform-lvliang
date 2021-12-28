@@ -6,48 +6,33 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.xml.parsers.ParserConfigurationException;
-
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.xml.sax.SAXException;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iflytek.integrated.common.dto.HttpResult;
 import com.iflytek.integrated.common.utils.HttpClientUtil;
 import com.iflytek.integrated.common.utils.JackSonUtils;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.ParamsDto;
-import com.predic8.schema.Element;
 import com.predic8.wsdl.Binding;
-import com.predic8.wsdl.BindingOperation;
 import com.predic8.wsdl.Definitions;
-import com.predic8.wsdl.Operation;
-import com.predic8.wsdl.Part;
 import com.predic8.wsdl.Port;
-import com.predic8.wsdl.PortType;
 import com.predic8.wsdl.Service;
 import com.predic8.wsdl.WSDLParser;
 import com.predic8.wstool.creator.RequestTemplateCreator;
 import com.predic8.wstool.creator.SOARequestCreator;
 
-import groovy.util.Node;
-import groovy.util.XmlParser;
 import groovy.xml.MarkupBuilder;
-import groovy.xml.QName;
-import groovy.xml.SAXBuilder;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -766,15 +751,16 @@ public class PlatformUtil {
 		if(StringUtils.isBlank(sql)) {
 			return sql;
 		}
-		if(sql.indexOf("'") > -1) {
-			sql = sql.replaceAll("'", "''");
-		}
+//		if(sql.indexOf("'") > -1) {
+//			sql = sql.replaceAll("'", "''");
+//		}
+		sql = StringEscapeUtils.escapeSql(sql);
 		if(sql.indexOf("\''") > -1) {
 			sql = sql.replaceAll("\\''", "\\\\\\\\'");
 		}
-		if(sql.indexOf("\"") > -1) {
-			sql = sql.replaceAll("\\\\\"", "\\\\\\\\\\\\\\\"");
-		}
+//		if(sql.indexOf("\"") > -1) {
+//			sql = sql.replaceAll("\\\\\"", "\\\\\\\\\\\\\\\"");
+//		}
 		return sql;
 	}
 	
