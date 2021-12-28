@@ -52,6 +52,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
+import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.ResourceDto;
 import static com.iflytek.integrated.platform.entity.QTArea.qTArea;
@@ -656,22 +657,45 @@ public class ResourceCenterService {
 			@ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
 			@ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
 		
-		//查询条件
-        ArrayList<Predicate> list = new ArrayList<>();
-        //判断条件是否为空
-        if(StringUtils.isNotEmpty(pluginName)) {
-            list.add(qTPlugin.pluginName.like(PlatformUtil.createFuzzyText(pluginName)));
+		try {
+            //查询条件
+            ArrayList<Predicate> list = new ArrayList<>();
+            //判断条件是否为空
+            if(StringUtils.isNotEmpty(pluginName)) {
+                list.add(qTPlugin.pluginName.like(PlatformUtil.createFuzzyText(pluginName)));
+            }
+            if(StringUtils.isNotEmpty(typeId)) {
+                list.add(qTPlugin.typeId.eq(typeId));
+            }
+            //根据查询条件获取插件列表
+            QueryResults<TPlugin> queryResults = sqlQueryFactory.select(
+                    Projections.bean(
+                            TPlugin.class,
+                            qTPlugin.id,
+                            qTPlugin.pluginName,
+                            qTPlugin.pluginCode,
+                            qTPlugin.pluginContent,
+                            qTPlugin.pluginInstruction,
+                            qTPlugin.createdTime,
+                            qTPlugin.typeId,
+                            qTPlugin.dependentPath,
+                            qTPlugin.updatedTime,
+                            qTType.typeName.as("pluginTypeName")
+                    ))
+                    .from(qTPlugin)
+                    .leftJoin(qTType).on(qTType.id.eq(qTPlugin.typeId))
+                    .where(list.toArray(new Predicate[list.size()]))
+                    .limit(pageSize)
+                    .offset((pageNo - 1) * pageSize)
+                    .orderBy(qTPlugin.createdTime.desc())
+                    .fetchResults();
+            //分页
+            TableData<TPlugin> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取插件管理列表成功", tableData);
+        }catch (Exception e){
+            logger.error("获取插件管理列表失败! MSG:{}", ExceptionUtil.dealException(e));
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取插件管理列表失败");
         }
-        if(StringUtils.isNotEmpty(typeId)) {
-            list.add(qTPlugin.typeId.eq(typeId));
-        }
-		QueryResults<TPlugin> queryResults = sqlQueryFactory.select(qTPlugin).from(qTPlugin)
-				.where(list.toArray(new Predicate[list.size()]))
-				.limit(pageSize).offset((pageNo - 1) * pageSize)
-				.orderBy(qTPlugin.createdTime.desc()).fetchResults();
-		// 分页
-		TableData<TPlugin> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "根据插件分类获取插件列表成功", tableData);
 	}
 	
 	@ApiOperation(value = "按类型获取驱动列表")
@@ -680,22 +704,34 @@ public class ResourceCenterService {
 			@ApiParam(value = "驱动名称") @RequestParam(value = "driveName", required = false) String driveName,
 			@ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
 			@ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
-		//查询条件
-        ArrayList<Predicate> list = new ArrayList<>();
-        //判断条件是否为空
-        if(StringUtils.isNotEmpty(driveName)) {
-            list.add(qTDrive.driveName.like(PlatformUtil.createFuzzyText(driveName)));
-        }
-        if(StringUtils.isNotEmpty(typeId)) {
-            list.add(qTDrive.typeId.eq(typeId));
-        }
-		QueryResults<TDrive> queryResults = sqlQueryFactory.select(qTDrive).from(qTDrive)
-				.where(list.toArray(new Predicate[list.size()]))
-				.limit(pageSize).offset((pageNo - 1) * pageSize)
-				.orderBy(qTDrive.createdTime.desc()).fetchResults();
-		// 分页
-		TableData<TDrive> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "根据分类获取驱动成功", tableData);
+		try {
+			// 查询条件
+			ArrayList<Predicate> list = new ArrayList<>();
+			// 判断条件是否为空
+			if (StringUtils.isNotEmpty(driveName)) {
+				list.add(qTDrive.driveName.like(PlatformUtil.createFuzzyText(driveName)));
+			}
+			if (StringUtils.isNotEmpty(typeId)) {
+				list.add(qTDrive.typeId.eq(typeId));
+			}
+			// 根据查询条件获取驱动列表
+			QueryResults<TDrive> queryResults = sqlQueryFactory
+					.select(Projections.bean(TDrive.class, qTDrive.id, qTDrive.driveCode, qTDrive.driveName,
+							qTDrive.driveContent, qTDrive.driveInstruction, qTDrive.createdTime, qTDrive.typeId,
+							qTDrive.dependentPath, qTDrive.driveCallType,
+							new CaseBuilder().when(qTDrive.driveCallType.eq("1")).then("请求方").otherwise("被请求方")
+									.as("driveCallTypeName"),
+							qTType.typeName.as("driveTypeName")))
+					.from(qTDrive).where(list.toArray(new Predicate[list.size()])).leftJoin(qTType)
+					.on(qTType.id.eq(qTDrive.typeId)).limit(pageSize).offset((pageNo - 1) * pageSize)
+					.orderBy(qTDrive.createdTime.desc()).fetchResults();
+			// 分页
+			TableData<TDrive> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
+			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "驱动管理列表获取成功!", tableData);
+		} catch (Exception e) {
+			logger.error("获取驱动管理列表失败! MSG:{}", ExceptionUtil.dealException(e));
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "驱动管理列表获取失败!");
+		}
 	}
 	
 	@ApiOperation(value = "按区域获取医院列表")
