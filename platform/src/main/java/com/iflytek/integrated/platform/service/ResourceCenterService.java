@@ -1,5 +1,6 @@
 package com.iflytek.integrated.platform.service;
 
+import static com.iflytek.integrated.platform.entity.QTArea.qTArea;
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
 import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
 import static com.iflytek.integrated.platform.entity.QTEtlFlow.qTEtlFlow;
@@ -23,7 +24,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URLEncoder;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -58,7 +58,6 @@ import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.ResourceDto;
-import static com.iflytek.integrated.platform.entity.QTArea.qTArea;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TDrive;
 import com.iflytek.integrated.platform.entity.THospital;
@@ -75,10 +74,12 @@ import com.iflytek.integrated.platform.entity.TSysHospitalConfig;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Ops;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.SubQueryExpression;
+import com.querydsl.core.types.dsl.BooleanOperation;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
@@ -206,10 +207,26 @@ public class ResourceCenterService {
 		
 		SimpleExpression<String> hospitalType = Expressions.constantAs("5", typePath);
 		SimpleExpression<String> hospitalTypeName = Expressions.constantAs("医院", typeNamePath);
-		SubQueryExpression<Tuple> hospitalQuery = SQLExpressions.select(qTHospital.areaId.as("id") , qTArea.areaName.as("resourceName") ,hospitalType , hospitalTypeName,
+		SubQueryExpression<Tuple> areal2Query = SQLExpressions.select(qTArea.areaCode.as("area2_code") , qTArea.areaName.as("area2_name") , qTArea.superId.as("super2_id")).from(qTArea);
+		SubQueryExpression<Tuple> areal1Query = SQLExpressions.select(qTArea.areaCode.as("area1_code") , qTArea.areaName.as("area1_name")).from(qTArea);
+		StringPath areal2 = Expressions.stringPath("areal2");
+		StringPath areal1 = Expressions.stringPath("areal1");
+		StringPath areal2code = Expressions.stringPath("area2_code");
+		StringPath areal2superId = Expressions.stringPath("super2_id");
+		StringPath areal1code = Expressions.stringPath("area1_code");
+		StringPath areal1name = Expressions.stringPath("area1_name");
+		
+		BooleanOperation areal2Con = Expressions.predicate(Ops.EQ , qTArea.superId , areal2code);
+		BooleanOperation areal1Con = Expressions.predicate(Ops.EQ , areal2superId , areal1code);
+		
+		SubQueryExpression<Tuple> hospitalQuery = SQLExpressions.select(areal1code.as("id") , areal1name.as("resourceName") ,hospitalType , hospitalTypeName,
 				qTHospital.id.count().as("hospitalCount") ,Expressions.constantAs(0L, sysInftCountPath) , Expressions.constantAs(0L, sysDriverCountPath) , 
 				Expressions.constantAs(0L, intfTransCountPath),Expressions.constantAs(0L, etlCountPath),Expressions.constantAs(0L, driverCountPath),Expressions.constantAs(0L, pluginCountPath))
-				.from(qTHospital).leftJoin(qTArea).on(qTHospital.areaId.eq(qTArea.areaCode)).groupBy(qTHospital.areaId , qTArea.areaName);
+				.from(qTHospital).leftJoin(qTArea).on(qTHospital.areaId.eq(qTArea.areaCode))
+				.leftJoin(areal2Query , areal2).on(areal2Con)
+				.leftJoin(areal1Query , areal1).on(areal1Con)
+				.where(areal1code.isNotNull())
+				.groupBy(areal1code , areal1name);
 		
 		SubQueryExpression<TResource> unionQuery = null;
 		if(type == null) {
@@ -244,16 +261,16 @@ public class ResourceCenterService {
 				.limit(pageSize).offset((pageNo - 1) * pageSize).fetchResults();
 		TableData<TResource> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
 		
-		List<TResource> rows = tableData.getRows();
-		for (TResource th : rows) {
-			if(th.getType().equals("5")) {
-				List<String> areaCodes = areaService.getAreaCodes(new ArrayList<>(), th.getId());
-				Collections.reverse(areaCodes);
-				List<String> names = areaService.getAreaNames(areaCodes);
-				String hospitalArea = StringUtils.join(names, "/");
-				th.setResourceName(hospitalArea);
-			}
-		}
+//		List<TResource> rows = tableData.getRows();
+//		for (TResource th : rows) {
+//			if(th.getType().equals("5")) {
+//				List<String> areaCodes = areaService.getAreaCodes(new ArrayList<>(), th.getId());
+//				Collections.reverse(areaCodes);
+//				List<String> names = areaService.getAreaNames(areaCodes);
+//				String hospitalArea = StringUtils.join(names, "/");
+//				th.setResourceName(hospitalArea);
+//			}
+//		}
 		
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取资源成功!", tableData);
 	}
@@ -750,7 +767,9 @@ public class ResourceCenterService {
             list.add(qTHospital.hospitalName.like(PlatformUtil.createFuzzyText(hospitalName)));
         }
         if(StringUtils.isNotEmpty(areaId)) {
-            list.add(qTHospital.areaId.eq(areaId));
+        	SubQueryExpression<String> areaSubQuery = SQLExpressions.select(qTArea.areaCode).from(qTArea).where(qTArea.superId.eq(areaId));
+        	List<String> areaCodes = sqlQueryFactory.select(qTArea.areaCode).from(qTArea).where(qTArea.superId.in(areaSubQuery)).fetch();
+            list.add(qTHospital.areaId.in(areaCodes));
         }
 		QueryResults<THospital> queryResults = sqlQueryFactory.select(qTHospital).from(qTHospital)
 				.where(list.toArray(new Predicate[list.size()]))
