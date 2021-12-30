@@ -16,8 +16,10 @@ import static com.iflytek.integrated.platform.entity.QTType.qTType;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -1394,12 +1396,15 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 try{
                     //获取字符缓冲流
                     is =file.getInputStream();
-                    int len;
+                    InputStreamReader inputStreamReader = new InputStreamReader(is , StandardCharsets.UTF_8);
+//                  int len;
                     StringBuilder sql = new StringBuilder();
                     connection.setAutoCommit(false);//不自动提交
-                    byte [] bytes=new byte[1024];
-                    while ((len = is.read(bytes)) != -1) {
-                        sql.append(new String(bytes,0,len));
+//                  byte [] bytes=new byte[1024];
+                    BufferedReader bufferedReader = new BufferedReader(inputStreamReader);//缓存数据用于读取
+                    String lineText = "";
+                    while ((lineText = bufferedReader.readLine()) != null) {
+                      sql.append(lineText);
                     }
                     //将sys_config表中的平台id以及项目id进行替换
                     sql=new StringBuilder(sql.toString().replaceAll("'newProjectId_\\d+'", "'"+projectId+"'"));
