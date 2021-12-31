@@ -82,6 +82,7 @@ import com.querydsl.core.types.SubQueryExpression;
 import com.querydsl.core.types.dsl.BooleanOperation;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.NumberTemplate;
 import com.querydsl.core.types.dsl.SimpleExpression;
@@ -185,7 +186,7 @@ public class ResourceCenterService {
 				qTDrive.id.count().as("driverCount") ,Expressions.constantAs(0L, sysInftCountPath) , Expressions.constantAs(0L, sysDriverCountPath) , 
 				Expressions.constantAs(0L, intfTransCountPath),Expressions.constantAs(0L, etlCountPath),Expressions.constantAs(0L, pluginCountPath),Expressions.constantAs(0L, hospitalCountPath))
 				.from(qTDrive).leftJoin(qTType).on(qTDrive.typeId.eq(qTType.id)).groupBy(qTDrive.typeId , qTType.typeName);
-		
+		NumberExpression<Integer> intfCountExp = new CaseBuilder().when(qTBusinessInterface.requestInterfaceId.isNull()).then(0).otherwise(1);
 		NumberTemplate<Integer> intfTransCount = Expressions.numberTemplate(Integer.class, "ifnull(intf.intfTransCount, 0)");
         NumberTemplate<Integer> etlCount = Expressions.numberTemplate(Integer.class, "ifnull(etl.etlCount, 0)");
         SimpleTemplate<String> etlprojId = Expressions.template(String.class, "etl.PROJECT_ID");
@@ -195,13 +196,13 @@ public class ResourceCenterService {
 		SimpleExpression<String> projTypeName = Expressions.constantAs("项目", typeNamePath);
 		
     	SubQueryExpression<Tuple> intfQuery = 
-				SQLExpressions.select(qTProject.id , qTProject.projectName , qTBusinessInterface.requestInterfaceId.as("intfTransCount")).from(qTProject)
+				SQLExpressions.select(qTProject.id , qTProject.projectName , intfCountExp.as("intfTransCount")).from(qTProject)
 				.leftJoin(qTSysConfig).on(qTProject.id.eq(qTSysConfig.projectId))
 				.leftJoin(qTBusinessInterface).on(qTBusinessInterface.requestSysconfigId.eq(qTSysConfig.id))
-				.where(qTBusinessInterface.requestInterfaceId.isNotNull()).groupBy(qTProject.id , qTBusinessInterface.requestInterfaceId);
+				.where(qTBusinessInterface.requestInterfaceId.isNotNull().and(qTSysConfig.id.isNotNull()).or(qTSysConfig.id.isNull())).groupBy(qTProject.id , qTBusinessInterface.requestInterfaceId);
 		SubQueryExpression<Tuple> etlQuery = SQLExpressions.select(qTEtlGroup.projectId , qTEtlFlow.id.countDistinct().as("etlCount"))
 				.from(qTEtlGroup).join(qTEtlFlow).on(qTEtlFlow.groupId.eq(qTEtlGroup.id)).groupBy(qTEtlGroup.projectId);
-		SubQueryExpression<Tuple> projQuery = SQLExpressions.select(intfprojId.as("id") , projName.as("resourceName"), intfTransCount.countDistinct().as("intfTransCount") , etlCount.as("etlCount") , projType, projTypeName,
+		SubQueryExpression<Tuple> projQuery = SQLExpressions.select(intfprojId.as("id") , projName.as("resourceName"), intfTransCount.sum().as("intfTransCount") , etlCount.as("etlCount") , projType, projTypeName,
 				Expressions.constantAs(0L, sysDriverCountPath) , Expressions.constantAs(0L, sysInftCountPath),Expressions.constantAs(0L, pluginCountPath),Expressions.constantAs(0L, driverCountPath),Expressions.constantAs(0L, hospitalCountPath)).from(intfQuery , intf)
 				.leftJoin(etlQuery , etl).on(etlprojId.eq(intfprojId)).groupBy(intfprojId);
 		
