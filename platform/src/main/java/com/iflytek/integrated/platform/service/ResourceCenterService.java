@@ -199,7 +199,8 @@ public class ResourceCenterService {
 				SQLExpressions.select(qTProject.id , qTProject.projectName , intfCountExp.as("intfTransCount")).from(qTProject)
 				.leftJoin(qTSysConfig).on(qTProject.id.eq(qTSysConfig.projectId))
 				.leftJoin(qTBusinessInterface).on(qTBusinessInterface.requestSysconfigId.eq(qTSysConfig.id))
-				.where(qTBusinessInterface.requestInterfaceId.isNotNull().and(qTSysConfig.id.isNotNull()).or(qTSysConfig.id.isNull())).groupBy(qTProject.id , qTBusinessInterface.requestInterfaceId);
+//				.where(qTBusinessInterface.requestInterfaceId.isNotNull().and(qTSysConfig.id.isNotNull()).or(qTSysConfig.id.isNull()))
+				.groupBy(qTProject.id , qTBusinessInterface.requestInterfaceId);
 		SubQueryExpression<Tuple> etlQuery = SQLExpressions.select(qTEtlGroup.projectId , qTEtlFlow.id.countDistinct().as("etlCount"))
 				.from(qTEtlGroup).join(qTEtlFlow).on(qTEtlFlow.groupId.eq(qTEtlGroup.id)).groupBy(qTEtlGroup.projectId);
 		SubQueryExpression<Tuple> projQuery = SQLExpressions.select(intfprojId.as("id") , projName.as("resourceName"), intfTransCount.sum().as("intfTransCount") , etlCount.as("etlCount") , projType, projTypeName,
