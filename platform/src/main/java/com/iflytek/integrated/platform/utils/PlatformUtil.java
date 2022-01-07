@@ -758,6 +758,9 @@ public class PlatformUtil {
 		if(sql.indexOf("\''") > -1) {
 			sql = sql.replaceAll("\\''", "\\\\\\\\'");
 		}
+		if(sql.indexOf("\"") > -1) {
+			sql = sql.replaceAll("\\\\\"", "\\\\\\\\\"");
+		}
 //		if(sql.indexOf("\"") > -1) {
 //			sql = sql.replaceAll("\\\\\"", "\\\\\\\\\\\\\\\"");
 //		}
