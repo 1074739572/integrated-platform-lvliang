@@ -174,9 +174,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		}
 		List<MockTemplateDto> dtoList = new ArrayList<>();
 		for (TBusinessInterface businessInterface : interfaces) {
+			String mocktpl = businessInterface.getMockTemplate();
 			MockTemplateDto dto = new MockTemplateDto(businessInterface.getId(),
 					// 如果mock模板为空，取出参的格式，作为初始的mock模板
-					StringUtils.isNotBlank(businessInterface.getMockTemplate()) ? businessInterface.getMockTemplate()
+					(StringUtils.isNotBlank(mocktpl) && !"null".equalsIgnoreCase(mocktpl)) ? mocktpl
 							: businessInterface.getOutParamFormat(),
 					businessInterface.getMockIsUse(), businessInterface.getExcErrOrder(),
 					businessInterface.getBusinessInterfaceName());
