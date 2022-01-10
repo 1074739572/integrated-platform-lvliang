@@ -1266,6 +1266,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 					sysConfigIds.add(tBusinessInterface.getRequestedSysconfigId());
 					pluginIds.add(tBusinessInterface.getPluginId());
 					platformIds.add(tBusinessInterface.getPlatformId());
+					String mocktpl = tBusinessInterface.getMockTemplate();
+					if(StringUtils.isBlank(mocktpl)) {
+						mocktpl = tBusinessInterface.getOutParamFormat();
+					}
 					sqlStringBuffer.append("REPLACE INTO `t_business_interface` (`ID`, `REQUEST_SYSCONFIG_ID`, " +
 							"`REQUEST_INTERFACE_ID`, `REQUESTED_SYSCONFIG_ID`, `BUSINESS_INTERFACE_NAME`, `REQUEST_TYPE`, " +
 							"`REQUEST_CONSTANT`, `INTERFACE_TYPE`, `PLUGIN_ID`, `IN_PARAM_FORMAT`, `IN_PARAM_SCHEMA`, `IN_PARAM_TEMPLATE_TYPE`, " +
@@ -1277,7 +1281,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 							"'" + tBusinessInterface.getInterfaceType() + "', '" + tBusinessInterface.getPluginId() + "', '" + PlatformUtil.escapeSqlSingleQuotes(tBusinessInterface.getInParamFormat()) + "', '" + tBusinessInterface.getInParamSchema() + "', " +
 							"" + tBusinessInterface.getInParamTemplateType() + ", '" + PlatformUtil.escapeSqlSingleQuotes(tBusinessInterface.getInParamTemplate()) + "', '" + tBusinessInterface.getInParamFormatType() + "', '" + tBusinessInterface.getOutParamFormat() + "', " +
 							"'" + tBusinessInterface.getOutParamSchema() + "', " + tBusinessInterface.getOutParamTemplateType() + ", '" + PlatformUtil.escapeSqlSingleQuotes(tBusinessInterface.getOutParamTemplate()) + "', '" + tBusinessInterface.getOutParamFormatType() + "', " +
-							"'" + PlatformUtil.escapeSqlSingleQuotes(tBusinessInterface.getMockTemplate()) + "', '" + tBusinessInterface.getMockStatus() + "', '" + tBusinessInterface.getStatus() + "', '" + tBusinessInterface.getExcErrStatus() + "', " +
+							"'" + PlatformUtil.escapeSqlSingleQuotes(mocktpl) + "', '" + tBusinessInterface.getMockStatus() + "', '" + tBusinessInterface.getStatus() + "', '" + tBusinessInterface.getExcErrStatus() + "', " +
 							"" + tBusinessInterface.getExcErrOrder() + ", " + tBusinessInterface.getMockIsUse() + ", 'admin', now() , 'admin', now() , " + tBusinessInterface.getAsyncFlag() + ", " + tBusinessInterface.getInterfaceSlowFlag() + "); \n");
 					sqlStringBuffer.append("END_OF_SQL\n");
 				}
