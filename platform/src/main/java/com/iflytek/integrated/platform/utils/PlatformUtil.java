@@ -755,10 +755,10 @@ public class PlatformUtil {
 //			sql = sql.replaceAll("'", "''");
 //		}
 		sql = StringEscapeUtils.escapeSql(sql);
-		if(sql.indexOf("\''") > -1) {
-			sql = sql.replaceAll("\\''", "\\\\\\\\'");
+		if(sql.indexOf("\\\''") > -1) {
+			sql = sql.replaceAll("\\\''", "\\\\\\\\'");
 		}
-		if(sql.indexOf("\"") > -1) {
+		if(sql.indexOf("\\\"") > -1) {
 			sql = sql.replaceAll("\\\\\"", "\\\\\\\\\"");
 		}
 //		if(sql.indexOf("\"") > -1) {
