@@ -1409,7 +1409,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                     BufferedReader bufferedReader = new BufferedReader(inputStreamReader);//缓存数据用于读取
                     String lineText = "";
                     while ((lineText = bufferedReader.readLine()) != null) {
-                      sql.append(lineText);
+                      sql.append(lineText).append("\r\n");
                     }
                     //将sys_config表中的平台id以及项目id进行替换
                     sql=new StringBuilder(sql.toString().replaceAll("'newProjectId_\\d+'", "'"+projectId+"'"));
