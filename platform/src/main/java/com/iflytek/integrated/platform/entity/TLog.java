@@ -48,6 +48,8 @@ public class TLog implements Serializable {
     private java.util.Date updatedTime;
 
     private String typeId;
+    
+    private Integer debugreplayFlag;
 
     @Transient
     private String businessInterfaceName;
@@ -233,5 +235,14 @@ public class TLog implements Serializable {
     public void setInterfaceOrder(String interfaceOrder) {
         this.interfaceOrder = interfaceOrder;
     }
+
+	public Integer getDebugreplayFlag() {
+		return debugreplayFlag;
+	}
+
+	public void setDebugreplayFlag(Integer debugreplayFlag) {
+		this.debugreplayFlag = debugreplayFlag;
+	}
+    
 }
 

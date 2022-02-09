@@ -313,6 +313,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	public ResultDto<String> interfaceDebug(@RequestBody InterfaceDebugDto degubDto , @PathVariable("authFlag") String authFlag) {
 		String result = "";
 		Map<String , String> headerMap = new HashMap<>();
+		headerMap.put("Debugreplay-Flag", "1");
 		String loginUrlPrefix = niFiRequestUtil.getInterfaceDebugWithAuth();
 		boolean isws = "2".equals(degubDto.getSysIntfParamFormatType());
 		if(isws) {
