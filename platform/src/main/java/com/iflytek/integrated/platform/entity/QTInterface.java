@@ -58,6 +58,8 @@ public class QTInterface extends com.querydsl.sql.RelationalPathBase<TInterface>
 
     public final NumberPath<Integer> interfaceType = createNumber("interfaceType", Integer.class);
 
+    public final NumberPath<Integer> asyncFlag = createNumber("asyncFlag", Integer.class);
+    
     public final DateTimePath<java.util.Date> updatedTime = createDateTime("updatedTime", java.util.Date.class);
 
     public final com.querydsl.sql.PrimaryKey<TInterface> primary = createPrimaryKey(id);
@@ -108,7 +110,7 @@ public class QTInterface extends com.querydsl.sql.RelationalPathBase<TInterface>
         addMetadata(outParamFormatType, ColumnMetadata.named("OUT_PARAM_FORMAT_TYPE").withIndex(17).ofType(Types.VARCHAR).withSize(1).notNull());
         addMetadata(allowLogDiscard, ColumnMetadata.named("ALLOW_LOG_DISCARD").withIndex(18).ofType(Types.VARCHAR).withSize(1).notNull());
         addMetadata(interfaceType, ColumnMetadata.named("INTERFACE_TYPE").withIndex(19).ofType(Types.INTEGER).withSize(1).notNull());
-
+        addMetadata(asyncFlag, ColumnMetadata.named("ASYNC_FLAG").withIndex(19).ofType(Types.INTEGER).withSize(1).notNull());
     }
 
 }

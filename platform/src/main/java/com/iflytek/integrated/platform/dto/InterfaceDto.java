@@ -65,6 +65,8 @@ public class InterfaceDto {
     private String outParamFormatType;
     
     private String allowLogDiscard;
+    
+    private Integer asyncFlag;
 
     private Integer interfaceType;
 }

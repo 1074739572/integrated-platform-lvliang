@@ -63,5 +63,6 @@ public class TInterface implements Serializable {
 
     private Integer interfaceType;
 
+    private Integer asyncFlag;
 }
 
