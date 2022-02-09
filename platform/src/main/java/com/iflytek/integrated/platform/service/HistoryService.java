@@ -182,6 +182,10 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
             @RequestBody HisRollbackBIDto dto
     ){
         try{
+            if(dto == null || StringUtils.isBlank(dto.getPkId())
+                    || StringUtils.isBlank(dto.getInterfaceId()) || StringUtils.isBlank(dto.getRequestSysconfigId())){
+                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "入参为空!");
+            }
             // 校验是否获取到登录用户
             String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
             if (StringUtils.isBlank(loginUserName)) {
@@ -245,7 +249,7 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
             //插入history
             tHistory.setPkId(batchUidService.getUid(qTBusinessInterface.getTableName()) + "");
             tHistory.setRecordId(tHistory.getRecordId());
-            tHistory.setOriginId(tHistory.getPkId().toString());
+            tHistory.setOriginId(dto.getPkId().toString());
             tHistory.setCreatedBy(loginUserName);
             tHistory.setCreatedTime(new Date());
             this.post(tHistory);
@@ -257,6 +261,7 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
     }
 
 
+    //插入历史记录
     public void insertHis(Object obj, Integer hisType, String createdBy, String originId, String recordId){
         THistory tHistory = new THistory();
         tHistory.setPkId(batchUidService.getUid(qTBusinessInterface.getTableName()) + "");
@@ -268,5 +273,17 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
         tHistory.setRecordId(recordId);
         this.post(tHistory);
     }
+
+
+    /**
+     * 修改recordId
+     * @param old 旧recordId
+     * @param last 新recordId
+     * @return
+     */
+    public long updateRecordId(String old, String last){
+        return sqlQueryFactory.update(qtHistory).set(qtHistory.recordId,last).where(qtHistory.recordId.eq(old)).execute();
+    }
+
 
 }

@@ -9,7 +9,7 @@ import lombok.Data;
 public class HisRollbackBIDto {
 
     @ApiModelProperty(value = "历史版本id",required = true)
-    private Integer pkId;
+    private String pkId;
 
     @ApiModelProperty(value = "requestSysconfigId",required = true)
     private String interfaceId;

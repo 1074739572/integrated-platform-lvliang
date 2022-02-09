@@ -38,6 +38,7 @@ import java.util.zip.ZipOutputStream;
 
 import javax.servlet.http.HttpServletResponse;
 
+import com.alibaba.fastjson.JSONArray;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -129,6 +130,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	private ValidatorHelper validatorHelper;
 	@Autowired
 	private RedisService redisService;
+	@Autowired
+	private HistoryService historyService;
 	
 	private static final Logger logger = LoggerFactory.getLogger(InterfaceService.class);
 	
@@ -747,6 +750,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			String requestInterfaceId = tbi.getRequestInterfaceId();
 			dto.setRequestInterfaceId(requestInterfaceId);
 			dto.setInterfaceSlowFlag(tbi.getInterfaceSlowFlag());
+			dto.setReplayFlag(tbi.getReplayFlag());
 			// 获取请求方接口类型
 			ArrayList<Predicate> list = new ArrayList<>();
 			if (StringUtils.isNotEmpty(requestInterfaceId)) {
@@ -806,25 +810,30 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	@ApiOperation(value = "新增/编辑接口配置", notes = "新增/编辑接口配置")
 	@PostMapping("/saveAndUpdateInterfaceConfig/{opt}")
 	public ResultDto<String> saveAndUpdateInterfaceConfig(@RequestBody BusinessInterfaceDto dto , @PathVariable("opt") String opt) {
-		if (dto == null) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求参数不能为空!");
+		try{
+			if (dto == null) {
+				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求参数不能为空!");
+			}
+			if(StringUtils.isBlank(dto.getRequestInterfaceId())) {
+				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求方接口不能为空!");
+			}
+			// 校验是否获取到登录用户
+			String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
+			if (StringUtils.isBlank(loginUserName)) {
+				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
+			}
+			String newReturnId = "";
+			if (Constant.Operation.ADD.equals(dto.getAddOrUpdate())) {
+				return this.saveInterfaceConfig(dto, loginUserName);
+			}
+			if (Constant.Operation.UPDATE.equals(dto.getAddOrUpdate())) {
+				return this.updateInterfaceConfig(dto, loginUserName);
+			}
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "addOrUpdate 新增编辑标识不正确!", null);
+		}catch (Exception e){
+			e.printStackTrace();
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, e.getMessage());
 		}
-		if(StringUtils.isBlank(dto.getRequestInterfaceId())) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求方接口不能为空!");
-		}
-		// 校验是否获取到登录用户
-		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-		if (StringUtils.isBlank(loginUserName)) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
-		}
-		String newReturnId = "";
-		if (Constant.Operation.ADD.equals(dto.getAddOrUpdate())) {
-			return this.saveInterfaceConfig(dto, loginUserName);
-		}
-		if (Constant.Operation.UPDATE.equals(dto.getAddOrUpdate())) {
-			return this.updateInterfaceConfig(dto, loginUserName);
-		}
-		return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "addOrUpdate 新增编辑标识不正确!", null);
 	}
 
 	/**
@@ -876,6 +885,11 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				returnId = tbi.getId();
 			}
 		}
+
+		//插入历史记录
+		String recordId = requestSysConfigId+","+dto.getRequestInterfaceId();
+		historyService.insertHis(tbiList,1,loginUserName,null,recordId);
+
 		Map<String , String> data = new HashMap<String , String>();
 		data.put("id", returnId);
 		return new ResultDto<String>(Constant.ResultCode.SUCCESS_CODE, "新增接口配置成功", JSON.toJSONString(data));
@@ -896,6 +910,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		TSysConfig tvc = sysConfigService.getRequestConfigByPlatformAndSys(dto.getPlatformId(), dto.getRequestSysId());
 		String requestSysConfigId = tvc != null ? tvc.getId() : dto.getRequestSysconfigId();
 
+		//是否修改过请求方
+		Boolean isModReq = false;
 		// 根据条件判断是否存在该数据
 		TBusinessInterface exsitsBI = businessInterfaceService.getOne(dto.getId());
 		if(exsitsBI != null) {
@@ -903,6 +919,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			if(exsitsBI.getRequestSysconfigId().equals(dto.getRequestSysconfigId()) && exsitsBI.getRequestInterfaceId().equals(dto.getRequestInterfaceId())){
 //				沒修改過，不校驗是否已存在
 			}else {
+				isModReq = true;
 				List<TBusinessInterface> tbiList = businessInterfaceService.getBusinessInterfaceIsExist(dto.getProjectId(),
 						dto.getRequestSysId(), dto.getRequestInterfaceId());
 				if (CollectionUtils.isNotEmpty(tbiList)) {
@@ -910,7 +927,17 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				}
 			}
 		}
-		
+
+		//更新历史记录中的recordId
+		String lastRecordId = dto.getRequestSysconfigId()+","+dto.getRequestInterfaceId();
+		String oldRecordId = exsitsBI.getRequestSysconfigId()+","+exsitsBI.getRequestInterfaceId();
+		if(isModReq){
+			//修改过
+			historyService.updateRecordId(oldRecordId,lastRecordId);
+		}else{
+			//未修改
+		}
+
 		// 返回缓存接口配置id
 		List<String> rtnId = new ArrayList<>();
 		List<TBusinessInterface> tbiList = dto.getBusinessInterfaceList();
@@ -952,6 +979,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				rtnId.add(tbi.getId());
 			}
 		}
+		//插入历史记录
+		historyService.insertHis(tbiList,1,loginUserName,lastRecordId,lastRecordId);
 		// redis缓存信息获取
 		ArrayList<Predicate> arr = new ArrayList<>();
 		arr.add(qTBusinessInterface.id.in(rtnId));
