@@ -4,7 +4,8 @@
 *.idea
 *.class
 target/
-src/main/java/test/
+platform/src/main/java/test/*
+platform/src/data/*
 
 # Log file
 *.log

@@ -1,5 +1,6 @@
 package com.iflytek.integrated.platform.service;
 
+import com.alibaba.fastjson.JSON;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
@@ -69,6 +70,8 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
 	private NiFiRequestUtil niFiRequestUtil;
 	@Autowired
 	private RedisService redisService;
+	@Autowired
+	private HistoryService historyService;
 
 	@ApiOperation(value = "获取驱动下拉")
 	@GetMapping("/getAllDrive")
@@ -200,6 +203,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
 			drive.setCreatedTime(new Date());
 			drive.setCreatedBy(loginUserName);
 			this.post(drive);
+			historyService.insertHis(drive,2, loginUserName, null, drive.getId());
 			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "驱动新增成功", null);
 		}
 		// redis缓存信息获取
@@ -210,6 +214,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
 		drive.setUpdatedBy(loginUserName);
 		drive.setUpdatedTime(new Date());
 		Long lon = this.put(drive.getId(), drive);
+		historyService.insertHis(drive,2, loginUserName, drive.getId(), drive.getId());
 		if (lon <= 0) {
 			throw new RuntimeException("驱动编辑失败!");
 		}
@@ -224,21 +229,39 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
 				.where(qTType.type.eq(Constant.TypeStatus.DRIVE)).orderBy(qTType.createdTime.desc()).fetch();
 
 		List<DriveDto> rtnArr = new ArrayList<>();
-		for (TType tt : typeList) {
-			DriveDto jsonObj = new DriveDto();
-			jsonObj.setId(tt.getId());
-			jsonObj.setName(tt.getTypeName());
-			List<TDrive> driveList = sqlQueryFactory.select(qTDrive).from(qTDrive).where(qTDrive.typeId.eq(tt.getId()))
-					.orderBy(qTDrive.createdTime.desc()).fetch();
-			List<TDrive> arr = new ArrayList<>();
-			for (TDrive td : driveList) {
-				td.setId(td.getId());
-				td.setName(td.getDriveName());
-				arr.add(td);
+		if(typeList != null && typeList.size() > 0){
+			for(TType tt : typeList){
+				DriveDto jsonObj = new DriveDto();
+				jsonObj.setId(tt.getId());
+				jsonObj.setName(tt.getTypeName());
+				List<TDrive> driveList = sqlQueryFactory.select(qTDrive).from(qTDrive).where(qTDrive.typeId.eq(tt.getId()))
+						.orderBy(qTDrive.createdTime.desc()).fetch();
+
+				List<TDrive> arr = new ArrayList<>();
+				for (TDrive td : driveList) {
+					td.setId(td.getId());
+					td.setName(td.getDriveName());
+					arr.add(td);
+				}
+
+				jsonObj.setChildren(arr);
+				rtnArr.add(jsonObj);
 			}
-			jsonObj.setChildren(arr);
-			rtnArr.add(jsonObj);
 		}
+
+		if(rtnArr != null && rtnArr.size() > 0){
+			Iterator iterator = rtnArr.iterator();
+			while (iterator.hasNext()){
+				DriveDto jsonObj = (DriveDto)iterator.next();
+				if(jsonObj != null){
+					//若当前分类下driveList为空，则删除当前分类
+					if(jsonObj.getChildren() == null || jsonObj.getChildren().size() == 0){
+						iterator.remove();
+					}
+				}
+			}
+		}
+
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取驱动选择信息成功", rtnArr);
 	}
 

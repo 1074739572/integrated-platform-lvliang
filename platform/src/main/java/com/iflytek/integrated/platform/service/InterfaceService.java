@@ -436,6 +436,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		ti.setCreatedTime(new Date());
 		ti.setCreatedBy(loginUserName);
 		ti.setAllowLogDiscard(dto.getAllowLogDiscard());
+		ti.setInterfaceType(dto.getInterfaceType());
 
 		// 新增接口参数
 		// 入参
@@ -518,6 +519,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		String inParamFormatType = dto.getInParamFormatType();
 		String outParamFormatType = dto.getOutParamFormatType();
 		String allowLogDiscard = dto.getAllowLogDiscard();
+		Integer interfaceType = dto.getInterfaceType();
 
 		String inParamSchema = "";
 		if (StringUtils.isNotBlank(inParamFormat)) {
@@ -536,6 +538,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				.set(qTInterface.paramOutStatus, "").set(qTInterface.paramOutStatusSuccess, "")
 				.set(qTInterface.inParamSchema, inParamSchema).set(qTInterface.outParamSchema, outParamSchema)
 				.set(qTInterface.updatedBy, loginUserName).set(qTInterface.allowLogDiscard, allowLogDiscard)
+				.set(qTInterface.interfaceType, interfaceType)
 				.where(qTInterface.id.eq(id)).execute();
 		if (execute < 1) {
 			throw new RuntimeException("修改标准接口信息失败!");
@@ -618,9 +621,11 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			list.add(qTInterface.interfaceName.like(PlatformUtil.createFuzzyText(name)));
 		}
 		QueryResults<TInterface> queryResults = sqlQueryFactory
-				.select(Projections.bean(TInterface.class, qTInterface.id, qTInterface.interfaceName,qTInterface.allowLogDiscard,
+				.select(Projections.bean(TInterface.class,
+						qTInterface.id, qTInterface.interfaceName,qTInterface.allowLogDiscard,
 						qTInterface.interfaceUrl, qTInterface.inParamFormat, qTInterface.outParamFormat,
 						qTInterface.createdTime, qTInterface.typeId, qTType.typeName.as("interfaceTypeName"),
+						qTInterface.interfaceType,
 						sqlQueryFactory.select(qTInterfaceParam.id.count()).from(qTInterfaceParam)
 								.where((qTInterfaceParam.paramInOut.eq(Constant.ParmInOut.IN))
 										.and(qTInterfaceParam.interfaceId.eq(qTInterface.id)))
@@ -643,6 +648,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId,
 			@ApiParam(value = "启停用状态") @RequestParam(value = "status", required = false) String status,
 			@ApiParam(value = "mock状态") @RequestParam(value = "mockStatus", required = false) String mockStatus,
+			@ApiParam(value = "分类id") @RequestParam(value = "typeId", required = false) Integer typeId,
             @ApiParam(value = "请求方接口名称") @RequestParam(value = "requestInterfaceName", required = false) String requestInterfaceName,
             @ApiParam(value = "被请求方接口名称") @RequestParam(value = "requestedInterfaceName", required = false) String requestedInterfaceName,
 			@ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
@@ -656,6 +662,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         if (StringUtils.isNotEmpty(mockStatus)) {
             predicateList.add(qTBusinessInterface.mockStatus.eq(mockStatus));
         }
+		if (typeId != null && typeId.intValue() != 0) {
+			predicateList.add(qTInterface.typeId.eq(typeId.toString()));
+		}
         if (StringUtils.isNotEmpty(requestInterfaceName)) {
             predicateList.add(qTInterface.interfaceName.like("%" + requestInterfaceName + "%"));
         }
@@ -771,6 +780,27 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取接口配置详情成功", dto);
 	}
 
+
+	@ApiOperation(value = "获取接口信息（重放标识）", notes = "获取接口信息（重放标识）")
+	@GetMapping("/getBusItfInfo")
+	public ResultDto getBusItfInfo(
+			@ApiParam(value = "请求方系统接口ID") @RequestParam(value = "reqItfId", required = true) String reqItfId){
+		//校验入参
+		if(StringUtils.isBlank(reqItfId)){
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求参数不能为空!");
+		}
+		// 校验是否获取到登录用户
+		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
+		if (StringUtils.isBlank(loginUserName)) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
+		}
+		TBusinessInterface tb = businessInterfaceService.getOneByInterfaceId(reqItfId);
+		Map resMap = new HashMap();
+		resMap.put("replayFlag",tb.getReplayFlag());
+		return new ResultDto(Constant.ResultCode.SUCCESS_CODE, "获取接口信息",resMap);
+	}
+
+
 	@Transactional(rollbackFor = Exception.class)
 	@ApiOperation(value = "新增/编辑接口配置", notes = "新增/编辑接口配置")
 	@PostMapping("/saveAndUpdateInterfaceConfig/{opt}")
@@ -836,6 +866,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			tbi.setRequestedSysconfigId(tbi.getRequestedSysconfigId());
 			tbi.setExcErrOrder(i);
 			tbi.setInterfaceSlowFlag(dto.getInterfaceSlowFlag());
+			tbi.setReplayFlag(dto.getReplayFlag());
 			// 获取schema
 			niFiRequestUtil.generateSchemaToInterface(tbi);
 			// 新增接口配置
@@ -896,6 +927,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				tbi.setRequestedSysconfigId(tbi.getRequestedSysconfigId());
 				tbi.setExcErrOrder(i);
 				tbi.setInterfaceSlowFlag(dto.getInterfaceSlowFlag());
+				tbi.setReplayFlag(dto.getReplayFlag());
 				// 获取schema
 				niFiRequestUtil.generateSchemaToInterface(tbi);
 				// 新增接口配置
@@ -908,6 +940,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				tbi.setRequestedSysconfigId(tbi.getRequestedSysconfigId());
 				tbi.setExcErrOrder(i);
 				tbi.setInterfaceSlowFlag(dto.getInterfaceSlowFlag());
+				tbi.setReplayFlag(dto.getReplayFlag());
 				// 获取schema
 				niFiRequestUtil.generateSchemaToInterface(tbi);
 				// 新增接口配置

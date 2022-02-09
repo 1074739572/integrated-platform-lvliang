@@ -32,6 +32,8 @@ public class BusinessInterfaceDto {
 
     private Integer interfaceSlowFlag;
 
+    private Integer replayFlag;
+
     /**
      * 多个厂商配置信息
      */

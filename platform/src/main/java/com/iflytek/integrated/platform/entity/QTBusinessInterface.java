@@ -59,6 +59,8 @@ public class QTBusinessInterface extends com.querydsl.sql.RelationalPathBase<TBu
 
     public final NumberPath<Integer> interfaceSlowFlag = createNumber("interfaceSlowFlag", Integer.class);
 
+    public final NumberPath<Integer> replayFlag = createNumber("replayFlag", Integer.class);
+
     public final StringPath mockStatus = createString("mockStatus");
 
     public final StringPath mockTemplate = createString("mockTemplate");
@@ -144,6 +146,7 @@ public class QTBusinessInterface extends com.querydsl.sql.RelationalPathBase<TBu
         addMetadata(updatedTime, ColumnMetadata.named("UPDATED_TIME").withIndex(29).ofType(Types.TIMESTAMP).withSize(19).notNull());
         addMetadata(asyncFlag, ColumnMetadata.named("ASYNC_FLAG").withIndex(30).ofType(Types.TINYINT).withSize(1).notNull());
         addMetadata(interfaceSlowFlag, ColumnMetadata.named("INTERFACE_SLOW_FLAG").withIndex(31).ofType(Types.TINYINT).withSize(1).notNull());
+        addMetadata(replayFlag, ColumnMetadata.named("REPLAY_FLAG").withIndex(32).ofType(Types.TINYINT).withSize(1).notNull());
     }
 
 }

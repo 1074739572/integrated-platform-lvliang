@@ -66,4 +66,5 @@ public class InterfaceDto {
     
     private String allowLogDiscard;
 
+    private Integer interfaceType;
 }

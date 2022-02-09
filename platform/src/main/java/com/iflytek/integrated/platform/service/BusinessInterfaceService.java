@@ -31,6 +31,7 @@ import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusin
 import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
 import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
 import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
+import static com.iflytek.integrated.platform.entity.QTType.qTType;
 import static com.querydsl.sql.SQLExpressions.groupConcat;
 
 /**
@@ -153,6 +154,18 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	public List<TBusinessInterface> getListByInterfaceId(String interfaceId) {
 		return sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
 				.where(qTBusinessInterface.requestInterfaceId.eq(interfaceId)).fetch();
+	}
+
+	/**
+	 * 根据请求方系统接口ID获取接口配置信息
+	 *
+	 * @param interfaceId
+	 */
+	public TBusinessInterface getOneByInterfaceId(String interfaceId) {
+		return sqlQueryFactory
+				.select(Projections.bean(TBusinessInterface.class,qTBusinessInterface.requestInterfaceId))
+				.from(qTBusinessInterface)
+				.where(qTBusinessInterface.requestInterfaceId.eq(interfaceId)).fetchFirst();
 	}
 
 	/**

@@ -61,5 +61,7 @@ public class TInterface implements Serializable {
     
     private String allowLogDiscard;
 
+    private Integer interfaceType;
+
 }
 
