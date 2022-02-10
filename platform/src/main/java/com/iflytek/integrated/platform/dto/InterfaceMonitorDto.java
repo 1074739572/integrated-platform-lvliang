@@ -71,4 +71,9 @@ public class InterfaceMonitorDto {
      * 失败次数
      */
     private Integer errorCount;
+
+    /**
+     * 重放标识
+     */
+    private Integer replayFlag;
 }

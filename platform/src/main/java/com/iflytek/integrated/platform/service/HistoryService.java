@@ -52,6 +52,10 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
     private BatchUidService batchUidService;
     @Autowired
     private NiFiRequestUtil niFiRequestUtil;
+    @Autowired
+    private InterfaceService interfaceService;
+    @Autowired
+    private SysConfigService sysConfigService;
 
     @ApiOperation(value = "获取列表", notes = "获取历史版本列表")
     @GetMapping("/getHisList")
@@ -156,12 +160,12 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
                     if(tPlugin == null){
                         throw new RuntimeException("未查询到该插件！");
                     }
-                    tPlugin.setPluginName(jsonObject.get("pluginName").toString());
-                    tPlugin.setPluginCode(jsonObject.get("pluginCode").toString());
-                    tPlugin.setTypeId(jsonObject.get("typeId").toString());
-                    tPlugin.setPluginInstruction(jsonObject.get("pluginInstruction").toString());
-                    tPlugin.setPluginContent(jsonObject.get("pluginContent(").toString());
-                    tPlugin.setDependentPath(jsonObject.get("dependentPath").toString());
+                    tPlugin.setPluginName(jsonObject.getString("pluginName"));
+                    tPlugin.setPluginCode(jsonObject.getString("pluginCode"));
+                    tPlugin.setTypeId(jsonObject.getString("typeId"));
+                    tPlugin.setPluginInstruction(jsonObject.getString("pluginInstruction"));
+                    tPlugin.setPluginContent(jsonObject.getString("pluginContent"));
+                    tPlugin.setDependentPath(jsonObject.getString("dependentPath"));
                     pluginService.put(tPlugin.getId(),tPlugin);
                     break;
                 default:
@@ -205,6 +209,27 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
             if(jsonArray == null){
                 throw new RuntimeException("历史数据为空！");
             }
+
+            //校验
+            String recordId = tHistory.getRecordId();
+            String[] arr = recordId.split(",");
+            String hisReqSysId = arr[0];
+            String hisReqInterfaceId = arr[1];
+            boolean noModReq = hisReqSysId.equals(dto.getRequestSysconfigId()) && hisReqInterfaceId.equals(dto.getInterfaceId());
+            if(noModReq){
+                //未修改过请求方
+            }else{
+                //请求方不一致，需校验历史版本的请求方是否存在、是否重复
+                TInterface tInterface = interfaceService.getOne(hisReqInterfaceId);
+                if(tInterface == null){
+                    return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "未查询到历史版本中的请求方!");
+                }
+                List tbiList = businessInterfaceService.getListByCondition(hisReqInterfaceId,hisReqSysId);
+                if(tbiList != null || tbiList.size() > 0){
+                    return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "历史版本中的请求方已存在!");
+                }
+            }
+
             //删除
             businessInterfaceService.delObjByCondition(dto.getInterfaceId(), dto.getRequestSysconfigId());
             for(Object obj : jsonArray){

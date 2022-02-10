@@ -53,6 +53,8 @@ public class QTInterfaceMonitor extends com.querydsl.sql.RelationalPathBase<TInt
 
     public final DateTimePath<java.util.Date> updatedTime = createDateTime("updatedTime", java.util.Date.class);
 
+    public final NumberPath<Integer> replayFlag = createNumber("replayFlag", Integer.class);
+
     public final com.querydsl.sql.PrimaryKey<TInterfaceMonitor> primary = createPrimaryKey(id);
 
     public QTInterfaceMonitor(String variable) {
@@ -96,6 +98,7 @@ public class QTInterfaceMonitor extends com.querydsl.sql.RelationalPathBase<TInt
         addMetadata(typeId, ColumnMetadata.named("TYPE_ID").withIndex(13).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(interfaceName, ColumnMetadata.named("INTERFACE_NAME"));
         addMetadata(interfaceId, ColumnMetadata.named("INTERFACE_ID"));
+        addMetadata(replayFlag, ColumnMetadata.named("REPLAY_FLAG"));
     }
 
 }

@@ -123,7 +123,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 							qTInterfaceMonitor.errorCount.sum().as("ERROR_COUNT"), qTInterfaceMonitor.projectId,
 							qTInterfaceMonitor.platformId, qTInterfaceMonitor.sysId, qTInterfaceMonitor.typeId,
 							qTInterfaceMonitor.createdTime, qTInterfaceMonitor.businessInterfaceId,
-							qTBusinessInterface.requestInterfaceId)
+							qTBusinessInterface.requestInterfaceId, qTBusinessInterface.replayFlag.as("REPLAY_FLAG"))
 					.from(qTInterfaceMonitor)
 					.leftJoin(qTBusinessInterface).on(qTBusinessInterface.id.eq(qTInterfaceMonitor.businessInterfaceId))
 					.leftJoin(qTSysConfig).on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId)
@@ -154,7 +154,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 			StringExpression intfId = new CaseBuilder().when(qTInterface.id.isNull()).then("0").otherwise(qTInterface.id).as("interfaceId");
 			QueryResults<InterfaceMonitorDto> queryResults = sqlQueryFactory
 					.selectDistinct(Projections.bean(InterfaceMonitorDto.class, monitor.status, monitor.successCount,
-							monitor.errorCount, intfName, intfId,
+							monitor.replayFlag, monitor.errorCount, intfName, intfId,
 							projName, platName, sysName))
 					.from(query, queryLabel)
 					.leftJoin(qTProject).on(qTProject.id.eq(monitor.projectId))
