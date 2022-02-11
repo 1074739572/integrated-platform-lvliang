@@ -524,7 +524,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		String outParamFormatType = dto.getOutParamFormatType();
 		String allowLogDiscard = dto.getAllowLogDiscard();
 		Integer interfaceType = dto.getInterfaceType();
-
+		Integer asyncFlag = dto.getAsyncFlag();
 		String inParamSchema = "";
 		if (StringUtils.isNotBlank(inParamFormat)) {
 			PlatformUtil.strIsJsonOrXml(inParamFormat);
@@ -543,6 +543,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				.set(qTInterface.inParamSchema, inParamSchema).set(qTInterface.outParamSchema, outParamSchema)
 				.set(qTInterface.updatedBy, loginUserName).set(qTInterface.allowLogDiscard, allowLogDiscard)
 				.set(qTInterface.interfaceType, interfaceType)
+				.set(qTInterface.asyncFlag, asyncFlag)
 				.where(qTInterface.id.eq(id)).execute();
 		if (execute < 1) {
 			throw new RuntimeException("修改标准接口信息失败!");
@@ -629,7 +630,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 						qTInterface.id, qTInterface.interfaceName,qTInterface.allowLogDiscard,
 						qTInterface.interfaceUrl, qTInterface.inParamFormat, qTInterface.outParamFormat,
 						qTInterface.createdTime, qTInterface.typeId, qTType.typeName.as("interfaceTypeName"),
-						qTInterface.interfaceType,
+						qTInterface.interfaceType,qTInterface.asyncFlag,
 						sqlQueryFactory.select(qTInterfaceParam.id.count()).from(qTInterfaceParam)
 								.where((qTInterfaceParam.paramInOut.eq(Constant.ParmInOut.IN))
 										.and(qTInterfaceParam.interfaceId.eq(qTInterface.id)))
