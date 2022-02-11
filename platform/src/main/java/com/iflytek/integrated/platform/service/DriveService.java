@@ -203,7 +203,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
 			drive.setCreatedTime(new Date());
 			drive.setCreatedBy(loginUserName);
 			this.post(drive);
-			historyService.insertHis(drive,2, loginUserName, null, drive.getId());
+			historyService.insertHis(drive,2, loginUserName, null, drive.getId(),null);
 			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "驱动新增成功", null);
 		}
 		// redis缓存信息获取
@@ -214,7 +214,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
 		drive.setUpdatedBy(loginUserName);
 		drive.setUpdatedTime(new Date());
 		Long lon = this.put(drive.getId(), drive);
-		historyService.insertHis(drive,2, loginUserName, drive.getId(), drive.getId());
+		historyService.insertHis(drive,2, loginUserName, drive.getId(), drive.getId(),null);
 		if (lon <= 0) {
 			throw new RuntimeException("驱动编辑失败!");
 		}

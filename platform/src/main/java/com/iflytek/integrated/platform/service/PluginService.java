@@ -207,7 +207,7 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
             plugin.setCreatedTime(new Date());
             plugin.setCreatedBy(loginUserName);
             this.post(plugin);
-            historyService.insertHis(plugin,3,loginUserName,null,plugin.getId());
+            historyService.insertHis(plugin,3,loginUserName,null,plugin.getId(),null);
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"插件新增成功", null);
         }
         // redis缓存信息获取
@@ -221,7 +221,7 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
         if(lon <= 0){
             throw new RuntimeException("插件编辑失败!");
         }
-        historyService.insertHis(plugin,3,loginUserName,plugin.getId(),plugin.getId());
+        historyService.insertHis(plugin,3,loginUserName,plugin.getId(),plugin.getId(),null);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"插件编辑成功!", new RedisDto(redisKeyDtoList).toString());
     }
 

@@ -132,6 +132,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	private RedisService redisService;
 	@Autowired
 	private HistoryService historyService;
+	@Autowired
+	private SysService sysService;
+	@Autowired
+	private InterfaceService interfaceService;
 	
 	private static final Logger logger = LoggerFactory.getLogger(InterfaceService.class);
 	
@@ -822,12 +826,22 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			if (StringUtils.isBlank(loginUserName)) {
 				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
 			}
+			//请求方系统
+			TSys tSys = sysService.getOne(dto.getRequestSysId());
+			if(tSys == null){
+				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "未查询到请求方系统!", null);
+			}
+			//请求方
+			TInterface tInterface = interfaceService.getOne(dto.getRequestInterfaceId());
+			if(tInterface == null){
+				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "未查询到请求方!", null);
+			}
 			String newReturnId = "";
 			if (Constant.Operation.ADD.equals(dto.getAddOrUpdate())) {
-				return this.saveInterfaceConfig(dto, loginUserName);
+				return this.saveInterfaceConfig(dto, loginUserName, tSys, tInterface);
 			}
 			if (Constant.Operation.UPDATE.equals(dto.getAddOrUpdate())) {
-				return this.updateInterfaceConfig(dto, loginUserName);
+				return this.updateInterfaceConfig(dto, loginUserName, tSys, tInterface);
 			}
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "addOrUpdate 新增编辑标识不正确!", null);
 		}catch (Exception e){
@@ -843,7 +857,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	 * @param loginUserName
 	 * @return
 	 */
-	private ResultDto<String> saveInterfaceConfig(BusinessInterfaceDto dto, String loginUserName) {
+	private ResultDto<String> saveInterfaceConfig(BusinessInterfaceDto dto, String loginUserName,
+												  TSys tSys, TInterface tInterface) {
 		// 获取厂商配置
 		String requestSysConfigId = "";
 		if (StringUtils.isBlank(dto.getRequestSysconfigId())) {
@@ -861,6 +876,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据项目id,系统id,请求方接口id匹配到该条件数据已存在!", null);
 		}
 
+		String businessInterfaceName = "";
+		String versionId = "";
+		String requestInterfaceName = tSys.getSysName()+"/"+tInterface.getInterfaceName();
 		tbiList = dto.getBusinessInterfaceList();
 		String returnId = "";
 		for (int i = 0; i < tbiList.size(); i++) {
@@ -884,11 +902,28 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			if(StringUtils.isBlank(returnId)) {
 				returnId = tbi.getId();
 			}
+			TSys requestedSys = sysService.getOne(tbi.getRequestedSysId());
+			businessInterfaceName += (requestedSys.getSysName()+"/"+tbi.getBusinessInterfaceName()+",");
+			TSysConfig requestedSysConfig = sysConfigService.getOne(tbi.getRequestedSysconfigId());
+			versionId += (requestedSysConfig.getVersionId()+",");
+		}
+		if(businessInterfaceName.endsWith(",")){
+			businessInterfaceName = businessInterfaceName.substring(0,businessInterfaceName.length()-1);
+		}
+		if(versionId.endsWith(",")){
+			versionId = versionId.substring(0,versionId.length()-1);
 		}
 
 		//插入历史记录
 		String recordId = requestSysConfigId+","+dto.getRequestInterfaceId();
-		historyService.insertHis(tbiList,1,loginUserName,null,recordId);
+		Map map = new HashMap();
+		map.put("requestSysConfigId",requestSysConfigId);
+		map.put("requestInterfaceId",dto.getRequestInterfaceId());
+		map.put("businessInterfaceName",businessInterfaceName);
+		map.put("requestInterfaceName",requestInterfaceName);
+		map.put("versionId",versionId);
+		String hisShow = JSON.toJSONString(map);
+		historyService.insertHis(tbiList,1,loginUserName,null,recordId,hisShow);
 
 		Map<String , String> data = new HashMap<String , String>();
 		data.put("id", returnId);
@@ -902,7 +937,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	 * @param loginUserName
 	 * @return
 	 */
-	private ResultDto updateInterfaceConfig(BusinessInterfaceDto dto, String loginUserName) {
+	private ResultDto updateInterfaceConfig(BusinessInterfaceDto dto, String loginUserName,
+											TSys tSys, TInterface tInterface) {
 		if (StringUtils.isBlank(dto.getPlatformId()) || StringUtils.isBlank(dto.getRequestSysId())) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "平台id或请求方系统id不能为空!", null);
 		}
@@ -938,6 +974,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			//未修改
 		}
 
+		String businessInterfaceName = "";
+		String versionId = "";
+		String requestInterfaceName = tSys.getSysName()+"/"+tInterface.getInterfaceName();
 		// 返回缓存接口配置id
 		List<String> rtnId = new ArrayList<>();
 		List<TBusinessInterface> tbiList = dto.getBusinessInterfaceList();
@@ -978,9 +1017,26 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				}
 				rtnId.add(tbi.getId());
 			}
+			TSys requestedSys = sysService.getOne(tbi.getRequestedSysId());
+			businessInterfaceName += (requestedSys.getSysName()+"/"+tbi.getBusinessInterfaceName()+",");
+			TSysConfig requestedSysConfig = sysConfigService.getOne(tbi.getRequestedSysconfigId());
+			versionId += (requestedSysConfig.getVersionId()+",");
+		}
+		if(businessInterfaceName.endsWith(",")){
+			businessInterfaceName = businessInterfaceName.substring(0,businessInterfaceName.length()-1);
+		}
+		if(versionId.endsWith(",")){
+			versionId = versionId.substring(0,versionId.length()-1);
 		}
 		//插入历史记录
-		historyService.insertHis(tbiList,1,loginUserName,lastRecordId,lastRecordId);
+		Map map = new HashMap();
+		map.put("requestSysConfigId",requestSysConfigId);
+		map.put("requestInterfaceId",dto.getRequestInterfaceId());
+		map.put("businessInterfaceName",businessInterfaceName);
+		map.put("requestInterfaceName",requestInterfaceName);
+		map.put("versionId",versionId);
+		String hisShow = JSON.toJSONString(map);
+		historyService.insertHis(tbiList,1,loginUserName,lastRecordId,lastRecordId,hisShow);
 		// redis缓存信息获取
 		ArrayList<Predicate> arr = new ArrayList<>();
 		arr.add(qTBusinessInterface.id.in(rtnId));

@@ -27,6 +27,7 @@ public class THistory implements Serializable {
 
     private String recordId;
 
+    private String hisShow;
 
 
 }

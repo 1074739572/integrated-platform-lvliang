@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.JsonObject;
 import com.iflytek.integrated.common.dto.ResultDto;
+import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
@@ -13,6 +14,7 @@ import com.iflytek.integrated.platform.dto.HisRollbackDto;
 import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
 import com.iflytek.medicalboot.core.id.BatchUidService;
+import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
 
@@ -54,14 +56,14 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
     private NiFiRequestUtil niFiRequestUtil;
     @Autowired
     private InterfaceService interfaceService;
-    @Autowired
-    private SysConfigService sysConfigService;
 
     @ApiOperation(value = "获取列表", notes = "获取历史版本列表")
     @GetMapping("/getHisList")
     public ResultDto getHisList(
             @ApiParam(value = "接口转换/驱动/插件的id") @RequestParam(value = "recordId", required = true) String recordId,
-            @ApiParam(value = "历史版本类型（1接口转换 2驱动 3插件）") @RequestParam(value = "hisType", required = true) Integer hisType
+            @ApiParam(value = "历史版本类型（1接口转换 2驱动 3插件）") @RequestParam(value = "hisType", required = true) Integer hisType,
+            @ApiParam(value = "页码") @RequestParam(defaultValue = "1")Integer pageNo,
+            @ApiParam(value = "每页大小") @RequestParam(defaultValue = "10")Integer pageSize , @RequestParam(value = "id", required = false) String id
     ){
         try{
             // 校验是否获取到登录用户
@@ -70,13 +72,19 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
                 return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
             }
 
-            List list = sqlQueryFactory
-                    .select(Projections.bean(THistory.class,qtHistory.pkId,qtHistory.hisType,qtHistory.hisContent,
+            QueryResults<THistory> queryResults = sqlQueryFactory
+                    .select(Projections.bean(THistory.class,qtHistory.pkId,qtHistory.hisType,qtHistory.hisShow,
+                            //qtHistory.hisContent,
                             qtHistory.createdBy,qtHistory.createdTime,qtHistory.originId,qtHistory.recordId))
                     .from(qtHistory)
                     .where(qtHistory.recordId.eq(recordId).and(qtHistory.hisType.eq(hisType)))
-                    .fetch();
-            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取列表成功!", list);
+                    .limit(pageSize)
+                    .offset((pageNo - 1) * pageSize)
+                    .orderBy(qtHistory.createdTime.desc())
+                    .fetchResults();
+            //分页
+            TableData<TPlugin> tableData = new TableData(queryResults.getTotal(), queryResults.getResults());
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取列表成功!", tableData);
         }catch (Exception e){
             e.printStackTrace();
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, e.getMessage());
@@ -96,7 +104,7 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
         }
 
         THistory tHistory = sqlQueryFactory
-                .select(Projections.bean(THistory.class,qtHistory.pkId,qtHistory.hisType,qtHistory.hisContent,
+                .select(Projections.bean(THistory.class,qtHistory.pkId,qtHistory.hisType,qtHistory.hisShow,qtHistory.hisContent,
                         qtHistory.createdBy,qtHistory.createdTime,qtHistory.originId,qtHistory.recordId))
                 .from(qtHistory)
                 .where(qtHistory.pkId.eq(pkId))
@@ -197,7 +205,7 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
             }
             //获取历史版本
             THistory tHistory = sqlQueryFactory
-                    .select(Projections.bean(THistory.class,qtHistory.pkId,qtHistory.hisType,qtHistory.hisContent,qtHistory.recordId))
+                    .select(Projections.bean(THistory.class,qtHistory.pkId,qtHistory.hisType,qtHistory.hisShow,qtHistory.hisContent,qtHistory.recordId))
                     .from(qtHistory)
                     .where(qtHistory.pkId.eq(dto.getPkId().toString()))
                     .fetchFirst();
@@ -287,7 +295,7 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
 
 
     //插入历史记录
-    public void insertHis(Object obj, Integer hisType, String createdBy, String originId, String recordId){
+    public void insertHis(Object obj, Integer hisType, String createdBy, String originId, String recordId, String hisShow){
         THistory tHistory = new THistory();
         tHistory.setPkId(batchUidService.getUid(qTBusinessInterface.getTableName()) + "");
         tHistory.setHisType(hisType);
@@ -296,6 +304,7 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
         tHistory.setCreatedTime(new Date());
         tHistory.setOriginId(originId);
         tHistory.setRecordId(recordId);
+        tHistory.setHisShow(hisShow);
         this.post(tHistory);
     }
 
