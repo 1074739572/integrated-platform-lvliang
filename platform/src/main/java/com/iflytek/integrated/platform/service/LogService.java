@@ -237,7 +237,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		}
 		QueryResults<TLog> queryResults = sqlQueryFactory
 				.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status, qTLog.venderRepTime,
-						qTLog.businessRepTime, qTLog.visitAddr,qTLog.businessInterfaceId))
+						qTLog.businessRepTime, qTLog.visitAddr,qTLog.businessInterfaceId, qTLog.debugreplayFlag))
 				.from(qTLog).addFlag(new QueryFlag(Position.BEFORE_FILTERS, Expressions.stringTemplate(" FORCE INDEX ( log_query_idx )")))
 				.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
 				.orderBy(qTLog.createdTime.desc()).fetchResults();
@@ -274,7 +274,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		// 查询详情
 		TLog tLog = sqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status,
 				qTLog.venderRepTime, qTLog.businessRepTime, qTLog.visitAddr, qTLog.businessReq, qTLog.venderReq,
-				qTLog.businessRep, qTLog.venderRep,
+				qTLog.businessRep, qTLog.venderRep,qTLog.debugreplayFlag,
 				qTBusinessInterface.businessInterfaceName.as("businessInterfaceName"),
 				qTBusinessInterface.excErrOrder.add(1).as("excErrOrder"))).from(qTLog)
 				.leftJoin(qTBusinessInterface).on(qTBusinessInterface.id.eq(qTLog.businessInterfaceId))
