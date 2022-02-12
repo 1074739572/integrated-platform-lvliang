@@ -74,7 +74,7 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
 
             QueryResults<THistory> queryResults = sqlQueryFactory
                     .select(Projections.bean(THistory.class,qtHistory.pkId,qtHistory.hisType,qtHistory.hisShow,
-                            //qtHistory.hisContent,
+                            qtHistory.hisContent,
                             qtHistory.createdBy,qtHistory.createdTime,qtHistory.originId,qtHistory.recordId))
                     .from(qtHistory)
                     .where(qtHistory.recordId.eq(recordId).and(qtHistory.hisType.eq(hisType)))
@@ -297,7 +297,7 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
     //插入历史记录
     public void insertHis(Object obj, Integer hisType, String createdBy, String originId, String recordId, String hisShow){
         THistory tHistory = new THistory();
-        tHistory.setPkId(batchUidService.getUid(qTBusinessInterface.getTableName()) + "");
+        tHistory.setPkId(batchUidService.getUid(qtHistory.getTableName()) + "");
         tHistory.setHisType(hisType);
         tHistory.setHisContent(JSON.toJSONString(obj));
         tHistory.setCreatedBy(createdBy);

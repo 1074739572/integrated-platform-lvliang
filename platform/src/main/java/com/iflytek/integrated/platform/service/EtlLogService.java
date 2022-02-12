@@ -8,7 +8,9 @@ import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -56,8 +58,8 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 	public ResultDto<TableData<TEtlLog>> getEtlFlows(String projectId, String platformId, String sysId, String status,
 													 @ApiParam(value = "流程名称") @RequestParam(value = "flowName", required = false) String flowName,
 													 @ApiParam(value = "nifi报错信息") @RequestParam(value = "errorInfo", required = false) String errorInfo,
-			@ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
-			@ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
+													 @ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
+													 @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
 		// 查询条件
 		ArrayList<Predicate> list = new ArrayList<>();
 		if (StringUtils.isNotBlank(projectId)) {
@@ -79,13 +81,15 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 			list.add(qTEtlLog.errorInfo.like("%" + errorInfo + "%"));
 		}
 
-		QueryResults<TEtlLog> qresults = sqlQueryFactory.select(Projections.bean(TEtlLog.class, 
-				qTEtlLog.id.max().as("id"),qTEtlLog.etlGroupId, qTEtlLog.exeJobId, qTEtlLog.flowName, 
+		QueryResults<TEtlLog> qresults = sqlQueryFactory.select(Projections.bean(TEtlLog.class,
+				qTEtlLog.id.max().as("id"),qTEtlLog.etlGroupId, qTEtlLog.exeJobId, qTEtlLog.flowName,
 				qTEtlLog.createdTime.max().as("createdTime"), qTEtlLog.jobTime,qTEtlLog.status.sum().as("statusCode"),
 				qTEtlLog.batchReadCount.max().as("allReadCount"), qTEtlLog.batchWriteErrorcount.sum().as("allWriteErrorcount"),
 				Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.errorInfo).concat("|").as("errorInfo") ,
 				qTProject.projectName.as("projectName"), qTPlatform.platformName.as("platformName"), qTHospital.hospitalName.as("hospitalName"),
-				qTSys.sysName.as("sysName"))).from(qTEtlLog).leftJoin(qTEtlGroup)
+				qTSys.sysName.as("sysName")))
+				.from(qTEtlLog)
+				.leftJoin(qTEtlGroup)
 				.on(qTEtlLog.etlGroupId.eq(qTEtlGroup.etlGroupId))
 				.leftJoin(qTProject).on(qTProject.id.eq(qTEtlGroup.projectId))
 				.leftJoin(qTPlatform).on(qTPlatform.id.eq(qTEtlGroup.platformId))

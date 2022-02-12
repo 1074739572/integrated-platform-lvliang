@@ -879,6 +879,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
 		String businessInterfaceName = "";
 		String versionId = "";
+		Integer interfaceSlowFlag = null;
+		Integer replayFlag = null;
 		String requestInterfaceName = tSys.getSysName()+"/"+tInterface.getInterfaceName();
 		tbiList = dto.getBusinessInterfaceList();
 		String returnId = "";
@@ -903,6 +905,12 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			if(StringUtils.isBlank(returnId)) {
 				returnId = tbi.getId();
 			}
+			if(interfaceSlowFlag == null){
+				interfaceSlowFlag = tbi.getInterfaceSlowFlag();
+			}
+			if(replayFlag == null){
+				replayFlag = tbi.getReplayFlag();
+			}
 			TSys requestedSys = sysService.getOne(tbi.getRequestedSysId());
 			businessInterfaceName += (requestedSys.getSysName()+"/"+tbi.getBusinessInterfaceName()+",");
 			TSysConfig requestedSysConfig = sysConfigService.getOne(tbi.getRequestedSysconfigId());
@@ -923,6 +931,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		map.put("businessInterfaceName",businessInterfaceName);
 		map.put("requestInterfaceName",requestInterfaceName);
 		map.put("versionId",versionId);
+		map.put("requestSysId",tInterface.getSysId());
+		map.put("requestInterfaceTypeId",tInterface.getTypeId());
+		map.put("interfaceSlowFlag",interfaceSlowFlag);
+		map.put("replayFlag",replayFlag);
 		String hisShow = JSON.toJSONString(map);
 		historyService.insertHis(tbiList,1,loginUserName,null,recordId,hisShow);
 
@@ -977,6 +989,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
 		String businessInterfaceName = "";
 		String versionId = "";
+		Integer interfaceSlowFlag = null;
+		Integer replayFlag = null;
 		String requestInterfaceName = tSys.getSysName()+"/"+tInterface.getInterfaceName();
 		// 返回缓存接口配置id
 		List<String> rtnId = new ArrayList<>();
@@ -1036,6 +1050,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		map.put("businessInterfaceName",businessInterfaceName);
 		map.put("requestInterfaceName",requestInterfaceName);
 		map.put("versionId",versionId);
+		map.put("requestSysId",tInterface.getSysId());
+		map.put("requestInterfaceTypeId",tInterface.getTypeId());
+		map.put("interfaceSlowFlag",interfaceSlowFlag);
+		map.put("replayFlag",replayFlag);
 		String hisShow = JSON.toJSONString(map);
 		historyService.insertHis(tbiList,1,loginUserName,lastRecordId,lastRecordId,hisShow);
 		// redis缓存信息获取

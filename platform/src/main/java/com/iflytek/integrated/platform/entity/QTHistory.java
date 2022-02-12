@@ -69,8 +69,8 @@ public class QTHistory extends RelationalPathBase<THistory> {
         addMetadata(hisContent, ColumnMetadata.named("HIS_CONTENT").withIndex(4).ofType(Types.LONGVARCHAR).withSize(65535));
         addMetadata(createdBy, ColumnMetadata.named("CREATED_BY").withIndex(5).ofType(Types.VARCHAR).withSize(32));
         addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(6).ofType(Types.TIMESTAMP).withSize(19));
-        addMetadata(originId, ColumnMetadata.named("ORIGIN_ID").withIndex(7).ofType(Types.VARCHAR).withSize(32));
-        addMetadata(recordId, ColumnMetadata.named("RECORD_ID").withIndex(8).ofType(Types.VARCHAR).withSize(32));
+        addMetadata(originId, ColumnMetadata.named("ORIGIN_ID").withIndex(7).ofType(Types.VARCHAR).withSize(500));
+        addMetadata(recordId, ColumnMetadata.named("RECORD_ID").withIndex(8).ofType(Types.VARCHAR).withSize(500));
     }
 
 }

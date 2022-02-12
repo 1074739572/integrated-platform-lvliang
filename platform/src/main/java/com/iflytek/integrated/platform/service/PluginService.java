@@ -92,6 +92,16 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
             jsonObj.setChildren(arr);
             rtnArr.add(jsonObj);
         }
+
+        Iterator<PluginDto> it = rtnArr.iterator();
+        while (it.hasNext()){
+            PluginDto dto = it.next();
+            List list = dto.getChildren();
+            if(list == null || list.size() == 0){
+                it.remove();
+            }
+        }
+
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"选择插件下拉数据获取成功", rtnArr);
     }
 
