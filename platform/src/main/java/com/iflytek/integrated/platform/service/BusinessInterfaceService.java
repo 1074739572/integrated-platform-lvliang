@@ -202,12 +202,12 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 			interfaceNameList.add(businessInterface.businessInterfaceName.like("%" + requestedInterfaceName + "%"));
 		}
 		SubQueryExpression query = SQLExpressions
-				.select(qTBusinessInterface.id, qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId,
+				.select(qTBusinessInterface.id.min().as("id"), qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId,
 						groupConcat(qTBusinessInterface.requestedSysconfigId.append("/")
 								.append(qTBusinessInterface.businessInterfaceName)).as("BUSINESS_INTERFACE_NAME"),
-						qTBusinessInterface.mockStatus, qTBusinessInterface.status, qTBusinessInterface.createdBy,
-						qTBusinessInterface.createdTime.max().as("CREATED_TIME"), qTBusinessInterface.updatedBy,
-						qTBusinessInterface.updatedTime)
+						qTBusinessInterface.mockStatus.min().as("MOCK_STATUS"), qTBusinessInterface.status.min().as("status"), qTBusinessInterface.createdBy.min().as("CREATED_BY"),
+						qTBusinessInterface.createdTime.max().as("CREATED_TIME"), qTBusinessInterface.updatedBy.min().as("UPDATED_BY"),
+						qTBusinessInterface.updatedTime.max().as("UPDATED_TIME"))
 				.from(qTBusinessInterface)
 				.leftJoin(qTSysConfig).on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId))
 				.leftJoin(qTInterface).on(qTInterface.id.eq(qTBusinessInterface.requestInterfaceId))
