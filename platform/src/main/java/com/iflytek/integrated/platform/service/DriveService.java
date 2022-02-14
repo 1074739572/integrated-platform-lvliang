@@ -72,6 +72,8 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
 	private RedisService redisService;
 	@Autowired
 	private HistoryService historyService;
+	@Autowired
+	private TypeService typeService;
 
 	@ApiOperation(value = "获取驱动下拉")
 	@GetMapping("/getAllDrive")
@@ -203,6 +205,14 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
 			drive.setCreatedTime(new Date());
 			drive.setCreatedBy(loginUserName);
 			this.post(drive);
+			TType tType = typeService.getOne(drive.getTypeId());
+			drive.setDriveTypeName(tType.getTypeName());
+			if("1".equals(drive.getDriveCallType())){
+				drive.setDriveCallTypeName("请求方");
+			}
+			if("2".equals(drive.getDriveCallType())){
+				drive.setDriveCallTypeName("被请求方");
+			}
 			historyService.insertHis(drive,2, loginUserName, null, drive.getId(),null);
 			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "驱动新增成功", null);
 		}
@@ -210,11 +220,21 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
 		ArrayList<Predicate> arr = new ArrayList<>();
         arr.add(qTSysDriveLink.driveId.in(drive.getId()));
 		List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+		//插入历史
+		TDrive tDrive = this.getOne(drive.getId());
+		TType tType = typeService.getOne(tDrive.getTypeId());
+		tDrive.setDriveTypeName(tType.getTypeName());
+		if("1".equals(tDrive.getDriveCallType())){
+			tDrive.setDriveCallTypeName("请求方");
+		}
+		if("2".equals(tDrive.getDriveCallType())){
+			tDrive.setDriveCallTypeName("被请求方");
+		}
+		historyService.insertHis(tDrive,2, loginUserName, drive.getId(), drive.getId(),null);
 		// 编辑驱动
 		drive.setUpdatedBy(loginUserName);
 		drive.setUpdatedTime(new Date());
 		Long lon = this.put(drive.getId(), drive);
-		historyService.insertHis(drive,2, loginUserName, drive.getId(), drive.getId(),null);
 		if (lon <= 0) {
 			throw new RuntimeException("驱动编辑失败!");
 		}

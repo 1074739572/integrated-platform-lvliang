@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.iflytek.integrated.platform.dto.EtlLogInfoDto;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,8 +84,11 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 
 		QueryResults<TEtlLog> qresults = sqlQueryFactory.select(Projections.bean(TEtlLog.class,
 				qTEtlLog.id.max().as("id"),qTEtlLog.etlGroupId, qTEtlLog.exeJobId, qTEtlLog.flowName,
-				qTEtlLog.createdTime.max().as("createdTime"), qTEtlLog.jobTime,qTEtlLog.status.sum().as("statusCode"),
-				qTEtlLog.batchReadCount.max().as("allReadCount"), qTEtlLog.batchWriteErrorcount.sum().as("allWriteErrorcount"),
+				qTEtlLog.createdTime.max().as("createdTime"),
+				qTEtlLog.jobTime.max().as("jobTime"),
+				qTEtlLog.status.sum().as("statusCode"),
+				qTEtlLog.batchReadCount.max().as("allReadCount"),
+				qTEtlLog.batchWriteErrorcount.sum().as("allWriteErrorcount"),
 				Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.errorInfo).concat("|").as("errorInfo") ,
 				qTProject.projectName.as("projectName"), qTPlatform.platformName.as("platformName"), qTHospital.hospitalName.as("hospitalName"),
 				qTSys.sysName.as("sysName")))
@@ -97,7 +101,7 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 				.leftJoin(qTHospital).on(qTHospital.id.eq(qTEtlGroup.hospitalId))
 				.groupBy(qTEtlLog.etlGroupId , qTEtlLog.exeJobId)
 				.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
-				.orderBy(qTEtlLog.jobTime.desc()).fetchResults();
+				.orderBy(qTEtlLog.jobTime.max().desc()).fetchResults();
 		List<TEtlLog> results = null;
 		if(qresults != null) {
 			results = qresults.getResults();
@@ -114,6 +118,84 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 //		TableData<TEtlLog> tableData = new TableData<>(size, results);
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取日志列表成功", tableData);
 	}
+
+	@ApiOperation(value = "获取日志列表")
+	@GetMapping("/getEtlLogs2")
+	public ResultDto<TableData<TEtlLog>> getEtlFlows2(String projectId, String platformId, String sysId, String status,
+													 @ApiParam(value = "流程名称") @RequestParam(value = "flowName", required = false) String flowName,
+													 @ApiParam(value = "nifi报错信息") @RequestParam(value = "errorInfo", required = false) String errorInfo,
+													 @ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
+													 @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
+		// 查询条件
+		ArrayList<Predicate> list = new ArrayList<>();
+		if (StringUtils.isNotBlank(projectId)) {
+			list.add(qTEtlGroup.projectId.eq(projectId));
+		}
+		if (StringUtils.isNotBlank(platformId)) {
+			list.add(qTEtlGroup.platformId.eq(platformId));
+		}
+		if (StringUtils.isNotBlank(sysId)) {
+			list.add(qTEtlGroup.sysId.eq(sysId));
+		}
+		if(StringUtils.isNotBlank(status)){
+			list.add(qTEtlLog.status.eq(Integer.valueOf(status)));
+		}
+		if (StringUtils.isNotBlank(flowName)) {
+			list.add(qTEtlLog.flowName.like("%" + flowName + "%"));
+		}
+		if (StringUtils.isNotBlank(errorInfo)) {
+			list.add(qTEtlLog.errorInfo.like("%" + errorInfo + "%"));
+		}
+
+		QueryResults<TEtlLog> qresults = sqlQueryFactory.select(Projections.bean(TEtlLog.class,
+				qTEtlLog.id.max().as("id"),qTEtlLog.etlGroupId, qTEtlLog.exeJobId, qTEtlLog.flowName,
+				qTEtlLog.createdTime.max().as("createdTime"),
+				qTEtlLog.jobTime.max().as("jobTime"),
+				qTEtlLog.status.sum().as("statusCode"),
+				qTEtlLog.batchReadCount.max().as("allReadCount"),
+				qTEtlLog.batchWriteErrorcount.sum().as("allWriteErrorcount"),
+				Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.errorInfo).concat("|").as("errorInfo")))
+				.from(qTEtlLog)
+				.groupBy(qTEtlLog.etlGroupId , qTEtlLog.exeJobId)
+				.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
+				.orderBy(qTEtlLog.jobTime.max().desc()).fetchResults();
+		List<TEtlLog> results = null;
+		if(qresults != null) {
+			results = qresults.getResults();
+			for(TEtlLog etllog : results) {
+				long endtime = etllog.getCreatedTime().getTime();
+				long starttime = etllog.getJobTime().getTime();
+				long execTimeSeconds = (endtime - starttime)/1000;
+				etllog.setExecTime(PlatformUtil.secondsToFormat(execTimeSeconds));
+				etllog.setStatus(etllog.getStatusCode() == 1 ? "成功" : "失败");
+				//
+				EtlLogInfoDto info = sqlQueryFactory
+						.select(Projections.bean(EtlLogInfoDto.class,
+								qTProject.projectName.as("projectName"),
+								qTPlatform.platformName.as("platformName"),
+								qTHospital.hospitalName.as("hospitalName"),
+								qTSys.sysName.as("sysName")))
+						.from(qTEtlGroup)
+						.leftJoin(qTProject).on(qTProject.id.eq(qTEtlGroup.projectId))
+						.leftJoin(qTPlatform).on(qTPlatform.id.eq(qTEtlGroup.platformId))
+						.leftJoin(qTSys).on(qTSys.id.eq(qTEtlGroup.sysId))
+						.leftJoin(qTHospital).on(qTHospital.id.eq(qTEtlGroup.hospitalId))
+						.where(qTEtlGroup.etlGroupId.eq(etllog.getEtlGroupId()))
+						.fetchOne();
+				if(info != null){
+					etllog.setProjectName(info.getProjectName());
+					etllog.setPlatformName(info.getPlatformName());
+					etllog.setHospitalName(info.getHospitalName());
+					etllog.setSysName(info.getSysName());
+				}
+			}
+		}
+		// 分页
+		TableData<TEtlLog> tableData = new TableData<>(qresults.getTotal(), results);
+//		TableData<TEtlLog> tableData = new TableData<>(size, results);
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取日志列表成功", tableData);
+	}
+
 
 	@ApiOperation(value = "获取日志详情")
 	@GetMapping("/getEtlLogs/{id}")

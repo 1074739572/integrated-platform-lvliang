@@ -69,6 +69,8 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
     private RedisService redisService;
     @Autowired
     private HistoryService historyService;
+    @Autowired
+    private TypeService typeService;
 
 
     @ApiOperation(value = "接口配置选择插件下拉")
@@ -217,6 +219,8 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
             plugin.setCreatedTime(new Date());
             plugin.setCreatedBy(loginUserName);
             this.post(plugin);
+            TType tType = typeService.getOne(plugin.getTypeId());
+            plugin.setPluginTypeName(tType.getTypeName());
             historyService.insertHis(plugin,3,loginUserName,null,plugin.getId(),null);
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"插件新增成功", null);
         }
@@ -224,6 +228,11 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
         ArrayList<Predicate> arr = new ArrayList<>();
         arr.add(qTBusinessInterface.pluginId.in(plugin.getId()));
         List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+        //插入历史
+        TPlugin old = this.getOne(plugin.getId());
+        TType tType = typeService.getOne(old.getTypeId());
+        old.setPluginTypeName(tType.getTypeName());
+        historyService.insertHis(old,3,loginUserName,plugin.getId(),plugin.getId(),null);
         //编辑插件
         plugin.setUpdatedTime(new Date());
         plugin.setUpdatedBy(loginUserName);
@@ -231,7 +240,6 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
         if(lon <= 0){
             throw new RuntimeException("插件编辑失败!");
         }
-        historyService.insertHis(plugin,3,loginUserName,plugin.getId(),plugin.getId(),null);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"插件编辑成功!", new RedisDto(redisKeyDtoList).toString());
     }
 

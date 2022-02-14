@@ -14,5 +14,7 @@ public class HisRollbackDto {
     @ApiModelProperty(value = "历史版本类型（1接口转换 2驱动 3插件）",required = true)
     private Integer hisType;
 
+//    @ApiModelProperty(value = "当前驱动/插件id")
+//    private String id;
 
 }
