@@ -1008,6 +1008,12 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				TSys tSys = sysService.getOne(reqConfig.getSysId());
 				requestInterfaceName = tSys.getSysName()+"/"+tInterface.getInterfaceName();
 			}
+			if(interfaceSlowFlag == null){
+				interfaceSlowFlag = tbi.getInterfaceSlowFlag();
+			}
+			if(replayFlag == null){
+				replayFlag = tbi.getReplayFlag();
+			}
 			if(StringUtils.isBlank(typeId)){
 				typeId = tInterface.getTypeId();
 			}

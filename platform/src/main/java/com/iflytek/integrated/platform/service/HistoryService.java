@@ -288,6 +288,12 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
                 if(StringUtils.isBlank(requestSysId)){
                     requestSysId = tInterface.getSysId();
                 }
+                if(interfaceSlowFlag != null){
+                    interfaceSlowFlag = tbi.getInterfaceSlowFlag();
+                }
+                if(replayFlag != null){
+                    replayFlag = tbi.getReplayFlag();
+                }
             }
             if(businessInterfaceName.endsWith(",")){
                 businessInterfaceName = businessInterfaceName.substring(0,businessInterfaceName.length()-1);
