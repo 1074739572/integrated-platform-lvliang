@@ -16,6 +16,7 @@ import com.iflytek.integrated.platform.dto.EtlLogInfoDto;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,13 +27,18 @@ import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
+import com.iflytek.integrated.platform.entity.QTEtlLog;
+import com.iflytek.integrated.platform.entity.QTInterfaceMonitor;
 import com.iflytek.integrated.platform.entity.TEtlLog;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.SubQueryExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringPath;
+import com.querydsl.core.types.dsl.StringTemplate;
+import com.querydsl.sql.SQLExpressions;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -53,6 +59,9 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 	public EtlLogService() {
 		super(qTEtlLog, qTEtlLog.id);
 	}
+	
+	@Value("${server.db}")
+	private String dbType;
 
 	@ApiOperation(value = "获取日志列表")
 	@GetMapping("/getEtlLogs")
@@ -100,25 +109,57 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 
 
 	public ResultDto getEtlFlowsByFilter(ArrayList<Predicate> list,Integer pageNo,Integer pageSize){
-		QueryResults<TEtlLog> qresults = sqlQueryFactory.select(Projections.bean(TEtlLog.class,
-				qTEtlLog.id.max().as("id"),qTEtlLog.etlGroupId, qTEtlLog.exeJobId, qTEtlLog.flowName,
-				qTEtlLog.createdTime.max().as("createdTime"),
-				qTEtlLog.jobTime.max().as("jobTime"),
-				qTEtlLog.status.sum().as("statusCode"),
-				qTEtlLog.batchReadCount.max().as("allReadCount"),
-				qTEtlLog.batchWriteErrorcount.sum().as("allWriteErrorcount"),
-				Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.errorInfo).concat("|").as("errorInfo") ,
-				qTProject.projectName.as("projectName"), qTPlatform.platformName.as("platformName"), qTHospital.hospitalName.as("hospitalName"),
-				qTSys.sysName.as("sysName")))
-				.from(qTEtlLog)
-				.leftJoin(qTEtlGroup).on(qTEtlLog.etlGroupId.eq(qTEtlGroup.etlGroupId))
-				.leftJoin(qTProject).on(qTProject.id.eq(qTEtlGroup.projectId))
-				.leftJoin(qTPlatform).on(qTPlatform.id.eq(qTEtlGroup.platformId))
-				.leftJoin(qTSys).on(qTSys.id.eq(qTEtlGroup.sysId))
-				.leftJoin(qTHospital).on(qTHospital.id.eq(qTEtlGroup.hospitalId))
-				.groupBy(qTEtlLog.etlGroupId , qTEtlLog.exeJobId)
-				.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
-				.orderBy(qTEtlLog.jobTime.max().desc()).fetchResults();
+		QueryResults<TEtlLog> qresults = null;
+		if("postgresql".equals(dbType)) {
+			StringTemplate st = Expressions.stringTemplate("concat(from_base64({0}) , '|')" , qTEtlLog.errorInfo);
+			StringTemplate stg = Expressions.stringTemplate("concat(string_agg ( errorinfo, ',' :: TEXT ))");
+			st = Expressions.stringTemplate("concat(decode({0} , 'base64') , '|')" , qTEtlLog.errorInfo);
+			String q = "etllog";
+			StringPath queryLabel = Expressions.stringPath(q);
+			QTEtlLog qtetllogalias = new QTEtlLog(q);
+			SubQueryExpression query = SQLExpressions.select(qTEtlLog.etlGroupId.as("ETL_GROUP_ID") , qTEtlLog.exeJobId.as("EXE_JOB_ID") , st.as("errorinfo"))
+					.from(qTEtlLog).orderBy(qTEtlLog.jobTime.desc());
+			qresults = sqlQueryFactory.select(Projections.bean(TEtlLog.class,
+					qTEtlLog.id.max().as("id"),qTEtlLog.etlGroupId, qTEtlLog.exeJobId, qTEtlLog.flowName.max().as("flowName"),
+					qTEtlLog.createdTime.max().as("createdTime"),
+					qTEtlLog.jobTime.max().as("jobTime"),
+					qTEtlLog.status.sum().as("statusCode"),
+					qTEtlLog.batchReadCount.max().as("allReadCount"),
+					qTEtlLog.batchWriteErrorcount.sum().as("allWriteErrorcount"),
+					stg.as("errorInfo"),qTProject.projectName.max().as("projectName"), qTPlatform.platformName.max().as("platformName"), qTHospital.hospitalName.max().as("hospitalName"),
+					qTSys.sysName.max().as("sysName")))
+					.from(query ,queryLabel).leftJoin(qTEtlLog)
+					.on(qtetllogalias.etlGroupId.eq(qTEtlLog.etlGroupId).and(qtetllogalias.exeJobId.eq(qTEtlLog.exeJobId)))
+					.leftJoin(qTEtlGroup).on(qTEtlLog.etlGroupId.eq(qTEtlGroup.etlGroupId))
+					.leftJoin(qTProject).on(qTProject.id.eq(qTEtlGroup.projectId))
+					.leftJoin(qTPlatform).on(qTPlatform.id.eq(qTEtlGroup.platformId))
+					.leftJoin(qTSys).on(qTSys.id.eq(qTEtlGroup.sysId))
+					.leftJoin(qTHospital).on(qTHospital.id.eq(qTEtlGroup.hospitalId))
+					.groupBy(qTEtlLog.etlGroupId , qTEtlLog.exeJobId)
+					.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
+					.fetchResults();
+		}else {
+			qresults = sqlQueryFactory.select(Projections.bean(TEtlLog.class,
+					qTEtlLog.id.max().as("id"),qTEtlLog.etlGroupId, qTEtlLog.exeJobId, qTEtlLog.flowName,
+					qTEtlLog.createdTime.max().as("createdTime"),
+					qTEtlLog.jobTime.max().as("jobTime"),
+					qTEtlLog.status.sum().as("statusCode"),
+					qTEtlLog.batchReadCount.max().as("allReadCount"),
+					qTEtlLog.batchWriteErrorcount.sum().as("allWriteErrorcount"),
+					Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.errorInfo).concat("|").as("errorInfo") ,
+					qTProject.projectName.as("projectName"), qTPlatform.platformName.as("platformName"), qTHospital.hospitalName.as("hospitalName"),
+					qTSys.sysName.as("sysName")))
+					.from(qTEtlLog)
+					.leftJoin(qTEtlGroup).on(qTEtlLog.etlGroupId.eq(qTEtlGroup.etlGroupId))
+					.leftJoin(qTProject).on(qTProject.id.eq(qTEtlGroup.projectId))
+					.leftJoin(qTPlatform).on(qTPlatform.id.eq(qTEtlGroup.platformId))
+					.leftJoin(qTSys).on(qTSys.id.eq(qTEtlGroup.sysId))
+					.leftJoin(qTHospital).on(qTHospital.id.eq(qTEtlGroup.hospitalId))
+					.groupBy(qTEtlLog.etlGroupId , qTEtlLog.exeJobId)
+					.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
+					.orderBy(qTEtlLog.jobTime.desc()).fetchResults();
+		}
+		
 		List<TEtlLog> results = null;
 		if(qresults != null) {
 			results = qresults.getResults();
@@ -138,18 +179,43 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 
 
 	public ResultDto getEtlFlowsByPage(Integer pageNo,Integer pageSize){
-		QueryResults<TEtlLog> qresults = sqlQueryFactory.select(Projections.bean(TEtlLog.class,
-				qTEtlLog.id.max().as("id"),qTEtlLog.etlGroupId, qTEtlLog.exeJobId, qTEtlLog.flowName,
-				qTEtlLog.createdTime.max().as("createdTime"),
-				qTEtlLog.jobTime.max().as("jobTime"),
-				qTEtlLog.status.sum().as("statusCode"),
-				qTEtlLog.batchReadCount.max().as("allReadCount"),
-				qTEtlLog.batchWriteErrorcount.sum().as("allWriteErrorcount"),
-				Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.errorInfo).concat("|").as("errorInfo")))
-				.from(qTEtlLog)
-				.groupBy(qTEtlLog.etlGroupId , qTEtlLog.exeJobId)
-				.limit(pageSize).offset((pageNo - 1) * pageSize)
-				.orderBy(qTEtlLog.jobTime.max().desc()).fetchResults();
+		QueryResults<TEtlLog> qresults = null;
+		if("postgresql".equals(dbType)) {
+			StringTemplate st = Expressions.stringTemplate("concat(from_base64({0}) , '|')" , qTEtlLog.errorInfo);
+			StringTemplate stg = Expressions.stringTemplate("concat(string_agg ( errorinfo, ',' :: TEXT ))");
+			st = Expressions.stringTemplate("concat(decode({0} , 'base64') , '|')" , qTEtlLog.errorInfo);
+			String q = "etllog";
+			StringPath queryLabel = Expressions.stringPath(q);
+			QTEtlLog qtetllogalias = new QTEtlLog(q);
+			SubQueryExpression query = SQLExpressions.select(qTEtlLog.etlGroupId.as("ETL_GROUP_ID") , qTEtlLog.exeJobId.as("EXE_JOB_ID") , st.as("errorinfo"))
+					.from(qTEtlLog).orderBy(qTEtlLog.jobTime.desc());
+			qresults = sqlQueryFactory.select(Projections.bean(TEtlLog.class,
+					qTEtlLog.id.max().as("id"),qTEtlLog.etlGroupId, qTEtlLog.exeJobId, qTEtlLog.flowName.max().as("flowName"),
+					qTEtlLog.createdTime.max().as("createdTime"),
+					qTEtlLog.jobTime.max().as("jobTime"),
+					qTEtlLog.status.sum().as("statusCode"),
+					qTEtlLog.batchReadCount.max().as("allReadCount"),
+					qTEtlLog.batchWriteErrorcount.sum().as("allWriteErrorcount"),
+					stg.as("errorInfo")))
+					.from(query ,queryLabel).leftJoin(qTEtlLog)
+					.on(qtetllogalias.etlGroupId.eq(qTEtlLog.etlGroupId).and(qtetllogalias.exeJobId.eq(qTEtlLog.exeJobId)))
+					.groupBy(qTEtlLog.etlGroupId , qTEtlLog.exeJobId)
+					.limit(pageSize).offset((pageNo - 1) * pageSize).fetchResults();
+		}else {
+			qresults = sqlQueryFactory.select(Projections.bean(TEtlLog.class,
+					qTEtlLog.id.max().as("id"),qTEtlLog.etlGroupId, qTEtlLog.exeJobId, qTEtlLog.flowName,
+					qTEtlLog.createdTime.max().as("createdTime"),
+					qTEtlLog.jobTime.max().as("jobTime"),
+					qTEtlLog.status.sum().as("statusCode"),
+					qTEtlLog.batchReadCount.max().as("allReadCount"),
+					qTEtlLog.batchWriteErrorcount.sum().as("allWriteErrorcount"),
+					Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.errorInfo).concat("|").as("errorInfo")))
+					.from(qTEtlLog)
+					.groupBy(qTEtlLog.etlGroupId , qTEtlLog.exeJobId)
+					.limit(pageSize).offset((pageNo - 1) * pageSize)
+					.orderBy(qTEtlLog.jobTime.max().desc()).fetchResults();
+		}
+		
 		List<TEtlLog> results = null;
 		if(qresults != null) {
 			results = qresults.getResults();
