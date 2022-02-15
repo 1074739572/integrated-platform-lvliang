@@ -68,7 +68,7 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
             @ApiParam(value = "接口转换/驱动/插件的id") @RequestParam(value = "recordId", required = true) String recordId,
             @ApiParam(value = "历史版本类型（1接口转换 2驱动 3插件）") @RequestParam(value = "hisType", required = true) Integer hisType,
             @ApiParam(value = "页码") @RequestParam(defaultValue = "1")Integer pageNo,
-            @ApiParam(value = "每页大小") @RequestParam(defaultValue = "10")Integer pageSize , @RequestParam(value = "id", required = false) String id
+            @ApiParam(value = "每页大小") @RequestParam(defaultValue = "10")Integer pageSize
     ){
         try{
             // 校验是否获取到登录用户

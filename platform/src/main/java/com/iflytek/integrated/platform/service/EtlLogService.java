@@ -61,27 +61,45 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 													 @ApiParam(value = "nifi报错信息") @RequestParam(value = "errorInfo", required = false) String errorInfo,
 													 @ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
 													 @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
-		// 查询条件
-		ArrayList<Predicate> list = new ArrayList<>();
-		if (StringUtils.isNotBlank(projectId)) {
-			list.add(qTProject.id.eq(projectId));
+		if(StringUtils.isNotBlank(projectId) || StringUtils.isNotBlank(platformId) || StringUtils.isNotBlank(sysId)
+				|| StringUtils.isNotBlank(status) || StringUtils.isNotBlank(flowName) || StringUtils.isNotBlank(errorInfo)){
+			// 查询条件
+			ArrayList<Predicate> list = new ArrayList<>();
+			if (StringUtils.isNotBlank(projectId)) {
+				list.add(qTProject.id.eq(projectId));
+			}
+			if (StringUtils.isNotBlank(platformId)) {
+				list.add(qTPlatform.id.eq(platformId));
+			}
+			if (StringUtils.isNotBlank(sysId)) {
+				list.add(qTSys.id.eq(sysId));
+			}
+			if(StringUtils.isNotBlank(status)){
+				list.add(qTEtlLog.status.eq(Integer.valueOf(status)));
+			}
+			if (StringUtils.isNotBlank(flowName)) {
+				list.add(qTEtlLog.flowName.like("%" + flowName + "%"));
+			}
+			if (StringUtils.isNotBlank(errorInfo)) {
+				list.add(qTEtlLog.errorInfo.like("%" + errorInfo + "%"));
+			}
+			return getEtlFlowsByFilter(list,pageNo,pageSize);
+		}else{
+			return getEtlFlowsByPage(pageNo,pageSize);
 		}
-		if (StringUtils.isNotBlank(platformId)) {
-			list.add(qTPlatform.id.eq(platformId));
-		}
-		if (StringUtils.isNotBlank(sysId)) {
-			list.add(qTSys.id.eq(sysId));
-		}
-		if(StringUtils.isNotBlank(status)){
-			list.add(qTEtlLog.status.eq(Integer.valueOf(status)));
-		}
-		if (StringUtils.isNotBlank(flowName)) {
-			list.add(qTEtlLog.flowName.like("%" + flowName + "%"));
-		}
-		if (StringUtils.isNotBlank(errorInfo)) {
-			list.add(qTEtlLog.errorInfo.like("%" + errorInfo + "%"));
-		}
+	}
 
+	@ApiOperation(value = "获取日志列表")
+	@GetMapping("/getEtlLogs2")
+	public ResultDto<TableData<TEtlLog>> getEtlFlows2(@ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
+													 @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
+
+		return getEtlFlowsByPage(pageNo,pageSize);
+
+	}
+
+
+	public ResultDto getEtlFlowsByFilter(ArrayList<Predicate> list,Integer pageNo,Integer pageSize){
 		QueryResults<TEtlLog> qresults = sqlQueryFactory.select(Projections.bean(TEtlLog.class,
 				qTEtlLog.id.max().as("id"),qTEtlLog.etlGroupId, qTEtlLog.exeJobId, qTEtlLog.flowName,
 				qTEtlLog.createdTime.max().as("createdTime"),
@@ -93,8 +111,7 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 				qTProject.projectName.as("projectName"), qTPlatform.platformName.as("platformName"), qTHospital.hospitalName.as("hospitalName"),
 				qTSys.sysName.as("sysName")))
 				.from(qTEtlLog)
-				.leftJoin(qTEtlGroup)
-				.on(qTEtlLog.etlGroupId.eq(qTEtlGroup.etlGroupId))
+				.leftJoin(qTEtlGroup).on(qTEtlLog.etlGroupId.eq(qTEtlGroup.etlGroupId))
 				.leftJoin(qTProject).on(qTProject.id.eq(qTEtlGroup.projectId))
 				.leftJoin(qTPlatform).on(qTPlatform.id.eq(qTEtlGroup.platformId))
 				.leftJoin(qTSys).on(qTSys.id.eq(qTEtlGroup.sysId))
@@ -119,34 +136,8 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取日志列表成功", tableData);
 	}
 
-	@ApiOperation(value = "获取日志列表")
-	@GetMapping("/getEtlLogs2")
-	public ResultDto<TableData<TEtlLog>> getEtlFlows2(String projectId, String platformId, String sysId, String status,
-													 @ApiParam(value = "流程名称") @RequestParam(value = "flowName", required = false) String flowName,
-													 @ApiParam(value = "nifi报错信息") @RequestParam(value = "errorInfo", required = false) String errorInfo,
-													 @ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
-													 @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
-		// 查询条件
-		ArrayList<Predicate> list = new ArrayList<>();
-		if (StringUtils.isNotBlank(projectId)) {
-			list.add(qTEtlGroup.projectId.eq(projectId));
-		}
-		if (StringUtils.isNotBlank(platformId)) {
-			list.add(qTEtlGroup.platformId.eq(platformId));
-		}
-		if (StringUtils.isNotBlank(sysId)) {
-			list.add(qTEtlGroup.sysId.eq(sysId));
-		}
-		if(StringUtils.isNotBlank(status)){
-			list.add(qTEtlLog.status.eq(Integer.valueOf(status)));
-		}
-		if (StringUtils.isNotBlank(flowName)) {
-			list.add(qTEtlLog.flowName.like("%" + flowName + "%"));
-		}
-		if (StringUtils.isNotBlank(errorInfo)) {
-			list.add(qTEtlLog.errorInfo.like("%" + errorInfo + "%"));
-		}
 
+	public ResultDto getEtlFlowsByPage(Integer pageNo,Integer pageSize){
 		QueryResults<TEtlLog> qresults = sqlQueryFactory.select(Projections.bean(TEtlLog.class,
 				qTEtlLog.id.max().as("id"),qTEtlLog.etlGroupId, qTEtlLog.exeJobId, qTEtlLog.flowName,
 				qTEtlLog.createdTime.max().as("createdTime"),
@@ -157,7 +148,7 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 				Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.errorInfo).concat("|").as("errorInfo")))
 				.from(qTEtlLog)
 				.groupBy(qTEtlLog.etlGroupId , qTEtlLog.exeJobId)
-				.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
+				.limit(pageSize).offset((pageNo - 1) * pageSize)
 				.orderBy(qTEtlLog.jobTime.max().desc()).fetchResults();
 		List<TEtlLog> results = null;
 		if(qresults != null) {
