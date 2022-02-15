@@ -644,7 +644,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 										.and(qTInterfaceParam.interfaceId.eq(qTInterface.id)))
 								.as("outParamCount")))
 				.from(qTInterface).leftJoin(qTType).on(qTType.id.eq(qTInterface.typeId))
-				.where(list.toArray(new Predicate[list.size()])).groupBy(qTInterface.id).limit(pageSize)
+				.where(list.toArray(new Predicate[list.size()])).limit(pageSize)
 				.offset((pageNo - 1) * pageSize).orderBy(qTInterface.createdTime.desc()).fetchResults();
 		// 分页
 		TableData<TInterface> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());

@@ -120,10 +120,10 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 			SubQueryExpression query = SQLExpressions
 					.select(qTInterfaceMonitor.status.max().as("status"),
 							qTInterfaceMonitor.successCount.sum().as("SUCCESS_COUNT"),
-							qTInterfaceMonitor.errorCount.sum().as("ERROR_COUNT"), qTInterfaceMonitor.projectId,
-							qTInterfaceMonitor.platformId, qTInterfaceMonitor.sysId, qTInterfaceMonitor.typeId,
-							qTInterfaceMonitor.createdTime, qTInterfaceMonitor.businessInterfaceId,
-							qTBusinessInterface.requestInterfaceId, qTBusinessInterface.replayFlag.as("REPLAY_FLAG"))
+							qTInterfaceMonitor.errorCount.sum().as("ERROR_COUNT"), qTInterfaceMonitor.projectId.max().as("PROJECT_ID"),
+							qTInterfaceMonitor.platformId, qTInterfaceMonitor.sysId, qTInterfaceMonitor.typeId.max().as("TYPE_ID"),
+							qTInterfaceMonitor.createdTime.max().as("CREATED_TIME"), qTInterfaceMonitor.businessInterfaceId.max().as("BUSINESS_INTERFACE_ID"),
+							qTBusinessInterface.requestInterfaceId, qTBusinessInterface.replayFlag.max().as("REPLAY_FLAG"))
 					.from(qTInterfaceMonitor)
 					.leftJoin(qTBusinessInterface).on(qTBusinessInterface.id.eq(qTInterfaceMonitor.businessInterfaceId))
 					.leftJoin(qTSysConfig).on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId)
@@ -131,7 +131,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 //					.leftJoin(qTInterface).on(qTInterface.id.eq(qTBusinessInterface.requestInterfaceId))
 					.where(qTInterfaceMonitor.projectId.eq("0").or(qTInterfaceMonitor.projectId.notEqualsIgnoreCase("0").and(qTBusinessInterface.requestInterfaceId.isNotNull())))
 					.groupBy(qTInterfaceMonitor.platformId, qTInterfaceMonitor.sysId, qTBusinessInterface.requestInterfaceId)
-					.orderBy(qTInterfaceMonitor.createdTime.desc());
+					.orderBy(qTInterfaceMonitor.status.max().desc(), qTInterfaceMonitor.createdTime.max().desc());
 
 			// 按条件筛选
 			if (StringUtils.isNotBlank(projectId)) {
@@ -162,8 +162,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 					.leftJoin(qTSysConfig).on(qTSysConfig.platformId.eq(qTPlatform.id).and(qTSysConfig.sysConfigType.eq(1)))
 					.leftJoin(qTSys).on(qTSys.id.eq(qTSysConfig.sysId))
 					.leftJoin(qTInterface).on(qTInterface.sysId.eq(qTSys.id).and(qTInterface.id.eq(reqInterPath)))
-					.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
-					.orderBy(monitor.status.desc(), monitor.createdTime.desc()).fetchResults();
+					.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize).fetchResults();
 			// 分页
 			TableData<InterfaceMonitorDto> tableData = new TableData<>(queryResults.getTotal(),
 					queryResults.getResults());
