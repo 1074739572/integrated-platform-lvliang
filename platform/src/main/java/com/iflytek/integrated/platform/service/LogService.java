@@ -28,6 +28,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -60,6 +61,7 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.SQLExpressions;
+import com.querydsl.sql.SQLQuery;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -80,6 +82,9 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 
 	@Autowired
 	private NiFiRequestUtil niFiRequestUtil;
+	
+	@Value("${server.db}")
+	private String dbType;
 	
 	public LogService() {
 		super(qTLog, qTLog.id);
@@ -218,26 +223,34 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		if (StringUtils.isNotBlank(visitAddr)) {
 			list.add(qTLog.visitAddr.like(PlatformUtil.createFuzzyText(visitAddr)));
 		}
+		String tplStr = "AES_DECRYPT(from_base64({0}),{1})";
+		if("postgresql".equals(dbType)) {
+			tplStr = "decrypt(CONVERT_FROM(decode({0},'base64'),'UTF-8'),{1})";
+		}
 		if (StringUtils.isNotBlank(businessReq)) {
-			list.add(Expressions.stringTemplate("AES_DECRYPT(from_base64({0}),{1})", qTLog.businessReq, "w5xv7[Nmc0Z/3U^X")
+			list.add(Expressions.stringTemplate(tplStr, qTLog.businessReq, "w5xv7[Nmc0Z/3U^X")
 					.like(PlatformUtil.createFuzzyText(businessReq)));
 		}
 		if (StringUtils.isNotBlank(businessRep)) {
-			list.add(Expressions.stringTemplate("AES_DECRYPT(from_base64({0}),{1})", qTLog.businessRep, "w5xv7[Nmc0Z/3U^X")
+			list.add(Expressions.stringTemplate(tplStr, qTLog.businessRep, "w5xv7[Nmc0Z/3U^X")
 					.like(PlatformUtil.createFuzzyText(businessRep)));
 		}
 		if (StringUtils.isNotBlank(venderReq)) {
-			list.add(Expressions.stringTemplate("AES_DECRYPT(from_base64({0}),{1})", qTLog.venderReq, "w5xv7[Nmc0Z/3U^X")
+			list.add(Expressions.stringTemplate(tplStr, qTLog.venderReq, "w5xv7[Nmc0Z/3U^X")
 					.like(PlatformUtil.createFuzzyText(venderReq)));
 		}
 		if (StringUtils.isNotBlank(venderRep)) {
-			list.add(Expressions.stringTemplate("AES_DECRYPT(from_base64({0}),{1})", qTLog.venderRep, "w5xv7[Nmc0Z/3U^X")
+			list.add(Expressions.stringTemplate(tplStr, qTLog.venderRep, "w5xv7[Nmc0Z/3U^X")
 					.like(PlatformUtil.createFuzzyText(venderRep)));
 		}
-		QueryResults<TLog> queryResults = sqlQueryFactory
-				.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status, qTLog.venderRepTime,
-						qTLog.businessRepTime, qTLog.visitAddr,qTLog.businessInterfaceId, qTLog.debugreplayFlag))
-				.from(qTLog).addFlag(new QueryFlag(Position.BEFORE_FILTERS, Expressions.stringTemplate(" FORCE INDEX ( log_query_idx )")))
+		SQLQuery<TLog> tlogQuery = sqlQueryFactory
+		.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status, qTLog.venderRepTime,
+				qTLog.businessRepTime, qTLog.visitAddr,qTLog.businessInterfaceId, qTLog.debugreplayFlag))
+		.from(qTLog);
+		if(!"postgresql".equals(dbType)) {
+			tlogQuery = tlogQuery.addFlag(new QueryFlag(Position.BEFORE_FILTERS, Expressions.stringTemplate(" FORCE INDEX ( log_query_idx )")));
+		}
+		QueryResults<TLog> queryResults = tlogQuery
 				.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
 				.orderBy(qTLog.createdTime.desc()).fetchResults();
 		

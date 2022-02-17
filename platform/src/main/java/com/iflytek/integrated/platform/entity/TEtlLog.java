@@ -12,7 +12,7 @@ import java.util.List;
  */
 public class TEtlLog implements Serializable {
 	
-	private String id;
+	private Long id;
 	
 	private String etlGroupId;
 	
@@ -63,11 +63,11 @@ public class TEtlLog implements Serializable {
 	private List<TEtlLog> batchErrorLogs;
 	
 
-	public String getId() {
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(String id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 
