@@ -223,24 +223,24 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		if (StringUtils.isNotBlank(visitAddr)) {
 			list.add(qTLog.visitAddr.like(PlatformUtil.createFuzzyText(visitAddr)));
 		}
-		String tplStr = "AES_DECRYPT(from_base64({0}),{1})";
+		String tplStr = "AES_DECRYPT(from_base64({0}),'w5xv7[Nmc0Z/3U^X')";
 		if("postgresql".equals(dbType)) {
-			tplStr = "decrypt(CONVERT_FROM(decode({0},'base64'),'UTF-8'),{1})";
+			tplStr = "CONVERT_FROM(decrypt(decode({0},'base64') ,'w5xv7[Nmc0Z/3U^X' ,'aes-ecb/pad:pkcs'),'UTF-8')";
 		}
 		if (StringUtils.isNotBlank(businessReq)) {
-			list.add(Expressions.stringTemplate(tplStr, qTLog.businessReq, "w5xv7[Nmc0Z/3U^X")
+			list.add(Expressions.stringTemplate(tplStr, qTLog.businessReq)
 					.like(PlatformUtil.createFuzzyText(businessReq)));
 		}
 		if (StringUtils.isNotBlank(businessRep)) {
-			list.add(Expressions.stringTemplate(tplStr, qTLog.businessRep, "w5xv7[Nmc0Z/3U^X")
+			list.add(Expressions.stringTemplate(tplStr, qTLog.businessRep)
 					.like(PlatformUtil.createFuzzyText(businessRep)));
 		}
 		if (StringUtils.isNotBlank(venderReq)) {
-			list.add(Expressions.stringTemplate(tplStr, qTLog.venderReq, "w5xv7[Nmc0Z/3U^X")
+			list.add(Expressions.stringTemplate(tplStr, qTLog.venderReq)
 					.like(PlatformUtil.createFuzzyText(venderReq)));
 		}
 		if (StringUtils.isNotBlank(venderRep)) {
-			list.add(Expressions.stringTemplate(tplStr, qTLog.venderRep, "w5xv7[Nmc0Z/3U^X")
+			list.add(Expressions.stringTemplate(tplStr, qTLog.venderRep)
 					.like(PlatformUtil.createFuzzyText(venderRep)));
 		}
 		SQLQuery<TLog> tlogQuery = sqlQueryFactory
