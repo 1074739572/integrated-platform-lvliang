@@ -25,7 +25,7 @@ public class QTEtlLog extends com.querydsl.sql.RelationalPathBase<TEtlLog> {
 
     public final DateTimePath<java.util.Date> createdTime = createDateTime("createdTime", java.util.Date.class);
 
-    public final StringPath id = createString("id");
+    public final NumberPath<Long> id = createNumber("id" , Long.class);
     
     public final StringPath etlGroupId = createString("etlGroupId");
     
@@ -73,7 +73,7 @@ public class QTEtlLog extends com.querydsl.sql.RelationalPathBase<TEtlLog> {
     }
 
     public void addMetadata() {
-        addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.BIGINT).withSize(32).notNull());
         addMetadata(etlGroupId, ColumnMetadata.named("ETL_GROUP_ID").withIndex(2).ofType(Types.VARCHAR).withSize(50));
         addMetadata(flowName, ColumnMetadata.named("FLOW_NAME").withIndex(3).ofType(Types.VARCHAR).withSize(255));
         addMetadata(jobTime, ColumnMetadata.named("JOB_TIME").withIndex(4).ofType(Types.TIMESTAMP).withSize(19));

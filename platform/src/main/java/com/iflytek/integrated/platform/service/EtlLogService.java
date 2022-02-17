@@ -36,6 +36,7 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.SubQueryExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.core.types.dsl.StringTemplate;
 import com.querydsl.sql.SQLExpressions;
@@ -52,7 +53,7 @@ import lombok.extern.slf4j.Slf4j;
 @Api(tags = "etl日志服务")
 @RestController
 @RequestMapping("/{version}/pt/etllog")
-public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
+public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> {
 
 	private static final Logger logger = LoggerFactory.getLogger(EtlLogService.class);
 
@@ -111,9 +112,8 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 	public ResultDto getEtlFlowsByFilter(ArrayList<Predicate> list,Integer pageNo,Integer pageSize){
 		QueryResults<TEtlLog> qresults = null;
 		if("postgresql".equals(dbType)) {
-			StringTemplate st = Expressions.stringTemplate("concat(from_base64({0}) , '|')" , qTEtlLog.errorInfo);
+			StringTemplate st = Expressions.stringTemplate("concat(CONVERT_FROM(decode({0} , 'base64'),'UTF-8') , '|')" , qTEtlLog.errorInfo);
 			StringTemplate stg = Expressions.stringTemplate("concat(string_agg ( errorinfo, ',' :: TEXT ))");
-			st = Expressions.stringTemplate("concat(decode({0} , 'base64') , '|')" , qTEtlLog.errorInfo);
 			String q = "etllog";
 			StringPath queryLabel = Expressions.stringPath(q);
 			QTEtlLog qtetllogalias = new QTEtlLog(q);
@@ -181,9 +181,8 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 	public ResultDto getEtlFlowsByPage(Integer pageNo,Integer pageSize){
 		QueryResults<TEtlLog> qresults = null;
 		if("postgresql".equals(dbType)) {
-			StringTemplate st = Expressions.stringTemplate("concat(from_base64({0}) , '|')" , qTEtlLog.errorInfo);
+			StringTemplate st = Expressions.stringTemplate("concat(CONVERT_FROM(decode({0} , 'base64'),'UTF-8') , '|')" , qTEtlLog.errorInfo);
 			StringTemplate stg = Expressions.stringTemplate("concat(string_agg ( errorinfo, ',' :: TEXT ))");
-			st = Expressions.stringTemplate("concat(decode({0} , 'base64') , '|')" , qTEtlLog.errorInfo);
 			String q = "etllog";
 			StringPath queryLabel = Expressions.stringPath(q);
 			QTEtlLog qtetllogalias = new QTEtlLog(q);
@@ -257,15 +256,19 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 	@ApiOperation(value = "获取日志详情")
 	@GetMapping("/getEtlLogs/{id}")
 	public ResultDto<TEtlLog> getEtlLogDetails(@PathVariable("id") String id) {
+		StringTemplate st = Expressions.stringTemplate("from_base64({0})" , qTEtlLog.errorInfo);
+		if("postgresql".equals(dbType)) {
+			st = Expressions.stringTemplate("CONVERT_FROM(decode({0},'base64'),'UTF-8')" , qTEtlLog.errorInfo);
+		}
 		TEtlLog logDetail = sqlQueryFactory.select(Projections.bean(TEtlLog.class, qTEtlLog.etlGroupId , qTEtlLog.exeJobId,
 				qTProject.projectName.as("projectName"), qTPlatform.platformName.as("platformName"), qTHospital.hospitalName.as("hospitalName"),
-				qTSys.sysName.as("sysName") , Expressions.stringTemplate("from_base64({0})" , qTEtlLog.errorInfo).as("errorInfo") )).from(qTEtlLog).leftJoin(qTEtlGroup)
+				qTSys.sysName.as("sysName") , st.as("errorInfo") )).from(qTEtlLog).leftJoin(qTEtlGroup)
 				.on(qTEtlLog.etlGroupId.eq(qTEtlGroup.etlGroupId))
 				.leftJoin(qTProject).on(qTProject.id.eq(qTEtlGroup.projectId))
 				.leftJoin(qTPlatform).on(qTPlatform.id.eq(qTEtlGroup.platformId))
 				.leftJoin(qTSys).on(qTSys.id.eq(qTEtlGroup.sysId))
 				.leftJoin(qTHospital).on(qTHospital.id.eq(qTEtlGroup.hospitalId))
-				.where(qTEtlLog.id.eq(id)).fetchFirst();
+				.where(qTEtlLog.id.eq(Long.valueOf(id))).fetchFirst();
 		
 		String etlGroupId = logDetail.getEtlGroupId();
 		String exeJobId = logDetail.getExeJobId();
@@ -273,9 +276,10 @@ public class EtlLogService extends BaseService<TEtlLog, String, StringPath> {
 				qTEtlLog.id,qTEtlLog.etlGroupId, qTEtlLog.exeJobId, qTEtlLog.flowName, 
 				qTEtlLog.createdTime, qTEtlLog.jobTime,qTEtlLog.status.as("statusCode"),
 				qTEtlLog.batchReadCount, qTEtlLog.batchWriteErrorcount,qTEtlLog.exeBatchNo,
-				Expressions.stringTemplate("from_base64({0})" , qTEtlLog.errorInfo).as("errorInfo"))).from(qTEtlLog)
+				st.as("errorInfo"))).from(qTEtlLog)
 				.where(qTEtlLog.etlGroupId.eq(etlGroupId).and(qTEtlLog.exeJobId.eq(exeJobId)).and(qTEtlLog.status.eq(2))).fetch();
 		logDetail.setBatchErrorLogs(batchErrorLogs);
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取日志详情成功", logDetail);
+		
 	}
 }
