@@ -181,8 +181,11 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 		flowEntity.setUpdatedTime(new Date());
 		flowEntity.setStatus(flowDto.getStatus());
 		flowEntity.setEtlEntryGroupId(flowDto.getEtlEntryGroupId());
-		String result = this.post(flowEntity);
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存流程配置成功", result);
+		long l = this.post(flowEntity);
+		if(l > 0){
+			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存流程配置成功", id);
+		}
+		return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "保存流程配置失败", "插入异常！");
 	}
 
 	@ApiOperation(value = "修改流程配置")

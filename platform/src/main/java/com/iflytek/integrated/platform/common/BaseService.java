@@ -39,8 +39,8 @@ public class BaseService <E, I extends Comparable, ID extends ComparableExpressi
         return (this.sqlQueryFactory.delete(this.qEntity).where(this.qId.eq(id))).execute();
     }
 
-    public I post(E entity) {
-        return (this.sqlQueryFactory.insert(this.qEntity).populate(entity)).executeWithKey(this.qId);
+    public long post(E entity) {
+        return this.sqlQueryFactory.insert(this.qEntity).populate(entity).execute();
     }
 
     public long put(I id, E entity) {
