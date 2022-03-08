@@ -815,30 +815,25 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	@ApiOperation(value = "新增/编辑接口配置", notes = "新增/编辑接口配置")
 	@PostMapping("/saveAndUpdateInterfaceConfig/{opt}")
 	public ResultDto<String> saveAndUpdateInterfaceConfig(@RequestBody BusinessInterfaceDto dto , @PathVariable("opt") String opt) {
-		try{
-			if (dto == null) {
-				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求参数不能为空!");
-			}
-			if(StringUtils.isBlank(dto.getRequestInterfaceId())) {
-				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求方接口不能为空!");
-			}
-			// 校验是否获取到登录用户
-			String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-			if (StringUtils.isBlank(loginUserName)) {
-				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
-			}
-			String newReturnId = "";
-			if (Constant.Operation.ADD.equals(dto.getAddOrUpdate())) {
-				return this.saveInterfaceConfig(dto, loginUserName);
-			}
-			if (Constant.Operation.UPDATE.equals(dto.getAddOrUpdate())) {
-				return this.updateInterfaceConfig(dto, loginUserName);
-			}
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "addOrUpdate 新增编辑标识不正确!", null);
-		}catch (Exception e){
-			e.printStackTrace();
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, e.getMessage());
+		if (dto == null) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求参数不能为空!");
 		}
+		if(StringUtils.isBlank(dto.getRequestInterfaceId())) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求方接口不能为空!");
+		}
+		// 校验是否获取到登录用户
+		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
+		if (StringUtils.isBlank(loginUserName)) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
+		}
+		String newReturnId = "";
+		if (Constant.Operation.ADD.equals(dto.getAddOrUpdate())) {
+			return this.saveInterfaceConfig(dto, loginUserName);
+		}
+		if (Constant.Operation.UPDATE.equals(dto.getAddOrUpdate())) {
+			return this.updateInterfaceConfig(dto, loginUserName);
+		}
+		return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "addOrUpdate 新增编辑标识不正确!", null);
 	}
 
 	/**

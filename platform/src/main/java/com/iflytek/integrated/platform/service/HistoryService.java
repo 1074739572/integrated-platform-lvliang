@@ -125,78 +125,73 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
     public ResultDto rollback(
             @RequestBody HisRollbackDto hisRollbackDto
     ){
-        try{
-            // 校验是否获取到登录用户
-            String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-            if (StringUtils.isBlank(loginUserName)) {
-                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
-            }
-            //获取历史版本
-            THistory tHistory = sqlQueryFactory
-                    .select(Projections.bean(THistory.class,qtHistory.pkId,qtHistory.hisType,qtHistory.hisContent,qtHistory.recordId))
-                    .from(qtHistory)
-                    .where(qtHistory.pkId.eq(hisRollbackDto.getPkId().toString()))
-                    .fetchFirst();
-            if(tHistory == null){
-                return new ResultDto(Constant.ResultCode.ERROR_CODE, "未查询到该历史版本！");
-            }
-            String hisType = hisRollbackDto.getHisType().toString();
-            String hisContent = tHistory.getHisContent();
-            JSONObject jsonObject = JSON.parseObject(hisContent);
-            switch (hisType){
-                case "2":   //当前驱动
-                    TDrive tDrive = driveService.getOne(tHistory.getRecordId());
-                    if(tDrive == null){
-                        throw new RuntimeException("未查询到该驱动！");
-                    }
-                    //插入历史
-                    TType tType = typeService.getOne(tDrive.getTypeId());
-                    tDrive.setDriveTypeName(tType.getTypeName());
-                    if("1".equals(tDrive.getDriveCallType())){
-                        tDrive.setDriveCallTypeName("请求方");
-                    }
-                    if("2".equals(tDrive.getDriveCallType())){
-                        tDrive.setDriveCallTypeName("被请求方");
-                    }
-                    insertHis(tDrive,Integer.valueOf(hisType),loginUserName,tHistory.getPkId(),tHistory.getRecordId(),null);
-                    //修改
-                    tDrive.setDriveName(jsonObject.getString("driveName"));
-                    tDrive.setDriveCode(jsonObject.getString("driveCode"));
-                    tDrive.setTypeId(jsonObject.getString("typeId"));
-                    tDrive.setDriveInstruction(jsonObject.getString("driveInstruction"));
-                    tDrive.setDriveContent(jsonObject.getString("driveContent"));
-                    tDrive.setDriveCallType(jsonObject.getString("driveCallType"));
-                    tDrive.setDependentPath(jsonObject.getString("dependentPath"));
-                    tDrive.setUpdatedBy(loginUserName);
-                    tDrive.setUpdatedTime(new Date());
-                    driveService.put(tDrive.getId(),tDrive);
-                    break;
-                case "3":   //当前插件
-                    TPlugin tPlugin = pluginService.getOne(tHistory.getRecordId());
-                    if(tPlugin == null){
-                        throw new RuntimeException("未查询到该插件！");
-                    }
-                    //插入历史
-                    TType tt = typeService.getOne(tPlugin.getTypeId());
-                    tPlugin.setPluginTypeName(tt.getTypeName());
-                    insertHis(tPlugin,Integer.valueOf(hisType),loginUserName,tHistory.getPkId(),tHistory.getRecordId(),null);
-                    //修改
-                    tPlugin.setPluginName(jsonObject.getString("pluginName"));
-                    tPlugin.setPluginCode(jsonObject.getString("pluginCode"));
-                    tPlugin.setTypeId(jsonObject.getString("typeId"));
-                    tPlugin.setPluginInstruction(jsonObject.getString("pluginInstruction"));
-                    tPlugin.setPluginContent(jsonObject.getString("pluginContent"));
-                    tPlugin.setDependentPath(jsonObject.getString("dependentPath"));
-                    pluginService.put(tPlugin.getId(),tPlugin);
-                    break;
-                default:
-                    throw new RuntimeException("历史版本类型错误！");
-            }
-            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "回滚历史版本成功!", null);
-        }catch (Exception ex){
-            ex.printStackTrace();
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, ex.getMessage());
+        // 校验是否获取到登录用户
+        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
+        if (StringUtils.isBlank(loginUserName)) {
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
         }
+        //获取历史版本
+        THistory tHistory = sqlQueryFactory
+                .select(Projections.bean(THistory.class,qtHistory.pkId,qtHistory.hisType,qtHistory.hisContent,qtHistory.recordId))
+                .from(qtHistory)
+                .where(qtHistory.pkId.eq(hisRollbackDto.getPkId().toString()))
+                .fetchFirst();
+        if(tHistory == null){
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "未查询到该历史版本！");
+        }
+        String hisType = hisRollbackDto.getHisType().toString();
+        String hisContent = tHistory.getHisContent();
+        JSONObject jsonObject = JSON.parseObject(hisContent);
+        switch (hisType){
+            case "2":   //当前驱动
+                TDrive tDrive = driveService.getOne(tHistory.getRecordId());
+                if(tDrive == null){
+                    throw new RuntimeException("未查询到该驱动！");
+                }
+                //插入历史
+                TType tType = typeService.getOne(tDrive.getTypeId());
+                tDrive.setDriveTypeName(tType.getTypeName());
+                if("1".equals(tDrive.getDriveCallType())){
+                    tDrive.setDriveCallTypeName("请求方");
+                }
+                if("2".equals(tDrive.getDriveCallType())){
+                    tDrive.setDriveCallTypeName("被请求方");
+                }
+                insertHis(tDrive,Integer.valueOf(hisType),loginUserName,tHistory.getPkId(),tHistory.getRecordId(),null);
+                //修改
+                tDrive.setDriveName(jsonObject.getString("driveName"));
+                tDrive.setDriveCode(jsonObject.getString("driveCode"));
+                tDrive.setTypeId(jsonObject.getString("typeId"));
+                tDrive.setDriveInstruction(jsonObject.getString("driveInstruction"));
+                tDrive.setDriveContent(jsonObject.getString("driveContent"));
+                tDrive.setDriveCallType(jsonObject.getString("driveCallType"));
+                tDrive.setDependentPath(jsonObject.getString("dependentPath"));
+                tDrive.setUpdatedBy(loginUserName);
+                tDrive.setUpdatedTime(new Date());
+                driveService.put(tDrive.getId(),tDrive);
+                break;
+            case "3":   //当前插件
+                TPlugin tPlugin = pluginService.getOne(tHistory.getRecordId());
+                if(tPlugin == null){
+                    throw new RuntimeException("未查询到该插件！");
+                }
+                //插入历史
+                TType tt = typeService.getOne(tPlugin.getTypeId());
+                tPlugin.setPluginTypeName(tt.getTypeName());
+                insertHis(tPlugin,Integer.valueOf(hisType),loginUserName,tHistory.getPkId(),tHistory.getRecordId(),null);
+                //修改
+                tPlugin.setPluginName(jsonObject.getString("pluginName"));
+                tPlugin.setPluginCode(jsonObject.getString("pluginCode"));
+                tPlugin.setTypeId(jsonObject.getString("typeId"));
+                tPlugin.setPluginInstruction(jsonObject.getString("pluginInstruction"));
+                tPlugin.setPluginContent(jsonObject.getString("pluginContent"));
+                tPlugin.setDependentPath(jsonObject.getString("dependentPath"));
+                pluginService.put(tPlugin.getId(),tPlugin);
+                break;
+            default:
+                throw new RuntimeException("历史版本类型错误！");
+        }
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "回滚历史版本成功!", null);
     }
 
 
@@ -206,161 +201,157 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
     public ResultDto rollback(
             @RequestBody HisRollbackBIDto dto
     ){
-        try{
-            if(dto == null || StringUtils.isBlank(dto.getPkId())
-                    || StringUtils.isBlank(dto.getInterfaceId()) || StringUtils.isBlank(dto.getRequestSysconfigId())){
-                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "入参为空!");
-            }
-            // 校验是否获取到登录用户
-            String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-            if (StringUtils.isBlank(loginUserName)) {
-                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
-            }
-            //获取历史版本
-            THistory tHistory = sqlQueryFactory
-                    .select(Projections.bean(THistory.class,qtHistory.pkId,qtHistory.hisType,qtHistory.hisShow,qtHistory.hisContent,qtHistory.recordId))
-                    .from(qtHistory)
-                    .where(qtHistory.pkId.eq(dto.getPkId().toString()))
-                    .fetchFirst();
-            if(tHistory == null){
-                return new ResultDto(Constant.ResultCode.ERROR_CODE, "未查询到该历史版本！");
-            }
-            String hisContent = tHistory.getHisContent();
-            JSONArray jsonArray = JSON.parseArray(hisContent);
-            if(jsonArray == null){
-                throw new RuntimeException("历史数据为空！");
-            }
-
-            //校验
-            String oldRecordId = tHistory.getRecordId();
-            String lastRecordId = dto.getRequestSysconfigId()+","+dto.getInterfaceId();
-            String[] arr = oldRecordId.split(",");
-            String hisReqSysId = arr[0];
-            String hisReqInterfaceId = arr[1];
-            boolean noModReq = hisReqSysId.equals(dto.getRequestSysconfigId()) && hisReqInterfaceId.equals(dto.getInterfaceId());
-            if(noModReq){
-                //未修改过请求方
-            }else{
-                //请求方不一致，需校验历史版本的请求方是否存在、是否重复
-                TInterface tInterface = interfaceService.getOne(hisReqInterfaceId);
-                if(tInterface == null){
-                    return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "未查询到历史版本中的请求方!");
-                }
-                List tbiList = businessInterfaceService.getListByCondition(hisReqInterfaceId,hisReqSysId);
-                if(tbiList != null || tbiList.size() > 0){
-                    return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "历史版本中的请求方已存在!");
-                }
-                this.updateRecordId(oldRecordId,lastRecordId);
-            }
-
-            //插入history
-            List<TBusinessInterface> list = businessInterfaceService.getListByCondition(dto.getInterfaceId(),dto.getRequestSysconfigId());
-            String businessInterfaceName = "";
-            String versionId = "";
-            Integer interfaceSlowFlag = null;
-            Integer replayFlag = null;
-            String requestInterfaceName = "";
-            String typeId = "";
-            String requestSysId = "";
-            for (int i = 0; i < list.size(); i++) {
-                TBusinessInterface tbi = list.get(i);
-                TInterface tInterface = interfaceService.getOne(tbi.getRequestInterfaceId());
-                TSysConfig tSysConfig = sysConfigService.getOne(tbi.getRequestedSysconfigId());
-                TSys requestedSys = sysService.getOne(tSysConfig.getSysId());
-                tbi.setRequestedSysId(requestedSys.getId());
-                businessInterfaceName += (requestedSys.getSysName()+"/"+tbi.getBusinessInterfaceName()+",");
-                TSysConfig requestedSysConfig = sysConfigService.getOne(tbi.getRequestedSysconfigId());
-                versionId += (requestedSysConfig.getVersionId()+",");
-                if(StringUtils.isBlank(typeId)){
-                    typeId = tInterface.getTypeId();
-                }
-                if(StringUtils.isBlank(requestSysId)){
-                    requestSysId = tInterface.getSysId();
-                }
-                if(StringUtils.isBlank(requestInterfaceName)){
-                    TSysConfig reqConfig = sysConfigService.getOne(dto.getRequestSysconfigId());
-                    TSys tSys = sysService.getOne(reqConfig.getSysId());
-                    requestInterfaceName = tSys.getSysName()+"/"+tInterface.getInterfaceName();
-                }
-                if(StringUtils.isBlank(typeId)){
-                    typeId = tInterface.getTypeId();
-                }
-                if(StringUtils.isBlank(requestSysId)){
-                    requestSysId = tInterface.getSysId();
-                }
-                if(interfaceSlowFlag != null){
-                    interfaceSlowFlag = tbi.getInterfaceSlowFlag();
-                }
-                if(replayFlag != null){
-                    replayFlag = tbi.getReplayFlag();
-                }
-            }
-            if(businessInterfaceName.endsWith(",")){
-                businessInterfaceName = businessInterfaceName.substring(0,businessInterfaceName.length()-1);
-            }
-            if(versionId.endsWith(",")){
-                versionId = versionId.substring(0,versionId.length()-1);
-            }
-            //插入历史记录
-            Map map = new HashMap();
-            map.put("requestSysConfigId",dto.getRequestSysconfigId());
-            map.put("requestInterfaceId",dto.getInterfaceId());
-            map.put("businessInterfaceName",businessInterfaceName);
-            map.put("requestInterfaceName",requestInterfaceName);
-            map.put("versionId",versionId);
-            map.put("requestSysId",requestSysId);
-            map.put("requestInterfaceTypeId",typeId);
-            map.put("interfaceSlowFlag",interfaceSlowFlag);
-            map.put("replayFlag",replayFlag);
-            String hisShow = JSON.toJSONString(map);
-            this.insertHis(list,1,loginUserName,lastRecordId,lastRecordId,hisShow);
-
-            //删除
-            businessInterfaceService.delObjByCondition(dto.getInterfaceId(), dto.getRequestSysconfigId());
-            for(Object obj : jsonArray){
-                JSONObject jObj = JSON.parseObject(obj.toString());
-                TBusinessInterface tbi = new TBusinessInterface();
-                tbi.setId(batchUidService.getUid(qTBusinessInterface.getTableName()) + "");
-                tbi.setRequestSysconfigId(jObj.getString("requestSysconfigId"));
-                tbi.setRequestInterfaceId(jObj.getString("requestInterfaceId"));
-                tbi.setRequestedSysconfigId(jObj.getString("requestedSysconfigId"));
-                tbi.setBusinessInterfaceName(jObj.getString("businessInterfaceName"));
-                tbi.setRequestType(jObj.getString("requestType"));
-                tbi.setRequestConstant(jObj.getString("requestConstant"));
-                tbi.setInterfaceType(jObj.getString("interfaceType"));
-                tbi.setPluginId(jObj.getString("pluginId"));
-                tbi.setInParamFormat(jObj.getString("inParamFormat"));
-                tbi.setInParamSchema(jObj.getString("inParamSchema"));
-                tbi.setInParamTemplateType(jObj.getString("inParamTemplateType"));
-                tbi.setInParamTemplate(jObj.getString("inParamTemplate"));
-                tbi.setInParamFormatType(jObj.getString("inParamFormatType"));
-                tbi.setOutParamFormat(jObj.getString("outParamFormat"));
-                tbi.setOutParamSchema(jObj.getString("outParamSchema"));
-                tbi.setOutParamTemplateType(jObj.getString("outParamTemplateType"));
-                tbi.setOutParamTemplate(jObj.getString("outParamTemplate"));
-                tbi.setMockTemplate(jObj.getString("mockTemplate"));
-                tbi.setMockStatus(jObj.getString("mockStatus"));
-                tbi.setStatus(jObj.getString("status"));
-                tbi.setExcErrStatus(jObj.getString("excErrStatus"));
-                tbi.setExcErrOrder(jObj.getInteger("excErrOrder"));
-                tbi.setMockIsUse(jObj.getInteger("mockIsUse"));
-                tbi.setCreatedBy(loginUserName);
-                tbi.setCreatedTime(new Date());
-                tbi.setUpdatedBy(loginUserName);
-                tbi.setUpdatedTime(new Date());
-                tbi.setAsyncFlag(jObj.getInteger("asyncFlag"));
-                tbi.setInterfaceSlowFlag(jObj.getInteger("interfaceSlowFlag"));
-                tbi.setReplayFlag(jObj.getInteger("replayFlag"));
-                // 获取schema
-                niFiRequestUtil.generateSchemaToInterface(tbi);
-                businessInterfaceService.post(tbi);
-            }
-
-            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "回滚历史版本成功!", null);
-        }catch (Exception ex){
-            ex.printStackTrace();
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, ex.getMessage());
+        if(dto == null || StringUtils.isBlank(dto.getPkId())
+                || StringUtils.isBlank(dto.getInterfaceId()) || StringUtils.isBlank(dto.getRequestSysconfigId())){
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "入参为空!");
         }
+        // 校验是否获取到登录用户
+        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
+        if (StringUtils.isBlank(loginUserName)) {
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
+        }
+        //获取历史版本
+        THistory tHistory = sqlQueryFactory
+                .select(Projections.bean(THistory.class,qtHistory.pkId,qtHistory.hisType,qtHistory.hisShow,qtHistory.hisContent,qtHistory.recordId))
+                .from(qtHistory)
+                .where(qtHistory.pkId.eq(dto.getPkId().toString()))
+                .fetchFirst();
+        if(tHistory == null){
+            return new ResultDto(Constant.ResultCode.ERROR_CODE, "未查询到该历史版本！");
+        }
+        String hisContent = tHistory.getHisContent();
+        JSONArray jsonArray = JSON.parseArray(hisContent);
+        if(jsonArray == null){
+            throw new RuntimeException("历史数据为空！");
+        }
+
+        //校验
+        String oldRecordId = tHistory.getRecordId();
+        String lastRecordId = dto.getRequestSysconfigId()+","+dto.getInterfaceId();
+        String[] arr = oldRecordId.split(",");
+        String hisReqSysId = arr[0];
+        String hisReqInterfaceId = arr[1];
+        boolean noModReq = hisReqSysId.equals(dto.getRequestSysconfigId()) && hisReqInterfaceId.equals(dto.getInterfaceId());
+        if(noModReq){
+            //未修改过请求方
+        }else{
+            //请求方不一致，需校验历史版本的请求方是否存在、是否重复
+            TInterface tInterface = interfaceService.getOne(hisReqInterfaceId);
+            if(tInterface == null){
+                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "未查询到历史版本中的请求方!");
+            }
+            List tbiList = businessInterfaceService.getListByCondition(hisReqInterfaceId,hisReqSysId);
+            if(tbiList != null || tbiList.size() > 0){
+                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "历史版本中的请求方已存在!");
+            }
+            this.updateRecordId(oldRecordId,lastRecordId);
+        }
+
+        //插入history
+        List<TBusinessInterface> list = businessInterfaceService.getListByCondition(dto.getInterfaceId(),dto.getRequestSysconfigId());
+        String businessInterfaceName = "";
+        String versionId = "";
+        Integer interfaceSlowFlag = null;
+        Integer replayFlag = null;
+        String requestInterfaceName = "";
+        String typeId = "";
+        String requestSysId = "";
+        for (int i = 0; i < list.size(); i++) {
+            TBusinessInterface tbi = list.get(i);
+            TInterface tInterface = interfaceService.getOne(tbi.getRequestInterfaceId());
+            TSysConfig tSysConfig = sysConfigService.getOne(tbi.getRequestedSysconfigId());
+            TSys requestedSys = sysService.getOne(tSysConfig.getSysId());
+            tbi.setRequestedSysId(requestedSys.getId());
+            businessInterfaceName += (requestedSys.getSysName()+"/"+tbi.getBusinessInterfaceName()+",");
+            TSysConfig requestedSysConfig = sysConfigService.getOne(tbi.getRequestedSysconfigId());
+            versionId += (requestedSysConfig.getVersionId()+",");
+            if(StringUtils.isBlank(typeId)){
+                typeId = tInterface.getTypeId();
+            }
+            if(StringUtils.isBlank(requestSysId)){
+                requestSysId = tInterface.getSysId();
+            }
+            if(StringUtils.isBlank(requestInterfaceName)){
+                TSysConfig reqConfig = sysConfigService.getOne(dto.getRequestSysconfigId());
+                TSys tSys = sysService.getOne(reqConfig.getSysId());
+                requestInterfaceName = tSys.getSysName()+"/"+tInterface.getInterfaceName();
+            }
+            if(StringUtils.isBlank(typeId)){
+                typeId = tInterface.getTypeId();
+            }
+            if(StringUtils.isBlank(requestSysId)){
+                requestSysId = tInterface.getSysId();
+            }
+            if(interfaceSlowFlag != null){
+                interfaceSlowFlag = tbi.getInterfaceSlowFlag();
+            }
+            if(replayFlag != null){
+                replayFlag = tbi.getReplayFlag();
+            }
+        }
+        if(businessInterfaceName.endsWith(",")){
+            businessInterfaceName = businessInterfaceName.substring(0,businessInterfaceName.length()-1);
+        }
+        if(versionId.endsWith(",")){
+            versionId = versionId.substring(0,versionId.length()-1);
+        }
+        //插入历史记录
+        Map map = new HashMap();
+        map.put("requestSysConfigId",dto.getRequestSysconfigId());
+        map.put("requestInterfaceId",dto.getInterfaceId());
+        map.put("businessInterfaceName",businessInterfaceName);
+        map.put("requestInterfaceName",requestInterfaceName);
+        map.put("versionId",versionId);
+        map.put("requestSysId",requestSysId);
+        map.put("requestInterfaceTypeId",typeId);
+        map.put("interfaceSlowFlag",interfaceSlowFlag);
+        map.put("replayFlag",replayFlag);
+        String hisShow = JSON.toJSONString(map);
+        this.insertHis(list,1,loginUserName,lastRecordId,lastRecordId,hisShow);
+
+        //删除
+        businessInterfaceService.delObjByCondition(dto.getInterfaceId(), dto.getRequestSysconfigId());
+        for(Object obj : jsonArray){
+            JSONObject jObj = JSON.parseObject(obj.toString());
+            TBusinessInterface tbi = new TBusinessInterface();
+            tbi.setId(batchUidService.getUid(qTBusinessInterface.getTableName()) + "");
+            tbi.setRequestSysconfigId(jObj.getString("requestSysconfigId"));
+            tbi.setRequestInterfaceId(jObj.getString("requestInterfaceId"));
+            tbi.setRequestedSysconfigId(jObj.getString("requestedSysconfigId"));
+            tbi.setBusinessInterfaceName(jObj.getString("businessInterfaceName"));
+            tbi.setRequestType(jObj.getString("requestType"));
+            tbi.setRequestConstant(jObj.getString("requestConstant"));
+            tbi.setInterfaceType(jObj.getString("interfaceType"));
+            tbi.setPluginId(jObj.getString("pluginId"));
+            tbi.setInParamFormat(jObj.getString("inParamFormat"));
+            tbi.setInParamSchema(jObj.getString("inParamSchema"));
+            tbi.setInParamTemplateType(jObj.getString("inParamTemplateType"));
+            tbi.setInParamTemplate(jObj.getString("inParamTemplate"));
+            tbi.setInParamFormatType(jObj.getString("inParamFormatType"));
+            tbi.setOutParamFormat(jObj.getString("outParamFormat"));
+            tbi.setOutParamSchema(jObj.getString("outParamSchema"));
+            tbi.setOutParamTemplateType(jObj.getString("outParamTemplateType"));
+            tbi.setOutParamTemplate(jObj.getString("outParamTemplate"));
+            tbi.setOutParamFormatType(jObj.getString("outParamFormatType"));
+            tbi.setMockTemplate(jObj.getString("mockTemplate"));
+            tbi.setMockStatus(jObj.getString("mockStatus"));
+            tbi.setStatus(jObj.getString("status"));
+            tbi.setExcErrStatus(jObj.getString("excErrStatus"));
+            tbi.setExcErrOrder(jObj.getInteger("excErrOrder"));
+            tbi.setMockIsUse(jObj.getInteger("mockIsUse"));
+            tbi.setCreatedBy(loginUserName);
+            tbi.setCreatedTime(new Date());
+            tbi.setUpdatedBy(loginUserName);
+            tbi.setUpdatedTime(new Date());
+            tbi.setAsyncFlag(jObj.getInteger("asyncFlag"));
+            tbi.setInterfaceSlowFlag(jObj.getInteger("interfaceSlowFlag"));
+            tbi.setReplayFlag(jObj.getInteger("replayFlag"));
+            // 获取schema
+            niFiRequestUtil.generateSchemaToInterface(tbi);
+            businessInterfaceService.post(tbi);
+        }
+
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "回滚历史版本成功!", null);
     }
 
 
