@@ -236,19 +236,19 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
             //未修改过请求方
         }else{
             //请求方不一致，需校验历史版本的请求方是否存在、是否重复
-            TInterface tInterface = interfaceService.getOne(hisReqInterfaceId);
+            TInterface tInterface = interfaceService.getOne(dto.getInterfaceId());
             if(tInterface == null){
                 return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "未查询到历史版本中的请求方!");
             }
-            List tbiList = businessInterfaceService.getListByCondition(hisReqInterfaceId,hisReqSysId);
-            if(tbiList != null || tbiList.size() > 0){
+            List tbiList = businessInterfaceService.getListByCondition(dto.getInterfaceId(),dto.getRequestSysconfigId());
+            if(tbiList != null && tbiList.size() > 0){
                 return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "历史版本中的请求方已存在!");
             }
             this.updateRecordId(oldRecordId,lastRecordId);
         }
 
         //插入history
-        List<TBusinessInterface> list = businessInterfaceService.getListByCondition(dto.getInterfaceId(),dto.getRequestSysconfigId());
+        List<TBusinessInterface> list = businessInterfaceService.getListByCondition(hisReqInterfaceId,hisReqSysId);
         String businessInterfaceName = "";
         String versionId = "";
         Integer interfaceSlowFlag = null;
@@ -297,8 +297,8 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
         }
         //插入历史记录
         Map map = new HashMap();
-        map.put("requestSysConfigId",dto.getRequestSysconfigId());
-        map.put("requestInterfaceId",dto.getInterfaceId());
+        map.put("requestSysConfigId",hisReqSysId);
+        map.put("requestInterfaceId",hisReqInterfaceId);
         map.put("businessInterfaceName",businessInterfaceName);
         map.put("requestInterfaceName",requestInterfaceName);
         map.put("versionId",versionId);
@@ -310,7 +310,7 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
         this.insertHis(list,1,loginUserName,lastRecordId,lastRecordId,hisShow);
 
         //删除
-        businessInterfaceService.delObjByCondition(dto.getInterfaceId(), dto.getRequestSysconfigId());
+        businessInterfaceService.delObjByCondition(hisReqInterfaceId, hisReqSysId);
         for(Object obj : jsonArray){
             JSONObject jObj = JSON.parseObject(obj.toString());
             TBusinessInterface tbi = new TBusinessInterface();
