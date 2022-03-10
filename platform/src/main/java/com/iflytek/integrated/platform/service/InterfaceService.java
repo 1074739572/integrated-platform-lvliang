@@ -831,7 +831,11 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			return this.saveInterfaceConfig(dto, loginUserName);
 		}
 		if (Constant.Operation.UPDATE.equals(dto.getAddOrUpdate())) {
-			return this.updateInterfaceConfig(dto, loginUserName);
+			return this.updateInterfaceConfig(dto, loginUserName, true);
+		}
+		//暂存
+		if ("3".equals(dto.getAddOrUpdate())) {
+			return this.updateInterfaceConfig(dto, loginUserName, false);
 		}
 		return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "addOrUpdate 新增编辑标识不正确!", null);
 	}
@@ -944,7 +948,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	 * @param loginUserName
 	 * @return
 	 */
-	private ResultDto updateInterfaceConfig(BusinessInterfaceDto dto, String loginUserName) {
+	private ResultDto updateInterfaceConfig(BusinessInterfaceDto dto, String loginUserName, boolean insertHisFlg) {
 		if (StringUtils.isBlank(dto.getPlatformId()) || StringUtils.isBlank(dto.getRequestSysId())) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "平台id或请求方系统id不能为空!", null);
 		}
@@ -980,62 +984,64 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			//未修改
 		}
 
-		//插入history
-		List<TBusinessInterface> list = businessInterfaceService.getListByCondition(exsitsBI.getRequestInterfaceId(),exsitsBI.getRequestSysconfigId());
-		String businessInterfaceName = "";
-		String versionId = "";
-		Integer interfaceSlowFlag = null;
-		Integer replayFlag = null;
-		String requestInterfaceName = "";
-		String typeId = "";
-		String requestSysId = "";
-		for (int i = 0; i < list.size(); i++) {
-			TBusinessInterface tbi = list.get(i);
-			TInterface tInterface = interfaceService.getOne(tbi.getRequestInterfaceId());
-			TSysConfig tSysConfig = sysConfigService.getOne(tbi.getRequestedSysconfigId());
-			TSys requestedSys = sysService.getOne(tSysConfig.getSysId());
-			tbi.setRequestedSysId(requestedSys.getId());
-			businessInterfaceName += (requestedSys.getSysName()+"/"+tbi.getBusinessInterfaceName()+",");
-			TSysConfig requestedSysConfig = sysConfigService.getOne(tbi.getRequestedSysconfigId());
-			versionId += (requestedSysConfig.getVersionId()+",");
-			if(StringUtils.isBlank(requestInterfaceName)){
-				TSysConfig reqConfig = sysConfigService.getOne(dto.getRequestSysconfigId());
-				TSys tSys = sysService.getOne(reqConfig.getSysId());
-				requestInterfaceName = tSys.getSysName()+"/"+tInterface.getInterfaceName();
-			}
-			if(interfaceSlowFlag == null){
-				interfaceSlowFlag = tbi.getInterfaceSlowFlag();
-			}
-			if(replayFlag == null){
-				replayFlag = tbi.getReplayFlag();
-			}
-			if(StringUtils.isBlank(typeId)){
-				typeId = tInterface.getTypeId();
-			}
-			if(StringUtils.isBlank(requestSysId)){
-				requestSysId = tInterface.getSysId();
-			}
+		if(insertHisFlg){
+			//插入history
+			List<TBusinessInterface> list = businessInterfaceService.getListByCondition(exsitsBI.getRequestInterfaceId(),exsitsBI.getRequestSysconfigId());
+			String businessInterfaceName = "";
+			String versionId = "";
+			Integer interfaceSlowFlag = null;
+			Integer replayFlag = null;
+			String requestInterfaceName = "";
+			String typeId = "";
+			String requestSysId = "";
+			for (int i = 0; i < list.size(); i++) {
+				TBusinessInterface tbi = list.get(i);
+				TInterface tInterface = interfaceService.getOne(tbi.getRequestInterfaceId());
+				TSysConfig tSysConfig = sysConfigService.getOne(tbi.getRequestedSysconfigId());
+				TSys requestedSys = sysService.getOne(tSysConfig.getSysId());
+				tbi.setRequestedSysId(requestedSys.getId());
+				businessInterfaceName += (requestedSys.getSysName()+"/"+tbi.getBusinessInterfaceName()+",");
+				TSysConfig requestedSysConfig = sysConfigService.getOne(tbi.getRequestedSysconfigId());
+				versionId += (requestedSysConfig.getVersionId()+",");
+				if(StringUtils.isBlank(requestInterfaceName)){
+					TSysConfig reqConfig = sysConfigService.getOne(dto.getRequestSysconfigId());
+					TSys tSys = sysService.getOne(reqConfig.getSysId());
+					requestInterfaceName = tSys.getSysName()+"/"+tInterface.getInterfaceName();
+				}
+				if(interfaceSlowFlag == null){
+					interfaceSlowFlag = tbi.getInterfaceSlowFlag();
+				}
+				if(replayFlag == null){
+					replayFlag = tbi.getReplayFlag();
+				}
+				if(StringUtils.isBlank(typeId)){
+					typeId = tInterface.getTypeId();
+				}
+				if(StringUtils.isBlank(requestSysId)){
+					requestSysId = tInterface.getSysId();
+				}
 
+			}
+			if(businessInterfaceName.endsWith(",")){
+				businessInterfaceName = businessInterfaceName.substring(0,businessInterfaceName.length()-1);
+			}
+			if(versionId.endsWith(",")){
+				versionId = versionId.substring(0,versionId.length()-1);
+			}
+			//插入历史记录
+			Map map = new HashMap();
+			map.put("requestSysConfigId",exsitsBI.getRequestSysconfigId());
+			map.put("requestInterfaceId",exsitsBI.getRequestInterfaceId());
+			map.put("businessInterfaceName",businessInterfaceName);
+			map.put("requestInterfaceName",requestInterfaceName);
+			map.put("versionId",versionId);
+			map.put("requestSysId",requestSysId);
+			map.put("requestInterfaceTypeId",typeId);
+			map.put("interfaceSlowFlag",interfaceSlowFlag);
+			map.put("replayFlag",replayFlag);
+			String hisShow = JSON.toJSONString(map);
+			historyService.insertHis(list,1,loginUserName,lastRecordId,lastRecordId,hisShow);
 		}
-		if(businessInterfaceName.endsWith(",")){
-			businessInterfaceName = businessInterfaceName.substring(0,businessInterfaceName.length()-1);
-		}
-		if(versionId.endsWith(",")){
-			versionId = versionId.substring(0,versionId.length()-1);
-		}
-		//插入历史记录
-		Map map = new HashMap();
-		map.put("requestSysConfigId",exsitsBI.getRequestSysconfigId());
-		map.put("requestInterfaceId",exsitsBI.getRequestInterfaceId());
-		map.put("businessInterfaceName",businessInterfaceName);
-		map.put("requestInterfaceName",requestInterfaceName);
-		map.put("versionId",versionId);
-		map.put("requestSysId",requestSysId);
-		map.put("requestInterfaceTypeId",typeId);
-		map.put("interfaceSlowFlag",interfaceSlowFlag);
-		map.put("replayFlag",replayFlag);
-		String hisShow = JSON.toJSONString(map);
-		historyService.insertHis(list,1,loginUserName,lastRecordId,lastRecordId,hisShow);
 
 		// 返回缓存接口配置id
 		List<String> rtnId = new ArrayList<>();
@@ -1077,10 +1083,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				}
 				rtnId.add(tbi.getId());
 			}
-			TSys requestedSys = sysService.getOne(tbi.getRequestedSysId());
-			businessInterfaceName += (requestedSys.getSysName()+"/"+tbi.getBusinessInterfaceName()+",");
-			TSysConfig requestedSysConfig = sysConfigService.getOne(tbi.getRequestedSysconfigId());
-			versionId += (requestedSysConfig.getVersionId()+",");
 		}
 
 		// redis缓存信息获取
