@@ -1,5 +1,6 @@
 package com.iflytek.integrated.common.utils;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -7,6 +8,8 @@ import java.util.Date;
  * @author czzhan
  */
 public class DateUtils {
+
+    public static final String STANDARD_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
         /**
          * 生成随机时间
@@ -33,6 +36,19 @@ public class DateUtils {
             }
             return null;
         }
+
+
+        /**
+         * 日期转字符串
+         * @param date
+         * @param format
+         * @return
+         */
+        public static String parseString(Date date,String format){
+            SimpleDateFormat sdf = new SimpleDateFormat(format);
+            return sdf.format(date);
+        }
+
 
         public static long random(long begin, long end) {
             long rtn = begin + (long) (Math.random() * (end - begin));
