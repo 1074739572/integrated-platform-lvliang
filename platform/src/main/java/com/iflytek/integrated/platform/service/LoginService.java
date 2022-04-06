@@ -132,12 +132,12 @@ public class LoginService {
 
 
         Map res = new HashMap();
-        res.put("token",lastToken);
         if(lastToken == ""){
             //未过期，不创建新token
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"未过期!",res);
         }else{
             //已过期，返回新的token
+            res.put("token",TOKEN_PREFIX+lastToken);
             res.put("envFlag",appFuntype);
             return new ResultDto(Constant.ResultCode.SUCCESS_CODE,"已刷新!",res);
         }
