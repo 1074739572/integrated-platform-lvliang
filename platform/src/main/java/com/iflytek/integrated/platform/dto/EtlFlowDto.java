@@ -35,6 +35,8 @@ public class EtlFlowDto implements Serializable {
 	private String parentGroupId;
 	
 	private String etlControlId;
+	
+	private Integer maxDuration;
 
 	public String getId() {
 		return id;
@@ -138,6 +140,14 @@ public class EtlFlowDto implements Serializable {
 
 	public void setEtlControlId(String etlControlId) {
 		this.etlControlId = etlControlId;
+	}
+
+	public Integer getMaxDuration() {
+		return maxDuration;
+	}
+
+	public void setMaxDuration(Integer maxDuration) {
+		this.maxDuration = maxDuration;
 	}
 	
 }

@@ -57,6 +57,8 @@ public class TEtlFlow implements Serializable {
     private String platformId;
     
     private String parentGroupId;
+    
+    private Integer maxDuration;
 
 	public String getId() {
 		return id;
@@ -232,6 +234,14 @@ public class TEtlFlow implements Serializable {
 
 	public void setEtlControlId(String etlControlId) {
 		this.etlControlId = etlControlId;
+	}
+
+	public Integer getMaxDuration() {
+		return maxDuration;
+	}
+
+	public void setMaxDuration(Integer maxDuration) {
+		this.maxDuration = maxDuration;
 	}
 	
 }

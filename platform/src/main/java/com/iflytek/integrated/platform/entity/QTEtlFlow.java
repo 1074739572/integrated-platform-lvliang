@@ -3,6 +3,7 @@ package com.iflytek.integrated.platform.entity;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.PathMetadata;
 import com.querydsl.core.types.dsl.DateTimePath;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 
@@ -52,6 +53,8 @@ public class QTEtlFlow extends com.querydsl.sql.RelationalPathBase<TEtlFlow> {
 	public final StringPath parentGroupId = createString("parentGroupId");
 	
 	public final StringPath etlControlId = createString("etlControlId");
+	
+	public final NumberPath<Integer> maxDuration = createNumber("maxDuration", Integer.class);
 
 	public final com.querydsl.sql.PrimaryKey<TEtlFlow> primary = createPrimaryKey(id);
 
@@ -99,6 +102,8 @@ public class QTEtlFlow extends com.querydsl.sql.RelationalPathBase<TEtlFlow> {
 		addMetadata(etlEntryGroupId, ColumnMetadata.named("ETL_ENTRY_GROUP_ID").withIndex(15).ofType(Types.VARCHAR).withSize(50));
 		addMetadata(etlControlId, ColumnMetadata.named("ETL_CONTROL_ID").withIndex(15).ofType(Types.VARCHAR).withSize(50));
 		addMetadata(parentGroupId, ColumnMetadata.named("PARENT_GROUP_ID").withIndex(16).ofType(Types.VARCHAR).withSize(50));
+		addMetadata(maxDuration, ColumnMetadata.named("MAX_DURATION").withIndex(17).ofType(Types.INTEGER).withSize(1));
+		
 	}
 
 }
