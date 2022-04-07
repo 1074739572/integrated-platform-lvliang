@@ -1,6 +1,7 @@
 package com.iflytek.integrated.platform.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.data.annotation.Transient;
 
 import java.io.Serializable;
@@ -38,7 +39,9 @@ public class TEtlLog implements Serializable {
 	private Integer statusCode;
 	
 	private String errorInfo;
-	
+
+	private String QIResult;
+
 	@Transient
 	private String execTime;
 	
@@ -117,6 +120,15 @@ public class TEtlLog implements Serializable {
 
 	public void setErrorInfo(String errorInfo) {
 		this.errorInfo = errorInfo;
+	}
+
+	@JsonProperty("QIResult")
+	public String getQIResult() {
+		return QIResult;
+	}
+
+	public void setQIResult(String QIResult) {
+		this.QIResult = QIResult;
 	}
 
 	public String getExecTime() {

@@ -40,10 +40,12 @@ public class QTEtlLog extends com.querydsl.sql.RelationalPathBase<TEtlLog> {
 	public final NumberPath<Integer> status = createNumber("status" , Integer.class);
 	
 	public final StringPath errorInfo = createString("errorInfo");
-	
+
 	public final NumberPath<Integer> batchReadCount = createNumber("batchReadCount", Integer.class);
 	
 	public final NumberPath<Integer> batchWriteErrorcount = createNumber("batchWriteErrorcount", Integer.class);
+
+    public final StringPath QIResult = createString("QIResult");
 
     public final com.querydsl.sql.PrimaryKey<TEtlLog> primary = createPrimaryKey(id);
 
@@ -84,6 +86,7 @@ public class QTEtlLog extends com.querydsl.sql.RelationalPathBase<TEtlLog> {
         addMetadata(errorInfo, ColumnMetadata.named("ERROR_INFO").withIndex(9).ofType(Types.LONGVARCHAR));
         addMetadata(batchReadCount, ColumnMetadata.named("batch_read_count").withIndex(10).ofType(Types.INTEGER).withSize(11));
         addMetadata(batchWriteErrorcount, ColumnMetadata.named("batch_write_errorcount").withIndex(11).ofType(Types.INTEGER).withSize(11));
+        addMetadata(QIResult, ColumnMetadata.named("QI_RESULT").withIndex(12).ofType(Types.LONGVARCHAR));
     }
 
 }

@@ -114,10 +114,14 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 		if("postgresql".equals(dbType)) {
 			StringTemplate st = Expressions.stringTemplate("concat(CONVERT_FROM(decode({0} , 'base64'),'UTF-8') , '|')" , qTEtlLog.errorInfo);
 			StringTemplate stg = Expressions.stringTemplate("concat(string_agg ( errorinfo, ',' :: TEXT ))");
+
+			StringTemplate qist = Expressions.stringTemplate("concat(CONVERT_FROM(decode({0} , 'base64'),'UTF-8') , '|')" , qTEtlLog.QIResult);
+			StringTemplate qistg = Expressions.stringTemplate("concat(string_agg ( QIResult, ',' :: TEXT ))");
+
 			String q = "etllog";
 			StringPath queryLabel = Expressions.stringPath(q);
 			QTEtlLog qtetllogalias = new QTEtlLog(q);
-			SubQueryExpression query = SQLExpressions.select(qTEtlLog.etlGroupId.as("ETL_GROUP_ID") , qTEtlLog.exeJobId.as("EXE_JOB_ID") , st.as("errorinfo"))
+			SubQueryExpression query = SQLExpressions.select(qTEtlLog.etlGroupId.as("ETL_GROUP_ID") , qTEtlLog.exeJobId.as("EXE_JOB_ID") , st.as("errorinfo"),qist.as("QIResult"))
 					.from(qTEtlLog).orderBy(qTEtlLog.jobTime.desc());
 			qresults = sqlQueryFactory.select(Projections.bean(TEtlLog.class,
 					qTEtlLog.id.max().as("id"),qTEtlLog.etlGroupId, qTEtlLog.exeJobId, qTEtlLog.flowName.max().as("flowName"),
@@ -126,7 +130,7 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 					qTEtlLog.status.sum().as("statusCode"),
 					qTEtlLog.batchReadCount.max().as("allReadCount"),
 					qTEtlLog.batchWriteErrorcount.sum().as("allWriteErrorcount"),
-					stg.as("errorInfo"),qTProject.projectName.max().as("projectName"), qTPlatform.platformName.max().as("platformName"), qTHospital.hospitalName.max().as("hospitalName"),
+					stg.as("errorInfo"),qistg.as("QIResult"),qTProject.projectName.max().as("projectName"), qTPlatform.platformName.max().as("platformName"), qTHospital.hospitalName.max().as("hospitalName"),
 					qTSys.sysName.max().as("sysName")))
 					.from(query ,queryLabel).leftJoin(qTEtlLog)
 					.on(qtetllogalias.etlGroupId.eq(qTEtlLog.etlGroupId).and(qtetllogalias.exeJobId.eq(qTEtlLog.exeJobId)))
@@ -147,6 +151,7 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 					qTEtlLog.batchReadCount.max().as("allReadCount"),
 					qTEtlLog.batchWriteErrorcount.sum().as("allWriteErrorcount"),
 					Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.errorInfo).concat("|").as("errorInfo") ,
+					Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.QIResult).concat("|").as("QIResult") ,
 					qTProject.projectName.as("projectName"), qTPlatform.platformName.as("platformName"), qTHospital.hospitalName.as("hospitalName"),
 					qTSys.sysName.as("sysName")))
 					.from(qTEtlLog)
@@ -183,10 +188,14 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 		if("postgresql".equals(dbType)) {
 			StringTemplate st = Expressions.stringTemplate("concat(CONVERT_FROM(decode({0} , 'base64'),'UTF-8') , '|')" , qTEtlLog.errorInfo);
 			StringTemplate stg = Expressions.stringTemplate("concat(string_agg ( errorinfo, ',' :: TEXT ))");
+
+			StringTemplate qist = Expressions.stringTemplate("concat(CONVERT_FROM(decode({0} , 'base64'),'UTF-8') , '|')" , qTEtlLog.QIResult);
+			StringTemplate qistg = Expressions.stringTemplate("concat(string_agg ( QIResult, ',' :: TEXT ))");
+
 			String q = "etllog";
 			StringPath queryLabel = Expressions.stringPath(q);
 			QTEtlLog qtetllogalias = new QTEtlLog(q);
-			SubQueryExpression query = SQLExpressions.select(qTEtlLog.etlGroupId.as("ETL_GROUP_ID") , qTEtlLog.exeJobId.as("EXE_JOB_ID") , st.as("errorinfo"))
+			SubQueryExpression query = SQLExpressions.select(qTEtlLog.etlGroupId.as("ETL_GROUP_ID") , qTEtlLog.exeJobId.as("EXE_JOB_ID") , st.as("errorinfo"),qist.as("QIResult"))
 					.from(qTEtlLog).orderBy(qTEtlLog.jobTime.desc());
 			qresults = sqlQueryFactory.select(Projections.bean(TEtlLog.class,
 					qTEtlLog.id.max().as("id"),qTEtlLog.etlGroupId, qTEtlLog.exeJobId, qTEtlLog.flowName.max().as("flowName"),
@@ -195,7 +204,7 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 					qTEtlLog.status.sum().as("statusCode"),
 					qTEtlLog.batchReadCount.max().as("allReadCount"),
 					qTEtlLog.batchWriteErrorcount.sum().as("allWriteErrorcount"),
-					stg.as("errorInfo")))
+					stg.as("errorInfo"),qistg.as("QIResult")))
 					.from(query ,queryLabel).leftJoin(qTEtlLog)
 					.on(qtetllogalias.etlGroupId.eq(qTEtlLog.etlGroupId).and(qtetllogalias.exeJobId.eq(qTEtlLog.exeJobId)))
 					.groupBy(qTEtlLog.etlGroupId , qTEtlLog.exeJobId)
@@ -208,7 +217,8 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 					qTEtlLog.status.sum().as("statusCode"),
 					qTEtlLog.batchReadCount.max().as("allReadCount"),
 					qTEtlLog.batchWriteErrorcount.sum().as("allWriteErrorcount"),
-					Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.errorInfo).concat("|").as("errorInfo")))
+					Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.errorInfo).concat("|").as("errorInfo"),
+					Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.QIResult).concat("|").as("QIResult")))
 					.from(qTEtlLog)
 					.groupBy(qTEtlLog.etlGroupId , qTEtlLog.exeJobId)
 					.limit(pageSize).offset((pageNo - 1) * pageSize)
@@ -257,12 +267,15 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 	@GetMapping("/getEtlLogs/{id}")
 	public ResultDto<TEtlLog> getEtlLogDetails(@PathVariable("id") String id) {
 		StringTemplate st = Expressions.stringTemplate("from_base64({0})" , qTEtlLog.errorInfo);
+		StringTemplate qist = Expressions.stringTemplate("from_base64({0})" , qTEtlLog.QIResult);
 		if("postgresql".equals(dbType)) {
 			st = Expressions.stringTemplate("CONVERT_FROM(decode({0},'base64'),'UTF-8')" , qTEtlLog.errorInfo);
+			qist = Expressions.stringTemplate("CONVERT_FROM(decode({0},'base64'),'UTF-8')" , qTEtlLog.QIResult);
+
 		}
 		TEtlLog logDetail = sqlQueryFactory.select(Projections.bean(TEtlLog.class, qTEtlLog.etlGroupId , qTEtlLog.exeJobId,
 				qTProject.projectName.as("projectName"), qTPlatform.platformName.as("platformName"), qTHospital.hospitalName.as("hospitalName"),
-				qTSys.sysName.as("sysName") , st.as("errorInfo") )).from(qTEtlLog).leftJoin(qTEtlGroup)
+				qTSys.sysName.as("sysName") , st.as("errorInfo"),qist.as("QIResult") )).from(qTEtlLog).leftJoin(qTEtlGroup)
 				.on(qTEtlLog.etlGroupId.eq(qTEtlGroup.etlGroupId))
 				.leftJoin(qTProject).on(qTProject.id.eq(qTEtlGroup.projectId))
 				.leftJoin(qTPlatform).on(qTPlatform.id.eq(qTEtlGroup.platformId))

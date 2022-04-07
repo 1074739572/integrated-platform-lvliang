@@ -1,13 +1,12 @@
 package com.iflytek.integrated.platform.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
-import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
 
 @ApiModel("质检")
-@Data
 public class TQI implements Serializable {
 
     private String QIId;
@@ -20,5 +19,46 @@ public class TQI implements Serializable {
 
     private String createdBy;
 
+    @JsonProperty("QIId")
+    public String getQIId() {
+        return QIId;
+    }
 
+    public void setQIId(String QIId) {
+        this.QIId = QIId;
+    }
+
+    @JsonProperty("QIName")
+    public String getQIName() {
+        return QIName;
+    }
+
+    public void setQIName(String QIName) {
+        this.QIName = QIName;
+    }
+
+    @JsonProperty("QIScript")
+    public String getQIScript() {
+        return QIScript;
+    }
+
+    public void setQIScript(String QIScript) {
+        this.QIScript = QIScript;
+    }
+
+    public Date getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(Date createdTime) {
+        this.createdTime = createdTime;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
 }

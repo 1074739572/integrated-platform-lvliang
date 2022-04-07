@@ -826,6 +826,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		if (StringUtils.isBlank(loginUserName)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
 		}
+
 		String newReturnId = "";
 		if (Constant.Operation.ADD.equals(dto.getAddOrUpdate())) {
 			return this.saveInterfaceConfig(dto, loginUserName);

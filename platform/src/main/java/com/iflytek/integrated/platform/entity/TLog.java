@@ -1,6 +1,7 @@
 package com.iflytek.integrated.platform.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.data.annotation.Transient;
 
 import java.io.Serializable;
@@ -59,6 +60,8 @@ public class TLog implements Serializable {
 
     @Transient
     private String interfaceOrder;
+
+    private String QIResult;
 
     public Long getId() {
         return id;
@@ -243,6 +246,15 @@ public class TLog implements Serializable {
 	public void setDebugreplayFlag(Integer debugreplayFlag) {
 		this.debugreplayFlag = debugreplayFlag;
 	}
+
+    @JsonProperty("QIResult")
+    public String getQIResult() {
+        return QIResult;
+    }
+
+    public void setQIResult(String QIResult) {
+        this.QIResult = QIResult;
+    }
     
 }
 

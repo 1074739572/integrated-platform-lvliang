@@ -2,6 +2,7 @@ package com.iflytek.integrated.platform.service;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
 import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
+import static com.iflytek.integrated.platform.entity.QTEtlLog.qTEtlLog;
 import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
 import static com.iflytek.integrated.platform.entity.QTInterfaceMonitor.qTInterfaceMonitor;
 import static com.iflytek.integrated.platform.entity.QTLog.qTLog;
@@ -24,6 +25,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.querydsl.core.types.dsl.*;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,11 +57,6 @@ import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.SubQueryExpression;
-import com.querydsl.core.types.dsl.CaseBuilder;
-import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.NumberPath;
-import com.querydsl.core.types.dsl.StringExpression;
-import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.SQLExpressions;
 import com.querydsl.sql.SQLQuery;
 
@@ -283,12 +280,18 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		if (StringUtils.isEmpty(interfaceId)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取被请求方接口条数，interfaceId必传");
 		}
+
+		StringTemplate qist = Expressions.stringTemplate("from_base64({0})" , qTLog.QIResult);
+		if("postgresql".equals(dbType)) {
+			qist = Expressions.stringTemplate("CONVERT_FROM(decode({0},'base64'),'UTF-8')" , qTLog.QIResult);
+		}
+
 		// 查询详情
 		TLog tLog = sqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status,
 				qTLog.venderRepTime, qTLog.businessRepTime, qTLog.visitAddr, qTLog.businessReq, qTLog.venderReq,
 				qTLog.businessRep, qTLog.venderRep,qTLog.debugreplayFlag,
 				qTBusinessInterface.businessInterfaceName.as("businessInterfaceName"),
-				qTBusinessInterface.excErrOrder.add(1).as("excErrOrder"))).from(qTLog)
+				qTBusinessInterface.excErrOrder.add(1).as("excErrOrder"), qist.as("QIResult"))).from(qTLog)
 				.leftJoin(qTBusinessInterface).on(qTBusinessInterface.id.eq(qTLog.businessInterfaceId))
 						.where(qTLog.id.eq(Long.valueOf(id))).fetchFirst();
 		String interfaceOrder = "";

@@ -35,12 +35,15 @@ public class QIService extends BaseService<TQI,String, StringPath> {
     @Autowired
     private BatchUidService batchUidService;
 
+    @Autowired
+    private BusinessInterfaceService businessInterfaceService;
+
     public QIService() {super(qi, qi.QIId);}
 
     @ApiOperation(value = "获取列表", notes = "获取质检脚本列表")
     @GetMapping("/getList")
     public ResultDto getList(
-            @ApiParam(value = "质检名称") @RequestParam(value = "QIName") String QIName,
+            @ApiParam(value = "质检名称") @RequestParam(value = "QIName",required = false) String QIName,
             @ApiParam(value = "页码") @RequestParam(defaultValue = "1")Integer pageNo,
             @ApiParam(value = "每页大小") @RequestParam(defaultValue = "10")Integer pageSize
     ){
@@ -126,6 +129,9 @@ public class QIService extends BaseService<TQI,String, StringPath> {
         }
         Object QIId = param.get("QIId");
         if(QIId != null && StringUtils.isNotEmpty(QIId.toString())){
+            if(businessInterfaceService.selectByQIId(QIId.toString()) > 0){
+                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该质检脚本已被使用，不可删除！");
+            }
             this.delete(QIId.toString());
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "已删除!");
         }else{

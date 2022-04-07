@@ -53,6 +53,7 @@ public class GlobalExceptionHandler {
     @ResponseBody
     @ExceptionHandler(value = {Exception.class})
     public ResultDto<Object> exceptionHandler(Exception e) {
+        e.printStackTrace();
         ResultDto<Object> resultDto = new ResultDto<>(ERROR_CODE,ERROR_MSG,ERROR_MSG);
         if (e instanceof MedicalBusinessException) {
             resultDto.setData(((MedicalBusinessException) e).getResponse());

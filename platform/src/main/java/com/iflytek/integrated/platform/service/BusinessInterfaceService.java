@@ -384,4 +384,8 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 		return interfaces.stream().map(TBusinessInterface::getId).collect(Collectors.toList());
 	}
 
+	public long selectByQIId(String QIId){
+		return sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface).where(qTBusinessInterface.QIId.eq(QIId)).fetchCount();
+	}
+
 }
