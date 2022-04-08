@@ -149,7 +149,7 @@ public class QIService extends BaseService<TQI,String, StringPath> {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
         }
         List<TQI> list = sqlQueryFactory
-                .select(Projections.bean(TQI.class,qi.QIId,qi.QIName))
+                .select(Projections.bean(TQI.class,qi.QIId,qi.QIName,qi.QIScript,qi.createdBy,qi.createdTime))
                 .from(qi)
                 .orderBy(qi.createdTime.desc())
                 .fetch();
