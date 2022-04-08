@@ -59,6 +59,8 @@ public class TEtlFlow implements Serializable {
     private String parentGroupId;
     
     private Integer maxDuration;
+    
+    private java.util.Date lastDebugTime;
 
 	public String getId() {
 		return id;
@@ -242,6 +244,14 @@ public class TEtlFlow implements Serializable {
 
 	public void setMaxDuration(Integer maxDuration) {
 		this.maxDuration = maxDuration;
+	}
+
+	public java.util.Date getLastDebugTime() {
+		return lastDebugTime;
+	}
+
+	public void setLastDebugTime(java.util.Date lastDebugTime) {
+		this.lastDebugTime = lastDebugTime;
 	}
 	
 }

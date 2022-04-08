@@ -96,7 +96,7 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 				qTEtlFlow.groupId, qTEtlFlow.flowName, qTEtlFlow.etlGroupId, qTEtlFlow.flowConfig, qTEtlFlow.flowDesp,
 				qTEtlFlow.flowTplName, qTEtlFlow.funTplNames, qTEtlFlow.status,qTEtlFlow.etlEntryGroupId,qTEtlFlow.parentGroupId,
 //				qTProject.projectCode.as("projectCode"),
-				qTEtlFlow.maxDuration,
+				qTEtlFlow.maxDuration,qTEtlFlow.lastDebugTime,
 				qTEtlFlow.etlControlId,qTEtlGroup.hospitalId, qTEtlGroup.sysId, qTHospital.hospitalName.as("hospitalName"),
 				qTSys.sysName.as("sysName"))).from(qTEtlFlow).leftJoin(qTEtlGroup)
 				.on(qTEtlFlow.groupId.eq(qTEtlGroup.id)).leftJoin(qTPlatform)
@@ -115,7 +115,7 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 	public ResultDto<List<TEtlFlow>> getEtlFlowsByPlatform(@PathVariable String platformId) {
 		List<TEtlFlow> queryResults = sqlQueryFactory.select(Projections.bean(TEtlFlow.class, qTEtlFlow.id,
 		qTEtlFlow.groupId, qTEtlFlow.flowName, qTEtlFlow.etlGroupId, qTEtlFlow.flowConfig, qTEtlFlow.flowDesp,qTEtlFlow.maxDuration,
-		qTEtlFlow.flowTplName, qTEtlFlow.funTplNames, qTEtlFlow.status,qTEtlFlow.etlEntryGroupId,qTEtlFlow.parentGroupId,
+		qTEtlFlow.flowTplName, qTEtlFlow.funTplNames, qTEtlFlow.status,qTEtlFlow.etlEntryGroupId,qTEtlFlow.parentGroupId,qTEtlFlow.lastDebugTime,
 		qTEtlFlow.etlControlId, qTEtlGroup.hospitalId, qTEtlGroup.sysId, qTHospital.hospitalName.as("hospitalName"),
 		qTSys.sysName.as("sysName"))).from(qTEtlFlow).leftJoin(qTEtlGroup)
 		.on(qTEtlFlow.groupId.eq(qTEtlGroup.id)).leftJoin(qTPlatform)
@@ -131,7 +131,7 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 		TEtlFlow flowDetail = sqlQueryFactory.select(Projections.bean(TEtlFlow.class, qTEtlFlow.id, qTEtlFlow.groupId,
 				qTEtlFlow.flowName, qTEtlFlow.etlGroupId, qTEtlFlow.flowConfig, qTEtlFlow.flowDesp,
 				qTEtlFlow.flowTplName, qTEtlFlow.funTplNames,qTEtlFlow.status,qTEtlFlow.etlEntryGroupId,qTEtlFlow.parentGroupId,
-				qTEtlFlow.etlControlId,qTEtlFlow.maxDuration,
+				qTEtlFlow.etlControlId,qTEtlFlow.maxDuration,qTEtlFlow.lastDebugTime,
 //				qTProject.projectCode.as("projectCode"),
 				qTEtlGroup.hospitalId, qTEtlGroup.sysId, qTHospital.hospitalName.as("hospitalName"),
 				qTSys.sysName.as("sysName"))).from(qTEtlFlow).leftJoin(qTEtlGroup)
@@ -280,6 +280,9 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 			if (StringUtils.isNotBlank(loginUserName))
 			updateClause.set(qTEtlFlow.updatedBy, loginUserName != null ? loginUserName : "");
 			updateClause.set(qTEtlFlow.updatedTime, new Date());
+			if("3".equals(status)) {
+				updateClause.set(qTEtlFlow.lastDebugTime, new Date());
+			}
 			updateClause.where(qTEtlFlow.id.eq(id));
 			long insertCount = updateClause.execute();
 			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "修改流程状态成功", insertCount + "");
