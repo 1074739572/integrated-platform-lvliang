@@ -274,6 +274,10 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 
 		// 流程模板
 		try {
+			if("4".equals(status)) {
+				status = "0";
+				updateClause.set(qTEtlFlow.lastDebugTime, new Date());
+			}
 			if (StringUtils.isNotBlank(status)) {
 				updateClause.set(qTEtlFlow.status, status);
 			}
