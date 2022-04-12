@@ -897,6 +897,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			tbi.setExcErrOrder(i);
 			tbi.setInterfaceSlowFlag(dto.getInterfaceSlowFlag());
 			tbi.setReplayFlag(dto.getReplayFlag());
+			tbi.setQIId(dto.getQIId());
+			tbi.setQIFlag(dto.getQIFlag());
 			// 获取schema
 			niFiRequestUtil.generateSchemaToInterface(tbi);
 			// 新增接口配置
@@ -992,6 +994,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			String versionId = "";
 			Integer interfaceSlowFlag = null;
 			Integer replayFlag = null;
+			String QIId = null;
+			Integer QIFlag = null;
 			String requestInterfaceName = "";
 			String typeId = "";
 			String requestSysId = "";
@@ -1014,6 +1018,12 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				}
 				if(replayFlag == null){
 					replayFlag = tbi.getReplayFlag();
+				}
+				if(QIId == null){
+					QIId = tbi.getQIId();
+				}
+				if(QIFlag == null){
+					QIFlag = tbi.getQIFlag();
 				}
 				if(StringUtils.isBlank(typeId)){
 					typeId = tInterface.getTypeId();
@@ -1040,6 +1050,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			map.put("requestInterfaceTypeId",typeId);
 			map.put("interfaceSlowFlag",interfaceSlowFlag);
 			map.put("replayFlag",replayFlag);
+			map.put("QIId",QIId);
+			map.put("QIFlag",QIFlag);
 			String hisShow = JSON.toJSONString(map);
 			historyService.insertHis(list,1,loginUserName,lastRecordId,lastRecordId,hisShow);
 		}
@@ -1062,6 +1074,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				tbi.setExcErrOrder(i);
 				tbi.setInterfaceSlowFlag(dto.getInterfaceSlowFlag());
 				tbi.setReplayFlag(dto.getReplayFlag());
+				tbi.setQIId(dto.getQIId());
+				tbi.setQIFlag(dto.getQIFlag());
 				// 获取schema
 				niFiRequestUtil.generateSchemaToInterface(tbi);
 				// 新增接口配置
@@ -1075,6 +1089,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				tbi.setExcErrOrder(i);
 				tbi.setInterfaceSlowFlag(dto.getInterfaceSlowFlag());
 				tbi.setReplayFlag(dto.getReplayFlag());
+				tbi.setQIId(dto.getQIId());
+				tbi.setQIFlag(dto.getQIFlag());
 				// 获取schema
 				niFiRequestUtil.generateSchemaToInterface(tbi);
 				// 新增接口配置

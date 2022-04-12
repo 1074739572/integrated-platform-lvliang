@@ -253,6 +253,8 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
         String versionId = "";
         Integer interfaceSlowFlag = null;
         Integer replayFlag = null;
+        String QIId = null;
+        Integer QIFlag = null;
         String requestInterfaceName = "";
         String typeId = "";
         String requestSysId = "";
@@ -288,6 +290,12 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
             if(replayFlag != null){
                 replayFlag = tbi.getReplayFlag();
             }
+            if(QIId == null){
+                QIId = tbi.getQIId();
+            }
+            if(QIFlag == null){
+                QIFlag = tbi.getQIFlag();
+            }
         }
         if(businessInterfaceName.endsWith(",")){
             businessInterfaceName = businessInterfaceName.substring(0,businessInterfaceName.length()-1);
@@ -306,6 +314,8 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
         map.put("requestInterfaceTypeId",typeId);
         map.put("interfaceSlowFlag",interfaceSlowFlag);
         map.put("replayFlag",replayFlag);
+        map.put("QIId",QIId);
+        map.put("QIFlag",QIFlag);
         String hisShow = JSON.toJSONString(map);
         this.insertHis(list,1,loginUserName,lastRecordId,lastRecordId,hisShow);
 
@@ -346,6 +356,9 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
             tbi.setAsyncFlag(jObj.getInteger("asyncFlag"));
             tbi.setInterfaceSlowFlag(jObj.getInteger("interfaceSlowFlag"));
             tbi.setReplayFlag(jObj.getInteger("replayFlag"));
+            //qIId、qIFlag首字母小写
+            tbi.setQIId(jObj.getString("qIId"));
+            tbi.setQIFlag(jObj.getInteger("qIFlag"));
             // 获取schema
             niFiRequestUtil.generateSchemaToInterface(tbi);
             businessInterfaceService.post(tbi);

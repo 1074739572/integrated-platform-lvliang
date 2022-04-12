@@ -1,5 +1,6 @@
 package com.iflytek.integrated.platform.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
@@ -34,6 +35,10 @@ public class BusinessInterfaceDto {
 
     private Integer replayFlag;
 
+    private String QIId;
+
+    private Integer QIFlag;
+
     /**
      * 多个厂商配置信息
      */
@@ -42,5 +47,24 @@ public class BusinessInterfaceDto {
      * 新增编辑接口配置标识  1新增 2编辑
      */
     private String addOrUpdate;
+
+
+    public String getQIId() {
+        return QIId;
+    }
+
+    @JsonProperty("QIId")
+    public void setQIId(String QIId) {
+        this.QIId = QIId;
+    }
+
+    public Integer getQIFlag() {
+        return QIFlag;
+    }
+
+    @JsonProperty("QIFlag")
+    public void setQIFlag(Integer QIFlag) {
+        this.QIFlag = QIFlag;
+    }
 
 }
