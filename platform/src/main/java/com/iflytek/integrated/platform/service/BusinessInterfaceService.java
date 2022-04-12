@@ -236,7 +236,8 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 		ArrayList<Predicate> list = new ArrayList<>();
 		list.add(qTSysConfig.platformId.eq(platformId));
 		List<TBusinessInterface> queryResults = sqlQueryFactory
-				.select(Projections.bean(TBusinessInterface.class, qTBusinessInterface.id,
+				.select(Projections.bean(TBusinessInterface.class,
+						// qTBusinessInterface.id,
 						qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId))
 				.from(qTBusinessInterface).leftJoin(qTSysConfig)
 				.on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId))
