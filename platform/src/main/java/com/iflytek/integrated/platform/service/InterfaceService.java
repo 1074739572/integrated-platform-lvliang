@@ -1351,7 +1351,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
 	@ApiOperation(value = "被请求方接口调试接口")
 	@PostMapping("/interfaceDebugger")
-	public ResultDto<Map> interfaceDebugger(@RequestBody JoltDebuggerDto dto) {
+	public ResultDto<Object> interfaceDebugger(@RequestBody JoltDebuggerDto dto) {
 		// 校验参数是否完整
 		ValidationResult validationResult = validatorHelper.validate(dto);
 		if (validationResult.isHasErrors()) {
@@ -1363,7 +1363,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		if(dto.getJolt() != null && dto.getJslt() != null) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "jolt脚本和jslt脚本参数不能同时存在");
 		}
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "", niFiRequestUtil.joltDebugger(dto));
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "", niFiRequestUtil.joltDebugger2(dto));
 	}
 
 	@ApiOperation(value = "根据类型id获取关联接口", notes = "根据类型id获取关联接口")

@@ -8,6 +8,8 @@ import java.util.Map;
 
 import javax.crypto.IllegalBlockSizeException;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.apache.nifi.api.toolkit.ApiClient;
 import org.apache.nifi.api.toolkit.ApiException;
@@ -201,6 +203,28 @@ public class NiFiRequestUtil {
 			HttpResult result = HttpClientUtil.doPost(url, param);
 			if (result != null && StringUtils.isNotBlank(result.getContent())) {
 				return JackSonUtils.jsonToTransfer(result.getContent(), Map.class);
+			}
+		} catch (Exception e) {
+			throw new RuntimeException("jolt/jslt调试接口调取失败");
+		}
+		return null;
+	}
+
+	/**
+	 * 调取jolt调试接口
+	 *
+	 * @param dto
+	 * @return
+	 */
+	public Object joltDebugger2(JoltDebuggerDto dto) {
+		try {
+			String type = PlatformUtil.strIsJsonOrXml(dto.getOriginObj());
+			String debuggerUrl = dto.getJslt() != null ? jsltDebuggerUrl : joltDebuggerUrl;
+			String url = debuggerUrl + "?contenttype=" + type;
+			String param = JackSonUtils.transferToJson(dto);
+			HttpResult result = HttpClientUtil.doPost(url, param);
+			if (result != null && StringUtils.isNotBlank(result.getContent())) {
+				return JSON.toJSON(result.getContent());
 			}
 		} catch (Exception e) {
 			throw new RuntimeException("jolt/jslt调试接口调取失败");
