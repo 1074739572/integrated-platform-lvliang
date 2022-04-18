@@ -57,7 +57,7 @@ public class QIService extends BaseService<TQI,String, StringPath> {
             list.add(qi.QIName.like("%"+QIName+"%"));
         }
         QueryResults<TQI> queryResults = sqlQueryFactory
-                .select(Projections.bean(TQI.class,qi.QIId,qi.QIName,qi.QIScript,qi.createdBy,qi.createdTime))
+                .select(Projections.bean(TQI.class,qi.QIId,qi.QIName,qi.QIScript,qi.createdBy,qi.createdTime,qi.updatedTime,qi.updatedBy))
                 .from(qi)
                 .where(list.toArray(new Predicate[list.size()])).limit(pageSize)
                 .limit(pageSize)
@@ -93,6 +93,8 @@ public class QIService extends BaseService<TQI,String, StringPath> {
         tqi.setQIScript(param.get("QIScript").toString());
         tqi.setCreatedBy(loginUserName);
         tqi.setCreatedTime(new Date());
+        tqi.setUpdatedBy(loginUserName);
+        tqi.setUpdatedTime(new Date());
         Object QIId = param.get("QIId");
         if(QIId != null && StringUtils.isNotEmpty(QIId.toString())){
             //修改
@@ -149,7 +151,7 @@ public class QIService extends BaseService<TQI,String, StringPath> {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
         }
         List<TQI> list = sqlQueryFactory
-                .select(Projections.bean(TQI.class,qi.QIId,qi.QIName,qi.QIScript,qi.createdBy,qi.createdTime))
+                .select(Projections.bean(TQI.class,qi.QIId,qi.QIName,qi.QIScript,qi.createdBy,qi.createdTime,qi.updatedTime,qi.updatedBy))
                 .from(qi)
                 .orderBy(qi.createdTime.desc())
                 .fetch();

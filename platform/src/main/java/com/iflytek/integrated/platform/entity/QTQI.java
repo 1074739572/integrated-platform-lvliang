@@ -27,6 +27,10 @@ public class QTQI extends RelationalPathBase<TQI> {
 
     public final DateTimePath<Date> createdTime = createDateTime("createdTime", java.util.Date.class);
 
+    public final StringPath updatedBy = createString("updatedBy");
+
+    public final DateTimePath<Date> updatedTime = createDateTime("updatedTime", java.util.Date.class);
+
     public final com.querydsl.sql.PrimaryKey<TQI> primary = createPrimaryKey(QIId);
 
     public QTQI(String variable) {
@@ -40,5 +44,7 @@ public class QTQI extends RelationalPathBase<TQI> {
         addMetadata(QIScript, ColumnMetadata.named("QI_SCRIPT").withIndex(3).ofType(Types.LONGVARCHAR).withSize(65535));
         addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(4).ofType(Types.TIMESTAMP).withSize(19));
         addMetadata(createdBy, ColumnMetadata.named("CREATED_BY").withIndex(5).ofType(Types.VARCHAR).withSize(32));
+        addMetadata(updatedTime, ColumnMetadata.named("UPDATED_TIME").withIndex(6).ofType(Types.TIMESTAMP).withSize(19));
+        addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(7).ofType(Types.VARCHAR).withSize(32));
     }
 }

@@ -19,6 +19,10 @@ public class TQI implements Serializable {
 
     private String createdBy;
 
+    private Date updatedTime;
+
+    private String updatedBy;
+
     @JsonProperty("QIId")
     public String getQIId() {
         return QIId;
@@ -60,5 +64,21 @@ public class TQI implements Serializable {
 
     public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
+    }
+
+    public Date getUpdatedTime() {
+        return updatedTime;
+    }
+
+    public void setUpdatedTime(Date updatedTime) {
+        this.updatedTime = updatedTime;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }
