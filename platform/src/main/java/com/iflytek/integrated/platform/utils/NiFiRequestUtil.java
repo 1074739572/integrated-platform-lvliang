@@ -224,7 +224,7 @@ public class NiFiRequestUtil {
 			String param = JackSonUtils.transferToJson(dto);
 			HttpResult result = HttpClientUtil.doPost(url, param);
 			if (result != null && StringUtils.isNotBlank(result.getContent())) {
-				return JSON.toJSON(result.getContent());
+				return JackSonUtils.jsonToTransfer(result.getContent(), Object.class);
 			}
 		} catch (Exception e) {
 			throw new RuntimeException("jolt/jslt调试接口调取失败");
