@@ -281,17 +281,12 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取被请求方接口条数，interfaceId必传");
 		}
 
-		StringTemplate qist = Expressions.stringTemplate("from_base64({0})" , qTLog.QIResult);
-		if("postgresql".equals(dbType)) {
-			qist = Expressions.stringTemplate("CONVERT_FROM(decode({0},'base64'),'UTF-8')" , qTLog.QIResult);
-		}
-
 		// 查询详情
 		TLog tLog = sqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status,
 				qTLog.venderRepTime, qTLog.businessRepTime, qTLog.visitAddr, qTLog.businessReq, qTLog.venderReq,
 				qTLog.businessRep, qTLog.venderRep,qTLog.debugreplayFlag,
 				qTBusinessInterface.businessInterfaceName.as("businessInterfaceName"),
-				qTBusinessInterface.excErrOrder.add(1).as("excErrOrder"), qist.as("QIResult"))).from(qTLog)
+				qTBusinessInterface.excErrOrder.add(1).as("excErrOrder"), qTLog.QIResult)).from(qTLog)
 				.leftJoin(qTBusinessInterface).on(qTBusinessInterface.id.eq(qTLog.businessInterfaceId))
 						.where(qTLog.id.eq(Long.valueOf(id))).fetchFirst();
 		String interfaceOrder = "";
@@ -315,6 +310,13 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 			venderRep = venderRep.length() > 5000 ? venderRep.substring(0, 5000) + "......" : venderRep;
 		}
 		tLog.setVenderRep(venderRep);
+
+		String QIResult = decryptAndFilterSensitive(tLog.getQIResult());
+		if (StringUtils.isNotBlank(QIResult)) {
+			QIResult = QIResult.length() > 5000 ? QIResult.substring(0, 5000) + "......" : QIResult;
+		}
+		tLog.setQIResult(QIResult);
+
 		tLog.setBusinessReq(decryptAndFilterSensitive(tLog.getBusinessReq()));
 		tLog.setVenderReq(decryptAndFilterSensitive(tLog.getVenderReq()));
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志详细获取成功!", tLog);
@@ -436,17 +438,5 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志重放成功");
 	}
 
-	/**
-	 * 先解密，再脱敏处理
-	 * 
-	 * @param aes
-	 * @return
-	 */
-	private String decryptAndFilterSensitive(String aes) {
-		try {
-			return SensitiveUtils.filterSensitive(AesUtil.decrypt(aes));
-		} catch (Exception e) {
-			return "";
-		}
-	}
+
 }

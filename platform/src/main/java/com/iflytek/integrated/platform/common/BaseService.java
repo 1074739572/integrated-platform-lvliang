@@ -1,6 +1,8 @@
 package com.iflytek.integrated.platform.common;
 
 import com.iflytek.integrated.common.utils.PinYinUtil;
+import com.iflytek.integrated.common.utils.SensitiveUtils;
+import com.iflytek.integrated.common.utils.ase.AesUtil;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.dsl.ComparableExpressionBase;
@@ -70,5 +72,20 @@ public class BaseService <E, I extends Comparable, ID extends ComparableExpressi
             code += "_" + count;
         }
         return code;
+    }
+
+
+    /**
+     * 先解密，再脱敏处理
+     *
+     * @param aes
+     * @return
+     */
+    public String decryptAndFilterSensitive(String aes) {
+        try {
+            return SensitiveUtils.filterSensitive(AesUtil.decrypt(aes));
+        } catch (Exception e) {
+            return "";
+        }
     }
 }
