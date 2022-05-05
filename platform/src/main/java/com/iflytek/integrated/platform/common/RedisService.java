@@ -32,6 +32,7 @@ import com.iflytek.integrated.common.utils.JackSonUtils;
 import com.iflytek.integrated.common.utils.RedisUtil;
 import com.iflytek.integrated.platform.dto.RedisDto;
 import com.iflytek.integrated.platform.dto.RedisKeyDto;
+import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
@@ -52,6 +53,10 @@ public class RedisService {
 
 	@Autowired
 	private RedisUtil redisUtil;
+	
+	@Autowired
+	private NiFiRequestUtil niFiRequestUtil;
+	
 	@Autowired
 	protected SQLQueryFactory sqlQueryFactory;
 
@@ -188,28 +193,37 @@ public class RedisService {
 	 * @param list
 	 */
 	public void delRedisKey(List<RedisKeyDto> list) {
+		List<String> keys = new ArrayList<>();
 		for (RedisKeyDto obj : list) {
 			String key = "IntegratedPlatform:Configs:_" + obj.getSysCode() + "_"
 					+ obj.getFunCode() + "_" + obj.getOrgId();
-			redisUtil.del(key);
+//			redisUtil.del(key);
+			keys.add(key);
 		}
+		niFiRequestUtil.metacacheClean(keys);
 		logger.info("删除缓存{}条", list.size());
 	}
 
 	public void delWsDriverRedisKey(List<RedisKeyDto> list) {
+		List<String> keys = new ArrayList<>();
 		for (RedisKeyDto obj : list) {
 			String key = "IntegratedPlatform:Configs:WS:drivers:_" + obj.getSysCode() + "_" + obj.getOrgId();
-			redisUtil.del(key);
+//			redisUtil.del(key);
+			keys.add(key);
 		}
+		niFiRequestUtil.metacacheClean(keys);
 		logger.info("删除webservice驱动缓存{}条", list.size());
 	}
 
 	public void delWsSchemaRedisKey(List<RedisKeyDto> list) {
+		List<String> keys = new ArrayList<>();
 		for (RedisKeyDto obj : list) {
 			String key = "IntegratedPlatform:Configs:WS:schema:_" + obj.getFunCode() + "_" + obj.getSysCode() + "_"
 					+ obj.getOrgId();
-			redisUtil.del(key);
+//			redisUtil.del(key);
+			keys.add(key);
 		}
+		niFiRequestUtil.metacacheClean(keys);
 		logger.info("删除webservicet入参schema缓存{}条", list.size());
 	}
 }
