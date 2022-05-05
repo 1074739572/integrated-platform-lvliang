@@ -45,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -136,7 +137,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 	private SysService sysService;
 	@Autowired
 	private InterfaceService interfaceService;
-	
+
+	@Value("${config.request.nifiapi.readtimeout}")
+	private int readTimeout;
+
 	private static final Logger logger = LoggerFactory.getLogger(InterfaceService.class);
 	
 	public InterfaceService() {
@@ -344,7 +348,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				wsdlUrl = niFiRequestUtil.getWsServiceUrlWithAuth() + path;
 				log.info("wsinvokeurl:" + wsdlUrl);
 			}
-			result = PlatformUtil.invokeWsService(wsdlUrl, methodName, funcode, param , headerMap);
+			result = PlatformUtil.invokeWsService(wsdlUrl, methodName, funcode, param , headerMap, readTimeout);
 		} else {
 			result = niFiRequestUtil.interfaceDebug(degubDto.getFormat() , headerMap , "1".equals(authFlag));
 		}
@@ -1067,8 +1071,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 				// 新增的厂商配置
 				tbi.setId(batchUidService.getUid(qTBusinessInterface.getTableName()) + "");
 				tbi.setRequestInterfaceId(dto.getRequestInterfaceId());
-				tbi.setStatus(Constant.Status.START);
-				tbi.setMockStatus(Constant.Status.STOP);
+				tbi.setStatus(tbi.getStatus());
+				tbi.setMockStatus(tbi.getMockStatus());
 				tbi.setCreatedTime(new Date());
 				tbi.setCreatedBy(loginUserName);
 				tbi.setRequestSysconfigId(requestSysConfigId);

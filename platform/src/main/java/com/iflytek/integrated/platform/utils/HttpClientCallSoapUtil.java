@@ -29,6 +29,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 public class HttpClientCallSoapUtil {
 	static int socketTimeout = 15000;// 请求超时时间
@@ -43,7 +45,7 @@ public class HttpClientCallSoapUtil {
 	         }
 	     }
 	}
-	 
+
 	/**
 	 * 使用SOAP1.1发送消息
 	 * 
@@ -56,7 +58,7 @@ public class HttpClientCallSoapUtil {
 	 * @throws ParseException 
 	 * @throws KeyManagementException 
 	 */
-	public static String doPostSoap1_1(String postUrl, String soapXml, String soapAction , Map<String , String> headerMap) throws NoSuchAlgorithmException, ParseException, IOException, KeyManagementException {
+	public static String doPostSoap1_1(String postUrl, String soapXml, String soapAction , Map<String , String> headerMap, Integer readTimeout) throws NoSuchAlgorithmException, ParseException, IOException, KeyManagementException {
 		String retStr = "";
 		// 创建HttpClientBuilder
 		HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
@@ -86,8 +88,8 @@ public class HttpClientCallSoapUtil {
 		CloseableHttpClient closeableHttpClient = httpClientBuilder.build();
 		HttpPost httpPost = new HttpPost(postUrl);
 		// 设置请求和传输超时时间
-		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(socketTimeout).setAuthenticationEnabled(true)
-				.setConnectionRequestTimeout(socketTimeout)
+		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(readTimeout).setAuthenticationEnabled(true)
+				.setConnectionRequestTimeout(readTimeout)
 				.setConnectTimeout(connectTimeout).build();
 		httpPost.setConfig(requestConfig);
 		httpPost.setHeader("Content-Type", "text/xml;charset=UTF-8");

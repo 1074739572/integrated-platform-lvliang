@@ -82,6 +82,9 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 	
 	@Value("${server.db}")
 	private String dbType;
+
+	@Value("${config.request.nifiapi.readtimeout}")
+	private int readTimeout;
 	
 	public LogService() {
 		super(qTLog, qTLog.id);
@@ -286,7 +289,8 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 				qTLog.venderRepTime, qTLog.businessRepTime, qTLog.visitAddr, qTLog.businessReq, qTLog.venderReq,
 				qTLog.businessRep, qTLog.venderRep,qTLog.debugreplayFlag,
 				qTBusinessInterface.businessInterfaceName.as("businessInterfaceName"),
-				qTBusinessInterface.excErrOrder.add(1).as("excErrOrder"), qTLog.QIResult)).from(qTLog)
+				qTBusinessInterface.excErrOrder.add(1).as("excErrOrder"), qTLog.QIResult, qTLog.ipAddress))
+				.from(qTLog)
 				.leftJoin(qTBusinessInterface).on(qTBusinessInterface.id.eq(qTLog.businessInterfaceId))
 						.where(qTLog.id.eq(Long.valueOf(id))).fetchFirst();
 		String interfaceOrder = "";
@@ -425,7 +429,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 							continue;
 						}
 						String methodName = wsOperationNames.get(0);
-						PlatformUtil.invokeWsServiceWithOrigin(wsdlUrl, methodName, format , headerMap);
+						PlatformUtil.invokeWsServiceWithOrigin(wsdlUrl, methodName, format , headerMap, readTimeout);
 						continue;
 					}
 					niFiRequestUtil.interfaceDebug(format , headerMap , "1".equals(authFlag));

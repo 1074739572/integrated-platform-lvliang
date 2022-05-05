@@ -94,6 +94,9 @@ public class NiFiRequestUtil {
 	@Value("${param.metacache.clean.url}")
 	private String metacacheCleanUrl;
 
+	@Value("${config.request.nifiapi.readtimeout}")
+	private int readTimeout;
+
 	@Autowired
 	public SQLQueryFactory sqlQueryFactory;
 
@@ -298,7 +301,7 @@ public class NiFiRequestUtil {
 	public String interfaceDebug(String format, Map<String, String> headerMap, boolean withAuth) {
 		try {
 			HttpResult result = HttpClientUtil.doPostWithHeaders(withAuth ? interfaceDebugWithAuth : interfaceDebug,
-					format, headerMap);
+					format, headerMap, readTimeout);
 			return result.getContent();
 		} catch (Exception e) {
 			throw new RuntimeException("调取校验调试接口错误", e);

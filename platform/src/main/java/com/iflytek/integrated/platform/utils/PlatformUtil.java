@@ -34,13 +34,15 @@ import com.predic8.wstool.creator.SOARequestCreator;
 
 import groovy.xml.MarkupBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 /**
  * @author czzhan 公用方法
  */
 @Slf4j
 public class PlatformUtil {
-	
+
 	public static final Map<String , String> headerParams = new HashMap<>();
 	static {
 		headerParams.put("Accept", "*/*");
@@ -652,7 +654,7 @@ public class PlatformUtil {
 //		}
 //	}
 	
-	public static String invokeWsService(String wsdlUrl, String methodName, String funCode, String params , Map<String , String> headerMap){
+	public static String invokeWsService(String wsdlUrl, String methodName, String funCode, String params , Map<String , String> headerMap, Integer readTimeout){
 //		params = "<![CDATA[" + params + "]]>";
 		WSDLParser parser = new WSDLParser();
 		if(headerMap!= null) {
@@ -701,7 +703,7 @@ public class PlatformUtil {
 		}
 		String responseStr = "";
 		try {
-			responseStr = HttpClientCallSoapUtil.doPostSoap1_1(wsdlUrl, soapTpl, opName , headerMap);
+			responseStr = HttpClientCallSoapUtil.doPostSoap1_1(wsdlUrl, soapTpl, opName , headerMap, readTimeout);
 		}catch(Exception e ) {
 			log.error("发起webservice接口调用请求异常" , e);
 			return "发起webservice接口调用请求异常" + e.getLocalizedMessage();
@@ -709,7 +711,7 @@ public class PlatformUtil {
 		return responseStr;
 	}
 	
-	public static String invokeWsServiceWithOrigin(String wsdlUrl, String methodName, String params , Map<String , String> headerMap){
+	public static String invokeWsServiceWithOrigin(String wsdlUrl, String methodName, String params , Map<String , String> headerMap, Integer readTimeout){
 		String[] mixedOpName = methodName.split("\\|");
 		if (mixedOpName.length != 3) {
 			return "传入方法名参数[" + methodName + "]不正确！";
@@ -717,7 +719,7 @@ public class PlatformUtil {
 		String opName = mixedOpName[0];
 		String responseStr = "";
 		try {
-			responseStr = HttpClientCallSoapUtil.doPostSoap1_1(wsdlUrl, params, opName , headerMap);
+			responseStr = HttpClientCallSoapUtil.doPostSoap1_1(wsdlUrl, params, opName , headerMap, readTimeout);
 		}catch(Exception e ) {
 			log.error("发起webservice接口调用请求异常" , e);
 			return "发起webservice接口调用请求异常" + e.getLocalizedMessage();

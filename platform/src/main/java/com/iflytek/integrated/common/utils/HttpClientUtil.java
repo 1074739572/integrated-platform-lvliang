@@ -254,12 +254,12 @@ public class HttpClientUtil {
         return resolveHttpClientResult(httpClient, httpPost);
     }
     
-    public static HttpResult doPostWithHeaders(String url, String body , Map<String , String> headerMap) throws Exception {
+    public static HttpResult doPostWithHeaders(String url, String body , Map<String , String> headerMap, int readTimeout) throws Exception {
         // 创建httpClient对象
         CloseableHttpClient httpClient = HttpClientUtil.createHttpClient(MAX_TOTAL_CONNECT, MAX_CONNECT_PER_ROUTE, RETRY_TIMES);
         // 创建http对象
         HttpPost httpPost = new HttpPost(url);
-        RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(CONNECTION_REQUEST_TIMEOUT).setConnectTimeout(CONNECT_TIMEOUT).setSocketTimeout(READ_TIMEOUT).build();
+        RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(CONNECTION_REQUEST_TIMEOUT).setConnectTimeout(CONNECT_TIMEOUT).setSocketTimeout(readTimeout).build();
         httpPost.setConfig(requestConfig);
         // 设置请求头
         httpPost.setHeader("Connection", "Keep-Alive");
