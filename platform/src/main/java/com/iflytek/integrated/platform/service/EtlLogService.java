@@ -140,7 +140,7 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 					.leftJoin(qTHospital).on(qTHospital.id.eq(qTEtlGroup.hospitalId))
 					.groupBy(qTEtlLog.etlGroupId , qTEtlLog.exeJobId)
 					.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
-					.fetchResults();
+					.orderBy(qTEtlLog.jobTime.max().desc()).fetchResults();
 		}else {
 			qresults = sqlQueryFactory.select(Projections.bean(TEtlLog.class,
 					qTEtlLog.id.max().as("id"),qTEtlLog.etlGroupId, qTEtlLog.exeJobId, qTEtlLog.flowName,
@@ -161,7 +161,7 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 					.leftJoin(qTHospital).on(qTHospital.id.eq(qTEtlGroup.hospitalId))
 					.groupBy(qTEtlLog.etlGroupId , qTEtlLog.exeJobId)
 					.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
-					.orderBy(qTEtlLog.jobTime.desc()).fetchResults();
+					.orderBy(qTEtlLog.jobTime.max().desc()).fetchResults();
 		}
 		
 		List<TEtlLog> results = null;
@@ -212,7 +212,8 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 					.from(query ,queryLabel).leftJoin(qTEtlLog)
 					.on(qtetllogalias.etlGroupId.eq(qTEtlLog.etlGroupId).and(qtetllogalias.exeJobId.eq(qTEtlLog.exeJobId)))
 					.groupBy(qTEtlLog.etlGroupId , qTEtlLog.exeJobId)
-					.limit(pageSize).offset((pageNo - 1) * pageSize).fetchResults();
+					.limit(pageSize).offset((pageNo - 1) * pageSize)
+					.orderBy(qTEtlLog.jobTime.max().desc()).fetchResults();
 		}else {
 			qresults = sqlQueryFactory.select(Projections.bean(TEtlLog.class,
 					qTEtlLog.id.max().as("id"),qTEtlLog.etlGroupId, qTEtlLog.exeJobId, qTEtlLog.flowName,
@@ -276,15 +277,15 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 	@GetMapping("/getEtlLogs/{id}")
 	public ResultDto<TEtlLog> getEtlLogDetails(@PathVariable("id") String id) {
 		StringTemplate st = Expressions.stringTemplate("from_base64({0})" , qTEtlLog.errorInfo);
-		StringTemplate qist = Expressions.stringTemplate("from_base64({0})" , qTEtlLog.QIResult);
+//		StringTemplate qist = Expressions.stringTemplate("from_base64({0})" , qTEtlLog.QIResult);
 		if("postgresql".equals(dbType)) {
 			st = Expressions.stringTemplate("CONVERT_FROM(decode({0},'base64'),'UTF-8')" , qTEtlLog.errorInfo);
-			qist = Expressions.stringTemplate("CONVERT_FROM(decode({0},'base64'),'UTF-8')" , qTEtlLog.QIResult);
+//			qist = Expressions.stringTemplate("CONVERT_FROM(decode({0},'base64'),'UTF-8')" , qTEtlLog.QIResult);
 
 		}
 		TEtlLog logDetail = sqlQueryFactory.select(Projections.bean(TEtlLog.class, qTEtlLog.etlGroupId , qTEtlLog.exeJobId,
 				qTProject.projectName.as("projectName"), qTPlatform.platformName.as("platformName"), qTHospital.hospitalName.as("hospitalName"),
-				qTSys.sysName.as("sysName") , st.as("errorInfo"),qist.as("QIResult") )).from(qTEtlLog).leftJoin(qTEtlGroup)
+				qTSys.sysName.as("sysName") , st.as("errorInfo") )).from(qTEtlLog).leftJoin(qTEtlGroup)
 				.on(qTEtlLog.etlGroupId.eq(qTEtlGroup.etlGroupId))
 				.leftJoin(qTProject).on(qTProject.id.eq(qTEtlGroup.projectId))
 				.leftJoin(qTPlatform).on(qTPlatform.id.eq(qTEtlGroup.platformId))
