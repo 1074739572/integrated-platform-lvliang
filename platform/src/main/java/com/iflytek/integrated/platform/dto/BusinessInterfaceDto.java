@@ -39,6 +39,10 @@ public class BusinessInterfaceDto {
 
     private Integer QIFlag;
 
+    private String mockStatus;
+
+    private String status;
+
     /**
      * 多个厂商配置信息
      */

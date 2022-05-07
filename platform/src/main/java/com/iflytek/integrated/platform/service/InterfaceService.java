@@ -762,6 +762,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			dto.setReplayFlag(tbi.getReplayFlag());
 			dto.setQIId(tbi.getQIId());
 			dto.setQIFlag(tbi.getQIFlag());
+			dto.setMockStatus(tbi.getMockStatus());
+			dto.setStatus(tbi.getStatus());
 			// 获取请求方接口类型
 			ArrayList<Predicate> list = new ArrayList<>();
 			if (StringUtils.isNotEmpty(requestInterfaceId)) {

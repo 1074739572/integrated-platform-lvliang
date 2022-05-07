@@ -152,7 +152,7 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 				InputStream is = file.getInputStream();
 				String tplContent = IOUtils.toString(is, "UTF-8");
 				is.close();
-				String tplId = sqlQueryFactory.select(qTEtlTpl.id).from(qTEtlTpl).where(qTEtlTpl.tplName.eq(fileName))
+				String tplId = sqlQueryFactory.select(qTEtlTpl.id).from(qTEtlTpl).where(qTEtlTpl.tplName.eq(fileName).and(qTEtlTpl.suffixName.eq(suffixName)))
 						.fetchFirst();
 				if (StringUtils.isNotBlank(tplId)) {
 					exsitsFileNames += fileName + ",";
