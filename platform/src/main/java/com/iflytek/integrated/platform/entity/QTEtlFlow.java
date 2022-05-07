@@ -58,6 +58,10 @@ public class QTEtlFlow extends com.querydsl.sql.RelationalPathBase<TEtlFlow> {
 	
 	public final DateTimePath<java.util.Date> lastDebugTime = createDateTime("lastDebugTime", java.util.Date.class);
 
+	public final StringPath parentEtlGroupId = createString("parentEtlGroupId");
+	
+	public final NumberPath<Integer> alertDuration = createNumber("alertDuration", Integer.class);
+	
 	public final com.querydsl.sql.PrimaryKey<TEtlFlow> primary = createPrimaryKey(id);
 
 	public QTEtlFlow(String variable) {
@@ -106,6 +110,8 @@ public class QTEtlFlow extends com.querydsl.sql.RelationalPathBase<TEtlFlow> {
 		addMetadata(parentGroupId, ColumnMetadata.named("PARENT_GROUP_ID").withIndex(16).ofType(Types.VARCHAR).withSize(50));
 		addMetadata(maxDuration, ColumnMetadata.named("MAX_DURATION").withIndex(17).ofType(Types.INTEGER).withSize(1));
 		addMetadata(lastDebugTime, ColumnMetadata.named("last_debug_time").withIndex(18).ofType(Types.TIMESTAMP).withSize(19));
+		addMetadata(parentEtlGroupId, ColumnMetadata.named("PARENT_ETL_GROUP_ID").withIndex(19).ofType(Types.VARCHAR).withSize(50));
+		addMetadata(alertDuration, ColumnMetadata.named("alert_duration").withIndex(20).ofType(Types.INTEGER).withSize(3));
 	}
 
 }

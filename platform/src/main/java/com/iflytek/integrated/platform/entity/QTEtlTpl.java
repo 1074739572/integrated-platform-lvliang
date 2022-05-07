@@ -41,7 +41,7 @@ public class QTEtlTpl extends com.querydsl.sql.RelationalPathBase<TEtlTpl> {
 	public final StringPath updatedBy = createString("updatedBy");
 
 	public final DateTimePath<java.util.Date> updatedTime = createDateTime("updatedTime", java.util.Date.class);
-
+	
 	public final com.querydsl.sql.PrimaryKey<TEtlTpl> primary = createPrimaryKey(id);
 
 	public QTEtlTpl(String variable) {

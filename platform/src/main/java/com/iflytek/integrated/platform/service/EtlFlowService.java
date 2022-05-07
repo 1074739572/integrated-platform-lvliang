@@ -11,6 +11,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -92,10 +95,11 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 		if (StringUtils.isNotBlank(queryCondition.getFlowDesp())) {
 			list.add(qTEtlFlow.flowDesp.like("%" + queryCondition.getFlowDesp() + "%"));
 		}
+		list.add(qTEtlFlow.parentEtlGroupId.isNull());
 		QueryResults<TEtlFlow> queryResults = sqlQueryFactory.select(Projections.bean(TEtlFlow.class, qTEtlFlow.id,
 				qTEtlFlow.groupId, qTEtlFlow.flowName, qTEtlFlow.etlGroupId, qTEtlFlow.flowConfig, qTEtlFlow.flowDesp,
 				qTEtlFlow.flowTplName, qTEtlFlow.funTplNames, qTEtlFlow.status,qTEtlFlow.etlEntryGroupId,qTEtlFlow.parentGroupId,
-//				qTProject.projectCode.as("projectCode"),
+				qTEtlFlow.parentEtlGroupId,qTEtlFlow.alertDuration,
 				qTEtlFlow.maxDuration,qTEtlFlow.lastDebugTime,
 				qTEtlFlow.etlControlId,qTEtlGroup.hospitalId, qTEtlGroup.sysId, qTHospital.hospitalName.as("hospitalName"),
 				qTSys.sysName.as("sysName"))).from(qTEtlFlow).leftJoin(qTEtlGroup)
@@ -105,6 +109,26 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 				.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
 				.orderBy(qTEtlFlow.createdTime.desc()).fetchResults();
 
+		List<TEtlFlow> etlFlows = queryResults.getResults();
+		Set<String> flowids = etlFlows.stream().collect(Collectors.groupingBy(TEtlFlow::getEtlGroupId)).keySet();
+		List<TEtlFlow> childFlows = sqlQueryFactory.select(Projections.bean(TEtlFlow.class, qTEtlFlow.id,
+				qTEtlFlow.groupId, qTEtlFlow.flowName, qTEtlFlow.etlGroupId, qTEtlFlow.flowConfig, qTEtlFlow.flowDesp,
+				qTEtlFlow.flowTplName, qTEtlFlow.funTplNames, qTEtlFlow.status,qTEtlFlow.etlEntryGroupId,qTEtlFlow.parentGroupId,
+				qTEtlFlow.parentEtlGroupId,qTEtlFlow.alertDuration, 
+				qTEtlFlow.maxDuration,qTEtlFlow.lastDebugTime,
+				qTEtlFlow.etlControlId,qTEtlGroup.hospitalId, qTEtlGroup.sysId, qTHospital.hospitalName.as("hospitalName"),
+				qTSys.sysName.as("sysName"))).from(qTEtlFlow).leftJoin(qTEtlGroup)
+				.on(qTEtlFlow.groupId.eq(qTEtlGroup.id)).leftJoin(qTPlatform)
+				.on(qTEtlGroup.platformId.eq(qTPlatform.id)).leftJoin(qTSys).on(qTEtlGroup.sysId.eq(qTSys.id))
+				.leftJoin(qTHospital).on(qTEtlGroup.hospitalId.eq(qTHospital.id))
+				.where(qTEtlFlow.parentEtlGroupId.in(flowids)).fetch();
+		Map<String, List<TEtlFlow>> childflowsMap = childFlows.stream().collect(Collectors.groupingBy(TEtlFlow::getParentEtlGroupId));
+		for(TEtlFlow flow : etlFlows) {
+			String topleveletlgroupid = flow.getEtlGroupId();
+			if(childflowsMap.containsKey(topleveletlgroupid)) {
+				flow.setChildrenFlows(childflowsMap.get(topleveletlgroupid));
+			}
+		}
 		// 分页
 		TableData<TEtlFlow> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取流程列表成功", tableData);

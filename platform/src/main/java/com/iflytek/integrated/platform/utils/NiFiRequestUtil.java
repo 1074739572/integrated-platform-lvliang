@@ -547,6 +547,13 @@ public class NiFiRequestUtil {
 	public void metacacheClean(List<String> keys) {
 		try {
 			String keysContent = JackSonUtils.transferToJson(keys);
+			if(metacacheCleanUrl.contains(",")) {
+				String[] urls = metacacheCleanUrl.split(",");
+				for(String url : urls) {
+					HttpClientUtil.doPost(url, keysContent);
+				}
+				return;
+			}
 			HttpClientUtil.doPost(metacacheCleanUrl, keysContent);
 		} catch (Exception e) {
 			e.printStackTrace();

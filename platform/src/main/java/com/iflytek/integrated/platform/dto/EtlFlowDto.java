@@ -37,6 +37,12 @@ public class EtlFlowDto implements Serializable {
 	private String etlControlId;
 	
 	private Integer maxDuration;
+	
+	private String parentEtlGroupId;
+	
+	private Integer alertDuration;
+	
+	private java.util.Date lastDebugTime;
 
 	public String getId() {
 		return id;
@@ -148,6 +154,30 @@ public class EtlFlowDto implements Serializable {
 
 	public void setMaxDuration(Integer maxDuration) {
 		this.maxDuration = maxDuration;
+	}
+
+	public String getParentEtlGroupId() {
+		return parentEtlGroupId;
+	}
+
+	public void setParentEtlGroupId(String parentEtlGroupId) {
+		this.parentEtlGroupId = parentEtlGroupId;
+	}
+
+	public Integer getAlertDuration() {
+		return alertDuration;
+	}
+
+	public void setAlertDuration(Integer alertDuration) {
+		this.alertDuration = alertDuration;
+	}
+
+	public java.util.Date getLastDebugTime() {
+		return lastDebugTime;
+	}
+
+	public void setLastDebugTime(java.util.Date lastDebugTime) {
+		this.lastDebugTime = lastDebugTime;
 	}
 	
 }
