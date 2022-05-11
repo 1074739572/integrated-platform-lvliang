@@ -567,19 +567,16 @@ public class ResourceCenterService {
 
 		String dateStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
 		String sqlName = sqlFileNamePrifix + dateStr + ".sql";
-		BufferedOutputStream bos = null;
-		BufferedInputStream bis = null;
-		try {
+		String fileName = sqlName; // 每个zip文件名
+		byte[] file = sqlStringBuffer.toString().getBytes(StandardCharsets.UTF_8); // 这个zip文件的字节
+		try(
+				ZipOutputStream zos = new ZipOutputStream(response.getOutputStream());
+				BufferedOutputStream bos = new BufferedOutputStream(zos);
+				BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(file));
+		){
 			response.setContentType("application/x-msdownload");
 			response.setHeader("content-disposition", "attachment;filename=" + URLEncoder.encode(sqlFileNamePrifix + dateStr + ".zip", "utf-8"));
 
-			ZipOutputStream zos = new ZipOutputStream(response.getOutputStream());
-			bos = new BufferedOutputStream(zos);
-
-			String fileName = sqlName; // 每个zip文件名
-			byte[] file = sqlStringBuffer.toString().getBytes(StandardCharsets.UTF_8); // 这个zip文件的字节
-
-			bis = new BufferedInputStream(new ByteArrayInputStream(file));
 			zos.putNextEntry(new ZipEntry(fileName));
 
 			int len = 0;
@@ -590,21 +587,6 @@ public class ResourceCenterService {
 			bos.flush();
 		} catch (Exception e) {
 			e.printStackTrace();
-		}finally {
-			try{
-				if(bis != null){
-					bis.close();
-				}
-			}catch (Exception e){
-				e.printStackTrace();
-			}
-			try{
-				if(bos != null){
-					bos.close();
-				}
-			}catch (Exception e){
-				e.printStackTrace();
-			}
 		}
 	}
 	
@@ -817,19 +799,16 @@ public class ResourceCenterService {
 
 		String dateStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
 		String sqlName = sqlFileNamePrifix + dateStr + ".sql";
-		BufferedOutputStream bos = null;
-		BufferedInputStream bis = null;
-		try {
+		String fileName = sqlName; // 每个zip文件名
+		byte[] file = sqlStringBuffer.toString().getBytes(StandardCharsets.UTF_8); // 这个zip文件的字节
+		try(
+				ZipOutputStream zos = new ZipOutputStream(response.getOutputStream());
+				BufferedOutputStream bos = new BufferedOutputStream(zos);
+				BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(file));
+				){
 			response.setContentType("application/x-msdownload");
 			response.setHeader("content-disposition", "attachment;filename=" + URLEncoder.encode(sqlFileNamePrifix + dateStr + ".zip", "utf-8"));
 
-			ZipOutputStream zos = new ZipOutputStream(response.getOutputStream());
-			bos = new BufferedOutputStream(zos);
-
-			String fileName = sqlName; // 每个zip文件名
-			byte[] file = sqlStringBuffer.toString().getBytes(StandardCharsets.UTF_8); // 这个zip文件的字节
-
-			bis = new BufferedInputStream(new ByteArrayInputStream(file));
 			zos.putNextEntry(new ZipEntry(fileName));
 
 			int len = 0;
@@ -840,21 +819,6 @@ public class ResourceCenterService {
 			bos.flush();
 		} catch (Exception e) {
 			e.printStackTrace();
-		}finally {
-			try{
-				if(bos != null){
-					bos.close();
-				}
-			}catch (Exception e){
-				e.printStackTrace();
-			}
-			try{
-				if(bis != null){
-					bis.close();
-				}
-			}catch (Exception e){
-				e.printStackTrace();
-			}
 		}
 	}
 	private void getAllResources(StringBuilder sqlStringBuffer) {
@@ -968,22 +932,19 @@ public class ResourceCenterService {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         //获取数据库连接
-        Connection connection = sqlQueryFactory.getConnection();
-        Statement statement=null;
         StringBuilder message=new StringBuilder();
-        try {
-            statement = connection.createStatement();
+        try(Connection connection = sqlQueryFactory.getConnection()) {
             //判断是否获取到文件
             if (sqlFiles == null || sqlFiles.length == 0) {
                 return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到上传文件!", "没有获取到上传文件!");
             }
-            //sql分批sql语句
-            InputStream is=null;
             int insetNum = 0;
             for (MultipartFile file : sqlFiles) {
-                try{
+                try(
+						Statement statement = connection.createStatement();
+						InputStream is =file.getInputStream();
+				){
                     //获取字符缓冲流
-                    is =file.getInputStream();
                     InputStreamReader inputStreamReader = new InputStreamReader(is , StandardCharsets.UTF_8);
 //                    int len;
                     StringBuilder sql = new StringBuilder();
@@ -1008,12 +969,8 @@ public class ResourceCenterService {
                     //清除SQL语句
                     statement.clearBatch();
                     insetNum++;
-                    is.close();
                 }catch (Exception e){
                     connection.rollback();
-                    statement.clearBatch();
-                    if(is!=null)
-                        is.close();
                     message.append(e.getMessage());
                 }
             }
@@ -1024,17 +981,6 @@ public class ResourceCenterService {
             }
         } catch (Exception e) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "执行sql脚本失败", e.getLocalizedMessage());
-        }finally {
-            try{
-                if (connection != null) {
-                    connection.close();
-                }
-                if (statement != null) {
-                    statement.close();
-                }
-            }catch (SQLException sqlException){
-                sqlException.printStackTrace();
-            }
         }
     }
 	

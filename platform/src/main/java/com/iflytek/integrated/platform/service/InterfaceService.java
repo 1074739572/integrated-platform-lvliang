@@ -1413,45 +1413,29 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		
 		String dateStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
 		String sqlName = "interface_" + dateStr + ".sql";
-		ZipOutputStream zos = null;
-		BufferedOutputStream bos = null;
-		BufferedInputStream bis = null;
 		try {
 			response.setContentType("application/x-msdownload");
 			response.setHeader("content-disposition", "attachment;filename=" + URLEncoder.encode("interface_" + dateStr + ".zip", "utf-8"));
 
-			zos = new ZipOutputStream(response.getOutputStream());
-			bos = new BufferedOutputStream(zos);
-
 			String fileName = sqlName; // 每个zip文件名
 			byte[] file = sqlStringBuffer.toString().getBytes(StandardCharsets.UTF_8); // 这个zip文件的字节
-
-			bis = new BufferedInputStream(new ByteArrayInputStream(file));
-			zos.putNextEntry(new ZipEntry(fileName));
-
-			int len = 0;
-			byte[] buf = new byte[10 * 1024];
-			while ((len = bis.read(buf, 0, buf.length)) != -1) {
-				bos.write(buf, 0, len);
+			try(
+					ZipOutputStream zos = new ZipOutputStream(response.getOutputStream());
+					BufferedOutputStream bos = new BufferedOutputStream(zos);
+					BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(file))){
+				zos.putNextEntry(new ZipEntry(fileName));
+				int len = 0;
+				byte[] buf = new byte[10 * 1024];
+				while ((len = bis.read(buf, 0, buf.length)) != -1) {
+					bos.write(buf, 0, len);
+				}
+				bos.flush();
+			}catch (Exception e){
+				e.printStackTrace();
 			}
-			bos.flush();
+
 		} catch (Exception e) {
 			e.printStackTrace();
-		}finally {
-			try{
-				if(bis != null){
-					bis.close();
-				}
-			}catch (Exception e){
-				e.printStackTrace();
-			}
-			try{
-				if(bos != null){
-					bos.close();
-				}
-			}catch (Exception e){
-				e.printStackTrace();
-			}
 		}
 	}
 	
@@ -1599,24 +1583,21 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         //获取数据库连接
-        Connection connection = sqlQueryFactory.getConnection();
-        Statement statement=null;
         StringBuilder message=new StringBuilder();
-        try {
-            statement = connection.createStatement();
+        try(Connection connection = sqlQueryFactory.getConnection();){
+
             //判断是否获取到文件
             if (sqlFiles == null || sqlFiles.length == 0) {
                 return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到上传文件!", "没有获取到上传文件!");
             }
             //sql分批sql语句
-            InputStream is=null;
             int insetNum = 0;
             for (MultipartFile file : sqlFiles) {
-                try{
-                    //获取字符缓冲流
-                    is =file.getInputStream();
-                    InputStreamReader inputStreamReader = new InputStreamReader(is , StandardCharsets.UTF_8);
-//                  int len;
+                try(
+						Statement statement = connection.createStatement();
+						InputStream is =file.getInputStream();
+						InputStreamReader inputStreamReader = new InputStreamReader(is , StandardCharsets.UTF_8);
+						){
                     StringBuilder sql = new StringBuilder();
                     connection.setAutoCommit(false);//不自动提交
 //                  byte [] bytes=new byte[1024];
@@ -1638,12 +1619,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                     //清除SQL语句
                     statement.clearBatch();
                     insetNum++;
-                    is.close();
                 }catch (Exception e){
                     connection.rollback();
-                    statement.clearBatch();
-                    if(is!=null)
-                        is.close();
                     message.append(e.getMessage());
                 }
             }
@@ -1654,17 +1631,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             }
         } catch (Exception e) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "执行sql脚本失败", e.getLocalizedMessage());
-        }finally {
-            try{
-                if (connection != null) {
-                    connection.close();
-                }
-                if (statement != null) {
-                    statement.close();
-                }
-            }catch (SQLException sqlException){
-                sqlException.printStackTrace();
-            }
         }
     }
 

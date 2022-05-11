@@ -496,29 +496,24 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 				client.addDefaultHeader("Content-Type", "multipart/form-data");
 				client.addDefaultHeader("Accept", "application/xml");
 				for (MultipartFile multipartFile : tplFiles) {
-					InputStream is = null;
-					BufferedWriter bw = null;
-					try{
-						filename = multipartFile.getOriginalFilename();
-						is = multipartFile.getInputStream();
-						String tplContent = IOUtils.toString(is, "UTF-8");
+					filename = multipartFile.getOriginalFilename();
+
+					String tplContent = "";
+					try(InputStream is = multipartFile.getInputStream()){
+						tplContent = IOUtils.toString(is, "UTF-8");
 						file = new File(filename);
 						if (!file.exists()) {
 							file.createNewFile();
 						}
-						final FileWriter writer = new FileWriter(file);
-						bw = new BufferedWriter(writer);
+					}catch (Exception e){
+						e.printStackTrace();
+					}
+
+					try(final FileWriter writer = new FileWriter(file);BufferedWriter bw = new BufferedWriter(writer)){
 						bw.write(tplContent);
 						bw.flush();
 					}catch (Exception e){
 						e.printStackTrace();
-					}finally {
-						if(is != null){
-							is.close();
-						}
-						if(bw != null){
-							bw.close();
-						}
 					}
 
 					Call call = buildUpdateTemplateCall(uploadGroupId , client , file);
