@@ -115,12 +115,13 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 			StringTemplate st = Expressions.stringTemplate("concat(CONVERT_FROM(decode({0} , 'base64'),'UTF-8') , '|')" , qTEtlLog.errorInfo);
 			StringTemplate stg = Expressions.stringTemplate("concat(string_agg ( errorinfo, ',' :: TEXT ))");
 
-			StringTemplate qistg = Expressions.stringTemplate("concat(string_agg ( qi_result, ',' :: TEXT ))");
+			StringTemplate qist = Expressions.stringTemplate("concat(CONVERT_FROM(decode({0} , 'base64'),'UTF-8') , '|')" , qTEtlLog.QIResult);
+			StringTemplate qistg = Expressions.stringTemplate("concat(string_agg ( QIResult, ',' :: TEXT ))");
 
 			String q = "etllog";
 			StringPath queryLabel = Expressions.stringPath(q);
 			QTEtlLog qtetllogalias = new QTEtlLog(q);
-			SubQueryExpression query = SQLExpressions.select(qTEtlLog.etlGroupId.as("ETL_GROUP_ID") , qTEtlLog.exeJobId.as("EXE_JOB_ID") , st.as("errorinfo"))
+			SubQueryExpression query = SQLExpressions.select(qTEtlLog.etlGroupId.as("ETL_GROUP_ID") , qTEtlLog.exeJobId.as("EXE_JOB_ID") , st.as("errorinfo"),qist.as("QIResult"))
 					.from(qTEtlLog).orderBy(qTEtlLog.jobTime.desc());
 			qresults = sqlQueryFactory.select(Projections.bean(TEtlLog.class,
 					qTEtlLog.id.max().as("id"),qTEtlLog.etlGroupId, qTEtlLog.exeJobId, qTEtlLog.flowName.max().as("flowName"),
@@ -150,7 +151,7 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 					qTEtlLog.batchReadCount.max().as("allReadCount"),
 					qTEtlLog.batchWriteErrorcount.sum().as("allWriteErrorcount"),
 					Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.errorInfo).concat("|").as("errorInfo") ,
-					Expressions.stringTemplate("group_concat({0},'|')" , qTEtlLog.QIResult).as("QIResult") ,
+					Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.QIResult).as("QIResult") ,
 					qTProject.projectName.as("projectName"), qTPlatform.platformName.as("platformName"), qTHospital.hospitalName.as("hospitalName"),
 					qTSys.sysName.as("sysName")))
 					.from(qTEtlLog)
@@ -173,16 +174,10 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 				long execTimeSeconds = (endtime - starttime)/1000;
 				etllog.setExecTime(PlatformUtil.secondsToFormat(execTimeSeconds));
 				etllog.setStatus(etllog.getStatusCode() == 1 ? "成功" : "失败");
-
-				String QIResult = decryptAndFilterSensitive((etllog.getQIResult()));
-				if (org.apache.commons.lang.StringUtils.isNotBlank(QIResult)) {
-					QIResult = QIResult.length() > 5000 ? QIResult.substring(0, 5000) + "......" : QIResult;
-				}
-				etllog.setQIResult(QIResult);
 			}
 		}
 		// 分页
-		TableData<TEtlLog> tableData = new TableData<>(qresults.getTotal(), results);
+		TableData<TEtlLog> tableData = new TableData<>(qresults == null?0:qresults.getTotal(), results);
 //		TableData<TEtlLog> tableData = new TableData<>(size, results);
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取日志列表成功", tableData);
 	}
@@ -194,12 +189,13 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 			StringTemplate st = Expressions.stringTemplate("concat(CONVERT_FROM(decode({0} , 'base64'),'UTF-8') , '|')" , qTEtlLog.errorInfo);
 			StringTemplate stg = Expressions.stringTemplate("concat(string_agg ( errorinfo, ',' :: TEXT ))");
 
-			StringTemplate qistg = Expressions.stringTemplate("concat(string_agg ( qi_result, ',' :: TEXT ))");
+			StringTemplate qist = Expressions.stringTemplate("concat(CONVERT_FROM(decode({0} , 'base64'),'UTF-8') , '|')" , qTEtlLog.QIResult);
+			StringTemplate qistg = Expressions.stringTemplate("concat(string_agg ( QIResult, ',' :: TEXT ))");
 
 			String q = "etllog";
 			StringPath queryLabel = Expressions.stringPath(q);
 			QTEtlLog qtetllogalias = new QTEtlLog(q);
-			SubQueryExpression query = SQLExpressions.select(qTEtlLog.etlGroupId.as("ETL_GROUP_ID") , qTEtlLog.exeJobId.as("EXE_JOB_ID") , st.as("errorinfo"))
+			SubQueryExpression query = SQLExpressions.select(qTEtlLog.etlGroupId.as("ETL_GROUP_ID") , qTEtlLog.exeJobId.as("EXE_JOB_ID") , st.as("errorinfo"), qist.as("QIResult"))
 					.from(qTEtlLog).orderBy(qTEtlLog.jobTime.desc());
 			qresults = sqlQueryFactory.select(Projections.bean(TEtlLog.class,
 					qTEtlLog.id.max().as("id"),qTEtlLog.etlGroupId, qTEtlLog.exeJobId, qTEtlLog.flowName.max().as("flowName"),
@@ -223,7 +219,7 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 					qTEtlLog.batchReadCount.max().as("allReadCount"),
 					qTEtlLog.batchWriteErrorcount.sum().as("allWriteErrorcount"),
 					Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.errorInfo).concat("|").as("errorInfo"),
-					Expressions.stringTemplate("group_concat({0},'|')" , qTEtlLog.QIResult).as("QIResult")))
+					Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.QIResult).as("QIResult")))
 					.from(qTEtlLog)
 					.groupBy(qTEtlLog.etlGroupId , qTEtlLog.exeJobId)
 					.limit(pageSize).offset((pageNo - 1) * pageSize)
@@ -239,11 +235,6 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 				long execTimeSeconds = (endtime - starttime)/1000;
 				etllog.setExecTime(PlatformUtil.secondsToFormat(execTimeSeconds));
 				etllog.setStatus(etllog.getStatusCode() == 1 ? "成功" : "失败");
-				String QIResult = decryptAndFilterSensitive((etllog.getQIResult()));
-				if (org.apache.commons.lang.StringUtils.isNotBlank(QIResult)) {
-					QIResult = QIResult.length() > 5000 ? QIResult.substring(0, 5000) + "......" : QIResult;
-				}
-				etllog.setQIResult(QIResult);
 				//
 				EtlLogInfoDto info = sqlQueryFactory
 						.select(Projections.bean(EtlLogInfoDto.class,
@@ -267,7 +258,7 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 			}
 		}
 		// 分页
-		TableData<TEtlLog> tableData = new TableData<>(qresults.getTotal(), results);
+		TableData<TEtlLog> tableData = new TableData<>(qresults == null?0:qresults.getTotal(), results);
 //		TableData<TEtlLog> tableData = new TableData<>(size, results);
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取日志列表成功", tableData);
 	}

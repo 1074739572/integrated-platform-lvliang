@@ -6,6 +6,7 @@ import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * TDrive is a Querydsl bean type
@@ -146,7 +147,7 @@ public class TDrive implements Serializable {
         this.name = name;
     }
 
-	@Override
+    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;
@@ -160,6 +161,11 @@ public class TDrive implements Serializable {
             }
         }
         return super.equals(obj);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, typeId, driveName, driveCode, driveInstruction, driveContent, createdBy, createdTime, updatedBy, updatedTime, driveTypeName, name, driveCallType, driveCallTypeName, dependentPath);
     }
 
     public String getDriveCallType() {

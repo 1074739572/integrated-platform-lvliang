@@ -6,6 +6,7 @@ import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * TPlugin is a Querydsl bean type
@@ -166,6 +167,11 @@ public class TPlugin implements Serializable {
             }
         }
         return super.equals(obj);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, typeId, pluginName, pluginCode, pluginInstruction, pluginContent, createdBy, createdTime, updatedBy, updatedTime, pluginTypeName, pluginId, name, dependentPath);
     }
 
     public String getDependentPath() {

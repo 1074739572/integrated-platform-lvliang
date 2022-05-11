@@ -1010,12 +1010,16 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			for (int i = 0; i < list.size(); i++) {
 				TBusinessInterface tbi = list.get(i);
 				TInterface tInterface = interfaceService.getOne(tbi.getRequestInterfaceId());
+				if(StringUtils.isBlank(tbi.getRequestedSysconfigId())){
+					continue;
+				}
 				TSysConfig tSysConfig = sysConfigService.getOne(tbi.getRequestedSysconfigId());
 				TSys requestedSys = sysService.getOne(tSysConfig.getSysId());
 				tbi.setRequestedSysId(requestedSys.getId());
+
 				businessInterfaceName += (requestedSys.getSysName()+"/"+tbi.getBusinessInterfaceName()+",");
-				TSysConfig requestedSysConfig = sysConfigService.getOne(tbi.getRequestedSysconfigId());
-				versionId += (requestedSysConfig.getVersionId()+",");
+//				TSysConfig requestedSysConfig = sysConfigService.getOne(tbi.getRequestedSysconfigId());
+				versionId += (tSysConfig.getVersionId()+",");
 				if(StringUtils.isBlank(requestInterfaceName)){
 					TSysConfig reqConfig = sysConfigService.getOne(dto.getRequestSysconfigId());
 					TSys tSys = sysService.getOne(reqConfig.getSysId());
@@ -1257,8 +1261,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "数据获取成功!", allinterfaces);
 		}
 		// 去除当前项目下的接口
-		interfaces.removeAll(interfaces);
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "数据获取成功!", interfaces);
+		if(allinterfaces != null){
+			allinterfaces.removeAll(interfaces);
+		}
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "数据获取成功!", allinterfaces);
 	}
 
 	@ApiOperation(value = "根据参数模板（json）获取key-value", notes = "根据参数模板（json）获取key-value")
@@ -1407,17 +1413,20 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 		
 		String dateStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
 		String sqlName = "interface_" + dateStr + ".sql";
+		ZipOutputStream zos = null;
+		BufferedOutputStream bos = null;
+		BufferedInputStream bis = null;
 		try {
 			response.setContentType("application/x-msdownload");
 			response.setHeader("content-disposition", "attachment;filename=" + URLEncoder.encode("interface_" + dateStr + ".zip", "utf-8"));
 
-			ZipOutputStream zos = new ZipOutputStream(response.getOutputStream());
-			BufferedOutputStream bos = new BufferedOutputStream(zos);
+			zos = new ZipOutputStream(response.getOutputStream());
+			bos = new BufferedOutputStream(zos);
 
 			String fileName = sqlName; // 每个zip文件名
 			byte[] file = sqlStringBuffer.toString().getBytes(StandardCharsets.UTF_8); // 这个zip文件的字节
 
-			BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(file));
+			bis = new BufferedInputStream(new ByteArrayInputStream(file));
 			zos.putNextEntry(new ZipEntry(fileName));
 
 			int len = 0;
@@ -1425,11 +1434,24 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			while ((len = bis.read(buf, 0, buf.length)) != -1) {
 				bos.write(buf, 0, len);
 			}
-			bis.close();
 			bos.flush();
-			bos.close();
 		} catch (Exception e) {
 			e.printStackTrace();
+		}finally {
+			try{
+				if(bis != null){
+					bis.close();
+				}
+			}catch (Exception e){
+				e.printStackTrace();
+			}
+			try{
+				if(bos != null){
+					bos.close();
+				}
+			}catch (Exception e){
+				e.printStackTrace();
+			}
 		}
 	}
 	

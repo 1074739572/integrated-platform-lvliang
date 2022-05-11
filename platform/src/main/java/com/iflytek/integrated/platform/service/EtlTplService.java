@@ -264,31 +264,47 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 				filesMap.put(fileName, tplContent.getBytes());
 			});
 		}
+		ZipOutputStream zos = null;
+		BufferedOutputStream bos = null;
 		try {
 			response.setContentType("application/x-msdownload");
 			response.setHeader("content-disposition", "attachment;filename=" + URLEncoder.encode(tplsZipName, "utf-8"));
 
-			ZipOutputStream zos = new ZipOutputStream(response.getOutputStream());
-			BufferedOutputStream bos = new BufferedOutputStream(zos);
+			zos = new ZipOutputStream(response.getOutputStream());
+			bos = new BufferedOutputStream(zos);
 
 			for (Entry<String, byte[]> entry : filesMap.entrySet()) {
 				String fileName = entry.getKey(); // 每个zip文件名
 				byte[] file = entry.getValue(); // 这个zip文件的字节
-
-				BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(file));
-				zos.putNextEntry(new ZipEntry(fileName));
-
-				int len = 0;
-				byte[] buf = new byte[10 * 1024];
-				while ((len = bis.read(buf, 0, buf.length)) != -1) {
-					bos.write(buf, 0, len);
+				BufferedInputStream bis = null;
+				try{
+					bis = new BufferedInputStream(new ByteArrayInputStream(file));
+					zos.putNextEntry(new ZipEntry(fileName));
+					int len = 0;
+					byte[] buf = new byte[10 * 1024];
+					while ((len = bis.read(buf, 0, buf.length)) != -1) {
+						bos.write(buf, 0, len);
+					}
+				}catch (Exception e){
+					e.printStackTrace();
+				}finally {
+					if(bis != null){
+						bis.close();
+					}
 				}
-				bis.close();
 				bos.flush();
 			}
-			bos.close();
 		} catch (Exception e) {
 			e.printStackTrace();
+		}finally {
+			try{
+				if(bos != null){
+					bos.close();
+				}
+			}catch (Exception e){
+
+			}
+
 		}
 	}
 
@@ -480,21 +496,31 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 				client.addDefaultHeader("Content-Type", "multipart/form-data");
 				client.addDefaultHeader("Accept", "application/xml");
 				for (MultipartFile multipartFile : tplFiles) {
-					filename = multipartFile.getOriginalFilename();
-					InputStream is = multipartFile.getInputStream();
-					String tplContent = IOUtils.toString(is, "UTF-8");
-					is.close();
-
-					file = new File(filename);
-					if (!file.exists()) {
-						file.createNewFile();
+					InputStream is = null;
+					BufferedWriter bw = null;
+					try{
+						filename = multipartFile.getOriginalFilename();
+						is = multipartFile.getInputStream();
+						String tplContent = IOUtils.toString(is, "UTF-8");
+						file = new File(filename);
+						if (!file.exists()) {
+							file.createNewFile();
+						}
+						final FileWriter writer = new FileWriter(file);
+						bw = new BufferedWriter(writer);
+						bw.write(tplContent);
+						bw.flush();
+					}catch (Exception e){
+						e.printStackTrace();
+					}finally {
+						if(is != null){
+							is.close();
+						}
+						if(bw != null){
+							bw.close();
+						}
 					}
-					final FileWriter writer = new FileWriter(file);
-					BufferedWriter bw = new BufferedWriter(writer);
-					bw.write(tplContent);
-					bw.flush();
-					writer.close();
-					bw.close();
+
 					Call call = buildUpdateTemplateCall(uploadGroupId , client , file);
 					Type localVarReturnType = new TypeToken<String>(){}.getType();
 					

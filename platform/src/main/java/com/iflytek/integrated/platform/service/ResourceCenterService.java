@@ -567,17 +567,19 @@ public class ResourceCenterService {
 
 		String dateStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
 		String sqlName = sqlFileNamePrifix + dateStr + ".sql";
+		BufferedOutputStream bos = null;
+		BufferedInputStream bis = null;
 		try {
 			response.setContentType("application/x-msdownload");
 			response.setHeader("content-disposition", "attachment;filename=" + URLEncoder.encode(sqlFileNamePrifix + dateStr + ".zip", "utf-8"));
 
 			ZipOutputStream zos = new ZipOutputStream(response.getOutputStream());
-			BufferedOutputStream bos = new BufferedOutputStream(zos);
+			bos = new BufferedOutputStream(zos);
 
 			String fileName = sqlName; // 每个zip文件名
 			byte[] file = sqlStringBuffer.toString().getBytes(StandardCharsets.UTF_8); // 这个zip文件的字节
 
-			BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(file));
+			bis = new BufferedInputStream(new ByteArrayInputStream(file));
 			zos.putNextEntry(new ZipEntry(fileName));
 
 			int len = 0;
@@ -585,11 +587,24 @@ public class ResourceCenterService {
 			while ((len = bis.read(buf, 0, buf.length)) != -1) {
 				bos.write(buf, 0, len);
 			}
-			bis.close();
 			bos.flush();
-			bos.close();
 		} catch (Exception e) {
 			e.printStackTrace();
+		}finally {
+			try{
+				if(bis != null){
+					bis.close();
+				}
+			}catch (Exception e){
+				e.printStackTrace();
+			}
+			try{
+				if(bos != null){
+					bos.close();
+				}
+			}catch (Exception e){
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -802,17 +817,19 @@ public class ResourceCenterService {
 
 		String dateStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
 		String sqlName = sqlFileNamePrifix + dateStr + ".sql";
+		BufferedOutputStream bos = null;
+		BufferedInputStream bis = null;
 		try {
 			response.setContentType("application/x-msdownload");
 			response.setHeader("content-disposition", "attachment;filename=" + URLEncoder.encode(sqlFileNamePrifix + dateStr + ".zip", "utf-8"));
 
 			ZipOutputStream zos = new ZipOutputStream(response.getOutputStream());
-			BufferedOutputStream bos = new BufferedOutputStream(zos);
+			bos = new BufferedOutputStream(zos);
 
 			String fileName = sqlName; // 每个zip文件名
 			byte[] file = sqlStringBuffer.toString().getBytes(StandardCharsets.UTF_8); // 这个zip文件的字节
 
-			BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(file));
+			bis = new BufferedInputStream(new ByteArrayInputStream(file));
 			zos.putNextEntry(new ZipEntry(fileName));
 
 			int len = 0;
@@ -820,11 +837,24 @@ public class ResourceCenterService {
 			while ((len = bis.read(buf, 0, buf.length)) != -1) {
 				bos.write(buf, 0, len);
 			}
-			bis.close();
 			bos.flush();
-			bos.close();
 		} catch (Exception e) {
 			e.printStackTrace();
+		}finally {
+			try{
+				if(bos != null){
+					bos.close();
+				}
+			}catch (Exception e){
+				e.printStackTrace();
+			}
+			try{
+				if(bis != null){
+					bis.close();
+				}
+			}catch (Exception e){
+				e.printStackTrace();
+			}
 		}
 	}
 	private void getAllResources(StringBuilder sqlStringBuffer) {

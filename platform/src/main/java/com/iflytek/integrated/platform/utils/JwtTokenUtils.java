@@ -113,7 +113,8 @@ public class JwtTokenUtils {
 
             String lastToken = "";
             if(JwtTokenUtils.isExpiration(token)){
-                lastToken = JwtTokenUtils.refreshExp("admin", token, 86400 * 1000 * 5);
+                long exp = 86400 * 1000 * 5;
+                lastToken = JwtTokenUtils.refreshExp("admin", token, exp);
             }
             if(lastToken == ""){
                 //未过期，不创建新token
