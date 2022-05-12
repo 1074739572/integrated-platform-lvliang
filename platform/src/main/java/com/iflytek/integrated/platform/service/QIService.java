@@ -5,6 +5,9 @@ import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
+import com.iflytek.integrated.platform.common.RedisService;
+import com.iflytek.integrated.platform.dto.RedisDto;
+import com.iflytek.integrated.platform.dto.RedisKeyDto;
 import com.iflytek.integrated.platform.entity.TPlugin;
 import com.iflytek.integrated.platform.entity.TQI;
 import com.iflytek.medicalboot.core.id.BatchUidService;
@@ -23,6 +26,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
 import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
 import static com.iflytek.integrated.platform.entity.QTQI.qi;
 
@@ -37,6 +41,9 @@ public class QIService extends BaseService<TQI,String, StringPath> {
 
     @Autowired
     private BusinessInterfaceService businessInterfaceService;
+
+    @Autowired
+    private RedisService redisService;
 
     public QIService() {super(qi, qi.QIId);}
 
@@ -104,6 +111,11 @@ public class QIService extends BaseService<TQI,String, StringPath> {
             tqi.setQIId(QIId.toString());
             this.put(QIId.toString(),tqi);
             msg = "已修改!";
+            // redis缓存信息获取
+            ArrayList<Predicate> arr = new ArrayList<>();
+            arr.add(qTBusinessInterface.QIId.in(tqi.getQIId()));
+            List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,msg, new RedisDto(redisKeyDtoList).toString());
         }else{
             //新增
             if(record != null){
@@ -112,9 +124,8 @@ public class QIService extends BaseService<TQI,String, StringPath> {
             tqi.setQIId(batchUidService.getUid(qi.getTableName())+"");
             this.post(tqi);
             msg = "已新增!";
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, msg);
         }
-
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, msg);
     }
 
 
@@ -134,8 +145,12 @@ public class QIService extends BaseService<TQI,String, StringPath> {
             if(businessInterfaceService.selectByQIId(QIId.toString()) > 0){
                 return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该质检脚本已被使用，不可删除！");
             }
+            //redis缓存信息获取
+            ArrayList<Predicate> arr = new ArrayList<>();
+            arr.add(qTBusinessInterface.QIId.in(QIId.toString()));
+            List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
             this.delete(QIId.toString());
-            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "已删除!");
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "已删除!",new RedisDto(redisKeyDtoList).toString());
         }else{
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "QIId不能为空！");
         }
