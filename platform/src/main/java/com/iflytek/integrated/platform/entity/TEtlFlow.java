@@ -3,6 +3,7 @@ package com.iflytek.integrated.platform.entity;
 import org.springframework.data.annotation.Transient;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * TEtlFlow is a Querydsl bean type
@@ -18,6 +19,8 @@ public class TEtlFlow implements Serializable {
     private String flowName;
 
     private String etlGroupId;
+    
+    private String parentEtlGroupId;
 
     private String flowConfig;
     
@@ -61,6 +64,10 @@ public class TEtlFlow implements Serializable {
     private Integer maxDuration;
     
     private java.util.Date lastDebugTime;
+    
+    private Integer alertDuration;
+    
+    private List<TEtlFlow> childrenFlows;
 
 	public String getId() {
 		return id;
@@ -92,6 +99,14 @@ public class TEtlFlow implements Serializable {
 
 	public void setEtlGroupId(String etlGroupId) {
 		this.etlGroupId = etlGroupId;
+	}
+
+	public String getParentEtlGroupId() {
+		return parentEtlGroupId;
+	}
+
+	public void setParentEtlGroupId(String parentEtlGroupId) {
+		this.parentEtlGroupId = parentEtlGroupId;
 	}
 
 	public String getFlowConfig() {
@@ -252,6 +267,22 @@ public class TEtlFlow implements Serializable {
 
 	public void setLastDebugTime(java.util.Date lastDebugTime) {
 		this.lastDebugTime = lastDebugTime;
+	}
+
+	public Integer getAlertDuration() {
+		return alertDuration;
+	}
+
+	public void setAlertDuration(Integer alertDuration) {
+		this.alertDuration = alertDuration;
+	}
+
+	public List<TEtlFlow> getChildrenFlows() {
+		return childrenFlows;
+	}
+
+	public void setChildrenFlows(List<TEtlFlow> childrenFlows) {
+		this.childrenFlows = childrenFlows;
 	}
 	
 }
