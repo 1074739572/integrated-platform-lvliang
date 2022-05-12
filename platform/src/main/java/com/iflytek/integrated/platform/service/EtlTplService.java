@@ -120,7 +120,10 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 		if (StringUtils.isNotBlank(tplName)) {
 			conditon = conditon.and(qTEtlTpl.tplName.like("%" + tplName + "%"));
 		}
-		List<TEtlTpl> queryResults = sqlQueryFactory.select(qTEtlTpl).from(qTEtlTpl).where(conditon)
+		List<TEtlTpl> queryResults = sqlQueryFactory.select(Projections.bean(TEtlTpl.class, qTEtlTpl.id, qTEtlTpl.tplType,
+						qTEtlTpl.tplName,qTEtlTpl.suffixName,qTEtlTpl.tplContent,
+						qTEtlTpl.tplFunType, qTEtlTpl.tplDesp, qTEtlTpl.createdBy, qTEtlTpl.createdTime,
+						qTEtlTpl.updatedBy, qTEtlTpl.updatedTime)).from(qTEtlTpl).where(conditon)
 				.orderBy(qTEtlTpl.createdTime.desc()).fetch();
 
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "", queryResults);
