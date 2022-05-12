@@ -261,12 +261,13 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
         for (int i = 0; i < list.size(); i++) {
             TBusinessInterface tbi = list.get(i);
             TInterface tInterface = interfaceService.getOne(tbi.getRequestInterfaceId());
-            TSysConfig tSysConfig = sysConfigService.getOne(tbi.getRequestedSysconfigId());
-            TSys requestedSys = sysService.getOne(tSysConfig.getSysId());
-            tbi.setRequestedSysId(requestedSys.getId());
-            businessInterfaceName += (requestedSys.getSysName()+"/"+tbi.getBusinessInterfaceName()+",");
-            TSysConfig requestedSysConfig = sysConfigService.getOne(tbi.getRequestedSysconfigId());
-            versionId += (requestedSysConfig.getVersionId()+",");
+            if(StringUtils.isNotBlank(tbi.getRequestSysconfigId())){
+                TSysConfig tSysConfig = sysConfigService.getOne(tbi.getRequestedSysconfigId());
+                TSys requestedSys = sysService.getOne(tSysConfig.getSysId());
+                tbi.setRequestedSysId(requestedSys.getId());
+                businessInterfaceName += (requestedSys.getSysName()+"/"+tbi.getBusinessInterfaceName()+",");
+                versionId += (tSysConfig.getVersionId()+",");
+            }
             if(StringUtils.isBlank(typeId)){
                 typeId = tInterface.getTypeId();
             }

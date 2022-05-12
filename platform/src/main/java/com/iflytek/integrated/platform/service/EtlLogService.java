@@ -127,7 +127,7 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 					qTEtlLog.id.max().as("id"),qTEtlLog.etlGroupId, qTEtlLog.exeJobId, qTEtlLog.flowName.max().as("flowName"),
 					qTEtlLog.createdTime.max().as("createdTime"),
 					qTEtlLog.jobTime.max().as("jobTime"),
-					qTEtlLog.status.sum().as("statusCode"),
+					qTEtlLog.status.max().as("statusCode"),
 					qTEtlLog.batchReadCount.max().as("allReadCount"),
 					qTEtlLog.batchWriteErrorcount.sum().as("allWriteErrorcount"),
 					stg.as("errorInfo"),qistg.as("QIResult"),qTProject.projectName.max().as("projectName"), qTPlatform.platformName.max().as("platformName"), qTHospital.hospitalName.max().as("hospitalName"),
@@ -147,11 +147,11 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 					qTEtlLog.id.max().as("id"),qTEtlLog.etlGroupId, qTEtlLog.exeJobId, qTEtlLog.flowName,
 					qTEtlLog.createdTime.max().as("createdTime"),
 					qTEtlLog.jobTime.max().as("jobTime"),
-					qTEtlLog.status.sum().as("statusCode"),
+					qTEtlLog.status.max().as("statusCode"),
 					qTEtlLog.batchReadCount.max().as("allReadCount"),
 					qTEtlLog.batchWriteErrorcount.sum().as("allWriteErrorcount"),
 					Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.errorInfo).concat("|").as("errorInfo") ,
-					Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.QIResult).as("QIResult") ,
+					Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.QIResult).concat("|").as("QIResult") ,
 					qTProject.projectName.as("projectName"), qTPlatform.platformName.as("platformName"), qTHospital.hospitalName.as("hospitalName"),
 					qTSys.sysName.as("sysName")))
 					.from(qTEtlLog)
@@ -201,7 +201,7 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 					qTEtlLog.id.max().as("id"),qTEtlLog.etlGroupId, qTEtlLog.exeJobId, qTEtlLog.flowName.max().as("flowName"),
 					qTEtlLog.createdTime.max().as("createdTime"),
 					qTEtlLog.jobTime.max().as("jobTime"),
-					qTEtlLog.status.sum().as("statusCode"),
+					qTEtlLog.status.max().as("statusCode"),
 					qTEtlLog.batchReadCount.max().as("allReadCount"),
 					qTEtlLog.batchWriteErrorcount.sum().as("allWriteErrorcount"),
 					stg.as("errorInfo"),qistg.as("QIResult")))
@@ -215,11 +215,11 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 					qTEtlLog.id.max().as("id"),qTEtlLog.etlGroupId, qTEtlLog.exeJobId, qTEtlLog.flowName,
 					qTEtlLog.createdTime.max().as("createdTime"),
 					qTEtlLog.jobTime.max().as("jobTime"),
-					qTEtlLog.status.sum().as("statusCode"),
+					qTEtlLog.status.max().as("statusCode"),
 					qTEtlLog.batchReadCount.max().as("allReadCount"),
 					qTEtlLog.batchWriteErrorcount.sum().as("allWriteErrorcount"),
 					Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.errorInfo).concat("|").as("errorInfo"),
-					Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.QIResult).as("QIResult")))
+					Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.QIResult).concat("|").as("QIResult")))
 					.from(qTEtlLog)
 					.groupBy(qTEtlLog.etlGroupId , qTEtlLog.exeJobId)
 					.limit(pageSize).offset((pageNo - 1) * pageSize)

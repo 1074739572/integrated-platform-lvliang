@@ -884,11 +884,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据项目id,系统id,请求方接口id匹配到该条件数据已存在!", null);
 		}
 
-		String businessInterfaceName = "";
-		String versionId = "";
-		Integer interfaceSlowFlag = null;
-		Integer replayFlag = null;
-		String requestInterfaceName = tSys.getSysName()+"/"+tInterface.getInterfaceName();
 		tbiList = dto.getBusinessInterfaceList();
 		String returnId = "";
 		for (int i = 0; i < tbiList.size(); i++) {
@@ -914,38 +909,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			if(StringUtils.isBlank(returnId)) {
 				returnId = tbi.getId();
 			}
-			if(interfaceSlowFlag == null){
-				interfaceSlowFlag = tbi.getInterfaceSlowFlag();
-			}
-			if(replayFlag == null){
-				replayFlag = tbi.getReplayFlag();
-			}
-			TSys requestedSys = sysService.getOne(tbi.getRequestedSysId());
-			businessInterfaceName += (requestedSys.getSysName()+"/"+tbi.getBusinessInterfaceName()+",");
-			TSysConfig requestedSysConfig = sysConfigService.getOne(tbi.getRequestedSysconfigId());
-			versionId += (requestedSysConfig.getVersionId()+",");
 		}
-		if(businessInterfaceName.endsWith(",")){
-			businessInterfaceName = businessInterfaceName.substring(0,businessInterfaceName.length()-1);
-		}
-		if(versionId.endsWith(",")){
-			versionId = versionId.substring(0,versionId.length()-1);
-		}
-
-		//插入历史记录
-		String recordId = requestSysConfigId+","+dto.getRequestInterfaceId();
-		Map map = new HashMap();
-		map.put("requestSysConfigId",requestSysConfigId);
-		map.put("requestInterfaceId",dto.getRequestInterfaceId());
-		map.put("businessInterfaceName",businessInterfaceName);
-		map.put("requestInterfaceName",requestInterfaceName);
-		map.put("versionId",versionId);
-		map.put("requestSysId",tInterface.getSysId());
-		map.put("requestInterfaceTypeId",tInterface.getTypeId());
-		map.put("interfaceSlowFlag",interfaceSlowFlag);
-		map.put("replayFlag",replayFlag);
-		String hisShow = JSON.toJSONString(map);
-		historyService.insertHis(tbiList,1,loginUserName,null,recordId,hisShow);
 
 		Map<String , String> data = new HashMap<String , String>();
 		data.put("id", returnId);
@@ -1010,16 +974,13 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 			for (int i = 0; i < list.size(); i++) {
 				TBusinessInterface tbi = list.get(i);
 				TInterface tInterface = interfaceService.getOne(tbi.getRequestInterfaceId());
-				if(StringUtils.isBlank(tbi.getRequestedSysconfigId())){
-					continue;
+				if(StringUtils.isNotBlank(tbi.getRequestedSysconfigId())){
+					TSysConfig tSysConfig = sysConfigService.getOne(tbi.getRequestedSysconfigId());
+					TSys requestedSys = sysService.getOne(tSysConfig.getSysId());
+					tbi.setRequestedSysId(requestedSys.getId());
+					businessInterfaceName += (requestedSys.getSysName()+"/"+tbi.getBusinessInterfaceName()+",");
+					versionId += (tSysConfig.getVersionId()+",");
 				}
-				TSysConfig tSysConfig = sysConfigService.getOne(tbi.getRequestedSysconfigId());
-				TSys requestedSys = sysService.getOne(tSysConfig.getSysId());
-				tbi.setRequestedSysId(requestedSys.getId());
-
-				businessInterfaceName += (requestedSys.getSysName()+"/"+tbi.getBusinessInterfaceName()+",");
-//				TSysConfig requestedSysConfig = sysConfigService.getOne(tbi.getRequestedSysconfigId());
-				versionId += (tSysConfig.getVersionId()+",");
 				if(StringUtils.isBlank(requestInterfaceName)){
 					TSysConfig reqConfig = sysConfigService.getOne(dto.getRequestSysconfigId());
 					TSys tSys = sysService.getOne(reqConfig.getSysId());
