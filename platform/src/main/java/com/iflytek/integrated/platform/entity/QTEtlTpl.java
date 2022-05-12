@@ -2,6 +2,7 @@ package com.iflytek.integrated.platform.entity;
 
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.PathMetadata;
+import com.querydsl.core.types.dsl.ArrayPath;
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
@@ -41,6 +42,8 @@ public class QTEtlTpl extends com.querydsl.sql.RelationalPathBase<TEtlTpl> {
 	public final StringPath updatedBy = createString("updatedBy");
 
 	public final DateTimePath<java.util.Date> updatedTime = createDateTime("updatedTime", java.util.Date.class);
+	
+	public final ArrayPath<byte[], Byte> tplContentZip = createArray("tplContentZip", byte[].class);
 	
 	public final com.querydsl.sql.PrimaryKey<TEtlTpl> primary = createPrimaryKey(id);
 
@@ -83,6 +86,8 @@ public class QTEtlTpl extends com.querydsl.sql.RelationalPathBase<TEtlTpl> {
 		addMetadata(updatedTime,
 				ColumnMetadata.named("UPDATED_TIME").withIndex(10).ofType(Types.TIMESTAMP).withSize(19));
 		addMetadata(suffixName, ColumnMetadata.named("SUFFIX_NAME").withIndex(11).ofType(Types.VARCHAR).withSize(10));
+		addMetadata(tplContentZip, ColumnMetadata.named("TPL_CONTENT_ZIP").withIndex(12).ofType(Types.BLOB));
+		
 	}
 
 }

@@ -150,7 +150,16 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 				String fileName = originalFilename.substring(0, originalFilename.lastIndexOf("."));
 				String suffixName = originalFilename.substring(originalFilename.lastIndexOf("."));
 				InputStream is = file.getInputStream();
-				String tplContent = IOUtils.toString(is, "UTF-8");
+				byte[] zipcontent = null;
+				String tplContent = "";
+				if(".zip".equals(suffixName)) {
+//					InputStreamReader isr = new InputStreamReader(is);
+					zipcontent = IOUtils.toByteArray(is);
+//					isr.close();
+				}else {
+					tplContent = IOUtils.toString(is, "UTF-8");
+				}
+				
 				is.close();
 				String tplId = sqlQueryFactory.select(qTEtlTpl.id).from(qTEtlTpl).where(qTEtlTpl.tplName.eq(fileName).and(qTEtlTpl.suffixName.eq(suffixName)))
 						.fetchFirst();
@@ -160,7 +169,8 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 				}
 				String id = batchUidService.getUid(qTEtlTpl.getTableName()) + "";
 				insertClause.set(qTEtlTpl.id, id).set(qTEtlTpl.tplName, fileName).set(qTEtlTpl.suffixName, suffixName)
-						.set(qTEtlTpl.tplType, tplType).set(qTEtlTpl.tplFunType, tplFunType).set(qTEtlTpl.tplContent, tplContent)
+						.set(qTEtlTpl.tplType, tplType).set(qTEtlTpl.tplFunType, tplFunType)
+						.set(qTEtlTpl.tplContent, tplContent).set(qTEtlTpl.tplContentZip, zipcontent)
 						.set(qTEtlTpl.tplDesp, tplDesp)
 						.set(qTEtlTpl.createdBy, loginUserName != null ? loginUserName : "")
 						.set(qTEtlTpl.createdTime, new Date())

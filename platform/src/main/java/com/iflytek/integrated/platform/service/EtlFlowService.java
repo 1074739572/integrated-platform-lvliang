@@ -127,6 +127,8 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 			String topleveletlgroupid = flow.getEtlGroupId();
 			if(childflowsMap.containsKey(topleveletlgroupid)) {
 				flow.setChildrenFlows(childflowsMap.get(topleveletlgroupid));
+			}else {
+				flow.setChildrenFlows(null);
 			}
 		}
 		// 分页
