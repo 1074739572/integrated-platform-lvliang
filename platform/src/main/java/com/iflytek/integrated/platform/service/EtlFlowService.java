@@ -95,7 +95,7 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 		if (StringUtils.isNotBlank(queryCondition.getFlowDesp())) {
 			list.add(qTEtlFlow.flowDesp.like("%" + queryCondition.getFlowDesp() + "%"));
 		}
-		list.add(qTEtlFlow.parentEtlGroupId.isNull());
+		list.add(qTEtlFlow.parentEtlGroupId.eq("0"));
 		QueryResults<TEtlFlow> queryResults = sqlQueryFactory.select(Projections.bean(TEtlFlow.class, qTEtlFlow.id,
 				qTEtlFlow.groupId, qTEtlFlow.flowName, qTEtlFlow.etlGroupId, qTEtlFlow.flowConfig, qTEtlFlow.flowDesp,
 				qTEtlFlow.flowTplName, qTEtlFlow.funTplNames, qTEtlFlow.status,qTEtlFlow.etlEntryGroupId,qTEtlFlow.parentGroupId,
