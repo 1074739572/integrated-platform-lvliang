@@ -29,7 +29,9 @@ public class TEtlLog implements Serializable {
 	private Integer batchReadCount;
 	
 	private Integer batchWriteErrorcount;
-	
+
+	private Integer effectWriteCount;
+
 	@JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone="GMT+8")
 	private Date createdTime;
 	
@@ -62,6 +64,9 @@ public class TEtlLog implements Serializable {
 	
 	@Transient
 	private Integer allWriteErrorcount;
+
+	@Transient
+	private Integer allEffectWriteCount;
 	
 	private List<TEtlLog> batchErrorLogs;
 	
@@ -234,6 +239,21 @@ public class TEtlLog implements Serializable {
 	public void setBatchErrorLogs(List<TEtlLog> batchErrorLogs) {
 		this.batchErrorLogs = batchErrorLogs;
 	}
-	
+
+	public Integer getAllEffectWriteCount() {
+		return allEffectWriteCount;
+	}
+
+	public void setAllEffectWriteCount(Integer allEffectWriteCount) {
+		this.allEffectWriteCount = allEffectWriteCount;
+	}
+
+	public Integer getEffectWriteCount() {
+		return effectWriteCount;
+	}
+
+	public void setEffectWriteCount(Integer effectWriteCount) {
+		this.effectWriteCount = effectWriteCount;
+	}
 }
 

@@ -130,6 +130,7 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 					qTEtlLog.status.max().as("statusCode"),
 					qTEtlLog.batchReadCount.max().as("allReadCount"),
 					qTEtlLog.batchWriteErrorcount.sum().as("allWriteErrorcount"),
+					qTEtlLog.effectWriteCount.sum().as("allEffectWriteCount"),
 					stg.as("errorInfo"),qistg.as("QIResult"),qTProject.projectName.max().as("projectName"), qTPlatform.platformName.max().as("platformName"), qTHospital.hospitalName.max().as("hospitalName"),
 					qTSys.sysName.max().as("sysName")))
 					.from(query ,queryLabel).leftJoin(qTEtlLog)
@@ -150,6 +151,7 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 					qTEtlLog.status.max().as("statusCode"),
 					qTEtlLog.batchReadCount.max().as("allReadCount"),
 					qTEtlLog.batchWriteErrorcount.sum().as("allWriteErrorcount"),
+					qTEtlLog.effectWriteCount.sum().as("allEffectWriteCount"),
 					Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.errorInfo).concat("|").as("errorInfo") ,
 					Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.QIResult).concat("|").as("QIResult") ,
 					qTProject.projectName.as("projectName"), qTPlatform.platformName.as("platformName"), qTHospital.hospitalName.as("hospitalName"),
@@ -204,6 +206,7 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 					qTEtlLog.status.max().as("statusCode"),
 					qTEtlLog.batchReadCount.max().as("allReadCount"),
 					qTEtlLog.batchWriteErrorcount.sum().as("allWriteErrorcount"),
+					qTEtlLog.effectWriteCount.sum().as("allEffectWriteCount"),
 					stg.as("errorInfo"),qistg.as("QIResult")))
 					.from(query ,queryLabel).leftJoin(qTEtlLog)
 					.on(qtetllogalias.etlGroupId.eq(qTEtlLog.etlGroupId).and(qtetllogalias.exeJobId.eq(qTEtlLog.exeJobId)))
@@ -218,6 +221,7 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 					qTEtlLog.status.max().as("statusCode"),
 					qTEtlLog.batchReadCount.max().as("allReadCount"),
 					qTEtlLog.batchWriteErrorcount.sum().as("allWriteErrorcount"),
+					qTEtlLog.effectWriteCount.sum().as("allEffectWriteCount"),
 					Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.errorInfo).concat("|").as("errorInfo"),
 					Expressions.stringTemplate("group_concat(from_base64({0}))" , qTEtlLog.QIResult).concat("|").as("QIResult")))
 					.from(qTEtlLog)
@@ -289,7 +293,7 @@ public class EtlLogService extends BaseService<TEtlLog, Long, NumberPath<Long>> 
 		List<TEtlLog> batchErrorLogs = sqlQueryFactory.select(Projections.bean(TEtlLog.class, 
 				qTEtlLog.id,qTEtlLog.etlGroupId, qTEtlLog.exeJobId, qTEtlLog.flowName, 
 				qTEtlLog.createdTime, qTEtlLog.jobTime,qTEtlLog.status.as("statusCode"),
-				qTEtlLog.batchReadCount, qTEtlLog.batchWriteErrorcount,qTEtlLog.exeBatchNo,
+				qTEtlLog.batchReadCount, qTEtlLog.batchWriteErrorcount,qTEtlLog.effectWriteCount,qTEtlLog.exeBatchNo,
 				st.as("errorInfo"))).from(qTEtlLog)
 				.where(qTEtlLog.etlGroupId.eq(etlGroupId).and(qTEtlLog.exeJobId.eq(exeJobId)).and(qTEtlLog.status.eq(2))).fetch();
 		logDetail.setBatchErrorLogs(batchErrorLogs);

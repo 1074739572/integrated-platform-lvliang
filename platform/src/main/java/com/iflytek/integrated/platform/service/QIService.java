@@ -84,7 +84,7 @@ public class QIService extends BaseService<TQI,String, StringPath> {
             @ApiImplicitParam(name = "QIName", value = "质检脚本名称", required = true),
             @ApiImplicitParam(name = "QIScript", value = "质检脚本", required = true)
     })
-    public ResultDto addOrMod(@RequestBody Map param){
+    public ResultDto<String> addOrMod(@RequestBody Map param){
         // 校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if (StringUtils.isBlank(loginUserName)) {
