@@ -6,6 +6,7 @@ import com.querydsl.core.types.dsl.ArrayPath;
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
+import com.querydsl.sql.Column;
 import com.querydsl.sql.ColumnMetadata;
 
 import java.sql.Types;
@@ -42,9 +43,9 @@ public class QTEtlTpl extends com.querydsl.sql.RelationalPathBase<TEtlTpl> {
 	public final StringPath updatedBy = createString("updatedBy");
 
 	public final DateTimePath<java.util.Date> updatedTime = createDateTime("updatedTime", java.util.Date.class);
-	
+
 	public final ArrayPath<byte[], Byte> tplContentZip = createArray("tplContentZip", byte[].class);
-	
+
 	public final com.querydsl.sql.PrimaryKey<TEtlTpl> primary = createPrimaryKey(id);
 
 	public QTEtlTpl(String variable) {

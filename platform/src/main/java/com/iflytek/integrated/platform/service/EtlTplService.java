@@ -266,7 +266,11 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 		String tplsZipName = "etl_tpls_" + dateStr + ".zip";
 		String[] idsArr = ids.split(",");
 
-		List<TEtlTpl> result = sqlQueryFactory.select(qTEtlTpl).from(qTEtlTpl).where(qTEtlTpl.id.in(idsArr)).fetch();
+		List<TEtlTpl> result = sqlQueryFactory
+				.select(Projections.bean(TEtlTpl.class, qTEtlTpl.id, qTEtlTpl.tplName, qTEtlTpl.suffixName, qTEtlTpl.tplContent))
+				.from(qTEtlTpl)
+				.where(qTEtlTpl.id.in(idsArr))
+				.fetch();
 		Map<String, byte[]> filesMap = new HashMap<String, byte[]>();
 		if (result != null && result.size() > 0) {
 			result.forEach(tpl -> {
@@ -315,7 +319,7 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 					bos.close();
 				}
 			}catch (Exception e){
-
+				e.printStackTrace();
 			}
 
 		}
@@ -330,7 +334,10 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 		if (platform != null) {
 			String[] idsArr = ids.split(",");
 
-			List<TEtlTpl> result = sqlQueryFactory.select(qTEtlTpl).from(qTEtlTpl).where(qTEtlTpl.id.in(idsArr))
+			List<TEtlTpl> result = sqlQueryFactory
+					.select(Projections.bean(TEtlTpl.class, qTEtlTpl.id, qTEtlTpl.tplName, qTEtlTpl.suffixName, qTEtlTpl.tplContent))
+					.from(qTEtlTpl)
+					.where(qTEtlTpl.id.in(idsArr))
 					.fetch();
 			String serverUrl = platform.getEtlServerUrl();
 			if(StringUtils.isNotBlank(serverUrl) && serverUrl.endsWith("/")) {
