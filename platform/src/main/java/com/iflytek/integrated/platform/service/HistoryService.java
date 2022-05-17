@@ -214,7 +214,7 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
         THistory tHistory = sqlQueryFactory
                 .select(Projections.bean(THistory.class,qtHistory.pkId,qtHistory.hisType,qtHistory.hisShow,qtHistory.hisContent,qtHistory.recordId))
                 .from(qtHistory)
-                .where(qtHistory.pkId.eq(dto.getPkId().toString()))
+                .where(qtHistory.pkId.eq(dto.getPkId()))
                 .fetchFirst();
         if(tHistory == null){
             return new ResultDto(Constant.ResultCode.ERROR_CODE, "未查询到该历史版本！");
@@ -261,7 +261,7 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
         for (int i = 0; i < list.size(); i++) {
             TBusinessInterface tbi = list.get(i);
             TInterface tInterface = interfaceService.getOne(tbi.getRequestInterfaceId());
-            if(StringUtils.isNotBlank(tbi.getRequestSysconfigId())){
+            if(StringUtils.isNotBlank(tbi.getRequestedSysconfigId())){
                 TSysConfig tSysConfig = sysConfigService.getOne(tbi.getRequestedSysconfigId());
                 TSys requestedSys = sysService.getOne(tSysConfig.getSysId());
                 tbi.setRequestedSysId(requestedSys.getId());
