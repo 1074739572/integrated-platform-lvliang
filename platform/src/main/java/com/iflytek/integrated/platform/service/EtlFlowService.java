@@ -198,7 +198,7 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 				qTEtlFlow.etlControlId,qTEtlFlow.maxDuration,qTEtlFlow.lastDebugTime,
 //				qTProject.projectCode.as("projectCode"),
 				qTEtlGroup.hospitalId, qTEtlGroup.sysId, qTHospital.hospitalName.as("hospitalName"),
-				qTSys.sysName.as("sysName"))).from(qTEtlFlow).leftJoin(qTEtlGroup)
+				qTSys.sysName.as("sysName"), qTEtlFlow.parentEtlGroupId)).from(qTEtlFlow).leftJoin(qTEtlGroup)
 				.on(qTEtlFlow.groupId.eq(qTEtlGroup.id)).leftJoin(qTSys).on(qTEtlGroup.sysId.eq(qTSys.id))
 				.leftJoin(qTHospital).on(qTEtlGroup.hospitalId.eq(qTHospital.id)).where(qTEtlFlow.id.eq(id))
 				.fetchFirst();
@@ -313,6 +313,9 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 			}
 			if (flowDto.getMaxDuration() != null) {
 				updateClause.set(qTEtlFlow.maxDuration, flowDto.getMaxDuration());
+			}
+			if (StringUtils.isNotBlank(flowDto.getParentEtlGroupId())) {
+				updateClause.set(qTEtlFlow.parentEtlGroupId, flowDto.getParentEtlGroupId());
 			}
 			if (StringUtils.isNotBlank(loginUserName))
 				updateClause.set(qTEtlFlow.updatedBy, loginUserName != null ? loginUserName : "");
