@@ -377,20 +377,21 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 	public ResultDto<String> delEtlFlow(@PathVariable String id) {
 
 		// 校验是否获取到登录用户
-//		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-//		if (StringUtils.isBlank(loginUserName)) {
-//			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
-//		}
+		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
+		if (StringUtils.isBlank(loginUserName)) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+		}
 		long result = 0;
 		TEtlFlow etlFlow = this.getOne(id);
 		if(etlFlow != null) {
 			try {
+				String etlGroupId = etlFlow.getEtlGroupId();
+				sqlQueryFactory.update(qTEtlFlow).set(qTEtlFlow.parentEtlGroupId, "0").where(qTEtlFlow.parentEtlGroupId.eq(etlGroupId)).execute();
 				etlGroupService.delEtlGroup(etlFlow.getGroupId() , etlFlow.getParentGroupId());
+				result = this.delete(id);
 			} catch (Exception e) {
 				throw new RuntimeException("刪除ETL服务器流程异常！异常详情：" + e.getLocalizedMessage());
 			}
-//			long result = sqlQueryFactory.delete(qTEtlFlow).where(qTEtlFlow.id.eq(id)).execute();
-			result = this.delete(id);
 		}
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "删除流程成功", result + "");
 	}
