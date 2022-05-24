@@ -36,6 +36,8 @@ public class EtlFlowDto implements Serializable {
 	
 	private String etlControlId;
 	
+	private String etlJobcontrolId;
+	
 	private Integer maxDuration;
 	
 	private String parentEtlGroupId;
@@ -178,6 +180,14 @@ public class EtlFlowDto implements Serializable {
 
 	public void setLastDebugTime(java.util.Date lastDebugTime) {
 		this.lastDebugTime = lastDebugTime;
+	}
+
+	public String getEtlJobcontrolId() {
+		return etlJobcontrolId;
+	}
+
+	public void setEtlJobcontrolId(String etlJobcontrolId) {
+		this.etlJobcontrolId = etlJobcontrolId;
 	}
 	
 }

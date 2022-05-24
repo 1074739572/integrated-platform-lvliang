@@ -20,6 +20,8 @@ public class TEtlFlow implements Serializable {
 
     private String etlGroupId;
     
+    private String etlJobcontrolId;
+    
     private String parentEtlGroupId;
 
     private String flowConfig;
@@ -283,6 +285,14 @@ public class TEtlFlow implements Serializable {
 
 	public void setChildrenFlows(List<TEtlFlow> childrenFlows) {
 		this.childrenFlows = childrenFlows;
+	}
+
+	public String getEtlJobcontrolId() {
+		return etlJobcontrolId;
+	}
+
+	public void setEtlJobcontrolId(String etlJobcontrolId) {
+		this.etlJobcontrolId = etlJobcontrolId;
 	}
 	
 }
