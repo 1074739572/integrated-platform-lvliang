@@ -140,7 +140,7 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 	@GetMapping("/getEtlFlowsByPlatform/{platformId}")
 	public ResultDto<List<TEtlFlow>> getEtlFlowsByPlatform(@PathVariable String platformId) {
 		List<TEtlFlow> queryResults = sqlQueryFactory.select(Projections.bean(TEtlFlow.class, qTEtlFlow.id,
-		qTEtlFlow.groupId, qTEtlFlow.flowName, qTEtlFlow.etlGroupId, qTEtlFlow.flowConfig, qTEtlFlow.flowDesp,qTEtlFlow.maxDuration,
+		qTEtlFlow.groupId, qTEtlFlow.flowName, qTEtlFlow.etlGroupId, qTEtlFlow.flowConfig, qTEtlFlow.flowDesp,qTEtlFlow.maxDuration,qTEtlFlow.alertDuration,
 		qTEtlFlow.flowTplName, qTEtlFlow.funTplNames, qTEtlFlow.status,qTEtlFlow.etlEntryGroupId,qTEtlFlow.parentGroupId,qTEtlFlow.lastDebugTime,
 		qTEtlFlow.etlControlId, qTEtlGroup.hospitalId, qTEtlGroup.sysId, qTHospital.hospitalName.as("hospitalName"),
 		qTSys.sysName.as("sysName"))).from(qTEtlFlow).leftJoin(qTEtlGroup)
@@ -195,7 +195,7 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 		TEtlFlow flowDetail = sqlQueryFactory.select(Projections.bean(TEtlFlow.class, qTEtlFlow.id, qTEtlFlow.groupId,
 				qTEtlFlow.flowName, qTEtlFlow.etlGroupId, qTEtlFlow.flowConfig, qTEtlFlow.flowDesp,
 				qTEtlFlow.flowTplName, qTEtlFlow.funTplNames,qTEtlFlow.status,qTEtlFlow.etlEntryGroupId,qTEtlFlow.parentGroupId,
-				qTEtlFlow.etlControlId,qTEtlFlow.maxDuration,qTEtlFlow.lastDebugTime,
+				qTEtlFlow.etlControlId,qTEtlFlow.maxDuration,qTEtlFlow.alertDuration, qTEtlFlow.lastDebugTime,
 //				qTProject.projectCode.as("projectCode"),
 				qTEtlGroup.hospitalId, qTEtlGroup.sysId, qTHospital.hospitalName.as("hospitalName"),
 				qTSys.sysName.as("sysName"), qTEtlFlow.parentEtlGroupId)).from(qTEtlFlow).leftJoin(qTEtlGroup)
@@ -232,7 +232,12 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 		flowEntity.setEtlGroupId(flowDto.getEtlGroupId());
 		flowEntity.setFlowTplName(flowDto.getFlowTplName());
 		flowEntity.setFunTplNames(flowDto.getFunTplNames());
-		flowEntity.setMaxDuration(flowDto.getMaxDuration());
+		if(flowDto.getMaxDuration() != null) {
+			flowEntity.setMaxDuration(flowDto.getMaxDuration());
+		}
+		if(flowDto.getAlertDuration() != null) {
+			flowEntity.setAlertDuration(flowDto.getAlertDuration());
+		}
 		if(StringUtils.isNotBlank(flowDto.getParentGroupId())) {
 			flowEntity.setParentGroupId(flowDto.getParentGroupId());
 		}
@@ -313,6 +318,9 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 			}
 			if (flowDto.getMaxDuration() != null) {
 				updateClause.set(qTEtlFlow.maxDuration, flowDto.getMaxDuration());
+			}
+			if (flowDto.getAlertDuration() != null) {
+				updateClause.set(qTEtlFlow.alertDuration, flowDto.getAlertDuration());
 			}
 			if (StringUtils.isNotBlank(flowDto.getParentEtlGroupId())) {
 				updateClause.set(qTEtlFlow.parentEtlGroupId, flowDto.getParentEtlGroupId());
