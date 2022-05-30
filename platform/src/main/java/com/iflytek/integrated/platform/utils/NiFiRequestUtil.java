@@ -8,16 +8,16 @@ import java.util.Map;
 
 import javax.crypto.IllegalBlockSizeException;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.apache.nifi.api.toolkit.ApiClient;
 import org.apache.nifi.api.toolkit.ApiException;
+import org.apache.nifi.api.toolkit.Pair;
 import org.apache.nifi.api.toolkit.api.AccessApi;
 import org.apache.nifi.api.toolkit.api.ControllerServicesApi;
 import org.apache.nifi.api.toolkit.api.FlowApi;
 import org.apache.nifi.api.toolkit.api.FlowfileQueuesApi;
 import org.apache.nifi.api.toolkit.api.ProcessGroupsApi;
+import org.apache.nifi.api.toolkit.api.ProcessorsApi;
 import org.apache.nifi.api.toolkit.model.ConnectionEntity;
 import org.apache.nifi.api.toolkit.model.ControllerServiceEntity;
 import org.apache.nifi.api.toolkit.model.ControllerServiceRunStatusEntity;
@@ -26,6 +26,7 @@ import org.apache.nifi.api.toolkit.model.DropRequestEntity;
 import org.apache.nifi.api.toolkit.model.FlowDTO;
 import org.apache.nifi.api.toolkit.model.ProcessGroupEntity;
 import org.apache.nifi.api.toolkit.model.ProcessGroupFlowEntity;
+import org.apache.nifi.api.toolkit.model.ProcessorEntity;
 import org.apache.nifi.api.toolkit.model.RevisionDTO;
 import org.apache.nifi.api.toolkit.model.ScheduleComponentsEntity;
 import org.apache.nifi.api.toolkit.model.ScheduleComponentsEntity.StateEnum;
@@ -35,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iflytek.integrated.common.dto.HttpResult;
@@ -51,6 +53,9 @@ import com.iflytek.integrated.platform.dto.JoltDebuggerDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TPlatform;
 import com.querydsl.sql.SQLQueryFactory;
+import com.squareup.okhttp.MediaType;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.RequestBody;
 
 /**
  * @author czzhan 调取接nifi接口
@@ -409,32 +414,44 @@ public class NiFiRequestUtil {
 				ProcessGroupsApi groupApi = new ProcessGroupsApi(client);
 
 				if (StringUtils.isNotBlank(parentGroupId)) {
-					ProcessGroupEntity groupEntity = groupApi.getProcessGroup(parentGroupId);
-					ControllerServicesEntity csEntity = flowApi.getControllerServicesFromGroup(parentGroupId, false,
-							true);
-					if (csEntity != null) {
-						List<ControllerServiceEntity> css = csEntity.getControllerServices();
-						if (css != null && css.size() > 0) {
-							ControllerServicesApi csApi = new ControllerServicesApi(client);
-							for (ControllerServiceEntity cs : css) {
-								ControllerServiceRunStatusEntity csrunstate = new ControllerServiceRunStatusEntity();
-								RevisionDTO rev = cs.getRevision();
-								csrunstate.setDisconnectedNodeAcknowledged(false);
-								csrunstate.setRevision(rev);
-								csrunstate.setState(
-										org.apache.nifi.api.toolkit.model.ControllerServiceRunStatusEntity.StateEnum.DISABLED);
-								csApi.updateRunStatus(cs.getId(), csrunstate);
-								ControllerServiceEntity csEnty = csApi.getControllerService(cs.getId());
-								RevisionDTO revNew = csEnty.getRevision();
-								csApi.removeControllerService(cs.getId(), revNew.getVersion() + "",
-										revNew.getClientId(), false);
+					
+					ProcessGroupFlowEntity parentGroupFlow = flowApi.getFlow(parentGroupId);
+					
+					if(parentGroupFlow != null && parentGroupFlow.getProcessGroupFlow().getFlow().getProcessGroups().size() == 1) {
+
+						ProcessGroupEntity groupEntity = groupApi.getProcessGroup(parentGroupId);
+						ControllerServicesEntity csEntity = flowApi.getControllerServicesFromGroup(parentGroupId, false,
+								true);
+						if (csEntity != null) {
+							List<ControllerServiceEntity> css = csEntity.getControllerServices();
+							if (css != null && css.size() > 0) {
+								ControllerServicesApi csApi = new ControllerServicesApi(client);
+								for (ControllerServiceEntity cs : css) {
+									ControllerServiceRunStatusEntity csrunstate = new ControllerServiceRunStatusEntity();
+									RevisionDTO rev = cs.getRevision();
+									csrunstate.setDisconnectedNodeAcknowledged(false);
+									csrunstate.setRevision(rev);
+									csrunstate.setState(
+											org.apache.nifi.api.toolkit.model.ControllerServiceRunStatusEntity.StateEnum.DISABLED);
+									csApi.updateRunStatus(cs.getId(), csrunstate);
+									ControllerServiceEntity csEnty = csApi.getControllerService(cs.getId());
+									RevisionDTO revNew = csEnty.getRevision();
+									csApi.removeControllerService(cs.getId(), revNew.getVersion() + "",
+											revNew.getClientId(), false);
+								}
 							}
 						}
-					}
 
-					RevisionDTO revision = groupEntity.getRevision();
-					groupApi.removeProcessGroup(parentGroupId, String.valueOf(revision.getVersion()),
-							revision.getClientId(), groupEntity.getDisconnectedNodeAcknowledged());
+						RevisionDTO revision = groupEntity.getRevision();
+						groupApi.removeProcessGroup(parentGroupId, String.valueOf(revision.getVersion()),
+								revision.getClientId(), groupEntity.getDisconnectedNodeAcknowledged());
+					}else {
+						ProcessGroupEntity groupEntity = groupApi.getProcessGroup(tEtlGroupId);
+						RevisionDTO revision = groupEntity.getRevision();
+						groupApi.removeProcessGroup(tEtlGroupId, String.valueOf(revision.getVersion()),
+								revision.getClientId(), groupEntity.getDisconnectedNodeAcknowledged());
+					}
+					
 				} else {
 					ProcessGroupEntity groupEntity = groupApi.getProcessGroup(tEtlGroupId);
 					RevisionDTO revision = groupEntity.getRevision();
@@ -462,6 +479,110 @@ public class NiFiRequestUtil {
 			}
 		}
 	}
+	
+	public void stopNifiEtlFlow(TPlatform platform, String tEtlGroupId) throws Exception {
+		if(platform != null) {
+			String serverUrl = platform.getEtlServerUrl();
+			if (StringUtils.isNotBlank(serverUrl) && serverUrl.endsWith("/")) {
+				serverUrl = serverUrl.substring(0, serverUrl.lastIndexOf("/"));
+			}
+			String userName = platform.getEtlUser();
+			String password = platform.getEtlPwd();
+			ApiClient client = new OAuthApiClient();
+			client.setBasePath(serverUrl);
+			client.addDefaultHeader("Content-Type", "application/json");
+			client.addDefaultHeader("Accept", "application/json");
+			AccessApi api = new AccessApi(client);
+
+			try {
+				client.setVerifyingSsl(false);
+				if (StringUtils.isNotBlank(userName) && StringUtils.isNotBlank(password)) {
+					try {
+						password = AesUtil.decrypt(password);
+					} catch (IllegalBlockSizeException de) {
+						logger.error("解密etl服务器密码失败，将使用原配置密码：" + password);
+					}
+					String token = api.createAccessToken(userName, password);
+					client.setAccessToken(token);
+				}
+				ProcessorsApi papi = new ProcessorsApi(client);
+				FlowApi flowApi = new FlowApi(client);
+				
+				Map<String , Object> paramstop = new HashMap<String , Object>();
+				paramstop.put("id", tEtlGroupId);
+				paramstop.put("disconnectedNodeAcknowledged", false);
+				paramstop.put("state", "STOPPED");
+				
+				com.squareup.okhttp.Call call = scheduleComponentsCall(tEtlGroupId, paramstop, client);
+				client.execute(call);
+				
+				try {
+					ProcessGroupFlowEntity groupflows = flowApi.getFlow(tEtlGroupId);
+					if(groupflows != null) {
+						List<ProcessGroupEntity> flowgroups = groupflows.getProcessGroupFlow().getFlow().getProcessGroups();
+						for(ProcessGroupEntity group : flowgroups) {
+							int activecount = group.getStatus().getAggregateSnapshot().getActiveThreadCount();
+							if(activecount > 0) {
+								String subGroupid = group.getId();
+								ProcessGroupFlowEntity subflowentity = flowApi.getFlow(subGroupid);
+								if(subflowentity != null) {
+									List<ProcessorEntity> processors = subflowentity.getProcessGroupFlow().getFlow().getProcessors();
+									if(processors != null && processors.size() >0) {
+										for(ProcessorEntity processor : processors) {
+											int pactivecount = processor.getStatus().getAggregateSnapshot().getActiveThreadCount();
+											if(pactivecount > 0) {
+												try {
+													papi.terminateProcessor(processor.getId());
+												}catch(Exception e) {
+													if(e instanceof ApiException) {
+														ApiException ae = (ApiException) e;
+														if(ae.getCode() == 409) {
+															Thread.sleep(5000);
+															papi.terminateProcessor(processor.getId());
+															continue;
+														}
+														throw e;
+													}
+													throw e;
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+						Map<String , Object> params = new HashMap<String , Object>();
+						params.put("tEtlGroupId", tEtlGroupId);
+						params.put("etlServerUrl", serverUrl);
+						params.put("etlUser", userName);
+						params.put("etlPwd", password);
+						emptyNifiCollections(params);
+					}
+				}catch (Exception e) {
+					logger.error("中断已停止流程组件异常" , e);
+				}
+			} catch (Exception e) {
+				throw e;
+			}
+			
+		}
+		
+	}
+	
+//	public static void main(String[] args) {
+//		NiFiRequestUtil nifiutil = new NiFiRequestUtil();
+//		new AesUtil("w5xv7[Nmc0Z/3U^X");
+//		TPlatform platform = new TPlatform();
+//		platform.setEtlServerUrl("https://172.31.184.170:8080/nifi-api");
+//		platform.setEtlUser("nifi/admin@IFLYTEK.COM");
+//		platform.setEtlPwd("KD_99@sjdj");
+//		try {
+//			nifiutil.stopNifiEtlFlow(platform, "13c9882c-0181-1000-3823-041d8ab03be6");
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//	}
 
 	public void emptyNifiCollections(Map<String, Object> params) throws Exception {
 		if (params != null) {
@@ -559,4 +680,30 @@ public class NiFiRequestUtil {
 			e.printStackTrace();
 		}
 	}
+	
+	private com.squareup.okhttp.Call scheduleComponentsCall(String id, Map<String , Object> params, ApiClient apiClient) throws ApiException, JsonProcessingException {
+		String[] localVarAuthNames = new String[] {  };
+        // create path and map variables
+        String localVarPath = "/flow/process-groups/{id}".replaceAll("\\{format\\}","json")
+        .replaceAll("\\{" + "id" + "\\}", apiClient.escapeString(id.toString()));
+
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+
+        localVarHeaderParams.put("Accept", "application/json");
+        localVarHeaderParams.put("Content-Type", "application/json");
+        
+        apiClient.updateParamsForAuth(localVarAuthNames, localVarQueryParams, localVarHeaderParams);
+        
+        final String url = apiClient.buildUrl(localVarPath, localVarQueryParams);
+        final Request.Builder reqBuilder = new Request.Builder().url(url);
+        apiClient.processHeaderParams(localVarHeaderParams, reqBuilder);
+        ObjectMapper om = new ObjectMapper();
+        String content = om.writeValueAsString(params);
+        RequestBody reqBody = RequestBody.create(MediaType.parse("application/json"), content);
+        Request request = reqBuilder.method("PUT", reqBody).build();
+
+        return apiClient.getHttpClient().newCall(request);
+    }
 }

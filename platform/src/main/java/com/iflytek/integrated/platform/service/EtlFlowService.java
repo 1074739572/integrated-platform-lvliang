@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -401,6 +400,25 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 			}
 		}
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "删除流程成功", result + "");
+	}
+	
+	
+	@ApiOperation(value = "停止流程")
+	@PostMapping(path = "/stopEtlFlow/{id}")
+	@Transactional(rollbackFor = Exception.class)
+	public ResultDto<String> stopEtlFlow(@PathVariable String id) {
+
+		// 校验是否获取到登录用户
+		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
+		if (StringUtils.isBlank(loginUserName)) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+		}
+		try {
+			etlGroupService.stopEtlGroup(id);
+		} catch (Exception e) {
+			throw new RuntimeException("停止ETL服务器流程异常！异常详情：" + e.getLocalizedMessage());
+		}
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "删除流程成功", "success");
 	}
 
 	/**
