@@ -418,7 +418,7 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 		} catch (Exception e) {
 			throw new RuntimeException("停止ETL服务器流程异常！异常详情：" + e.getLocalizedMessage());
 		}
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "删除流程成功", "success");
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "停止流程成功", "success");
 	}
 
 	/**
