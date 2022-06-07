@@ -274,6 +274,71 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 		return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "保存流程配置失败", "插入异常！");
 	}
 
+	/**
+	 * 保存
+	 * @param flowDto
+	 * @param loginUserName
+	 * @return
+	 */
+	public ResultDto doSaveEtlFLow2(EtlFlowDto flowDto, String loginUserName){
+		EtlGroupDto groupDto = flowDto.getEtlGroupDto();
+		String groupId = "";
+		try {
+			groupId = etlGroupService.saveEtlGroup(groupDto);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "保存流程配置处理流程组数据异常", "");
+		}
+
+		TEtlFlow flowEntity = new TEtlFlow();
+		flowEntity.setGroupId(groupId);
+		flowEntity.setFlowName(flowDto.getFlowName());
+		flowEntity.setFlowConfig(flowDto.getFlowConfig());
+		flowEntity.setFlowDesp(flowDto.getFlowDesp());
+		flowEntity.setEtlGroupId(flowDto.getEtlGroupId());
+		flowEntity.setFlowTplName(flowDto.getFlowTplName());
+		flowEntity.setFunTplNames(flowDto.getFunTplNames());
+		if(flowDto.getMaxDuration() != null) {
+			flowEntity.setMaxDuration(flowDto.getMaxDuration());
+		}
+		if(flowDto.getAlertDuration() != null) {
+			flowEntity.setAlertDuration(flowDto.getAlertDuration());
+		}
+		if(StringUtils.isNotBlank(flowDto.getParentGroupId())) {
+			flowEntity.setParentGroupId(flowDto.getParentGroupId());
+		}
+		if(StringUtils.isNotBlank(flowDto.getEtlControlId())) {
+			flowEntity.setEtlControlId(flowDto.getEtlControlId());
+		}
+		if(StringUtils.isNotBlank(flowDto.getEtlJobcontrolId())) {
+			flowEntity.setEtlJobcontrolId(flowDto.getEtlJobcontrolId());
+		}
+		flowEntity.setCreatedBy(loginUserName != null ? loginUserName : "");
+		flowEntity.setCreatedTime(new Date());
+		flowEntity.setUpdatedBy(loginUserName != null ? loginUserName : "");
+		flowEntity.setUpdatedTime(new Date());
+		flowEntity.setStatus(flowDto.getStatus());
+		flowEntity.setEtlEntryGroupId(flowDto.getEtlEntryGroupId());
+		flowEntity.setParentEtlGroupId(flowDto.getParentEtlGroupId());
+
+		long l = 0;
+		String id = batchUidService.getUid(qTEtlFlow.getTableName()) + "";
+		TEtlFlow flow = sqlQueryFactory.select(qTEtlFlow).where(qTEtlFlow.flowName.eq(flowDto.getFlowName())).fetchFirst();
+		if(flow != null){
+			id = flow.getId();
+			flowEntity.setId(id);
+			l = this.put(id,flowEntity);
+		}else{
+			flowEntity.setId(id);
+			l = this.post(flowEntity);
+		}
+
+		if(l > 0){
+			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存流程配置成功", id);
+		}
+		return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "保存流程配置失败", "插入异常！");
+	}
+
 
 	@ApiOperation(value = "修改流程配置")
 	@PostMapping(path = "/updateEtlFlow/{id}")
@@ -482,7 +547,7 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 		}
 		if(befDto != null && befDto.getList() != null && befDto.getList().size() > 0){
 			befDto.getList().forEach(efDto -> {
-				ResultDto resultDto = this.doSaveEtlFLow(efDto, loginUserName);
+				ResultDto resultDto = this.doSaveEtlFLow2(efDto, loginUserName);
 				if(!"200".equals(resultDto.getCode())){
 					throw new RuntimeException(resultDto.getMessage());
 				}
