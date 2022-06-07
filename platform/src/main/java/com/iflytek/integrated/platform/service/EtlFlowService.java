@@ -323,7 +323,7 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 
 		long l = 0;
 		String id = batchUidService.getUid(qTEtlFlow.getTableName()) + "";
-		TEtlFlow flow = sqlQueryFactory.select(qTEtlFlow).where(qTEtlFlow.flowName.eq(flowDto.getFlowName())).fetchFirst();
+		TEtlFlow flow = sqlQueryFactory.select(qTEtlFlow).from(qTEtlFlow).where(qTEtlFlow.flowName.eq(flowDto.getFlowName())).fetchFirst();
 		if(flow != null){
 			id = flow.getId();
 			flowEntity.setId(id);
