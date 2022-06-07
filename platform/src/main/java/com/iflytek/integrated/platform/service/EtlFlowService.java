@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.iflytek.integrated.platform.dto.BatchEtlFlowDto;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -214,6 +215,17 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 		if (StringUtils.isBlank(loginUserName)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
 		}
+		return this.doSaveEtlFLow(flowDto, loginUserName);
+
+	}
+
+	/**
+	 * 保存
+	 * @param flowDto
+	 * @param loginUserName
+	 * @return
+	 */
+	public ResultDto doSaveEtlFLow(EtlFlowDto flowDto, String loginUserName){
 		EtlGroupDto groupDto = flowDto.getEtlGroupDto();
 		String groupId = "";
 		try {
@@ -261,6 +273,7 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 		}
 		return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "保存流程配置失败", "插入异常！");
 	}
+
 
 	@ApiOperation(value = "修改流程配置")
 	@PostMapping(path = "/updateEtlFlow/{id}")
@@ -454,5 +467,28 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 		params.put("etlPwd", platform.getEtlPwd());
 		return etlGroupService.emptyEtlGroupQueues(params);
 		
+	}
+
+
+	@ApiOperation(value = "保存流程配置")
+	@PostMapping(path = "/batchSaveEtlFlow")
+	@Transactional(rollbackFor = Exception.class)
+	public ResultDto<String> batchSaveEtlFlow(@RequestBody BatchEtlFlowDto befDto) {
+
+		// 校验是否获取到登录用户
+		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
+		if (StringUtils.isBlank(loginUserName)) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+		}
+		if(befDto != null && befDto.getList() != null && befDto.getList().size() > 0){
+			befDto.getList().forEach(efDto -> {
+				ResultDto resultDto = this.doSaveEtlFLow(efDto, loginUserName);
+				if(!"200".equals(resultDto.getCode())){
+					throw new RuntimeException(resultDto.getMessage());
+				}
+			});
+		}
+
+		return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "保存流程配置失败", "插入异常！");
 	}
 }
