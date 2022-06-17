@@ -108,11 +108,9 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 	@PostMapping("/delSysById/{id}")
 	public ResultDto<String> delSysById(
 			@ApiParam(value = "系统id") @PathVariable(value = "id", required = true) String id) {
-		// 删除系统前先查询该关联数据是否有项目相关联
-		List<TSysConfig> tpplList = sysConfigService.getObjBySysId(id);
-		if (CollectionUtils.isNotEmpty(tpplList)) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该系统已在项目中配置使用,无法删除!", "该系统已在项目中配置使用,无法删除!");
-		}
+
+		//服务注册、服务发布中是否有关联
+
 
 		// 删除系统前先查询是否与接口关联
 		List<TInterface> interfaceList = interfaceService.getObjBySysId(id);
@@ -180,6 +178,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		tp.setIsValid(Constant.IsValid.ON);
 		tp.setCreatedTime(new Date());
 		tp.setCreatedBy(loginUserName);
+		tp.setVendorId(dto.getVendorId());
 		this.post(tp);
 		String driveIds = dto.getDriveIds();
 		if (StringUtils.isNotBlank(driveIds)) {
@@ -204,6 +203,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		String sysId = dto.getId();
 		String sysName = dto.getSysName();
 		String isValid = dto.getIsValid();
+		String vendorId = dto.getVendorId();
 		String driveIds = dto.getDriveIds();
 
 		//redis缓存信息获取
@@ -217,6 +217,9 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		}
 		if (StringUtils.isNotBlank(isValid)) {
 			updater.set(qTSys.isValid, isValid);
+		}
+		if (StringUtils.isNotBlank(vendorId)) {
+			updater.set(qTSys.vendorId, vendorId);
 		}
 		long l = updater.set(qTSys.updatedTime, new Date()).set(qTSys.updatedBy, loginUserName)
 				.where(qTSys.id.eq(sysId)).execute();
