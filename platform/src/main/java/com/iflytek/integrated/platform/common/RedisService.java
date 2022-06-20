@@ -8,6 +8,7 @@ import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
 import static com.iflytek.integrated.platform.entity.QTPlugin.qTPlugin;
 import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
+import static com.iflytek.integrated.platform.entity.QTSysRegistry.qTSysRegistry;
 import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
 import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
 import static com.iflytek.integrated.platform.entity.QTSysHospitalConfig.qTSysHospitalConfig;
@@ -134,10 +135,10 @@ public class RedisService {
 						qTSys.sysCode.as("sysCode"), qTInterface.interfaceUrl.as("funCode")))
 				.from(qTProject).leftJoin(qTPlatform).on(qTPlatform.projectId.eq(qTProject.id)).leftJoin(qTSysConfig)
 				.on(qTSysConfig.platformId.eq(qTPlatform.id)).leftJoin(qTSys).on(qTSysConfig.sysId.eq(qTSys.id))
-				.leftJoin(qTInterface).on(qTSys.id.eq(qTInterface.sysId)).leftJoin(qTBusinessInterface)
+				.leftJoin(qTInterface).leftJoin(qTBusinessInterface)
 				.on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id)
-						.and(qTBusinessInterface.requestSysconfigId.eq(qTSysConfig.id)
-								.or(qTBusinessInterface.requestedSysconfigId.eq(qTSysConfig.id))))
+						.and(qTBusinessInterface.sysRegistryId.eq(qTSysRegistry.id)
+								.or(qTBusinessInterface.sysRegistryId.eq(qTSysRegistry.id))))
 				.leftJoin(qTSysHospitalConfig).on(qTSysConfig.id.eq(qTSysHospitalConfig.sysConfigId))
 				.leftJoin(qTHospital).on(qTSysHospitalConfig.hospitalId.eq(qTHospital.id)).leftJoin(qTSysDriveLink)
 				.on(qTSysDriveLink.sysId.eq(qTSys.id)).leftJoin(qTDrive).on(qTDrive.id.eq(qTSysDriveLink.driveId))
@@ -179,7 +180,7 @@ public class RedisService {
 		List<RedisKeyDto> list = sqlQueryFactory
 				.select(Projections.bean(RedisKeyDto.class, qTSysHospitalConfig.hospitalCode.as("orgId"),
 						qTSys.sysCode.as("sysCode"), qTInterface.interfaceUrl.as("funCode")))
-				.from(qTInterface).join(qTSys).on(qTInterface.sysId.eq(qTSys.id)).join(qTSysConfig)
+				.from(qTInterface).join(qTSys).join(qTSysConfig)
 				.on(qTSysConfig.sysId.eq(qTSys.id)).join(qTSysHospitalConfig)
 				.on(qTSysConfig.id.eq(qTSysHospitalConfig.sysConfigId)).join(qTHospital)
 				.on(qTHospital.id.eq(qTSysHospitalConfig.hospitalId)).where(arr.toArray(new Predicate[arr.size()]))

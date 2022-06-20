@@ -36,6 +36,16 @@ public class TInterfaceParam implements Serializable {
     /**
      * 出参是否开启 1开启
      */
+    private Integer encryptionStatus;
+
+    /**
+     * 出参是否开启 1开启
+     */
+    private Integer maskStatus;
+
+    /**
+     * 出参是否开启 1开启
+     */
     @Transient
     private String isStart;
     /**
@@ -143,6 +153,22 @@ public class TInterfaceParam implements Serializable {
 
     public void setIsStart(String isStart) {
         this.isStart = isStart;
+    }
+
+    public Integer getEncryptionStatus() {
+        return encryptionStatus;
+    }
+
+    public void setEncryptionStatus(Integer encryptionStatus) {
+        this.encryptionStatus = encryptionStatus;
+    }
+
+    public Integer getMaskStatus() {
+        return maskStatus;
+    }
+
+    public void setMaskStatus(Integer maskStatus) {
+        this.maskStatus = maskStatus;
     }
 
     public String getParamOutStatus() {

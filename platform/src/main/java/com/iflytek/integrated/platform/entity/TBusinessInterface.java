@@ -11,17 +11,15 @@ import java.io.Serializable;
 /**
  * TBusinessInterface is a Querydsl bean type
  */
-@ApiModel("接口配置")
+@ApiModel("集成配置")
 @Data
 public class TBusinessInterface implements Serializable {
 
     private String id;
 
-    private String requestSysconfigId;
-
     private String requestInterfaceId;
     
-    private String requestedSysconfigId;
+    private String sysRegistryId;
 
     private String businessInterfaceName;
 
@@ -86,7 +84,7 @@ public class TBusinessInterface implements Serializable {
     @Transient
     private String requestInterfaceName;
     @Transient
-    private String platformId;
+    private String typeName;
     @Transient
     private String requestSysId;
     @Transient

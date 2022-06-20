@@ -44,6 +44,10 @@ public class QTInterfaceParam extends com.querydsl.sql.RelationalPathBase<TInter
 
     public final DateTimePath<java.util.Date> updatedTime = createDateTime("updatedTime", java.util.Date.class);
 
+    public final NumberPath<Integer> encryptionStatus = createNumber("encryptionStatus", Integer.class);
+
+    public final NumberPath<Integer> maskStatus = createNumber("maskStatus", Integer.class);
+
     public final com.querydsl.sql.PrimaryKey<TInterfaceParam> primary = createPrimaryKey(id);
 
     public QTInterfaceParam(String variable) {
@@ -83,6 +87,9 @@ public class QTInterfaceParam extends com.querydsl.sql.RelationalPathBase<TInter
         addMetadata(paramType, ColumnMetadata.named("PARAM_TYPE").withIndex(5).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(10).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(updatedTime, ColumnMetadata.named("UPDATED_TIME").withIndex(11).ofType(Types.TIMESTAMP).withSize(19).notNull());
+
+        addMetadata(encryptionStatus, ColumnMetadata.named("ENCRYPTION_STATUS").withIndex(12).ofType(Types.INTEGER).withSize(2).notNull());
+        addMetadata(maskStatus, ColumnMetadata.named("MASK_STATUS").withIndex(13).ofType(Types.INTEGER).withSize(2).notNull());
     }
 
 }

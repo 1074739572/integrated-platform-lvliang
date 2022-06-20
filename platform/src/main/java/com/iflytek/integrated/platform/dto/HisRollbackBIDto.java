@@ -13,7 +13,4 @@ public class HisRollbackBIDto {
 
     @ApiModelProperty(value = "requestInterfaceId",notes = "从当前接口取（历史版本里取）",required = true)
     private String interfaceId;
-
-    @ApiModelProperty(value = "requestSysconfigId",notes = "从当前接口取（历史版本里取）",required = true)
-    private String requestSysconfigId;
 }

@@ -14,10 +14,8 @@ import java.io.Serializable;
 public class TInterface implements Serializable {
 
     private String id;
-    
-    private String sysId;
 
-    @NotBlank(message = "接口名称不能为空")
+    @NotBlank(message = "服务名称不能为空")
     @Length(max = 20, message = "接口名称长度不能超过20")
     private String interfaceName;
 
@@ -64,5 +62,11 @@ public class TInterface implements Serializable {
     private Integer interfaceType;
 
     private Integer asyncFlag;
+
+    private Integer encryptionType;
+
+    private Integer maskPosStart;
+
+    private Integer maskPosEnd;
 }
 

@@ -19,14 +19,6 @@ public class BusinessInterfaceDto {
      */
     private String id;
 
-    private String projectId;
-
-    private String platformId;
-    
-    private String requestSysId;
-
-    private String requestSysconfigId;
-
     private String requestInterfaceId;
 
     private String requestInterfaceTypeId;

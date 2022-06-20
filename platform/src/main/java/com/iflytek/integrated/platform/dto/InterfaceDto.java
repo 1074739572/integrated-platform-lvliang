@@ -13,9 +13,6 @@ import java.util.List;
 @Data
 @ApiModel("标准接口信息")
 public class InterfaceDto {
-
-    private String sysId;
-
     /**
      * 接口入参
      */
@@ -69,4 +66,10 @@ public class InterfaceDto {
     private Integer asyncFlag;
 
     private Integer interfaceType;
+
+    private Integer encryptionType;
+
+    private Integer maskPosStart;
+
+    private Integer maskPosEnd;
 }

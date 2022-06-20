@@ -188,6 +188,46 @@ public class Constant {
 	}
 
 	/**
+	 * 参数格式类型枚举
+	 */
+	public enum ConnectionType {
+
+		// webservice
+		WEBSERVICE("1", "webservice"),
+
+		// http
+		HTTP("2", "http"),
+
+		// 数据库视图
+		VIEW("3", "数据库视图");
+
+		private String code;
+		private String type;
+
+		ConnectionType(String code, String type) {
+			this.code = code;
+			this.type = type;
+		}
+
+		public String getCode() {
+			return code;
+		}
+
+		public String getType() {
+			return type;
+		}
+
+		public static String getByType(String code) {
+			for (ConnectionType formatType : values()) {
+				if (formatType.getCode().equals(code)) {
+					return formatType.getType();
+				}
+			}
+			return null;
+		}
+	}
+
+	/**
 	 * redis缓存匹配枚举
 	 */
 	public enum RedisKeyEnum {

@@ -1,48 +1,8 @@
 package com.iflytek.integrated.platform.service;
 
-import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
-import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
-import static com.iflytek.integrated.platform.entity.QTEtlLog.qTEtlLog;
-import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
-import static com.iflytek.integrated.platform.entity.QTInterfaceMonitor.qTInterfaceMonitor;
-import static com.iflytek.integrated.platform.entity.QTLog.qTLog;
-import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
-import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
-import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
-import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
-
-import java.io.OutputStream;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import com.querydsl.core.types.dsl.*;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
-import com.iflytek.integrated.common.utils.SensitiveUtils;
-import com.iflytek.integrated.common.utils.ase.AesUtil;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.InterfaceMonitorDto;
@@ -57,13 +17,51 @@ import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.SubQueryExpression;
+import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.types.dsl.StringExpression;
+import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.SQLExpressions;
 import com.querydsl.sql.SQLQuery;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.OutputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+
+import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
+import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
+import static com.iflytek.integrated.platform.entity.QTInterfaceMonitor.qTInterfaceMonitor;
+import static com.iflytek.integrated.platform.entity.QTLog.qTLog;
+import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
+import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
+import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
+import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
+import static com.iflytek.integrated.platform.entity.QTSysRegistry.qTSysRegistry;
 
 /**
  * @author czzhan
@@ -131,7 +129,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 							qTBusinessInterface.requestInterfaceId, qTBusinessInterface.replayFlag.max().as("REPLAY_FLAG"))
 					.from(qTInterfaceMonitor)
 					.leftJoin(qTBusinessInterface).on(qTBusinessInterface.id.eq(qTInterfaceMonitor.businessInterfaceId))
-					.leftJoin(qTSysConfig).on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId)
+					.leftJoin(qTSysRegistry).on(qTSysRegistry.id.eq(qTBusinessInterface.sysRegistryId)
 							.and(qTSysConfig.platformId.eq(qTInterfaceMonitor.platformId)))
 //					.leftJoin(qTInterface).on(qTInterface.id.eq(qTBusinessInterface.requestInterfaceId))
 					.where(qTInterfaceMonitor.projectId.eq("0").or(qTInterfaceMonitor.projectId.notEqualsIgnoreCase("0").and(qTBusinessInterface.requestInterfaceId.isNotNull())))
@@ -155,18 +153,19 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 			StringExpression projName = new CaseBuilder().when(qTProject.id.eq("0").or(qTProject.id.isNull())).then("未关联接口配置异常类项目").otherwise(qTProject.projectName).as("projectName");
 			StringExpression platName = new CaseBuilder().when(qTPlatform.id.eq("0").or(qTPlatform.id.isNull())).then("未关联接口配置异常类分类").otherwise(qTPlatform.platformName).as("platformName");
 			StringExpression sysName = new CaseBuilder().when(qTSys.id.eq("0").or(qTSys.id.isNull())).then("未关联接口配置异常类系统").otherwise(qTSys.sysName).as("sysName");
-			StringExpression intfName = new CaseBuilder().when(qTInterface.id.eq("0").or(qTInterface.id.isNull())).then("未关联接口配置异常类接口").otherwise(qTInterface.interfaceName).as("interfaceName");
-			StringExpression intfId = new CaseBuilder().when(qTInterface.id.isNull()).then("0").otherwise(qTInterface.id).as("interfaceId");
+//			StringExpression intfName = new CaseBuilder().when(qTInterface.id.eq("0").or(qTInterface.id.isNull())).then("未关联接口配置异常类接口").otherwise(qTInterface.interfaceName).as("interfaceName");
+//			StringExpression intfId = new CaseBuilder().when(qTInterface.id.isNull()).then("0").otherwise(qTInterface.id).as("interfaceId");
 			QueryResults<InterfaceMonitorDto> queryResults = sqlQueryFactory
 					.selectDistinct(Projections.bean(InterfaceMonitorDto.class, monitor.status, monitor.successCount,
-							monitor.replayFlag, monitor.errorCount, intfName, intfId,
+							monitor.replayFlag, monitor.errorCount,
+//							intfName, intfId,
 							projName, platName, sysName))
 					.from(query, queryLabel)
 					.leftJoin(qTProject).on(qTProject.id.eq(monitor.projectId))
 					.leftJoin(qTPlatform).on(qTPlatform.id.eq(monitor.platformId))
 					.leftJoin(qTSysConfig).on(qTSysConfig.platformId.eq(qTPlatform.id).and(qTSysConfig.sysConfigType.eq(1)))
 					.leftJoin(qTSys).on(qTSys.id.eq(qTSysConfig.sysId))
-					.leftJoin(qTInterface).on(qTInterface.sysId.eq(qTSys.id).and(qTInterface.id.eq(reqInterPath)))
+//					.leftJoin(qTInterface).on(qTInterface.sysId.eq(qTSys.id).and(qTInterface.id.eq(reqInterPath)))
 					.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize).fetchResults();
 			// 分页
 			TableData<InterfaceMonitorDto> tableData = new TableData<>(queryResults.getTotal(),
