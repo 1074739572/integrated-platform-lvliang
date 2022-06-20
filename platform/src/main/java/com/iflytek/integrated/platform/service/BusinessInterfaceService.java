@@ -188,7 +188,7 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 				.where(list.toArray(new Predicate[list.size()]))
 				.groupBy(qTBusinessInterface.requestInterfaceId)
 				.limit(pageSize).offset((pageNo - 1) * pageSize)
-				.orderBy(qTBusinessInterface.createdTime.desc()).fetchResults();;
+				.orderBy(qTBusinessInterface.createdTime.as("createdTime").desc()).fetchResults();;
 		return queryResults;
 	}
 

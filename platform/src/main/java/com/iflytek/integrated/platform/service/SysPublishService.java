@@ -102,7 +102,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
     }
 
     @ApiOperation(value = "获取服务发布信息", notes = "获取服务发布信息")
-    @GetMapping("/getPublish/id")
+    @GetMapping("/getPublish/{id}")
     public ResultDto<TSysPublish> getSysPublish(
             @ApiParam(value = "发布id") @PathVariable(value = "id", required = true) String id) {
         try {
@@ -129,7 +129,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
         }
         String registryId = dto.getId();
         //校验 校验“接入系统+适配类型”是否发布过
-        if(checkRegitryIsExist(registryId,dto.getSysId(),dto.getConnectionType())){
+        if(!checkPublishIsExist(registryId,dto.getSysId(),dto.getConnectionType())){
             //查询系统名称和类型
             throw new RuntimeException(dto.getSysName()+"已发布过"+Constant.ConnectionType.getByType(dto.getConnectionType())+"服务");
         }
@@ -161,7 +161,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
      * @param connectionType
      * @return
      */
-    private Boolean checkRegitryIsExist(String id,String sysId,String connectionType){
+    private Boolean checkPublishIsExist(String id,String sysId,String connectionType){
         ArrayList<Predicate> list = new ArrayList<>();
         if (StringUtils.isNotEmpty(id)) {
             list.add(qTSysPublish.id.notEqualsIgnoreCase(id));
@@ -186,7 +186,6 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
     @PostMapping("/delById/{id}")
     public ResultDto<String> delById(
             @ApiParam(value = "服务id") @PathVariable(value = "id", required = true) String id) {
-        this.delById(id);
         // 删除接口
         long l = this.delete(id);
         if (l < 1) {

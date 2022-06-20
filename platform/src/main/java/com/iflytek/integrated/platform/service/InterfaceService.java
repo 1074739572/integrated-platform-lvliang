@@ -491,7 +491,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         //redis缓存信息获取
         ArrayList<Predicate> arr = new ArrayList<>();
         arr.add(qTInterface.id.eq(id));
-        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+        //TODO redis调用先注释
+        List<RedisKeyDto> redisKeyDtoList = null;//redisService.getRedisKeyDtoList(arr);
         // 传入标准服务方法
         String interfaceUrl = dto.getInterfaceUrl();
         if (!tf.getInterfaceUrl().equals(interfaceUrl)) {
