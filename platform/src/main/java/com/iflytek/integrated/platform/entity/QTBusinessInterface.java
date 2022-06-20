@@ -35,11 +35,9 @@ public class QTBusinessInterface extends com.querydsl.sql.RelationalPathBase<TBu
 
     public final StringPath id = createString("id");
     
-    public final StringPath requestSysconfigId = createString("requestSysconfigId");
-    
     public final StringPath requestInterfaceId = createString("requestInterfaceId");
     
-    public final StringPath requestedSysconfigId = createString("requestedSysconfigId");
+    public final StringPath sysRegistryId = createString("sysRegistryId");
     
     public final StringPath inParamFormat = createString("inParamFormat");
 
@@ -120,9 +118,8 @@ public class QTBusinessInterface extends com.querydsl.sql.RelationalPathBase<TBu
 
     public void addMetadata() {
     	addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.VARCHAR).withSize(32).notNull());
-        addMetadata(requestSysconfigId, ColumnMetadata.named("REQUEST_SYSCONFIG_ID").withIndex(2).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(requestInterfaceId, ColumnMetadata.named("REQUEST_INTERFACE_ID").withIndex(3).ofType(Types.VARCHAR).withSize(32).notNull());
-        addMetadata(requestedSysconfigId, ColumnMetadata.named("REQUESTED_SYSCONFIG_ID").withIndex(4).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(sysRegistryId, ColumnMetadata.named("SYS_REGISTRY_ID").withIndex(4).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(businessInterfaceName, ColumnMetadata.named("BUSINESS_INTERFACE_NAME").withIndex(5).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(requestType, ColumnMetadata.named("REQUEST_TYPE").withIndex(6).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(requestConstant, ColumnMetadata.named("REQUEST_CONSTANT").withIndex(7).ofType(Types.VARCHAR).withSize(1024).notNull());

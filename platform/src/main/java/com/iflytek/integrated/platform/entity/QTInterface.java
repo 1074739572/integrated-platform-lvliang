@@ -28,8 +28,6 @@ public class QTInterface extends com.querydsl.sql.RelationalPathBase<TInterface>
 
     public final StringPath id = createString("id");
     
-    public final StringPath sysId = createString("sysId");
-
     public final StringPath inParamFormat = createString("inParamFormat");
 
     public final StringPath interfaceName = createString("interfaceName");
@@ -62,6 +60,12 @@ public class QTInterface extends com.querydsl.sql.RelationalPathBase<TInterface>
     
     public final DateTimePath<java.util.Date> updatedTime = createDateTime("updatedTime", java.util.Date.class);
 
+    public final NumberPath<Integer> encryptionType = createNumber("encryptionType", Integer.class);
+
+    public final NumberPath<Integer> maskPosStart = createNumber("maskPosStart", Integer.class);
+
+    public final NumberPath<Integer> maskPosEnd = createNumber("maskPosEnd", Integer.class);
+
     public final com.querydsl.sql.PrimaryKey<TInterface> primary = createPrimaryKey(id);
 
     public QTInterface(String variable) {
@@ -93,7 +97,6 @@ public class QTInterface extends com.querydsl.sql.RelationalPathBase<TInterface>
         addMetadata(createdBy, ColumnMetadata.named("CREATED_BY").withIndex(10).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(11).ofType(Types.TIMESTAMP).withSize(19).notNull());
         addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.VARCHAR).withSize(32).notNull());
-        addMetadata(sysId, ColumnMetadata.named("SYS_ID").withIndex(2).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(inParamFormat, ColumnMetadata.named("IN_PARAM_FORMAT").withIndex(6).ofType(Types.VARCHAR).withSize(1024).notNull());
         addMetadata(interfaceName, ColumnMetadata.named("INTERFACE_NAME").withIndex(3).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(interfaceUrl, ColumnMetadata.named("INTERFACE_URL").withIndex(5).ofType(Types.VARCHAR).withSize(64).notNull());
@@ -111,6 +114,10 @@ public class QTInterface extends com.querydsl.sql.RelationalPathBase<TInterface>
         addMetadata(allowLogDiscard, ColumnMetadata.named("ALLOW_LOG_DISCARD").withIndex(18).ofType(Types.VARCHAR).withSize(1).notNull());
         addMetadata(interfaceType, ColumnMetadata.named("INTERFACE_TYPE").withIndex(19).ofType(Types.INTEGER).withSize(1).notNull());
         addMetadata(asyncFlag, ColumnMetadata.named("ASYNC_FLAG").withIndex(19).ofType(Types.INTEGER).withSize(1).notNull());
+
+        addMetadata(encryptionType, ColumnMetadata.named("ENCRYPTION_TYPE").withIndex(20).ofType(Types.INTEGER).withSize(1).notNull());
+        addMetadata(maskPosStart, ColumnMetadata.named("MASK_POS_START").withIndex(21).ofType(Types.INTEGER).withSize(4).notNull());
+        addMetadata(maskPosEnd, ColumnMetadata.named("MASK_POS_END").withIndex(22).ofType(Types.INTEGER).withSize(4).notNull());
     }
 
 }

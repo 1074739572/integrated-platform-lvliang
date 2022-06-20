@@ -6,15 +6,11 @@ import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.common.RedisService;
 import com.iflytek.integrated.platform.dto.RedisDto;
 import com.iflytek.integrated.platform.dto.RedisKeyDto;
-import com.iflytek.integrated.platform.entity.QTBusinessInterface;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.SubQueryExpression;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringPath;
-import com.querydsl.sql.SQLExpressions;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -29,8 +25,8 @@ import java.util.stream.Collectors;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
 import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
-import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
-import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
+import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
+import static com.iflytek.integrated.platform.entity.QTSysRegistry.qTSysRegistry;
 import static com.iflytek.integrated.platform.entity.QTType.qTType;
 import static com.querydsl.sql.SQLExpressions.groupConcat;
 
@@ -106,11 +102,10 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	 * 根据相同条件删除接口配置数据
 	 * 
 	 * @param interfaceId
-	 * @param requestSysconfigId
 	 */
-	public long delObjByCondition(String interfaceId, String requestSysconfigId) {
+	public long delObjByCondition(String interfaceId) {
 		long count = sqlQueryFactory.delete(qTBusinessInterface).where(qTBusinessInterface.requestInterfaceId
-				.eq(interfaceId).and(qTBusinessInterface.requestSysconfigId.eq(requestSysconfigId))).execute();
+				.eq(interfaceId)).execute();
 		return count;
 	}
 
@@ -118,15 +113,11 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	 * 根据相同条件查询所有接口配置数据
 	 * 
 	 * @param interfaceId
-	 * @param requestSysconfigId
 	 */
-	public List<TBusinessInterface> getListByCondition(String interfaceId, String requestSysconfigId) {
+	public List<TBusinessInterface> getListByCondition(String interfaceId) {
 		ArrayList<Predicate> list = new ArrayList<>();
 		if (StringUtils.isNotBlank(interfaceId)) {
 			list.add(qTBusinessInterface.requestInterfaceId.eq(interfaceId));
-		}
-		if (StringUtils.isNotBlank(requestSysconfigId)) {
-			list.add(qTBusinessInterface.requestSysconfigId.eq(requestSysconfigId));
 		}
 		List<TBusinessInterface> tbiList = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
 				.where(list.toArray(new Predicate[list.size()])).fetch();
@@ -169,94 +160,48 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	}
 
 	/**
-	 * 获取接口配置信息列表
+	 * 获取集成配置信息列表
 	 * 
 	 * @param list
 	 * @param pageNo
 	 * @param pageSize
 	 * @return
 	 */
-	public QueryResults<TBusinessInterface> getInterfaceConfigureList(ArrayList<Predicate> list, String requestedInterfaceName, Integer pageNo, Integer pageSize) {
-
-//		QueryResults<TBusinessInterface> queryResults = sqlQueryFactory
-//				.select(Projections.bean(TBusinessInterface.class, qTBusinessInterface.id,
-//						qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId,
-//						groupConcat(qTBusinessInterface.requestedSysconfigId.append("/")
-//								.append(qTBusinessInterface.businessInterfaceName)).as("businessInterfaceName"),
-//						qTBusinessInterface.mockStatus, qTBusinessInterface.status, qTBusinessInterface.createdBy,
-//						qTBusinessInterface.createdTime, qTBusinessInterface.updatedBy, qTBusinessInterface.updatedTime,
-//						qTSysConfig.versionId.as("versionId")))
-//				.from(qTBusinessInterface)
-//				.leftJoin(qTSysConfig).on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId))
-//				.leftJoin(qTInterface).on(qTInterface.id.eq(qTBusinessInterface.requestInterfaceId))
-//				.where(list.toArray(new Predicate[list.size()]))
-//				.groupBy(qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId)
-//				.orderBy(qTBusinessInterface.createdTime.desc()).limit(pageSize).offset((pageNo - 1) * pageSize)
-//				.fetchResults();
-
-		String q = "queryBusinessInterface";
-		StringPath queryLabel = Expressions.stringPath(q);
-		QTBusinessInterface businessInterface = new QTBusinessInterface(q);
-		ArrayList<Predicate> interfaceNameList = new ArrayList<>();
-		if (StringUtils.isNotEmpty(requestedInterfaceName)) {
-			interfaceNameList.add(businessInterface.businessInterfaceName.like("%" + requestedInterfaceName + "%"));
-		}
-		SubQueryExpression query = SQLExpressions
-				.select(qTBusinessInterface.id.min().as("id"), qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId,
-						groupConcat(qTBusinessInterface.requestedSysconfigId.append("/")
-								.append(qTBusinessInterface.businessInterfaceName)).as("BUSINESS_INTERFACE_NAME"),
-						qTBusinessInterface.mockStatus.min().as("MOCK_STATUS"), qTBusinessInterface.status.min().as("status"), qTBusinessInterface.createdBy.min().as("CREATED_BY"),
-						qTBusinessInterface.createdTime.max().as("CREATED_TIME"), qTBusinessInterface.updatedBy.min().as("UPDATED_BY"),
-						qTBusinessInterface.updatedTime.max().as("UPDATED_TIME"))
+	public QueryResults<TBusinessInterface> getInterfaceConfigureList(ArrayList<Predicate> list, Integer pageNo, Integer pageSize) {
+		QueryResults<TBusinessInterface> queryResults = sqlQueryFactory
+				.select(Projections.bean(TBusinessInterface.class,qTBusinessInterface.id.min().as("id"),qTType.typeName.min().as(qTType.typeName),
+						qTBusinessInterface.requestInterfaceId,
+						qTInterface.interfaceName.min().as(qTInterface.interfaceName),
+						groupConcat(qTSys.sysName.append("/")
+								.append(qTBusinessInterface.businessInterfaceName)).as(qTBusinessInterface.businessInterfaceName),
+						qTBusinessInterface.mockStatus.min().as(qTBusinessInterface.mockStatus),
+						qTBusinessInterface.status.min().as("status"),
+						qTBusinessInterface.createdBy.min().as( qTBusinessInterface.createdBy),
+						qTBusinessInterface.createdTime.max().as(qTBusinessInterface.createdTime),
+						qTBusinessInterface.updatedBy.min().as(qTBusinessInterface.updatedBy),
+						qTBusinessInterface.updatedTime.max().as(qTBusinessInterface.updatedTime)))
 				.from(qTBusinessInterface)
-				.leftJoin(qTSysConfig).on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId))
+				.leftJoin(qTSysRegistry).on(qTSysRegistry.id.eq(qTBusinessInterface.sysRegistryId))
+				.leftJoin(qTType).on(qTType.id.eq(qTBusinessInterface.interfaceType))
+				.leftJoin(qTSys).on(qTSys.id.eq(qTSysRegistry.sysId))
 				.leftJoin(qTInterface).on(qTInterface.id.eq(qTBusinessInterface.requestInterfaceId))
 				.where(list.toArray(new Predicate[list.size()]))
-				.groupBy(qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId);
-
-		QueryResults<TBusinessInterface> queryResults = sqlQueryFactory
-				.select(Projections.bean(TBusinessInterface.class, businessInterface.id, businessInterface.requestInterfaceId,
-						businessInterface.requestSysconfigId, businessInterface.businessInterfaceName, businessInterface.mockStatus,
-						businessInterface.status, businessInterface.createdBy, businessInterface.createdTime,
-						businessInterface.updatedBy, businessInterface.updatedTime))
-				.from(query, queryLabel)
-				.where(interfaceNameList.toArray(new Predicate[interfaceNameList.size()]))
+				.groupBy(qTBusinessInterface.requestInterfaceId)
 				.limit(pageSize).offset((pageNo - 1) * pageSize)
-				.orderBy(businessInterface.createdTime.desc()).fetchResults();
+				.orderBy(qTBusinessInterface.createdTime.desc()).fetchResults();;
 		return queryResults;
 	}
 
-	/**
-	 * 根据平台id获取接口配置信息
-	 * 
-	 * @param platformId
-	 * @return
-	 */
-	public List<TBusinessInterface> getInterfaceConfigureList(String platformId) {
-		ArrayList<Predicate> list = new ArrayList<>();
-		list.add(qTSysConfig.platformId.eq(platformId));
-		List<TBusinessInterface> queryResults = sqlQueryFactory
-				.select(Projections.bean(TBusinessInterface.class,
-						// qTBusinessInterface.id,
-						qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId))
-				.from(qTBusinessInterface).leftJoin(qTSysConfig)
-				.on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId))
-				.where(list.toArray(new Predicate[list.size()]))
-				.groupBy(qTBusinessInterface.requestInterfaceId, qTBusinessInterface.requestSysconfigId).fetch();
-		return queryResults;
-	}
 
 	/**
 	 * 根据三条件获取
 	 * 
 	 * @param interfaceId
-	 * @param requestSysconfigId
 	 * @return
 	 */
-	public List<TBusinessInterface> getTBusinessInterfaceList(String interfaceId, String requestSysconfigId) {
+	public List<TBusinessInterface> getTBusinessInterfaceList(String interfaceId) {
 		List<TBusinessInterface> list = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
-				.where(qTBusinessInterface.requestInterfaceId.eq(interfaceId)
-						.and(qTBusinessInterface.requestSysconfigId.eq(requestSysconfigId)))
+				.where(qTBusinessInterface.requestInterfaceId.eq(interfaceId))
 				.orderBy(qTBusinessInterface.excErrOrder.asc()).fetch();
 		return list;
 	}
@@ -264,41 +209,19 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	/**
 	 * 新增接口配置时根据条件判断是否存在该数据
 	 * 
-	 * @param projectId
-	 * @param sysId
 	 * @param interfaceId
 	 * @return
 	 */
-	public List<TBusinessInterface> getBusinessInterfaceIsExist(String projectId, String sysId, String interfaceId) {
+	public List<TBusinessInterface> getBusinessInterfaceIsExist(String interfaceId) {
 		ArrayList<Predicate> list = new ArrayList<>();
 
 		if (StringUtils.isNotEmpty(interfaceId)) {
 			list.add(qTBusinessInterface.requestInterfaceId.eq(interfaceId));
 		}
-		if (StringUtils.isNotEmpty(sysId)) {
-			list.add(qTSysConfig.sysId.eq(sysId));
-		}
-		if (StringUtils.isNotEmpty(projectId)) {
-			list.add(qTPlatform.projectId.in(projectId));
-		}
 
 		List<TBusinessInterface> rtnList = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
-				.leftJoin(qTSysConfig).on(qTSysConfig.id.eq(qTBusinessInterface.requestSysconfigId)).join(qTPlatform)
-				.on(qTPlatform.id.eq(qTSysConfig.platformId)).where(list.toArray(new Predicate[list.size()])).fetch();
+				.where(list.toArray(new Predicate[list.size()])).fetch();
 		return rtnList;
-	}
-
-	/**
-	 * 根据系统id获取对接接口配置数据
-	 * 
-	 * @param sysId
-	 * @return
-	 */
-	public List<TBusinessInterface> getListBySysId(String sysId) {
-		List<TBusinessInterface> list = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
-				.join(qTSysConfig).on(qTBusinessInterface.requestSysconfigId.eq(qTSysConfig.id))
-				.where(qTSysConfig.sysId.eq(sysId)).fetch();
-		return list;
 	}
 
 	/**
@@ -314,37 +237,17 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	}
 
 	/**
-	 * 根据请求方系统配置id获取对接接口配置数据
-	 * 
-	 * @param requestSysconfigId
-	 * @return
-	 */
-	public List<TBusinessInterface> getListBySysConfigId(String requestSysconfigId) {
-		List<TBusinessInterface> list = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
-				.where(qTBusinessInterface.requestSysconfigId.eq(requestSysconfigId)).fetch();
-		return list;
-	}
-
-	/**
 	 * 获取平台下的所有接口配置信息
 	 * 
 	 * @param platformId
 	 */
 	public List<TBusinessInterface> getListByPlatform(String platformId) {
-		List<TBusinessInterface> list = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
-				.leftJoin(qTSysConfig)
-				.on((qTBusinessInterface.requestSysconfigId.eq(qTSysConfig.id)
-						.or(qTBusinessInterface.requestedSysconfigId.eq(qTSysConfig.id))))
-				.where(qTSysConfig.platformId.eq(platformId)).fetch();
+		List<TBusinessInterface> list = null;
 		return list;
 	}
 	
 	public List<TBusinessInterface> getListByPlatforms(List<String> platformIds) {
-		List<TBusinessInterface> list = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
-				.leftJoin(qTSysConfig)
-				.on((qTBusinessInterface.requestSysconfigId.eq(qTSysConfig.id)
-						.or(qTBusinessInterface.requestedSysconfigId.eq(qTSysConfig.id))))
-				.where(qTSysConfig.platformId.in(platformIds)).fetch();
+		List<TBusinessInterface> list =null;
 		return list;
 	}
 
@@ -357,19 +260,19 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	public List<TBusinessInterface> busInterfaces(String id) {
 		TBusinessInterface businessInterface = getOne(id);
 		if (businessInterface == null) {
-			throw new RuntimeException("没有找到接口配置");
+			throw new RuntimeException("没有找到集成配置");
 		}
 		ArrayList<Predicate> list = new ArrayList<>();
 		if (StringUtils.isNotBlank(businessInterface.getRequestInterfaceId())) {
 			list.add(qTBusinessInterface.requestInterfaceId.eq(businessInterface.getRequestInterfaceId()));
 		}
-		if (StringUtils.isNotBlank(businessInterface.getRequestSysconfigId())) {
-			list.add(qTBusinessInterface.requestSysconfigId.eq(businessInterface.getRequestSysconfigId()));
+		if (StringUtils.isNotBlank(businessInterface.getSysRegistryId())) {
+			list.add(qTBusinessInterface.sysRegistryId.eq(businessInterface.getSysRegistryId()));
 		}
 		List<TBusinessInterface> interfaces = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
 				.where(list.toArray(new Predicate[list.size()])).orderBy(qTBusinessInterface.excErrOrder.asc()).fetch();
 		if (CollectionUtils.isEmpty(interfaces)) {
-			throw new RuntimeException("没有找到多接口配置集合");
+			throw new RuntimeException("没有找到多服务配置集合");
 		}
 		return interfaces;
 	}

@@ -19,7 +19,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -28,19 +34,19 @@ import java.util.List;
 import static com.iflytek.integrated.platform.entity.QTType.qTType;
 
 /**
-* 分类
-* @author weihe9
-* @date 2020/12/20 17:02
+* 分组
+* @author fangkun
+* @date 2022/06/14 17:02
 */
 @Slf4j
-@Api(tags = "分类管理")
+@Api(tags = "分组管理")
 @RestController
 @RequestMapping("/{version}/pt/typeManage")
-public class TypeService extends BaseService<TType, String, StringPath> {
+public class GroupService extends BaseService<TType, String, StringPath> {
 
-    private static final Logger logger = LoggerFactory.getLogger(TypeService.class);
+    private static final Logger logger = LoggerFactory.getLogger(GroupService.class);
 
-    public TypeService(){
+    public GroupService(){
         super(qTType, qTType.id);
     }
 
@@ -94,7 +100,7 @@ public class TypeService extends BaseService<TType, String, StringPath> {
                 if (null != this.getTypeByName(typeName)) {
                     return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该类型名已存在!", "该类型名已存在!");
                 }
-                Integer typeId = StringUtils.isEmpty(maxId)?0:Integer.valueOf(maxId) + i +1;
+                Integer typeId = Integer.valueOf(maxId) + i +1;
                 type.setId(String.valueOf(typeId));
                 type.setTypeCode(generateCode(qTType.typeCode,qTType,type.getTypeName()));
                 type.setCreatedBy(loginUserName);
