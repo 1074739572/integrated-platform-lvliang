@@ -38,6 +38,8 @@ public class QTSys extends com.querydsl.sql.RelationalPathBase<TSys> {
 
     public final DateTimePath<java.util.Date> updatedTime = createDateTime("updatedTime", java.util.Date.class);
 
+    public final StringPath vendorId = createString("updatedBy");
+
     public final com.querydsl.sql.PrimaryKey<TSys> primary = createPrimaryKey(id);
 
     public QTSys(String variable) {
@@ -74,6 +76,7 @@ public class QTSys extends com.querydsl.sql.RelationalPathBase<TSys> {
         addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(6).ofType(Types.TIMESTAMP).withSize(19));
         addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(7).ofType(Types.VARCHAR).withSize(32));
         addMetadata(updatedTime, ColumnMetadata.named("UPDATED_TIME").withIndex(8).ofType(Types.TIMESTAMP).withSize(19));
+        addMetadata(updatedTime, ColumnMetadata.named("vendor_id").withIndex(9).ofType(Types.VARCHAR).withSize(32));
     }
 
 }
