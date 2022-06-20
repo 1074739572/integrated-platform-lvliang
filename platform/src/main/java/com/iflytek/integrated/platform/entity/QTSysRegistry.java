@@ -124,7 +124,7 @@ public class QTSysRegistry extends com.querydsl.sql.RelationalPathBase<TSysRegis
 		addMetadata(updatedTime,
 				ColumnMetadata.named("UPDATED_TIME").withIndex(22).ofType(Types.TIMESTAMP).withSize(19).notNull());
 		addMetadata(registryName,
-				ColumnMetadata.named("INNER_IDX").withIndex(23).ofType(Types.VARCHAR).withSize(255).notNull());
+				ColumnMetadata.named("REGISTRY_NAME").withIndex(23).ofType(Types.VARCHAR).withSize(255).notNull());
 		addMetadata(databaseType,
 				ColumnMetadata.named("DATABASE_TYPE").withIndex(13).ofType(Types.VARCHAR).withSize(32).notNull());
 	}
