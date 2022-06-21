@@ -16,8 +16,6 @@ public class TSysPublish implements Serializable {
     
     private String sysId;
     
-    private String isValid;
-
     private String connectionType;
 
     private String publishName;

@@ -16,10 +16,6 @@ public class TSysRegistry implements Serializable {
     
     private String sysId;
 
-    @NotBlank(message = "接口版本不能为空")
-    @Length(max = 32, message = "接口版本长度不能超过32")
-    private String versionId;
-
     private String connectionType;
 
     @Length(max = 128, message = "调用地址长度不能超过128")

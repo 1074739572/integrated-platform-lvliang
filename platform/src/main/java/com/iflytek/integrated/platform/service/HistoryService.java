@@ -283,7 +283,6 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
                 TSys requestedSys = sysService.getOne(tSysRegistry.getSysId());
                 tbi.setRequestedSysId(requestedSys.getId());
                 businessInterfaceName += (requestedSys.getSysName() + "/" + tbi.getBusinessInterfaceName() + ",");
-                versionId += (tSysRegistry.getVersionId() + ",");
             }
             if (StringUtils.isBlank(typeId)) {
                 typeId = tInterface.getTypeId();
@@ -299,12 +298,6 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
             if (replayFlag != null) {
                 replayFlag = tbi.getReplayFlag();
             }
-            if (QIId == null) {
-                QIId = tbi.getQIId();
-            }
-            if (QIFlag == null) {
-                QIFlag = tbi.getQIFlag();
-            }
         }
         if (businessInterfaceName.endsWith(",")) {
             businessInterfaceName = businessInterfaceName.substring(0, businessInterfaceName.length() - 1);
@@ -318,7 +311,6 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
         map.put("requestInterfaceId", hisReqInterfaceId);
         map.put("businessInterfaceName", businessInterfaceName);
         map.put("requestInterfaceName", requestInterfaceName);
-        map.put("versionId", versionId);
         map.put("requestSysId", requestSysId);
         map.put("requestInterfaceTypeId", typeId);
         map.put("interfaceSlowFlag", interfaceSlowFlag);
@@ -364,9 +356,6 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
             tbi.setAsyncFlag(jObj.getInteger("asyncFlag"));
             tbi.setInterfaceSlowFlag(jObj.getInteger("interfaceSlowFlag"));
             tbi.setReplayFlag(jObj.getInteger("replayFlag"));
-            //qIId、qIFlag首字母小写
-            tbi.setQIId(jObj.getString("qIId"));
-            tbi.setQIFlag(jObj.getInteger("qIFlag"));
             // 获取schema
             niFiRequestUtil.generateSchemaToInterface(tbi);
             businessInterfaceService.post(tbi);

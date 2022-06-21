@@ -154,6 +154,16 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	}
 
 	/**
+	 * 根据服务注册id获取集成配置信息
+	 *
+	 * @param sysRegistryId
+	 */
+	public List<TBusinessInterface> getListBySysRegistryId(String sysRegistryId) {
+		return sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
+				.where(qTBusinessInterface.sysRegistryId.eq(sysRegistryId)).fetch();
+	}
+
+	/**
 	 * 根据请求方系统接口ID获取接口配置信息
 	 *
 	 * @param interfaceId
@@ -295,7 +305,7 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	}
 
 	public long selectByQIId(String QIId){
-		return sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface).where(qTBusinessInterface.QIId.eq(QIId)).fetchCount();
+		return sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface).fetchCount();
 	}
 
 }
