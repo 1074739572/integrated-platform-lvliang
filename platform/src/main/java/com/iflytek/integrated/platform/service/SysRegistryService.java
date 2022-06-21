@@ -8,6 +8,7 @@ import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.common.RedisService;
+import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TSysRegistry;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.medicalboot.core.id.BatchUidService;
@@ -19,6 +20,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +56,9 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
 
     @Autowired
     private RedisService redisService;
+
+    @Autowired
+    private BusinessInterfaceService businessInterfaceService;
 
     @Autowired
     private BatchUidService batchUidService;
@@ -155,12 +160,17 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
     @PostMapping("/delById/{id}")
     public ResultDto<String> delById(
             @ApiParam(value = "服务id") @PathVariable(value = "id", required = true) String id) {
+        //先校验是否跟集成配置关联
+        List<TBusinessInterface> list = businessInterfaceService.getListBySysRegistryId(id);
+        if (CollectionUtils.isNotEmpty(list)) {
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该注册服务已有集成配置关联,无法删除!", "该注册服务已有集成配置关联,无法删除!");
+        }
         // 删除接口
         long l = this.delete(id);
         if (l < 1) {
-            throw new RuntimeException("标准接口删除成功!");
+            throw new RuntimeException("注册服务删除成功!");
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准接口删除成功!");
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "注册服务删除成功!");
     }
 
     /**
