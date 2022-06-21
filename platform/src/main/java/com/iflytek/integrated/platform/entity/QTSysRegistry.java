@@ -92,8 +92,6 @@ public class QTSysRegistry extends com.querydsl.sql.RelationalPathBase<TSysRegis
 	public void addMetadata() {
 		addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.VARCHAR).withSize(32).notNull());
 		addMetadata(sysId, ColumnMetadata.named("SYS_ID").withIndex(4).ofType(Types.VARCHAR).withSize(32).notNull());
-		addMetadata(versionId,
-				ColumnMetadata.named("VERSION_ID").withIndex(6).ofType(Types.VARCHAR).withSize(32).notNull());
 		addMetadata(connectionType,
 				ColumnMetadata.named("CONNECTION_TYPE").withIndex(7).ofType(Types.VARCHAR).withSize(32).notNull());
 		addMetadata(addressUrl,

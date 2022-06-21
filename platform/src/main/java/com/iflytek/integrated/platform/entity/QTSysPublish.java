@@ -21,8 +21,6 @@ public class QTSysPublish extends com.querydsl.sql.RelationalPathBase<TSysPublis
 
 	public final StringPath id = createString("id");
 
-	public final StringPath isValid = createString("isValid");
-
 	public final StringPath sysId = createString("sysId");
 
 	public final StringPath addressUrl = createString("addressUrl");
@@ -75,8 +73,6 @@ public class QTSysPublish extends com.querydsl.sql.RelationalPathBase<TSysPublis
 	public void addMetadata() {
 		addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.VARCHAR).withSize(32).notNull());
 		addMetadata(sysId, ColumnMetadata.named("SYS_ID").withIndex(2).ofType(Types.VARCHAR).withSize(32).notNull());
-		addMetadata(isValid,
-				ColumnMetadata.named("IS_VALID").withIndex(3).ofType(Types.VARCHAR).withSize(1).notNull());
 		addMetadata(connectionType,
 				ColumnMetadata.named("CONNECTION_TYPE").withIndex(4).ofType(Types.VARCHAR).withSize(32).notNull());
 		addMetadata(addressUrl,
