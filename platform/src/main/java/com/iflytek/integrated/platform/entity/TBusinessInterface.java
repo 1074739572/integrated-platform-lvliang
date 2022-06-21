@@ -77,10 +77,6 @@ public class TBusinessInterface implements Serializable {
 
     private Integer replayFlag;
 
-    private String QIId;
-
-    private Integer QIFlag;
-
     @Transient
     private String requestInterfaceName;
     @Transient
@@ -105,23 +101,5 @@ public class TBusinessInterface implements Serializable {
     private String interfaceUrl;
     @Transient
     private String sysIntfInParamFormatType;
-
-    public String getQIId() {
-        return QIId;
-    }
-
-    @JsonProperty("QIId")
-    public void setQIId(String QIId) {
-        this.QIId = QIId;
-    }
-
-    public Integer getQIFlag() {
-        return QIFlag;
-    }
-
-    @JsonProperty("QIFlag")
-    public void setQIFlag(Integer QIFlag) {
-        this.QIFlag = QIFlag;
-    }
 }
 

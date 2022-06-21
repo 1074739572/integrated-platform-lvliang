@@ -85,10 +85,6 @@ public class QTBusinessInterface extends com.querydsl.sql.RelationalPathBase<TBu
 
     public final DateTimePath<java.util.Date> updatedTime = createDateTime("updatedTime", java.util.Date.class);
 
-    public final StringPath QIId = createString("QIId");
-
-    public final NumberPath<Integer> QIFlag = createNumber("QIFlag",Integer.class);
-
     public final com.querydsl.sql.PrimaryKey<TBusinessInterface> primary = createPrimaryKey(id);
 
     public QTBusinessInterface(String variable) {
@@ -148,8 +144,6 @@ public class QTBusinessInterface extends com.querydsl.sql.RelationalPathBase<TBu
         addMetadata(asyncFlag, ColumnMetadata.named("ASYNC_FLAG").withIndex(30).ofType(Types.TINYINT).withSize(1).notNull());
         addMetadata(interfaceSlowFlag, ColumnMetadata.named("INTERFACE_SLOW_FLAG").withIndex(31).ofType(Types.TINYINT).withSize(1).notNull());
         addMetadata(replayFlag, ColumnMetadata.named("REPLAY_FLAG").withIndex(32).ofType(Types.TINYINT).withSize(1).notNull());
-        addMetadata(QIId, ColumnMetadata.named("QI_ID").withIndex(33).ofType(Types.VARCHAR).withSize(32));
-        addMetadata(QIFlag, ColumnMetadata.named("QI_FLAG").withIndex(34).ofType(Types.TINYINT).withSize(1));
     }
 
 }

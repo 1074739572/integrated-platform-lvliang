@@ -22,19 +22,13 @@ import com.iflytek.integrated.platform.dto.MockTemplateDto;
 import com.iflytek.integrated.platform.dto.ParamsDto;
 import com.iflytek.integrated.platform.dto.RedisDto;
 import com.iflytek.integrated.platform.dto.RedisKeyDto;
-import com.iflytek.integrated.platform.entity.QTSysRegistry;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TDrive;
-import com.iflytek.integrated.platform.entity.THospital;
 import com.iflytek.integrated.platform.entity.TInterface;
 import com.iflytek.integrated.platform.entity.TInterfaceParam;
-import com.iflytek.integrated.platform.entity.TPlatform;
 import com.iflytek.integrated.platform.entity.TPlugin;
-import com.iflytek.integrated.platform.entity.TProject;
 import com.iflytek.integrated.platform.entity.TSys;
-import com.iflytek.integrated.platform.entity.TSysConfig;
 import com.iflytek.integrated.platform.entity.TSysDriveLink;
-import com.iflytek.integrated.platform.entity.TSysHospitalConfig;
 import com.iflytek.integrated.platform.entity.TSysRegistry;
 import com.iflytek.integrated.platform.entity.TType;
 import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
@@ -90,16 +84,12 @@ import java.util.zip.ZipOutputStream;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
 import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
-import static com.iflytek.integrated.platform.entity.QTHospital.qTHospital;
 import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
 import static com.iflytek.integrated.platform.entity.QTInterfaceParam.qTInterfaceParam;
-import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
 import static com.iflytek.integrated.platform.entity.QTPlugin.qTPlugin;
-import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
-import static com.iflytek.integrated.platform.entity.QTSysRegistry.qTSysRegistry;
 import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
-import static com.iflytek.integrated.platform.entity.QTSysHospitalConfig.qTSysHospitalConfig;
+import static com.iflytek.integrated.platform.entity.QTSysRegistry.qTSysRegistry;
 import static com.iflytek.integrated.platform.entity.QTType.qTType;
 
 /**
@@ -118,8 +108,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     private BusinessInterfaceService businessInterfaceService;
     @Autowired
     private InterfaceParamService interfaceParamService;
-    @Autowired
-    private SysConfigService sysConfigService;
     @Autowired
     private BatchUidService batchUidService;
     @Autowired
@@ -645,6 +633,28 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准服务列表获取成功!", tableData);
     }
 
+    @ApiOperation(value = "服务下拉")
+    @GetMapping("/getInterfaceSelect")
+    public ResultDto<List<TInterface>> getInterfaceSelect(
+            @ApiParam(value = "服务名称") @RequestParam(value = "interfaceName", required = false) String interfaceName) {
+        // 查询条件
+        ArrayList<Predicate> list = new ArrayList<>();
+        if (StringUtils.isNotEmpty(interfaceName)) {
+            list.add(qTInterface.interfaceName.like(PlatformUtil.createFuzzyText(interfaceName)));
+        }
+        List<TInterface> queryResults = sqlQueryFactory
+                .select(Projections.bean(TInterface.class,
+                        qTInterface.id, qTInterface.interfaceName, qTInterface.allowLogDiscard,
+                        qTInterface.interfaceUrl, qTInterface.inParamFormat, qTInterface.outParamFormat,
+                        qTInterface.createdTime, qTInterface.typeId,
+                        qTInterface.interfaceType, qTInterface.asyncFlag))
+                .from(qTInterface)
+                .where(list.toArray(new Predicate[list.size()]))
+                .orderBy(qTInterface.createdTime.desc()).fetch();
+
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准服务列表获取成功!", queryResults);
+    }
+
     @ApiOperation(value = "获取集成配置列表")
     @GetMapping("/getInterfaceConfigureList")
     public ResultDto<TableData<TBusinessInterface>> getInterfaceConfigureList(
@@ -686,8 +696,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             dto.setRequestInterfaceId(requestInterfaceId);
             dto.setInterfaceSlowFlag(tbi.getInterfaceSlowFlag());
             dto.setReplayFlag(tbi.getReplayFlag());
-            dto.setQIId(tbi.getQIId());
-            dto.setQIFlag(tbi.getQIFlag());
             dto.setMockStatus(tbi.getMockStatus());
             dto.setStatus(tbi.getStatus());
             // 获取请求方服务类型
@@ -790,8 +798,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             tbi.setExcErrOrder(i);
             tbi.setInterfaceSlowFlag(dto.getInterfaceSlowFlag());
             tbi.setReplayFlag(dto.getReplayFlag());
-            tbi.setQIId(dto.getQIId());
-            tbi.setQIFlag(dto.getQIFlag());
             // 获取schema
             niFiRequestUtil.generateSchemaToInterface(tbi);
             // 新增集成配置
@@ -862,12 +868,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 if (replayFlag == null) {
                     replayFlag = tbi.getReplayFlag();
                 }
-                if (QIId == null) {
-                    QIId = tbi.getQIId();
-                }
-                if (QIFlag == null) {
-                    QIFlag = tbi.getQIFlag();
-                }
                 if (StringUtils.isBlank(typeId)) {
                     typeId = tInterface.getTypeId();
                 }
@@ -911,8 +911,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 tbi.setExcErrOrder(i);
                 tbi.setInterfaceSlowFlag(dto.getInterfaceSlowFlag());
                 tbi.setReplayFlag(dto.getReplayFlag());
-                tbi.setQIId(dto.getQIId());
-                tbi.setQIFlag(dto.getQIFlag());
                 // 获取schema
                 niFiRequestUtil.generateSchemaToInterface(tbi);
                 // 新增集成配置
@@ -925,8 +923,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 tbi.setExcErrOrder(i);
                 tbi.setInterfaceSlowFlag(dto.getInterfaceSlowFlag());
                 tbi.setReplayFlag(dto.getReplayFlag());
-                tbi.setQIId(dto.getQIId());
-                tbi.setQIFlag(dto.getQIFlag());
                 // 获取schema
                 niFiRequestUtil.generateSchemaToInterface(tbi);
                 // 新增集成配置
@@ -1305,10 +1301,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         List<TSysRegistry> tSysRegistrys = sqlQueryFactory.select(qTSysRegistry).from(qTSysRegistry).where(qTSysRegistry.id.in(sysRegistryIds)).fetch();
         for (TSysRegistry sysRegistry : tSysRegistrys) {
             sysIds.add(sysRegistry.getSysId());
-            sqlStringBuffer.append("REPLACE INTO `t_sys_config` (`ID`, `SYS_ID`,  `VERSION_ID`, `CONNECTION_TYPE`, `ADDRESS_URL`, `ENDPOINT_URL`," +
+            sqlStringBuffer.append("REPLACE INTO `t_sys_registry` (`ID`, `SYS_ID`,  `CONNECTION_TYPE`, `ADDRESS_URL`, `ENDPOINT_URL`," +
                     " `NAMESPACE_URL`, `DATABASE_NAME`, `DATABASE_URL`, `DATABASE_TYPE`, `DATABASE_DRIVER`, `DRIVER_URL`, `JSON_PARAMS`, `USER_NAME`, `USER_PASSWORD`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, " +
                     "`REGISTRY_NAME`) VALUES ('" + sysRegistry.getId() + "', '" + sysRegistry.getSysId() + "', '" +
-                    sysRegistry.getVersionId() + "', '" + sysRegistry.getConnectionType() + "', '" + sysRegistry.getAddressUrl() + "', '" + sysRegistry.getEndpointUrl() + "', " +
+                    sysRegistry.getConnectionType() + "', '" + sysRegistry.getAddressUrl() + "', '" + sysRegistry.getEndpointUrl() + "', " +
                     "'" + sysRegistry.getNamespaceUrl() + "', '" + sysRegistry.getDatabaseName() + "', '" + sysRegistry.getDatabaseUrl() + "', '" + sysRegistry.getDatabaseType() + "', '" + sysRegistry.getDatabaseDriver() + "', " +
                     "'" + sysRegistry.getDriverUrl() + "', '" + sysRegistry.getJsonParams() + "', '" + sysRegistry.getUserName() + "', '" + sysRegistry.getUserPassword() + "','admin', now() , 'admin', now(), '" + sysRegistry.getRegistryName() + "');\n");
             sqlStringBuffer.append("END_OF_SQL\n");

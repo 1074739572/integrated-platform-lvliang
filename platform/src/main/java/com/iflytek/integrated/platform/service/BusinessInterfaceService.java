@@ -295,7 +295,7 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	}
 
 	public long selectByQIId(String QIId){
-		return sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface).where(qTBusinessInterface.QIId.eq(QIId)).fetchCount();
+		return sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface).fetchCount();
 	}
 
 }

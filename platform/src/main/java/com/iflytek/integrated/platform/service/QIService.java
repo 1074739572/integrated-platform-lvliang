@@ -113,7 +113,6 @@ public class QIService extends BaseService<TQI,String, StringPath> {
             msg = "已修改!";
             // redis缓存信息获取
             ArrayList<Predicate> arr = new ArrayList<>();
-            arr.add(qTBusinessInterface.QIId.in(tqi.getQIId()));
             List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,msg, new RedisDto(redisKeyDtoList).toString());
         }else{
@@ -147,7 +146,6 @@ public class QIService extends BaseService<TQI,String, StringPath> {
             }
             //redis缓存信息获取
             ArrayList<Predicate> arr = new ArrayList<>();
-            arr.add(qTBusinessInterface.QIId.in(QIId.toString()));
             List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
             this.delete(QIId.toString());
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "已删除!",new RedisDto(redisKeyDtoList).toString());

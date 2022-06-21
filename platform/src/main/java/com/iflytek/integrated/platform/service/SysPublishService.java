@@ -84,7 +84,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
                     .select(Projections
                             .bean(TSysPublish.class, qTSysPublish.id,qTSysPublish.publishName,
                                     qTSysPublish.sysId,qTSys.sysName,qTSysPublish.connectionType,
-                                    qTSysPublish.isValid, qTSysPublish.addressUrl, qTSysPublish.limitIps,
+                                    qTSysPublish.addressUrl, qTSysPublish.limitIps,
                                     qTSysPublish.createdBy, qTSysPublish.createdTime,
                                     qTSysPublish.updatedBy, qTSysPublish.updatedTime))
                     .from(qTSysPublish).leftJoin(qTSys)
