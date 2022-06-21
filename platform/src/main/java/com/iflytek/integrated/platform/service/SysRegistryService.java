@@ -41,6 +41,7 @@ import java.util.Map;
 
 import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
+import static com.iflytek.integrated.platform.entity.QTSysPublish.qTSysPublish;
 import static com.iflytek.integrated.platform.entity.QTSysRegistry.qTSysRegistry;
 
 @Slf4j
@@ -196,5 +197,14 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
         List<TSysRegistry> list = sqlQueryFactory.select(qTSysRegistry).from(qTSysRegistry).where(qTSysRegistry.sysId.eq(sysId))
                 .fetch();
         return list;
+    }
+
+
+    public TSysRegistry getOneBySysId(String sysId){
+        return sqlQueryFactory
+                .select(Projections.bean(TSysRegistry.class, qTSysRegistry.id, qTSysRegistry.sysId, qTSysPublish.publishName))
+                .from(qTSysRegistry)
+                .where(qTSysRegistry.sysId.eq(sysId))
+                .fetchFirst();
     }
 }

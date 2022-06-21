@@ -194,4 +194,14 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
         }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "删除成功!");
     }
+
+
+    public TSysPublish getOneBySysId(String sysId){
+        return sqlQueryFactory
+                .select(Projections.bean(TSysPublish.class, qTSysPublish.id, qTSysPublish.sysId, qTSysPublish.publishName))
+                .from(qTSysPublish)
+                .where(qTSysPublish.sysId.eq(sysId))
+                .fetchFirst();
+    }
+
 }

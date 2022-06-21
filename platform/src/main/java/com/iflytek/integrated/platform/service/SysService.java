@@ -24,7 +24,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -34,11 +33,10 @@ import java.util.Date;
 import java.util.List;
 
 import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
-import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
 import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
-import static com.iflytek.integrated.platform.entity.QTSysHospitalConfig.qTSysHospitalConfig;
+import static com.iflytek.integrated.platform.entity.QTVendor.qtVendor;
 import static com.querydsl.sql.SQLExpressions.groupConcat;
 
 /**
@@ -61,15 +59,15 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 	@Autowired
 	private SysDriveLinkService sysDriveLinkService;
 	@Autowired
-	private BusinessInterfaceService businessInterfaceService;
-	@Autowired
-	private SysConfigService sysConfigService;
-	@Autowired
 	private BatchUidService batchUidService;
 	@Autowired
 	private RedisService redisService;
 	@Autowired
 	private InterfaceService interfaceService;
+	@Autowired
+	private SysPublishService sysPublishService;
+	@Autowired
+	private SysRegistryService sysRegistryService;
 
 	@ApiOperation(value = "系统列表")
 	@GetMapping("/getSysList")
@@ -82,10 +80,13 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 			List<Predicate> list = new ArrayList<>();
 			SQLQuery<SysDto> queryer = sqlQueryFactory
 					.select(Projections.bean(SysDto.class, qTSys.id, qTSys.sysName, qTSys.sysCode, qTSys.isValid,
-							qTSys.createdBy, qTSys.createdTime, qTSys.updatedBy, qTSys.updatedTime,
+							qTSys.createdBy, qTSys.createdTime, qTSys.updatedBy, qTSys.updatedTime, qTSys.sysDesc,
+							qTSys.vendorId, qtVendor.vendorName,
 							groupConcat(qTDrive.driveName, "|").as("driverNames")))
-					.from(qTSys).leftJoin((qTSysDriveLink)).on(qTSys.id.eq(qTSysDriveLink.sysId)).leftJoin(qTDrive)
-					.on(qTSysDriveLink.driveId.eq(qTDrive.id));
+					.from(qTSys)
+					.leftJoin((qTSysDriveLink)).on(qTSys.id.eq(qTSysDriveLink.sysId))
+					.leftJoin(qTDrive).on(qTSysDriveLink.driveId.eq(qTDrive.id))
+					.leftJoin(qtVendor).on(qTSys.vendorId.eq(qtVendor.id));
 			if (StringUtils.isNotBlank(sysCode)) {
 				list.add(qTSys.sysCode.eq(sysCode));
 			}
@@ -110,6 +111,14 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 			@ApiParam(value = "系统id") @PathVariable(value = "id", required = true) String id) {
 
 		//服务注册、服务发布中是否有关联
+		TSysPublish publish = sysPublishService.getOneBySysId(id);
+		if(publish != null){
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该系统已关联服务发布方,无法删除!", "该系统已关联服务发布方,无法删除!");
+		}
+		TSysRegistry registry = sysRegistryService.getOneBySysId(id);
+		if(registry != null){
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该系统已关联服务注册方,无法删除!", "该系统已关联服务注册方,无法删除!");
+		}
 
 
 		// 删除系统前先查询是否与接口关联
@@ -179,6 +188,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		tp.setCreatedTime(new Date());
 		tp.setCreatedBy(loginUserName);
 		tp.setVendorId(dto.getVendorId());
+		tp.setSysDesc(dto.getSysDesc());
 		this.post(tp);
 		String driveIds = dto.getDriveIds();
 		if (StringUtils.isNotBlank(driveIds)) {
@@ -204,6 +214,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		String sysName = dto.getSysName();
 		String isValid = dto.getIsValid();
 		String vendorId = dto.getVendorId();
+		String sysDesc = dto.getSysDesc();
 		String driveIds = dto.getDriveIds();
 
 		//redis缓存信息获取
@@ -221,6 +232,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		if (StringUtils.isNotBlank(vendorId)) {
 			updater.set(qTSys.vendorId, vendorId);
 		}
+		updater.set(qTSys.sysDesc, sysDesc);
 		long l = updater.set(qTSys.updatedTime, new Date()).set(qTSys.updatedBy, loginUserName)
 				.where(qTSys.id.eq(sysId)).execute();
 		if (l <= 0) {
@@ -263,184 +275,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		return sqlQueryFactory.select(qTSys).from(qTSys).where(qTSys.sysName.eq(sysName)).fetchFirst();
 	}
 
-	@ApiOperation(value = "获取平台系统配置信息", notes = "获取平台系统配置信息")
-	@GetMapping("/getSysConfigs")
-	public ResultDto<SysConfigDto> getSysConfigList(
-			@ApiParam(value = "分类id") @RequestParam(value = "platformId", required = true) String platformId) {
-		try {
-			List<TSysConfig> VCList = sqlQueryFactory
-					.select(Projections
-							.bean(TSysConfig.class, qTSysConfig.id, qTSysConfig.projectId, qTSysConfig.platformId,
-									qTSysConfig.sysId, qTSysConfig.sysConfigType, qTSysConfig.connectionType,
-									qTSysConfig.versionId, qTSysConfig.addressUrl, qTSysConfig.endpointUrl,
-									qTSysConfig.namespaceUrl, qTSysConfig.databaseName, qTSysConfig.databaseUrl,
-									qTSysConfig.databaseDriver, qTSysConfig.driverUrl, qTSysConfig.databaseType, qTSysConfig.jsonParams,
-									qTSysConfig.userName, qTSysConfig.userPassword, qTSysConfig.createdBy,
-									qTSysConfig.createdTime, qTSysConfig.updatedBy, qTSysConfig.updatedTime,
-									groupConcat(qTSysHospitalConfig.hospitalId.append(":")
-											.append(qTSysHospitalConfig.hospitalCode)).as("hospitalConfigStr")))
-					.from(qTSysConfig).leftJoin(qTSysHospitalConfig)
-					.on(qTSysConfig.id.eq(qTSysHospitalConfig.sysConfigId)).groupBy(qTSysConfig.id)
-					.where(qTSysConfig.platformId.eq(platformId)).fetch();
-			SysConfigDto configDto = new SysConfigDto();
-			configDto.setRequestedSysConfigs(new ArrayList<TSysConfig>());
-			for (TSysConfig obj : VCList) {
-				// 系统信息
-				TSys tv = this.getOne(obj.getSysId());
-				if (tv != null) {
-					obj.setSysCode(tv.getSysCode());
-					obj.setSysName(tv.getSysName());
-				}
-				String hospitalConfigs = obj.getHospitalConfigStr();
-				if (StringUtils.isNotBlank(hospitalConfigs)) {
-					List<SysHospitalDto> hospitalConfigList = new ArrayList<>();
-					for (String s : hospitalConfigs.split(",")) {
-						SysHospitalDto sysHospitalDto = new SysHospitalDto();
-						String[] split = s.split(":");
-						sysHospitalDto.setHospitalId(split[0]);
-						if(split.length == 2) {
-							sysHospitalDto.setHospitalCode(split[1]);
-						}
-						hospitalConfigList.add(sysHospitalDto);
-					}
-//					List<SysHospitalDto> hospitalConfigList = JSON.parseArray(hospitalConfigs, SysHospitalDto.class);
-					obj.setHospitalConfigs(hospitalConfigList);
-				}
-				if (obj.getSysConfigType() == 1) {
-					configDto.setRequestSysConfig(obj);
-				} else {
-					configDto.getRequestedSysConfigs().add(obj);
-				}
-			}
-			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取系统配置信息成功!", configDto);
-		} catch (BeansException e) {
-			logger.error("获取系统配置信息失败! MSG:{}", ExceptionUtil.dealException(e));
-			e.printStackTrace();
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取系统配置信息失败!");
-		}
+	public TSys getByVendorId(String vendorId){
+		return sqlQueryFactory.select(qTSys).from(qTSys).where(qTSys.vendorId.eq(vendorId)).fetchFirst();
 	}
-
-	@Transactional(rollbackFor = Exception.class)
-	@ApiOperation(value = "删除平台下系统配置信息", notes = "删除平台下系统配置信息")
-	@PostMapping("/delSysConfig")
-	public ResultDto<String> delSysConfig(
-			@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId,
-			@ApiParam(value = "系统id") @RequestParam(value = "sysId", required = true) String sysId) {
-		TSysConfig tvc = sysConfigService.getConfigByPlatformAndSys(platformId, sysId);
-		if (tvc != null) {
-			List<TBusinessInterface> tbiList = businessInterfaceService.getListBySysConfigId(tvc.getId());
-			if (CollectionUtils.isNotEmpty(tbiList)) {
-				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该系统已有接口配置数据相关联,无法删除!",
-						"该系统已有接口配置数据相关联,无法删除!");
-			}
-            //redis缓存信息获取
-            ArrayList<Predicate> arr = new ArrayList<>();
-            arr.add(qTSysConfig.sysId.in(sysId));
-            arr.add(qTSysConfig.platformId.in(platformId));
-            List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
-
-			// 删除系统配置
-			long l = sysConfigService.delete(tvc.getId());
-			if (l < 1) {
-				throw new RuntimeException("系统配置删除失败!");
-			}
-			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "系统配置删除成功!", new RedisDto(redisKeyDtoList).toString());
-		}
-		return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据平台id与系统id未查到该系统配置信息!", "根据平台id与系统id未查到该系统配置信息!");
-	}
-
-	@Transactional(rollbackFor = Exception.class)
-	@ApiOperation(value = "删除系统配置下医院信息", notes = "删除系统配置下医院信息")
-	@PostMapping("/delSysHospitalBySysConfig")
-	public ResultDto<String> delSysHospitalBySysConfig(
-			@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId,
-			@ApiParam(value = "系统id") @RequestParam(value = "sysId", required = true) String sysId,
-			@ApiParam(value = "医院id，不传时，删除所有关联的医院") @RequestParam(value = "hospitalId", required = false) String hospitalId) {
-		TSysConfig tvc = sysConfigService.getConfigByPlatformAndSys(platformId, sysId);
-		if (tvc != null) {
-            //redis缓存信息获取
-            ArrayList<Predicate> arr = new ArrayList<>();
-            arr.add(qTSysConfig.sysId.in(sysId));
-            arr.add(qTSysConfig.platformId.in(platformId));
-            List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
-			// 删除系统配置关联的医院
-			sysConfigService.delSysConfigHospital(tvc, hospitalId);
-			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "系统下医院配置信息删除成功!", new RedisDto(redisKeyDtoList).toString());
-		}
-		return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据平台与系统id未查到该系统配置信息!");
-	}
-
-	@ApiOperation(value = "选择系统下拉(可根据当前项目操作选择)")
-	@GetMapping("/getDisSysByOpt")
-	public ResultDto<List<TSys>> getDisSysByOpt(
-			@ApiParam(value = "项目id") @RequestParam(value = "projectId", required = false) String projectId,
-			@ApiParam(value = "操作 1获取当前项目下的系统 2获取非当前项目下的系统") @RequestParam(defaultValue = "1", value = "status", required = false) String status) {
-		List<TSys> curProjSyss = sqlQueryFactory.select(qTSys).from(qTSys).leftJoin(qTSysConfig)
-				.on(qTSysConfig.sysId.eq(qTSys.id)).leftJoin(qTPlatform).on(qTPlatform.id.eq(qTSysConfig.platformId))
-				.where(qTPlatform.projectId.eq(projectId)).orderBy(qTSys.createdTime.desc()).fetch();
-		if (StringUtils.isNotBlank(projectId) && Constant.Operation.CURRENT.equals(status)) {
-			// 返回当前项目下的系统
-			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "数据获取成功!", curProjSyss);
-		}
-		// 获取所有系统
-		List<TSys> allSyss = sqlQueryFactory.select(qTSys).from(qTSys).orderBy(qTSys.createdTime.desc()).fetch();
-		if (StringUtils.isBlank(projectId)) {
-			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "数据获取成功!", allSyss);
-		}
-		// 去除当前项目下的系统
-		allSyss.removeAll(curProjSyss);
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "数据获取成功!", allSyss);
-	}
-
-	@ApiOperation(value = "根据平台id获取系统信息")
-	@GetMapping("/getDisSysByPlatform")
-	public ResultDto<List<SysDto>> getDisSysByPlatform(
-			@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = true) String platformId,
-			@ApiParam(value = "sysConfigType") @RequestParam(value = "sysConfigType", required = true) String sysConfigType) {
-		List<SysDto> vendors = sqlQueryFactory
-				.select(Projections.bean(SysDto.class, qTSys.id, qTSys.sysName, qTSys.sysCode, qTSys.createdBy,
-						qTSys.createdTime, qTSys.updatedBy, qTSys.updatedTime,
-						qTSysConfig.connectionType.as("connectionType") , qTSysConfig.id.as("sysConfigId"),
-						qTSysConfig.versionId.as("versionId")))
-				.from(qTSys).join(qTSysConfig).on(qTSysConfig.sysId.eq(qTSys.id)).where(qTSysConfig.platformId
-						.eq(platformId).and(qTSysConfig.sysConfigType.eq(Integer.valueOf(sysConfigType))))
-				.fetch();
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "数据获取成功!", vendors);
-	}
-
-	@Transactional(rollbackFor = Exception.class)
-	@ApiOperation(value = "根据系统配置id删除系统配置信息")
-	@PostMapping("/delSysConfigById")
-	public ResultDto<String> delSysConfigById(
-			@ApiParam(value = "系统配置id") @RequestParam(value = "id", required = true) String id,
-			@ApiParam(value = "平台id") @RequestParam(value = "platformId", required = false) String platformId) {
-		TSysConfig tvc = sysConfigService.getOne(id);
-		if (tvc == null) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据id查询不到该系统配置信息!", id);
-		}
-		// 获取接口配置列表信息
-		List<TBusinessInterface> queryResults = businessInterfaceService.getInterfaceConfigureList(platformId);
-		if (CollectionUtils.isNotEmpty(queryResults)) {
-			for (TBusinessInterface tbi : queryResults) {
-				String requestSysConfigId = tbi.getRequestSysconfigId();
-				String requestedSysConfigId = tbi.getRequestedSysconfigId();
-				if (id.equals(requestSysConfigId) || id.equals(requestedSysConfigId)) {
-					return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该系统配置已有接口转换配置关联,无法删除!", id);
-				}
-			}
-		}
-        //redis缓存信息获取
-        ArrayList<Predicate> arr = new ArrayList<>();
-		arr.add(qTSysConfig.id.in(id));
-        if (StringUtils.isNotEmpty(platformId)){
-            arr.add(qTSysConfig.platformId.in(platformId));
-        }
-        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
-		long count = sysConfigService.delete(id);
-		if (count < 1) {
-			throw new RuntimeException("删除失败!");
-		}
-		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "删除成功!", new RedisDto(redisKeyDtoList).toString());
-	}
-
 }

@@ -189,22 +189,24 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 												   @RequestParam(defaultValue = "1") Integer pageNo,
 											   @RequestParam(defaultValue = "10") Integer pageSize) {
 		
-		if (StringUtils.isEmpty(interfaceId)) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取日志详细列表，id必传");
-		}
+//		if (StringUtils.isEmpty(interfaceId)) {
+//			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取日志详细列表，id必传");
+//		}
 		Map<String , Integer> biorderMap = new Hashtable<String , Integer>();
 		Map<String , String> biNameMap = new Hashtable<>();
 		// 查询条件
 		ArrayList<Predicate> list = new ArrayList<>();
-		if(!"0".equals(interfaceId)) {
-			List<TBusinessInterface> bis = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface).where(qTBusinessInterface.requestInterfaceId.eq(interfaceId)).fetch();
-			bis.forEach(tbis->{
-				biorderMap.put(tbis.getId(), tbis.getExcErrOrder());
-				biNameMap.put(tbis.getId(), tbis.getBusinessInterfaceName());
-			});
-			list.add(qTLog.businessInterfaceId.in(biorderMap.keySet()));
-		}else {
-			list.add(qTLog.businessInterfaceId.eq("0"));
+		if(interfaceId != null && interfaceId != ""){
+			if(!"0".equals(interfaceId)) {
+				List<TBusinessInterface> bis = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface).where(qTBusinessInterface.requestInterfaceId.eq(interfaceId)).fetch();
+				bis.forEach(tbis->{
+					biorderMap.put(tbis.getId(), tbis.getExcErrOrder());
+					biNameMap.put(tbis.getId(), tbis.getBusinessInterfaceName());
+				});
+				list.add(qTLog.businessInterfaceId.in(biorderMap.keySet()));
+			}else {
+				list.add(qTLog.businessInterfaceId.eq("0"));
+			}
 		}
 		
 		try{
