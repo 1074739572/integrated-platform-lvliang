@@ -335,7 +335,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         // redis缓存信息获取
         ArrayList<Predicate> arr = new ArrayList<>();
         arr.add(qTInterface.id.in(id));
-        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+        //TODO REDIS暂时不用
+        List<RedisKeyDto> redisKeyDtoList =null;// redisService.getRedisKeyDtoList(arr);
         // 删除服务
         long l = this.delete(id);
         if (l < 1) {
