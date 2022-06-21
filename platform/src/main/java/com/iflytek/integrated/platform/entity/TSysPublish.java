@@ -35,6 +35,8 @@ public class TSysPublish implements Serializable {
 
     private String updatedBy;
 
+    private Integer serverStatus;
+
     private java.util.Date updatedTime;
 
     @Transient

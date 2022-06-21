@@ -60,6 +60,8 @@ public class QTSysRegistry extends com.querydsl.sql.RelationalPathBase<TSysRegis
 
 	public final StringPath registryName = createString("registryName");
 
+	public final StringPath useStatus = createString("useStatus");
+
 	public final com.querydsl.sql.PrimaryKey<TSysRegistry> primary = createPrimaryKey(id);
 
 	public QTSysRegistry(String variable) {
@@ -125,6 +127,8 @@ public class QTSysRegistry extends com.querydsl.sql.RelationalPathBase<TSysRegis
 				ColumnMetadata.named("UPDATED_TIME").withIndex(22).ofType(Types.TIMESTAMP).withSize(19).notNull());
 		addMetadata(registryName,
 				ColumnMetadata.named("REGISTRY_NAME").withIndex(23).ofType(Types.VARCHAR).withSize(255).notNull());
+		addMetadata(useStatus,
+				ColumnMetadata.named("USE_STATUS").withIndex(24).ofType(Types.INTEGER).withSize(2).notNull());
 		addMetadata(databaseType,
 				ColumnMetadata.named("DATABASE_TYPE").withIndex(13).ofType(Types.VARCHAR).withSize(32).notNull());
 	}

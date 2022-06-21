@@ -60,5 +60,7 @@ public class TSysRegistry implements Serializable {
     
     private String registryName;
 
+    private Integer useStatus;
+
 }
 
