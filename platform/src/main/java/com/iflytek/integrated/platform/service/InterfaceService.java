@@ -131,8 +131,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @Autowired
     private HistoryService historyService;
     @Autowired
-    private SysService sysService;
-    @Autowired
     private InterfaceService interfaceService;
 
     @Value("${config.request.nifiapi.readtimeout}")
@@ -240,10 +238,11 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                     .select(Projections.bean(TBusinessInterface.class, qTBusinessInterface.id,
                             qTBusinessInterface.requestInterfaceId,
                             qTInterface.interfaceUrl.as("interfaceUrl"),
-                            qTSys.sysCode.as("sysCode"), qTInterface.inParamFormatType.as("sysIntfInParamFormatType")))
+                            qTSys.sysCode.as("sysCode"),qTInterface.inParamFormatType.as("sysIntfInParamFormatType")))
                     .from(qTBusinessInterface)
                     .leftJoin(qTInterface).on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id))
                     .leftJoin(qTSysRegistry).on(qTSysRegistry.id.eq(qTBusinessInterface.sysRegistryId))
+                    .leftJoin(qTSys).on(qTSysRegistry.sysId.eq(qTSys.id))
                     .where(qTBusinessInterface.id.eq(id)).fetch();
             if (businessInterfaces == null || businessInterfaces.size() == 0) {
                 return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有查询到集成配置信息");
@@ -491,7 +490,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         //redis缓存信息获取
         ArrayList<Predicate> arr = new ArrayList<>();
         arr.add(qTInterface.id.eq(id));
-        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+        //TODO redis调用先注释
+        List<RedisKeyDto> redisKeyDtoList = null;//redisService.getRedisKeyDtoList(arr);
         // 传入标准服务方法
         String interfaceUrl = dto.getInterfaceUrl();
         if (!tf.getInterfaceUrl().equals(interfaceUrl)) {
@@ -612,7 +612,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @GetMapping("/getInterfaceList")
     public ResultDto<TableData<TInterface>> getInterfaceList(
             @ApiParam(value = "业务类型id") @RequestParam(value = "typeId", required = false) String typeId,
-            @ApiParam(value = "服务名称") @RequestParam(value = "name", required = false) String name,
+            @ApiParam(value = "服务名称") @RequestParam(value = "interfaceName", required = false) String interfaceName,
             @ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
             @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
         // 查询条件
@@ -620,8 +620,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         if (StringUtils.isNotEmpty(typeId)) {
             list.add(qTInterface.typeId.eq(typeId));
         }
-        if (StringUtils.isNotEmpty(name)) {
-            list.add(qTInterface.interfaceName.like(PlatformUtil.createFuzzyText(name)));
+        if (StringUtils.isNotEmpty(interfaceName)) {
+            list.add(qTInterface.interfaceName.like(PlatformUtil.createFuzzyText(interfaceName)));
         }
         QueryResults<TInterface> queryResults = sqlQueryFactory
                 .select(Projections.bean(TInterface.class,
@@ -662,8 +662,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         }
         // 获取集成配置列表信息
         QueryResults<TBusinessInterface> queryResults = businessInterfaceService.getInterfaceConfigureList(predicateList, pageNo, pageSize);
-        // 匹配列表展示信息
-        List<TBusinessInterface> list = queryResults.getResults();
         // 分页
         TableData<TBusinessInterface> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取集成配置列表获取成功", tableData);
@@ -943,7 +941,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         // redis缓存信息获取
         ArrayList<Predicate> arr = new ArrayList<>();
         arr.add(qTBusinessInterface.id.in(rtnId));
-        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+        //TODO 注释redis
+        List<RedisKeyDto> redisKeyDtoList = null;//redisService.getRedisKeyDtoList(arr);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "编辑集成配置成功", new RedisDto(redisKeyDtoList).toString());
     }
 

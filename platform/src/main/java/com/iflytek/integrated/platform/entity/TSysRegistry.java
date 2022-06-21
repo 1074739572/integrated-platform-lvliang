@@ -1,13 +1,10 @@
 package com.iflytek.integrated.platform.entity;
 
-import com.iflytek.integrated.platform.dto.SysHospitalDto;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
-import org.springframework.data.annotation.Transient;
 
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * TSysConfig is a Querydsl bean type
@@ -62,6 +59,8 @@ public class TSysRegistry implements Serializable {
     private java.util.Date updatedTime;
     
     private String registryName;
+
+    private Integer useStatus;
 
 }
 

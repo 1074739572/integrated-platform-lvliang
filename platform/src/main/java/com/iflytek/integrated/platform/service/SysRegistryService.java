@@ -91,7 +91,7 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
                     .from(qTSysRegistry).leftJoin(qTSys)
                     .on(qTSysRegistry.sysId.eq(qTSys.id))
                     .where(list.toArray(new Predicate[list.size()]))
-                    .offset((pageNo - 1) * pageSize).orderBy(qTInterface.createdTime.desc()).fetchResults();
+                    .offset((pageNo - 1) * pageSize).orderBy(qTSysRegistry.createdTime.desc()).fetchResults();
             // 分页
             TableData<TSysRegistry> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取服务发布列表成功!", tableData);
@@ -103,35 +103,12 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
     }
 
     @ApiOperation(value = "获取服务注册信息", notes = "获取服务注册信息")
-    @GetMapping("/getSysRegistry")
-    public ResultDto<List<TSysRegistry>> getSysRegistry(
-            @ApiParam(value = "服务注册id") @RequestParam(value = "sysId", required = false) String sysId,
-            @ApiParam(value = "注册名称") @RequestParam(value = "registryName", required = false) String registryName) {
+    @GetMapping("/getSysRegistry/{id}")
+    public ResultDto<TSysRegistry> getSysRegistry(
+            @ApiParam(value = "服务注册id") @PathVariable(value = "id", required = false) String id) {
         try {
-            // 查询条件
-            ArrayList<Predicate> list = new ArrayList<>();
-            if (StringUtils.isNotEmpty(sysId)) {
-                list.add(qTSysRegistry.sysId.eq(sysId));
-            }
-            if (StringUtils.isNotEmpty(registryName)) {
-                list.add(qTSysRegistry.registryName.like(PlatformUtil.createFuzzyText(registryName)));
-            }
-
-            List<TSysRegistry> srList = sqlQueryFactory
-                    .select(Projections
-                            .bean(TSysRegistry.class, qTSysRegistry.id,qTSysRegistry.registryName,
-                                    qTSysRegistry.sysId,qTSys.sysName,qTSysRegistry.connectionType,
-                                    qTSysRegistry.versionId, qTSysRegistry.addressUrl, qTSysRegistry.endpointUrl,
-                                    qTSysRegistry.namespaceUrl, qTSysRegistry.databaseName, qTSysRegistry.databaseUrl,
-                                    qTSysRegistry.databaseDriver, qTSysRegistry.driverUrl, qTSysRegistry.databaseType, qTSysRegistry.jsonParams,
-                                    qTSysRegistry.userName, qTSysRegistry.userPassword, qTSysRegistry.createdBy,
-                                    qTSysRegistry.createdTime, qTSysRegistry.updatedBy, qTSysRegistry.updatedTime))
-                    .from(qTSysRegistry).leftJoin(qTSys)
-                    .on(qTSysRegistry.sysId.eq(qTSys.id))
-                    .where(list.toArray(new Predicate[list.size()]))
-                    .fetch();
-
-            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取服务注册信息成功!", srList);
+            TSysRegistry tSysRegistry = this.getOne(id);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取服务注册信息成功!", tSysRegistry);
         } catch (BeansException e) {
             logger.error("获取服务注册信息失败! MSG:{}", ExceptionUtil.dealException(e));
             e.printStackTrace();
@@ -178,7 +155,6 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
     @PostMapping("/delById/{id}")
     public ResultDto<String> delById(
             @ApiParam(value = "服务id") @PathVariable(value = "id", required = true) String id) {
-        this.delById(id);
         // 删除接口
         long l = this.delete(id);
         if (l < 1) {

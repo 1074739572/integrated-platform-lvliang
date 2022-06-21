@@ -10,12 +10,15 @@ import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringPath;
+import com.querydsl.core.types.dsl.StringTemplate;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -43,6 +46,9 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 
     @Autowired
     private RedisService redisService;
+
+	@Value("${server.db}")
+	private String dbType;
 
 	public BusinessInterfaceService() {
 		super(qTBusinessInterface, qTBusinessInterface.id);
@@ -168,12 +174,12 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 	 * @return
 	 */
 	public QueryResults<TBusinessInterface> getInterfaceConfigureList(ArrayList<Predicate> list, Integer pageNo, Integer pageSize) {
+		StringTemplate template = Expressions.stringTemplate("concat(string_agg ( concat(concat({0},'/' ::TEXT),{1}), ',' :: TEXT ))",qTSys.sysName,qTBusinessInterface.businessInterfaceName);
 		QueryResults<TBusinessInterface> queryResults = sqlQueryFactory
 				.select(Projections.bean(TBusinessInterface.class,qTBusinessInterface.id.min().as("id"),qTType.typeName.min().as(qTType.typeName),
 						qTBusinessInterface.requestInterfaceId,
 						qTInterface.interfaceName.min().as(qTInterface.interfaceName),
-						groupConcat(qTSys.sysName.append("/")
-								.append(qTBusinessInterface.businessInterfaceName)).as(qTBusinessInterface.businessInterfaceName),
+						template.as(qTBusinessInterface.businessInterfaceName),
 						qTBusinessInterface.mockStatus.min().as(qTBusinessInterface.mockStatus),
 						qTBusinessInterface.status.min().as("status"),
 						qTBusinessInterface.createdBy.min().as( qTBusinessInterface.createdBy),
@@ -188,7 +194,7 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 				.where(list.toArray(new Predicate[list.size()]))
 				.groupBy(qTBusinessInterface.requestInterfaceId)
 				.limit(pageSize).offset((pageNo - 1) * pageSize)
-				.orderBy(qTBusinessInterface.createdTime.desc()).fetchResults();;
+				.orderBy(qTBusinessInterface.createdTime.as("createdTime").desc()).fetchResults();;
 		return queryResults;
 	}
 
