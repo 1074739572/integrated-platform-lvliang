@@ -65,6 +65,7 @@ public class QTVendor extends com.querydsl.sql.RelationalPathBase<TVendor> {
         addMetadata(id, ColumnMetadata.named("id").withIndex(1).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(vendorName, ColumnMetadata.named("vendor_name").withIndex(2).ofType(Types.VARCHAR).withSize(32));
         addMetadata(vendorCode, ColumnMetadata.named("vendor_code").withIndex(3).ofType(Types.VARCHAR).withSize(32));
+        addMetadata(isValid, ColumnMetadata.named("is_valid").withIndex(4).ofType(Types.VARCHAR).withSize(1));
         addMetadata(createdBy, ColumnMetadata.named("created_by").withIndex(5).ofType(Types.VARCHAR).withSize(32));
         addMetadata(createdTime, ColumnMetadata.named("created_time").withIndex(6).ofType(Types.TIMESTAMP).withSize(19));
         addMetadata(updatedBy, ColumnMetadata.named("updated_by").withIndex(7).ofType(Types.VARCHAR).withSize(32));

@@ -127,25 +127,26 @@ public class RedisService {
 	 * @param arr
 	 */
 	public List<RedisKeyDto> getRedisKeyDtoList(ArrayList<Predicate> arr) {
-		arr.add(qTSysHospitalConfig.hospitalCode.isNotNull()
-				.and(qTSys.sysCode.isNotNull().and(qTInterface.interfaceUrl.isNotNull())));
-
-		List<RedisKeyDto> list = sqlQueryFactory
-				.select(Projections.bean(RedisKeyDto.class, qTSysHospitalConfig.hospitalCode.as("orgId"),
-						qTSys.sysCode.as("sysCode"), qTInterface.interfaceUrl.as("funCode")))
-				.from(qTProject).leftJoin(qTPlatform).on(qTPlatform.projectId.eq(qTProject.id)).leftJoin(qTSysConfig)
-				.on(qTSysConfig.platformId.eq(qTPlatform.id)).leftJoin(qTSys).on(qTSysConfig.sysId.eq(qTSys.id))
-				.leftJoin(qTInterface).leftJoin(qTBusinessInterface)
-				.on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id)
-						.and(qTBusinessInterface.sysRegistryId.eq(qTSysRegistry.id)
-								.or(qTBusinessInterface.sysRegistryId.eq(qTSysRegistry.id))))
-				.leftJoin(qTSysHospitalConfig).on(qTSysConfig.id.eq(qTSysHospitalConfig.sysConfigId))
-				.leftJoin(qTHospital).on(qTSysHospitalConfig.hospitalId.eq(qTHospital.id)).leftJoin(qTSysDriveLink)
-				.on(qTSysDriveLink.sysId.eq(qTSys.id)).leftJoin(qTDrive).on(qTDrive.id.eq(qTSysDriveLink.driveId))
-				.leftJoin(qTPlugin).on(qTPlugin.id.eq(qTBusinessInterface.pluginId))
-				.where(arr.toArray(new Predicate[arr.size()]))
-				.groupBy(qTSys.sysCode, qTSysHospitalConfig.hospitalCode, qTInterface.interfaceUrl).fetch();
-		return list;
+//		arr.add(qTSysHospitalConfig.hospitalCode.isNotNull()
+//				.and(qTSys.sysCode.isNotNull().and(qTInterface.interfaceUrl.isNotNull())));
+//
+//		List<RedisKeyDto> list = sqlQueryFactory
+//				.select(Projections.bean(RedisKeyDto.class, qTSysHospitalConfig.hospitalCode.as("orgId"),
+//						qTSys.sysCode.as("sysCode"), qTInterface.interfaceUrl.as("funCode")))
+//				.from(qTProject).leftJoin(qTPlatform).on(qTPlatform.projectId.eq(qTProject.id)).leftJoin(qTSysConfig)
+//				.on(qTSysConfig.platformId.eq(qTPlatform.id)).leftJoin(qTSys).on(qTSysConfig.sysId.eq(qTSys.id))
+//				.leftJoin(qTInterface).leftJoin(qTBusinessInterface)
+//				.on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id)
+//						.and(qTBusinessInterface.sysRegistryId.eq(qTSysRegistry.id)
+//								.or(qTBusinessInterface.sysRegistryId.eq(qTSysRegistry.id))))
+//				.leftJoin(qTSysHospitalConfig).on(qTSysConfig.id.eq(qTSysHospitalConfig.sysConfigId))
+//				.leftJoin(qTHospital).on(qTSysHospitalConfig.hospitalId.eq(qTHospital.id)).leftJoin(qTSysDriveLink)
+//				.on(qTSysDriveLink.sysId.eq(qTSys.id)).leftJoin(qTDrive).on(qTDrive.id.eq(qTSysDriveLink.driveId))
+//				.leftJoin(qTPlugin).on(qTPlugin.id.eq(qTBusinessInterface.pluginId))
+//				.where(arr.toArray(new Predicate[arr.size()]))
+//				.groupBy(qTSys.sysCode, qTSysHospitalConfig.hospitalCode, qTInterface.interfaceUrl).fetch();
+//		return list;
+		return null;
 	}
 
 	/**

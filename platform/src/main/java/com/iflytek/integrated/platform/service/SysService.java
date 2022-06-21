@@ -81,7 +81,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 			SQLQuery<SysDto> queryer = sqlQueryFactory
 					.select(Projections.bean(SysDto.class, qTSys.id, qTSys.sysName, qTSys.sysCode, qTSys.isValid,
 							qTSys.createdBy, qTSys.createdTime, qTSys.updatedBy, qTSys.updatedTime, qTSys.sysDesc,
-							qTSys.vendorId, qtVendor.vendorName,
+							qTSys.vendorId, groupConcat(qtVendor.vendorName,"|").as("vendorName"),
 							groupConcat(qTDrive.driveName, "|").as("driverNames")))
 					.from(qTSys)
 					.leftJoin((qTSysDriveLink)).on(qTSys.id.eq(qTSysDriveLink.sysId))
@@ -94,7 +94,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 				list.add(qTSys.sysName.like("%" + sysName + "%"));
 			}
 			QueryResults<SysDto> queryResults = queryer.where(list.toArray(new Predicate[list.size()])).groupBy(qTSys.id)
-					.limit(pageSize).offset((pageNo - 1) * pageSize).orderBy(qTSys.createdTime.desc()).fetchResults();
+					.limit(pageSize).offset((pageNo - 1) * pageSize).orderBy(qTSys.updatedTime.desc()).fetchResults();
 			// 分页
 			TableData<SysDto> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
 			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "系统管理列表获取成功", tableData);
@@ -122,10 +122,10 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 
 
 		// 删除系统前先查询是否与接口关联
-		List<TInterface> interfaceList = interfaceService.getObjBySysId(id);
-		if (CollectionUtils.isNotEmpty(interfaceList)) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该系统已有关联接口,无法删除!", "该系统已有关联接口,无法删除!");
-		}
+//		List<TInterface> interfaceList = interfaceService.getObjBySysId(id);
+//		if (CollectionUtils.isNotEmpty(interfaceList)) {
+//			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该系统已有关联接口,无法删除!", "该系统已有关联接口,无法删除!");
+//		}
 
 		//redis缓存信息获取
 		ArrayList<Predicate> arr = new ArrayList<>();
@@ -154,6 +154,9 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
 		if (StringUtils.isBlank(loginUserName)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
+		}
+		if(dto.getVendorId() == null || dto.getVendorId() == ""){
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "厂商不能为空!", "厂商不能为空!");
 		}
 		// 新增编辑标识 1新增 2编辑
 		String addOrUpdate = dto.getAddOrUpdate();
@@ -261,7 +264,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 	@GetMapping("/getDisSys")
 	public ResultDto<List<TSys>> getDisSys() {
 		List<TSys> syss = sqlQueryFactory.select(Projections.bean(TSys.class, qTSys.id, qTSys.sysName, qTSys.sysCode))
-				.from(qTSys).orderBy(qTSys.createdTime.desc()).fetch();
+				.from(qTSys).orderBy(qTSys.updatedTime.desc()).fetch();
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "选择系统下拉列表获取成功!", syss);
 	}
 

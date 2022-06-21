@@ -99,13 +99,14 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
         }
 
-        TVendor record = sqlQueryFactory.select(Projections.bean(TVendor.class,qtVendor.vendorName)).from(qtVendor).where(qtVendor.vendorCode.eq(param.get("vendorName").toString())).fetchFirst();
+        TVendor record = sqlQueryFactory.select(Projections.bean(TVendor.class,qtVendor.id, qtVendor.vendorName)).from(qtVendor).where(qtVendor.vendorName.eq(param.get("vendorName").toString())).fetchFirst();
 
         String msg = "";
 
         TVendor vendor = new TVendor();
         vendor.setVendorName(param.get("vendorName").toString());
         vendor.setVendorCode(param.get("vendorCode").toString());
+        vendor.setIsValid("1");
         vendor.setCreatedBy(loginUserName);
         vendor.setCreatedTime(new Date());
         vendor.setUpdatedBy(loginUserName);
@@ -177,7 +178,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
         }
         List<TVendor> list = sqlQueryFactory
-                .select(Projections.bean(TVendor.class,qtVendor.id, qtVendor.vendorName, qtVendor.vendorCode, qtVendor.vendorCode,
+                .select(Projections.bean(TVendor.class,qtVendor.id, qtVendor.vendorName, qtVendor.vendorCode, qtVendor.isValid,
                         qtVendor.createdBy,qtVendor.createdTime,qtVendor.updatedTime,qtVendor.updatedBy))
                 .from(qtVendor)
                 .orderBy(qtVendor.updatedTime.desc())
