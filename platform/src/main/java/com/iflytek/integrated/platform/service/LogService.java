@@ -92,8 +92,8 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 	@ApiOperation(value = "查看监控日志列表")
 	@GetMapping("/logInfoList")
 	public ResultDto<TableData<TLog>> logInfoList(String interfaceId, String status, String visitAddr, String interfaceName,
-												   @ApiParam(value = "开始时间") @RequestParam(value = "startTime", required = true) String startTime,
-												   @ApiParam(value = "结束时间") @RequestParam(value = "endTime", required = true) String endTime,
+												   @ApiParam(value = "开始时间") @RequestParam(value = "startTime", required = false) String startTime,
+												   @ApiParam(value = "结束时间") @RequestParam(value = "endTime", required = false) String endTime,
 												   @ApiParam(value = "请求方请求") @RequestParam(value = "businessReq", required = false) String businessReq,
 												   @ApiParam(value = "请求方响应") @RequestParam(value = "businessRep", required = false) String businessRep,
 												   @ApiParam(value = "被请求方请求") @RequestParam(value = "venderReq", required = false) String venderReq,
@@ -104,8 +104,6 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 //		if (StringUtils.isEmpty(interfaceId)) {
 //			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取日志详细列表，id必传");
 //		}
-		Map<String , Integer> biorderMap = new Hashtable<String , Integer>();
-		Map<String , String> biNameMap = new Hashtable<>();
 		// 查询条件
 		ArrayList<Predicate> list = new ArrayList<>();
 		if(interfaceId != null && interfaceId != ""){
@@ -118,8 +116,12 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		
 		try{
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			list.add(qTLog.createdTime.goe(sdf.parse(startTime)));
-			list.add(qTLog.createdTime.loe(sdf.parse(endTime)));
+			if(startTime != null && startTime != ""){
+				list.add(qTLog.createdTime.goe(sdf.parse(startTime)));
+			}
+			if(endTime != null && endTime != ""){
+				list.add(qTLog.createdTime.loe(sdf.parse(endTime)));
+			}
 		}catch (ParseException e){
 			e.printStackTrace();
 		}
@@ -155,9 +157,12 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 					.like(PlatformUtil.createFuzzyText(venderRep)));
 		}
 		SQLQuery<TLog> tlogQuery = sqlQueryFactory
-		.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status, qTLog.venderRepTime,
-				qTLog.businessRepTime, qTLog.visitAddr,qTLog.interfaceId, qTLog.debugreplayFlag))
-		.from(qTLog);
+		.select(Projections.bean(TLog.class, qTLog.id, qTLog.publicId, qTLog.registryId, qTLog.createdTime, qTLog.status, qTLog.venderRepTime,
+				qTLog.businessRepTime, qTLog.visitAddr,qTLog.interfaceId, qTLog.debugreplayFlag,
+				qTInterface.interfaceName, qTInterface.interfaceUrl))
+				.from(qTLog)
+				.leftJoin(qTInterface).on(qTLog.interfaceId.eq(qTInterface.id))
+				;
 		if(!"postgresql".equals(dbType)) {
 			tlogQuery = tlogQuery.addFlag(new QueryFlag(Position.BEFORE_FILTERS, Expressions.stringTemplate(" FORCE INDEX ( log_query_idx )")));
 		}
@@ -165,21 +170,6 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 				.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
 				.orderBy(qTLog.createdTime.desc()).fetchResults();
 		
-		long l = biorderMap.size();
-		List<TLog> tlogList = queryResults.getResults();
-		for(TLog log : tlogList){
-			if("0".equals(interfaceId)) {
-				log.setInterfaceOrder("1/1");
-				continue;
-			}
-			Integer order = biorderMap.get(log.getBusinessInterfaceId());
-			if(order == null) {
-				order = 0;
-			}
-			String interfaceOrder = (order + 1)+"/"+ l;
-			log.setInterfaceOrder(interfaceOrder);
-			log.setBusinessInterfaceName(biNameMap.get(log.getBusinessInterfaceId()));
-		}
 		// 分页
 		TableData<TLog> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志详细列表获取成功!", tableData);
@@ -187,32 +177,20 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 
 	@ApiOperation(value = "查看日志详细信息")
 	@GetMapping("/logInfo")
-	public ResultDto<TLog> logInfo(String id, String interfaceId) {
+	public ResultDto<TLog> logInfo(String id) {
 		if (StringUtils.isEmpty(id)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取日志详细，id必传");
 		}
-		if (StringUtils.isEmpty(interfaceId)) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取被请求方接口条数，interfaceId必传");
-		}
 
 		// 查询详情
-		TLog tLog = sqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status,
+		TLog tLog = sqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.publicId, qTLog.registryId, qTLog.createdTime, qTLog.status,
 				qTLog.venderRepTime, qTLog.businessRepTime, qTLog.visitAddr, qTLog.businessReq, qTLog.venderReq,
 				qTLog.businessRep, qTLog.venderRep,qTLog.debugreplayFlag,
-				qTBusinessInterface.businessInterfaceName.as("businessInterfaceName"),
-				qTBusinessInterface.excErrOrder.add(1).as("excErrOrder")))
+				qTInterface.interfaceName, qTInterface.interfaceUrl))
 				.from(qTLog)
+				.leftJoin(qTInterface).on(qTLog.interfaceId.eq(qTInterface.id))
 				.where(qTLog.id.eq(Long.valueOf(id)))
 				.fetchFirst();
-//		String interfaceOrder = "";
-//		if("0".equals(interfaceId)) {
-//			interfaceOrder = "1/1";
-//		}else {
-//			long l = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
-//					.where(qTBusinessInterface.requestInterfaceId.eq(interfaceId)).fetchCount();
-//			interfaceOrder = tLog.getExcErrOrder()+"/"+ l;
-//		}
-//		tLog.setInterfaceOrder(interfaceOrder);
 
 		// 解密，脱敏处理数据
 		String businessRep = decryptAndFilterSensitive(tLog.getBusinessRep());
@@ -225,12 +203,6 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 			venderRep = venderRep.length() > 5000 ? venderRep.substring(0, 5000) + "......" : venderRep;
 		}
 		tLog.setVenderRep(venderRep);
-
-		String QIResult = decryptAndFilterSensitive(tLog.getQIResult());
-		if (StringUtils.isNotBlank(QIResult)) {
-			QIResult = QIResult.length() > 5000 ? QIResult.substring(0, 5000) + "......" : QIResult;
-		}
-		tLog.setQIResult(QIResult);
 
 		tLog.setBusinessReq(decryptAndFilterSensitive(tLog.getBusinessReq()));
 		tLog.setVenderReq(decryptAndFilterSensitive(tLog.getVenderReq()));
