@@ -47,19 +47,14 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
 import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
-import static com.iflytek.integrated.platform.entity.QTInterfaceMonitor.qTInterfaceMonitor;
 import static com.iflytek.integrated.platform.entity.QTLog.qTLog;
-import static com.iflytek.integrated.platform.entity.QTPlatform.qTPlatform;
-import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
-import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
-import static com.iflytek.integrated.platform.entity.QTSysRegistry.qTSysRegistry;
+import static com.iflytek.integrated.platform.entity.QTSysPublish.qTSysPublish;
 
 /**
  * @author czzhan
@@ -157,10 +152,14 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		SQLQuery<TLog> tlogQuery = sqlQueryFactory
 		.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status, qTLog.venderRepTime,
 				qTLog.businessRepTime, qTLog.visitAddr,qTLog.businessInterfaceId, qTLog.debugreplayFlag,
-				qTInterface.interfaceName, qTInterface.interfaceUrl))
+				qTInterface.id.as("interfaceId"), qTInterface.interfaceName, qTInterface.interfaceUrl,
+				qTSysPublish.id.as("publishId"), qTSysPublish.publishName,
+				qTSys.id.as("publishSysId"), qTSys.sysName.as("publishSysName")))
 				.from(qTLog)
 				.leftJoin(qTBusinessInterface).on(qTLog.businessInterfaceId.eq(qTBusinessInterface.id))
 				.leftJoin(qTInterface).on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id))
+				.leftJoin(qTSysPublish).on(qTLog.publishId.eq(qTSysPublish.id))
+				.leftJoin(qTSys).on(qTSysPublish.sysId.eq(qTSys.id))
 				;
 		if(!"postgresql".equals(dbType)) {
 			tlogQuery = tlogQuery.addFlag(new QueryFlag(Position.BEFORE_FILTERS, Expressions.stringTemplate(" FORCE INDEX ( log_query_idx )")));

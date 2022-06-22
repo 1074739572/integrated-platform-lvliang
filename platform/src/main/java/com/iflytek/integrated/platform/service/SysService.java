@@ -34,7 +34,6 @@ import java.util.List;
 
 import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
-import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
 import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
 import static com.iflytek.integrated.platform.entity.QTVendor.qtVendor;
 import static com.querydsl.sql.SQLExpressions.groupConcat;
@@ -146,7 +145,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 
 		//redis缓存信息获取
 		ArrayList<Predicate> arr = new ArrayList<>();
-		arr.add(qTSysConfig.sysId.in(id));
+		arr.add(qTSys.id.in(id));
 		List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
 		// 删除系统
 		long count = this.delete(id);
@@ -239,7 +238,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 
 		//redis缓存信息获取
 		ArrayList<Predicate> arr = new ArrayList<>();
-        arr.add(qTSysConfig.sysId.in(sysId));
+        arr.add(qTSys.id.in(sysId));
 		List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
 		// 更新系统信息
 		SQLUpdateClause updater = sqlQueryFactory.update(qTSys);

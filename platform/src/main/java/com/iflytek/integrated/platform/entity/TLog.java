@@ -52,6 +52,47 @@ public class TLog implements Serializable {
 
     private String regConnectionType;
 
+    private String publishId;
+
+    private String publishName;
+
+    private String publishSysId;
+
+    private String publishSysName;
+
+    public String getPublishSysId() {
+        return publishSysId;
+    }
+
+    public void setPublishSysId(String publishSysId) {
+        this.publishSysId = publishSysId;
+    }
+
+    public String getPublishSysName() {
+        return publishSysName;
+    }
+
+    public void setPublishSysName(String publishSysName) {
+        this.publishSysName = publishSysName;
+    }
+
+    public String getPublishId() {
+        return publishId;
+    }
+
+    public void setPublishId(String publishId) {
+        this.publishId = publishId;
+    }
+
+    public String getPublishName() {
+        return publishName;
+    }
+
+    public void setPublishName(String publishName) {
+        this.publishName = publishName;
+    }
+
+
     public String getRegConnectionType() {
         return regConnectionType;
     }
