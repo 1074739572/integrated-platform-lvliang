@@ -13,13 +13,7 @@ public class TLog implements Serializable {
 
     private Long id;
 
-    private String projectId;
-
-    private String platformId;
-
-    private String sysId;
-
-    private String businessInterfaceId;
+    private String interfaceId;
 
     private String visitAddr;
 
@@ -52,25 +46,34 @@ public class TLog implements Serializable {
     
     private Integer debugreplayFlag;
 
-    @Transient
-    private String businessInterfaceName;
+    private String interfaceName;
 
-    @Transient
-    private Integer excErrOrder;
+    private String interfaceUrl;
 
-    @Transient
-    private String interfaceOrder;
+    private String regConnectionType;
 
-    private String QIResult;
-
-    private String ipAddress;
-
-    public String getIpAddress() {
-        return ipAddress;
+    public String getRegConnectionType() {
+        return regConnectionType;
     }
 
-    public void setIpAddress(String ipAddress) {
-        this.ipAddress = ipAddress;
+    public void setRegConnectionType(String regConnectionType) {
+        this.regConnectionType = regConnectionType;
+    }
+
+    public String getInterfaceName() {
+        return interfaceName;
+    }
+
+    public void setInterfaceName(String interfaceName) {
+        this.interfaceName = interfaceName;
+    }
+
+    public String getInterfaceUrl() {
+        return interfaceUrl;
+    }
+
+    public void setInterfaceUrl(String interfaceUrl) {
+        this.interfaceUrl = interfaceUrl;
     }
 
     public Long getId() {
@@ -79,38 +82,6 @@ public class TLog implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getProjectId() {
-        return projectId;
-    }
-
-    public void setProjectId(String projectId) {
-        this.projectId = projectId;
-    }
-
-    public String getPlatformId() {
-        return platformId;
-    }
-
-    public void setPlatformId(String platformId) {
-        this.platformId = platformId;
-    }
-
-    public String getSysId() {
-        return sysId;
-    }
-
-    public void setSysId(String sysId) {
-        this.sysId = sysId;
-    }
-
-    public String getBusinessInterfaceId() {
-        return businessInterfaceId;
-    }
-
-    public void setBusinessInterfaceId(String businessInterfaceId) {
-        this.businessInterfaceId = businessInterfaceId;
     }
 
     public String getVisitAddr() {
@@ -225,30 +196,6 @@ public class TLog implements Serializable {
         this.typeId = typeId;
     }
 
-    public String getBusinessInterfaceName() {
-        return businessInterfaceName;
-    }
-
-    public void setBusinessInterfaceName(String businessInterfaceName) {
-        this.businessInterfaceName = businessInterfaceName;
-    }
-
-    public Integer getExcErrOrder() {
-        return excErrOrder;
-    }
-
-    public void setExcErrOrder(Integer excErrOrder) {
-        this.excErrOrder = excErrOrder;
-    }
-
-    public String getInterfaceOrder() {
-        return interfaceOrder;
-    }
-
-    public void setInterfaceOrder(String interfaceOrder) {
-        this.interfaceOrder = interfaceOrder;
-    }
-
 	public Integer getDebugreplayFlag() {
 		return debugreplayFlag;
 	}
@@ -257,14 +204,12 @@ public class TLog implements Serializable {
 		this.debugreplayFlag = debugreplayFlag;
 	}
 
-    @JsonProperty("QIResult")
-    public String getQIResult() {
-        return QIResult;
+    public String getInterfaceId() {
+        return interfaceId;
     }
 
-    public void setQIResult(String QIResult) {
-        this.QIResult = QIResult;
+    public void setInterfaceId(String interfaceId) {
+        this.interfaceId = interfaceId;
     }
-    
 }
 

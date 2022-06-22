@@ -29,5 +29,9 @@ public class SysDto extends TSys {
     private String driverNames;
     
     private String versionId;
+
+
+	//用于返回
+	private String vendorName;
 	
 }
