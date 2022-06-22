@@ -637,9 +637,13 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @ApiOperation(value = "服务下拉")
     @GetMapping("/getInterfaceSelect")
     public ResultDto<List<TInterface>> getInterfaceSelect(
+            @ApiParam(value = "业务类型id") @RequestParam(value = "typeId", required = false) String typeId,
             @ApiParam(value = "服务名称") @RequestParam(value = "interfaceName", required = false) String interfaceName) {
         // 查询条件
         ArrayList<Predicate> list = new ArrayList<>();
+        if (StringUtils.isNotEmpty(typeId)) {
+            list.add(qTInterface.typeId.eq(typeId));
+        }
         if (StringUtils.isNotEmpty(interfaceName)) {
             list.add(qTInterface.interfaceName.like(PlatformUtil.createFuzzyText(interfaceName)));
         }
@@ -653,7 +657,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 .where(list.toArray(new Predicate[list.size()]))
                 .orderBy(qTInterface.createdTime.desc()).fetch();
 
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准服务列表获取成功!", queryResults);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "服务下拉列表获取成功!", queryResults);
     }
 
     @ApiOperation(value = "获取集成配置列表")
@@ -1308,7 +1312,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             sysIds.add(sysRegistry.getSysId());
             sqlStringBuffer.append("REPLACE INTO `t_sys_registry` (`ID`, `SYS_ID`,  `CONNECTION_TYPE`, `ADDRESS_URL`, `ENDPOINT_URL`," +
                     " `NAMESPACE_URL`, `DATABASE_NAME`, `DATABASE_URL`, `DATABASE_TYPE`, `DATABASE_DRIVER`, `DRIVER_URL`, `JSON_PARAMS`, `USER_NAME`, `USER_PASSWORD`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, " +
-                    "`REGISTRY_NAME`) VALUES ('" + sysRegistry.getId() + "', '" + sysRegistry.getSysId() + "', '" +
+                    "`REGISTRY_NAME`,'USE_STATUS') VALUES ('" + sysRegistry.getId() + "', '" + sysRegistry.getSysId() + "', '" +
                     sysRegistry.getConnectionType() + "', '" + sysRegistry.getAddressUrl() + "', '" + sysRegistry.getEndpointUrl() + "', " +
                     "'" + sysRegistry.getNamespaceUrl() + "', '" + sysRegistry.getDatabaseName() + "', '" + sysRegistry.getDatabaseUrl() + "', '" + sysRegistry.getDatabaseType() + "', '" + sysRegistry.getDatabaseDriver() + "', " +
                     "'" + sysRegistry.getDriverUrl() + "', '" + sysRegistry.getJsonParams() + "', '" + sysRegistry.getUserName() + "', '" + sysRegistry.getUserPassword() + "','admin', now() , 'admin', now(), '" + sysRegistry.getRegistryName() + "');\n");
