@@ -92,7 +92,7 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
                                     qTSysRegistry.namespaceUrl, qTSysRegistry.databaseName, qTSysRegistry.databaseUrl,
                                     qTSysRegistry.databaseDriver, qTSysRegistry.driverUrl, qTSysRegistry.databaseType, qTSysRegistry.jsonParams,
                                     qTSysRegistry.userName, qTSysRegistry.userPassword, qTSysRegistry.createdBy,
-                                    qTSysRegistry.createdTime, qTSysRegistry.updatedBy, qTSysRegistry.updatedTime))
+                                    qTSysRegistry.createdTime, qTSysRegistry.updatedBy, qTSysRegistry.updatedTime, qTSysRegistry.useStatus))
                     .from(qTSysRegistry).leftJoin(qTSys)
                     .on(qTSysRegistry.sysId.eq(qTSys.id))
                     .where(list.toArray(new Predicate[list.size()]))
