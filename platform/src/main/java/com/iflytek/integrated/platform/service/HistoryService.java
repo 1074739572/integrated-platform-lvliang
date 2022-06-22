@@ -281,7 +281,6 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
             if (StringUtils.isNotBlank(tbi.getSysRegistryId())) {
                 TSysRegistry tSysRegistry = sysRegistryService.getOne(tbi.getSysRegistryId());
                 TSys requestedSys = sysService.getOne(tSysRegistry.getSysId());
-                tbi.setRequestedSysId(requestedSys.getId());
                 businessInterfaceName += (requestedSys.getSysName() + "/" + tbi.getBusinessInterfaceName() + ",");
             }
             if (StringUtils.isBlank(typeId)) {
