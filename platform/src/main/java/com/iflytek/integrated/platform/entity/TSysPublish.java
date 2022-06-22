@@ -33,7 +33,7 @@ public class TSysPublish implements Serializable {
 
     private String updatedBy;
 
-    private Integer serverStatus;
+    private String serverStatus;
 
     private java.util.Date updatedTime;
 

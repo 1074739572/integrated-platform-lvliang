@@ -661,6 +661,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     public ResultDto<TableData<TBusinessInterface>> getInterfaceConfigureList(
             @ApiParam(value = "分类id") @RequestParam(value = "typeId", required = false) Integer typeId,
             @ApiParam(value = "服务名称") @RequestParam(value = "requestInterfaceName", required = false) String requestInterfaceName,
+            @ApiParam(value = "服务id") @RequestParam(value = "requestInterfaceId", required = false) String requestInterfaceId,
             @ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
             @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
 
@@ -670,6 +671,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         }
         if (StringUtils.isNotEmpty(requestInterfaceName)) {
             predicateList.add(qTInterface.interfaceName.like("%" + requestInterfaceName + "%"));
+        }
+        if (StringUtils.isNotEmpty(requestInterfaceId)) {
+            predicateList.add(qTBusinessInterface.requestInterfaceId.eq(requestInterfaceId));
         }
         // 获取集成配置列表信息
         QueryResults<TBusinessInterface> queryResults = businessInterfaceService.getInterfaceConfigureList(predicateList, pageNo, pageSize);
