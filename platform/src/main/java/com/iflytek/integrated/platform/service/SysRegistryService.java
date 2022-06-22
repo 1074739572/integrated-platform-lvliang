@@ -88,7 +88,7 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
                     .select(Projections
                             .bean(TSysRegistry.class, qTSysRegistry.id,qTSysRegistry.registryName,
                                     qTSysRegistry.sysId,qTSys.sysName,qTSysRegistry.connectionType,
-                                    qTSysRegistry.versionId, qTSysRegistry.addressUrl, qTSysRegistry.endpointUrl,
+                                   qTSysRegistry.addressUrl, qTSysRegistry.endpointUrl,
                                     qTSysRegistry.namespaceUrl, qTSysRegistry.databaseName, qTSysRegistry.databaseUrl,
                                     qTSysRegistry.databaseDriver, qTSysRegistry.driverUrl, qTSysRegistry.databaseType, qTSysRegistry.jsonParams,
                                     qTSysRegistry.userName, qTSysRegistry.userPassword, qTSysRegistry.createdBy,
@@ -118,6 +118,29 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
             logger.error("获取服务注册信息失败! MSG:{}", ExceptionUtil.dealException(e));
             e.printStackTrace();
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取服务注册信息失败!");
+        }
+    }
+
+    @ApiOperation(value = "获取服务注册下拉列表", notes = "获取服务注册下拉列表")
+    @GetMapping("/getRegistrySelect")
+    public ResultDto<List<TSysRegistry>> getRegistryList(
+            @ApiParam(value = "服务注册名称") @PathVariable(value = "registryName", required = false) String registryName) {
+        try {
+            ArrayList<Predicate> pre = new ArrayList<>();
+            if (StringUtils.isNotEmpty(registryName)) {
+                pre.add(qTSysRegistry.registryName.like(PlatformUtil.createFuzzyText(registryName)));
+            }
+            List<TSysRegistry> list= sqlQueryFactory
+                    .select(Projections.bean(TSysRegistry.class, qTSysRegistry.id, qTSysRegistry.sysId, qTSysRegistry.registryName))
+                    .from(qTSysRegistry)
+                    .where(pre.toArray(new Predicate[pre.size()]))
+                    .orderBy(qTSysRegistry.createdTime.desc())
+                    .fetch();
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取服务注册下拉列表成功!", list);
+        } catch (BeansException e) {
+            logger.error("获取服务注册下拉列表失败! MSG:{}", ExceptionUtil.dealException(e));
+            e.printStackTrace();
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取服务注册下拉列表失败!");
         }
     }
 
@@ -172,19 +195,6 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
         }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "注册服务删除成功!");
     }
-
-    /**
-     * 根据系统id获取所有系统配置信息
-     *
-     * @param sysId
-     * @return
-     */
-    public List<TSysRegistry> getBySysId(String sysId) {
-        List<TSysRegistry> list = sqlQueryFactory.select(qTSysRegistry).from(qTSysRegistry).where(qTSysRegistry.sysId.eq(sysId))
-                .fetch();
-        return list;
-    }
-
 
     public TSysRegistry getOneBySysId(String sysId){
         return sqlQueryFactory
