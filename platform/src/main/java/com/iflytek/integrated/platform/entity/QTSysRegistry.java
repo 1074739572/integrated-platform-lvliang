@@ -56,8 +56,6 @@ public class QTSysRegistry extends com.querydsl.sql.RelationalPathBase<TSysRegis
 
 	public final StringPath userPassword = createString("userPassword");
 
-	public final StringPath versionId = createString("versionId");
-
 	public final StringPath registryName = createString("registryName");
 
 	public final StringPath useStatus = createString("useStatus");
