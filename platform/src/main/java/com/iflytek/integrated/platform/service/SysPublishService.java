@@ -90,7 +90,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
                     .from(qTSysPublish).leftJoin(qTSys)
                     .on(qTSysPublish.sysId.eq(qTSys.id))
                     .where(list.toArray(new Predicate[list.size()]))
-                    .offset((pageNo - 1) * pageSize).orderBy(qTInterface.createdTime.desc()).fetchResults();
+                    .offset((pageNo - 1) * pageSize).orderBy(qTSysPublish.createdTime.desc()).fetchResults();
             // 分页
             TableData<TSysPublish> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取服务发布列表成功!", tableData);
