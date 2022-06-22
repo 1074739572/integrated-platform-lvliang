@@ -104,6 +104,23 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		}
 	}
 
+	@ApiOperation(value = "详情")
+	@GetMapping("/getSysInfo")
+	public ResultDto<TSys> getSysInfo(
+			@ApiParam(value = "系统id") @RequestParam(value = "id", required = true) String id) {
+		try {
+			TSys tSys = sqlQueryFactory
+					.select(qTSys)
+					.from(qTSys)
+					.where(qTSys.id.eq(id)).fetchFirst();
+			// 分页
+			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "系统详情获取成功", tSys);
+		} catch (Exception e) {
+			logger.error("获取系统管理列表失败! MSG:{}", ExceptionUtil.dealException(e));
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "系统详情获取失败");
+		}
+	}
+
 	@Transactional(rollbackFor = Exception.class)
 	@ApiOperation(value = "系统管理删除")
 	@PostMapping("/delSysById/{id}")
