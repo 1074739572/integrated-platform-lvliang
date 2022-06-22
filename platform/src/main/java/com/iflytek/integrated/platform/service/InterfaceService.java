@@ -943,7 +943,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         ArrayList<Predicate> arr = new ArrayList<>();
         arr.add(qTBusinessInterface.id.in(rtnId));
         //TODO 注释redis
-        List<RedisKeyDto> redisKeyDtoList = null;//redisService.getRedisKeyDtoList(arr);
+        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "编辑集成配置成功", new RedisDto(redisKeyDtoList).toString());
     }
 

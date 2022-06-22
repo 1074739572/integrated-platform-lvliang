@@ -9,6 +9,7 @@ import static com.iflytek.integrated.platform.entity.QTPlugin.qTPlugin;
 import static com.iflytek.integrated.platform.entity.QTProject.qTProject;
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 import static com.iflytek.integrated.platform.entity.QTSysRegistry.qTSysRegistry;
+import static com.iflytek.integrated.platform.entity.QTSysPublish.qTSysPublish;
 import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
 import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
 import static com.iflytek.integrated.platform.entity.QTSysHospitalConfig.qTSysHospitalConfig;
@@ -127,24 +128,41 @@ public class RedisService {
 	 * @param arr
 	 */
 	public List<RedisKeyDto> getRedisKeyDtoList(ArrayList<Predicate> arr) {
-		arr.add(qTSysHospitalConfig.hospitalCode.isNotNull()
-				.and(qTSys.sysCode.isNotNull().and(qTInterface.interfaceUrl.isNotNull())));
+		arr.add(qTInterface.interfaceUrl.isNotNull());
 
 		List<RedisKeyDto> list = sqlQueryFactory
-				.select(Projections.bean(RedisKeyDto.class, qTSysHospitalConfig.hospitalCode.as("orgId"),
+				.select(Projections.bean(RedisKeyDto.class,
 						qTSys.sysCode.as("sysCode"), qTInterface.interfaceUrl.as("funCode")))
-				.from(qTProject).leftJoin(qTPlatform).on(qTPlatform.projectId.eq(qTProject.id)).leftJoin(qTSysConfig)
-				.on(qTSysConfig.platformId.eq(qTPlatform.id)).leftJoin(qTSys).on(qTSysConfig.sysId.eq(qTSys.id))
-				.leftJoin(qTInterface).leftJoin(qTBusinessInterface)
-				.on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id)
-						.and(qTBusinessInterface.sysRegistryId.eq(qTSysRegistry.id)
-								.or(qTBusinessInterface.sysRegistryId.eq(qTSysRegistry.id))))
-				.leftJoin(qTSysHospitalConfig).on(qTSysConfig.id.eq(qTSysHospitalConfig.sysConfigId))
-				.leftJoin(qTHospital).on(qTSysHospitalConfig.hospitalId.eq(qTHospital.id)).leftJoin(qTSysDriveLink)
-				.on(qTSysDriveLink.sysId.eq(qTSys.id)).leftJoin(qTDrive).on(qTDrive.id.eq(qTSysDriveLink.driveId))
+				.from(qTSys)
+				.leftJoin(qTSysRegistry).on(qTSysRegistry.sysId.eq(qTSys.id))
+				.leftJoin(qTSysPublish).on(qTSysPublish.sysId.eq(qTSys.id))
+				.leftJoin(qTBusinessInterface).on(qTBusinessInterface.sysRegistryId.eq(qTSysRegistry.id))
+				.leftJoin(qTInterface).on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id))
+				.leftJoin(qTSysDriveLink).on(qTSysDriveLink.sysId.eq(qTSys.id))
+				.leftJoin(qTDrive).on(qTDrive.id.eq(qTSysDriveLink.driveId))
 				.leftJoin(qTPlugin).on(qTPlugin.id.eq(qTBusinessInterface.pluginId))
 				.where(arr.toArray(new Predicate[arr.size()]))
-				.groupBy(qTSys.sysCode, qTSysHospitalConfig.hospitalCode, qTInterface.interfaceUrl).fetch();
+				.groupBy(qTSys.sysCode, qTInterface.interfaceUrl).fetch();
+
+//		List<RedisKeyDto> list = sqlQueryFactory
+//				.select(Projections.bean(RedisKeyDto.class,
+//						qTSys.sysCode.as("sysCode"), qTInterface.interfaceUrl.as("funCode")))
+//				.from(qTProject)
+//				.leftJoin(qTPlatform).on(qTPlatform.projectId.eq(qTProject.id))
+//				.leftJoin(qTSysConfig)
+//				.on(qTSysConfig.platformId.eq(qTPlatform.id))
+//				.leftJoin(qTSys).on(qTSysConfig.sysId.eq(qTSys.id))
+//				.leftJoin(qTInterface).leftJoin(qTBusinessInterface)
+//				.on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id)
+//						.and(qTBusinessInterface.sysRegistryId.eq(qTSysRegistry.id)
+//								.or(qTBusinessInterface.sysRegistryId.eq(qTSysRegistry.id))))
+//				.leftJoin(qTSysHospitalConfig).on(qTSysConfig.id.eq(qTSysHospitalConfig.sysConfigId))
+//				.leftJoin(qTHospital).on(qTSysHospitalConfig.hospitalId.eq(qTHospital.id))
+//				.leftJoin(qTSysDriveLink).on(qTSysDriveLink.sysId.eq(qTSys.id))
+//				.leftJoin(qTDrive).on(qTDrive.id.eq(qTSysDriveLink.driveId))
+//				.leftJoin(qTPlugin).on(qTPlugin.id.eq(qTBusinessInterface.pluginId))
+//				.where(arr.toArray(new Predicate[arr.size()]))
+//				.groupBy(qTSys.sysCode, qTSysHospitalConfig.hospitalCode, qTInterface.interfaceUrl).fetch();
 		return list;
 	}
 
