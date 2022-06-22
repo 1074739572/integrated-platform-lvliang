@@ -6,9 +6,7 @@ import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.InterfaceMonitorDto;
-import com.iflytek.integrated.platform.entity.QTInterfaceMonitor;
-import com.iflytek.integrated.platform.entity.TBusinessInterface;
-import com.iflytek.integrated.platform.entity.TLog;
+import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.querydsl.core.QueryFlag;
@@ -108,9 +106,9 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		ArrayList<Predicate> list = new ArrayList<>();
 		if(interfaceId != null && interfaceId != ""){
 			if(!"0".equals(interfaceId)) {
-				list.add(qTLog.interfaceId.eq(interfaceId));
+				list.add(qTInterface.id.eq(interfaceId));
 			}else {
-				list.add(qTLog.interfaceId.eq("0"));
+				list.add(qTInterface.id.eq("0"));
 			}
 		}
 		
@@ -157,11 +155,12 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 					.like(PlatformUtil.createFuzzyText(venderRep)));
 		}
 		SQLQuery<TLog> tlogQuery = sqlQueryFactory
-		.select(Projections.bean(TLog.class, qTLog.id, qTLog.publicId, qTLog.registryId, qTLog.createdTime, qTLog.status, qTLog.venderRepTime,
-				qTLog.businessRepTime, qTLog.visitAddr,qTLog.interfaceId, qTLog.debugreplayFlag,
+		.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status, qTLog.venderRepTime,
+				qTLog.businessRepTime, qTLog.visitAddr,qTLog.businessInterfaceId, qTLog.debugreplayFlag,
 				qTInterface.interfaceName, qTInterface.interfaceUrl))
 				.from(qTLog)
-				.leftJoin(qTInterface).on(qTLog.interfaceId.eq(qTInterface.id))
+				.leftJoin(qTBusinessInterface).on(qTLog.businessInterfaceId.eq(qTBusinessInterface.id))
+				.leftJoin(qTInterface).on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id))
 				;
 		if(!"postgresql".equals(dbType)) {
 			tlogQuery = tlogQuery.addFlag(new QueryFlag(Position.BEFORE_FILTERS, Expressions.stringTemplate(" FORCE INDEX ( log_query_idx )")));
@@ -183,12 +182,13 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		}
 
 		// 查询详情
-		TLog tLog = sqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.publicId, qTLog.registryId, qTLog.createdTime, qTLog.status,
-				qTLog.venderRepTime, qTLog.businessRepTime, qTLog.visitAddr, qTLog.businessReq, qTLog.venderReq,
-				qTLog.businessRep, qTLog.venderRep,qTLog.debugreplayFlag,
-				qTInterface.interfaceName, qTInterface.interfaceUrl))
+		TLog tLog = sqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status,
+						qTLog.venderRepTime, qTLog.businessRepTime, qTLog.visitAddr, qTLog.businessReq, qTLog.venderReq,
+						qTLog.businessRep, qTLog.venderRep,qTLog.debugreplayFlag,
+						qTInterface.interfaceName, qTInterface.interfaceUrl))
 				.from(qTLog)
-				.leftJoin(qTInterface).on(qTLog.interfaceId.eq(qTInterface.id))
+				.leftJoin(qTBusinessInterface).on(qTLog.businessInterfaceId.eq(qTBusinessInterface.id))
+				.leftJoin(qTInterface).on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id))
 				.where(qTLog.id.eq(Long.valueOf(id)))
 				.fetchFirst();
 
@@ -254,5 +254,63 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		}
 	}
 
+
+	@ApiOperation(value = "接口调试重放")
+	@PostMapping("/interfaceDebugRedo/{authFlag}")
+	public ResultDto<String> interfaceDebugRedo(@PathVariable("authFlag") String authFlag,
+												@ApiParam(value = "接口转换配置ids") @RequestParam(value = "ids", required = true) String ids) {
+
+		if (StringUtils.isBlank(ids)) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "接口转换配置ids必传");
+		}
+		Map<String , String> headerMap = new HashMap<>();
+		String loginUrlPrefix = niFiRequestUtil.getInterfaceDebugWithAuth();
+		if("1".equals(authFlag)) {
+			headerMap.putAll(niFiRequestUtil.interfaceAuthLogin(loginUrlPrefix , false));
+		}
+
+		String[] idArrays = ids.split(",");
+		if(idArrays != null && idArrays.length > 0) {
+			try {
+				Long[] realIds = new Long[idArrays.length];
+				for(int i = 0 ; i < idArrays.length ; i++) {
+					realIds[i] = Long.valueOf(idArrays[i]);
+				}
+				List<TLog> logs = sqlQueryFactory.select(qTLog).from(qTLog).where(qTLog.id.in(realIds)).fetch();
+				for(TLog tlog: logs) {
+					if(tlog.getDebugreplayFlag() == 0) {
+						headerMap.put("Debugreplay-Flag", "2");
+					}else {
+						headerMap.put("Debugreplay-Flag", "3");
+					}
+					String format = decryptAndFilterSensitive(tlog.getBusinessReq());
+					String regConnectionType = tlog.getRegConnectionType();
+					if(StringUtils.isNotEmpty(regConnectionType)) {
+						if(StringUtils.isBlank(tlog.getVisitAddr())){
+							continue;
+						}
+						if("1".equals(regConnectionType)){
+							String wsdlUrl = tlog.getVisitAddr();
+							List<String> wsOperationNames = PlatformUtil.getWsdlOperationNames(wsdlUrl);
+							if(wsOperationNames == null || wsOperationNames.size() == 0) {
+								continue;
+							}
+							String methodName = wsOperationNames.get(0);
+							PlatformUtil.invokeWsServiceWithOrigin(wsdlUrl, methodName, format , headerMap, readTimeout);
+						}else if("2".equals(regConnectionType)){
+							niFiRequestUtil.interfaceDebug(format , headerMap , "1".equals(authFlag));
+						}else if("3".equals(regConnectionType)){
+
+						}
+					}
+
+				}
+			} catch (Exception e) {
+				logger.error("获取接口调试显示数据失败! MSG:{}", ExceptionUtil.dealException(e));
+				return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "日志重放失败");
+			}
+		}
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志重放成功");
+	}
 
 }

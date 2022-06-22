@@ -13,10 +13,6 @@ public class TLog implements Serializable {
 
     private Long id;
 
-    private String publicId;
-
-    private String registryId;
-
     private String interfaceId;
 
     private String visitAddr;
@@ -54,6 +50,15 @@ public class TLog implements Serializable {
 
     private String interfaceUrl;
 
+    private String regConnectionType;
+
+    public String getRegConnectionType() {
+        return regConnectionType;
+    }
+
+    public void setRegConnectionType(String regConnectionType) {
+        this.regConnectionType = regConnectionType;
+    }
 
     public String getInterfaceName() {
         return interfaceName;
@@ -198,22 +203,6 @@ public class TLog implements Serializable {
 	public void setDebugreplayFlag(Integer debugreplayFlag) {
 		this.debugreplayFlag = debugreplayFlag;
 	}
-
-    public String getPublicId() {
-        return publicId;
-    }
-
-    public void setPublicId(String publicId) {
-        this.publicId = publicId;
-    }
-
-    public String getRegistryId() {
-        return registryId;
-    }
-
-    public void setRegistryId(String registryId) {
-        this.registryId = registryId;
-    }
 
     public String getInterfaceId() {
         return interfaceId;
