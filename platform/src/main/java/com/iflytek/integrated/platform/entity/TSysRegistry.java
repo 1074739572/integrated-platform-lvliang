@@ -2,6 +2,7 @@ package com.iflytek.integrated.platform.entity;
 
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
+import org.springframework.data.annotation.Transient;
 
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
@@ -15,6 +16,9 @@ public class TSysRegistry implements Serializable {
     private String id;
     
     private String sysId;
+
+    @Transient
+    private String sysName;
 
     private String connectionType;
 
@@ -56,7 +60,7 @@ public class TSysRegistry implements Serializable {
     
     private String registryName;
 
-    private Integer useStatus;
+    private String useStatus;
 
 }
 

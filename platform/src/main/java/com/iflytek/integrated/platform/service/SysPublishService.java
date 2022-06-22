@@ -86,7 +86,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
                                     qTSysPublish.sysId,qTSys.sysName,qTSysPublish.connectionType,
                                     qTSysPublish.addressUrl, qTSysPublish.limitIps,
                                     qTSysPublish.createdBy, qTSysPublish.createdTime,
-                                    qTSysPublish.updatedBy, qTSysPublish.updatedTime))
+                                    qTSysPublish.updatedBy, qTSysPublish.updatedTime,qTSysPublish.serverStatus))
                     .from(qTSysPublish).leftJoin(qTSys)
                     .on(qTSysPublish.sysId.eq(qTSys.id))
                     .where(list.toArray(new Predicate[list.size()]))

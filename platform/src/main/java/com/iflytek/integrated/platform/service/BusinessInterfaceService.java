@@ -188,7 +188,7 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 		QueryResults<TBusinessInterface> queryResults = sqlQueryFactory
 				.select(Projections.bean(TBusinessInterface.class,qTBusinessInterface.id.min().as("id"),qTType.typeName.min().as(qTType.typeName),
 						qTBusinessInterface.requestInterfaceId,
-						qTInterface.interfaceName.min().as(qTInterface.interfaceName),
+						qTInterface.interfaceName.min().as("requestInterfaceName"),
 						template.as(qTBusinessInterface.businessInterfaceName),
 						qTBusinessInterface.mockStatus.min().as(qTBusinessInterface.mockStatus),
 						qTBusinessInterface.status.min().as("status"),
@@ -198,9 +198,9 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 						qTBusinessInterface.updatedTime.max().as(qTBusinessInterface.updatedTime)))
 				.from(qTBusinessInterface)
 				.leftJoin(qTSysRegistry).on(qTSysRegistry.id.eq(qTBusinessInterface.sysRegistryId))
-				.leftJoin(qTType).on(qTType.id.eq(qTBusinessInterface.interfaceType))
 				.leftJoin(qTSys).on(qTSys.id.eq(qTSysRegistry.sysId))
 				.leftJoin(qTInterface).on(qTInterface.id.eq(qTBusinessInterface.requestInterfaceId))
+				.leftJoin(qTType).on(qTType.id.eq(qTInterface.typeId))
 				.where(list.toArray(new Predicate[list.size()]))
 				.groupBy(qTBusinessInterface.requestInterfaceId)
 				.limit(pageSize).offset((pageNo - 1) * pageSize)
