@@ -23,8 +23,6 @@ public class QTLog extends com.querydsl.sql.RelationalPathBase<TLog> {
 
     public static final QTLog qTLog = new QTLog("t_log");
 
-    public final StringPath businessInterfaceId = createString("businessInterfaceId");
-
     public final StringPath businessRep = createString("businessRep");
 
     public final NumberPath<Integer> businessRepTime = createNumber("businessRepTime", Integer.class);
@@ -37,13 +35,9 @@ public class QTLog extends com.querydsl.sql.RelationalPathBase<TLog> {
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
-    public final StringPath platformId = createString("platformId");
-
-    public final StringPath sysId = createString("sysId");
+    public final StringPath businessInterfaceId = createString("businessInterfaceId");
 
     public final StringPath typeId = createString("typeId");
-
-    public final StringPath projectId = createString("projectId");
 
     public final StringPath requestIdentifier = createString("requestIdentifier");
 
@@ -60,12 +54,11 @@ public class QTLog extends com.querydsl.sql.RelationalPathBase<TLog> {
     public final StringPath venderReq = createString("venderReq");
 
     public final StringPath visitAddr = createString("visitAddr");
-    
+
     public final NumberPath<Integer> debugreplayFlag = createNumber("debugreplayFlag", Integer.class);
 
-    public final StringPath QIResult = createString("QIResult");
+    public final StringPath regConnectionType = createString("regConnectionType");
 
-    public final StringPath ipAddress = createString("ipAddress");
 
     public final com.querydsl.sql.PrimaryKey<TLog> primary = createPrimaryKey(id);
 
@@ -95,28 +88,26 @@ public class QTLog extends com.querydsl.sql.RelationalPathBase<TLog> {
     }
 
     public void addMetadata() {
-        addMetadata(businessInterfaceId, ColumnMetadata.named("BUSINESS_INTERFACE_ID").withIndex(5).ofType(Types.VARCHAR).withSize(32).notNull());
-        addMetadata(businessRep, ColumnMetadata.named("BUSINESS_REP").withIndex(10).ofType(Types.LONGVARCHAR).withSize(65535));
-        addMetadata(businessRepTime, ColumnMetadata.named("BUSINESS_REP_TIME").withIndex(12).ofType(Types.INTEGER).withSize(10).notNull());
-        addMetadata(businessReq, ColumnMetadata.named("BUSINESS_REQ").withIndex(7).ofType(Types.VARCHAR).withSize(1024).notNull());
-        addMetadata(createdBy, ColumnMetadata.named("CREATED_BY").withIndex(15).ofType(Types.VARCHAR).withSize(32).notNull());
-        addMetadata(createdTime, ColumnMetadata.named("CREATED_TIME").withIndex(16).ofType(Types.TIMESTAMP).withSize(19).notNull());
-        addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.BIGINT).withSize(19).notNull());
-        addMetadata(platformId, ColumnMetadata.named("PLATFORM_ID").withIndex(3).ofType(Types.VARCHAR).withSize(32).notNull());
-        addMetadata(sysId, ColumnMetadata.named("SYS_ID").withIndex(4).ofType(Types.VARCHAR).withSize(32).notNull());
-        addMetadata(projectId, ColumnMetadata.named("PROJECT_ID").withIndex(2).ofType(Types.VARCHAR).withSize(32).notNull());
-        addMetadata(requestIdentifier, ColumnMetadata.named("REQUEST_IDENTIFIER").withIndex(13).ofType(Types.VARCHAR).withSize(255));
-        addMetadata(status, ColumnMetadata.named("STATUS").withIndex(14).ofType(Types.VARCHAR).withSize(1).notNull());
-        addMetadata(updatedBy, ColumnMetadata.named("UPDATED_BY").withIndex(17).ofType(Types.VARCHAR).withSize(32).notNull());
-        addMetadata(updatedTime, ColumnMetadata.named("UPDATED_TIME").withIndex(18).ofType(Types.TIMESTAMP).withSize(19).notNull());
-        addMetadata(venderRep, ColumnMetadata.named("VENDER_REP").withIndex(9).ofType(Types.LONGVARCHAR).withSize(65535));
-        addMetadata(venderRepTime, ColumnMetadata.named("VENDER_REP_TIME").withIndex(11).ofType(Types.INTEGER).withSize(10).notNull());
-        addMetadata(venderReq, ColumnMetadata.named("VENDER_REQ").withIndex(8).ofType(Types.VARCHAR).withSize(1024).notNull());
+        addMetadata(businessInterfaceId, ColumnMetadata.named("business_interface_id").withIndex(12).ofType(Types.INTEGER).withSize(10).notNull());
         addMetadata(visitAddr, ColumnMetadata.named("VISIT_ADDR").withIndex(6).ofType(Types.VARCHAR).withSize(255).notNull());
-        addMetadata(typeId, ColumnMetadata.named("TYPE_ID").withIndex(19).ofType(Types.VARCHAR).withSize(32).notNull());
-        addMetadata(debugreplayFlag, ColumnMetadata.named("DEBUGREPLAY_FLAG").withIndex(20).ofType(Types.INTEGER).withSize(1).notNull());
-        addMetadata(QIResult, ColumnMetadata.named("QI_RESULT").withIndex(21).ofType(Types.LONGVARCHAR));
-        addMetadata(ipAddress, ColumnMetadata.named("IP_ADDRESS").withIndex(22).ofType(Types.VARCHAR).withSize(50));
+        addMetadata(businessReq, ColumnMetadata.named("business_req").withIndex(7).ofType(Types.LONGVARCHAR).withSize(1024).notNull());
+        addMetadata(venderReq, ColumnMetadata.named("vender_req").withIndex(8).ofType(Types.LONGVARCHAR).withSize(1024).notNull());
+        addMetadata(venderRep, ColumnMetadata.named("vender_rep").withIndex(9).ofType(Types.LONGVARCHAR).withSize(65535));
+        addMetadata(businessRep, ColumnMetadata.named("business_rep").withIndex(9).ofType(Types.LONGVARCHAR).withSize(65535));
+        addMetadata(venderRepTime, ColumnMetadata.named("vender_rep_time").withIndex(11).ofType(Types.INTEGER).withSize(10).notNull());
+        addMetadata(businessRepTime, ColumnMetadata.named("business_rep_time").withIndex(11).ofType(Types.INTEGER).withSize(10).notNull());
+        addMetadata(requestIdentifier, ColumnMetadata.named("request_identifier").withIndex(13).ofType(Types.VARCHAR).withSize(255));
+        addMetadata(status, ColumnMetadata.named("status").withIndex(14).ofType(Types.VARCHAR).withSize(1).notNull());
+        addMetadata(createdBy, ColumnMetadata.named("created_by").withIndex(15).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(createdTime, ColumnMetadata.named("created_time").withIndex(16).ofType(Types.TIMESTAMP).withSize(19).notNull());
+        addMetadata(updatedBy, ColumnMetadata.named("updated_by").withIndex(17).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(updatedTime, ColumnMetadata.named("updated_time").withIndex(18).ofType(Types.TIMESTAMP).withSize(19).notNull());
+        addMetadata(typeId, ColumnMetadata.named("type_id").withIndex(19).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(debugreplayFlag, ColumnMetadata.named("debugreplay_flag").withIndex(20).ofType(Types.INTEGER).withSize(1).notNull());
+        addMetadata(regConnectionType, ColumnMetadata.named("reg_connection_type").withIndex(20).ofType(Types.INTEGER).withSize(1).notNull());
+
+
+        addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.BIGINT).withSize(19).notNull());
     }
 
 }

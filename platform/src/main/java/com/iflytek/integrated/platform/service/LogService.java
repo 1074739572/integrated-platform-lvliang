@@ -6,9 +6,7 @@ import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.InterfaceMonitorDto;
-import com.iflytek.integrated.platform.entity.QTInterfaceMonitor;
-import com.iflytek.integrated.platform.entity.TBusinessInterface;
-import com.iflytek.integrated.platform.entity.TLog;
+import com.iflytek.integrated.platform.entity.*;
 import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.querydsl.core.QueryFlag;
@@ -71,7 +69,7 @@ import static com.iflytek.integrated.platform.entity.QTSysRegistry.qTSysRegistry
 @Slf4j
 @Api(tags = "服务监控")
 @RestController
-@RequestMapping("/{version}/pt/interfaceMonitor")
+@RequestMapping("/{version}/pt/log")
 public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 	private static final Logger logger = LoggerFactory.getLogger(LogService.class);
 
@@ -88,100 +86,12 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		super(qTLog, qTLog.id);
 	}
 
-	/**
-	 * 按接口名称来展示服务监控列表
-	 * @param projectId
-	 * @param platformId
-	 * @param sysId
-	 * @param status
-	 * @param interfaceName
-	 * @param pageNo
-	 * @param pageSize
-	 * @return
-	 */
-	@ApiOperation(value = "查看服务监控列表")
-	@GetMapping("/getListPage")
-	public ResultDto<TableData<InterfaceMonitorDto>> getListPage(String projectId, String platformId, String sysId, String status,
-																 @ApiParam(value = "接口名称") @RequestParam(value = "interfaceName", required = false) String interfaceName,
-																 @RequestParam(defaultValue = "1") Integer pageNo,
-																 @RequestParam(defaultValue = "10") Integer pageSize) {
-		try {
-			// 查询条件
-			ArrayList<Predicate> list = new ArrayList<>();
-			// 判断条件是否为空
-			if (StringUtils.isNotBlank(sysId)) {
-				list.add(qTSys.id.eq(sysId));
-			}
-			// 先合并t_interface_monitor，再根据三合一结果进行查询
-			String q = "queryMonitor";
-			StringPath queryLabel = Expressions.stringPath(q);
-			StringPath reqInterPath = Expressions.stringPath("REQUEST_INTERFACE_ID");
-			QTInterfaceMonitor monitor = new QTInterfaceMonitor(q);
-			
-//			StringExpression intfId = new CaseBuilder().when(qTInterface.interfaceId.isNull()).then("0").otherwise(monitor.interfaceId).as("interfaceId");
-			
-			SubQueryExpression query = SQLExpressions
-					.select(qTInterfaceMonitor.status.max().as("status"),
-							qTInterfaceMonitor.successCount.sum().as("SUCCESS_COUNT"),
-							qTInterfaceMonitor.errorCount.sum().as("ERROR_COUNT"), qTInterfaceMonitor.projectId.max().as("PROJECT_ID"),
-							qTInterfaceMonitor.platformId, qTInterfaceMonitor.sysId, qTInterfaceMonitor.typeId.max().as("TYPE_ID"),
-							qTInterfaceMonitor.createdTime.max().as("CREATED_TIME"), qTInterfaceMonitor.businessInterfaceId.max().as("BUSINESS_INTERFACE_ID"),
-							qTBusinessInterface.requestInterfaceId, qTBusinessInterface.replayFlag.max().as("REPLAY_FLAG"))
-					.from(qTInterfaceMonitor)
-					.leftJoin(qTBusinessInterface).on(qTBusinessInterface.id.eq(qTInterfaceMonitor.businessInterfaceId))
-					.leftJoin(qTSysRegistry).on(qTSysRegistry.id.eq(qTBusinessInterface.sysRegistryId)
-							.and(qTSysConfig.platformId.eq(qTInterfaceMonitor.platformId)))
-//					.leftJoin(qTInterface).on(qTInterface.id.eq(qTBusinessInterface.requestInterfaceId))
-					.where(qTInterfaceMonitor.projectId.eq("0").or(qTInterfaceMonitor.projectId.notEqualsIgnoreCase("0").and(qTBusinessInterface.requestInterfaceId.isNotNull())))
-					.groupBy(qTInterfaceMonitor.platformId, qTInterfaceMonitor.sysId, qTBusinessInterface.requestInterfaceId)
-					.orderBy(qTInterfaceMonitor.status.max().desc(), qTInterfaceMonitor.createdTime.max().desc());
-
-			// 按条件筛选
-			if (StringUtils.isNotBlank(projectId)) {
-				list.add(monitor.projectId.eq(projectId));
-			}
-			if (StringUtils.isNotBlank(platformId)) {
-				list.add(monitor.platformId.eq(platformId));
-			}
-			if (StringUtils.isNotBlank(status)) {
-				list.add(monitor.status.eq(status));
-			}
-			if (StringUtils.isNotBlank(interfaceName)) {
-				list.add(qTInterface.interfaceName.like(PlatformUtil.createFuzzyText(interfaceName)));
-			}
-			// 根据结果查询
-			StringExpression projName = new CaseBuilder().when(qTProject.id.eq("0").or(qTProject.id.isNull())).then("未关联接口配置异常类项目").otherwise(qTProject.projectName).as("projectName");
-			StringExpression platName = new CaseBuilder().when(qTPlatform.id.eq("0").or(qTPlatform.id.isNull())).then("未关联接口配置异常类分类").otherwise(qTPlatform.platformName).as("platformName");
-			StringExpression sysName = new CaseBuilder().when(qTSys.id.eq("0").or(qTSys.id.isNull())).then("未关联接口配置异常类系统").otherwise(qTSys.sysName).as("sysName");
-//			StringExpression intfName = new CaseBuilder().when(qTInterface.id.eq("0").or(qTInterface.id.isNull())).then("未关联接口配置异常类接口").otherwise(qTInterface.interfaceName).as("interfaceName");
-//			StringExpression intfId = new CaseBuilder().when(qTInterface.id.isNull()).then("0").otherwise(qTInterface.id).as("interfaceId");
-			QueryResults<InterfaceMonitorDto> queryResults = sqlQueryFactory
-					.selectDistinct(Projections.bean(InterfaceMonitorDto.class, monitor.status, monitor.successCount,
-							monitor.replayFlag, monitor.errorCount,
-//							intfName, intfId,
-							projName, platName, sysName))
-					.from(query, queryLabel)
-					.leftJoin(qTProject).on(qTProject.id.eq(monitor.projectId))
-					.leftJoin(qTPlatform).on(qTPlatform.id.eq(monitor.platformId))
-					.leftJoin(qTSysConfig).on(qTSysConfig.platformId.eq(qTPlatform.id).and(qTSysConfig.sysConfigType.eq(1)))
-					.leftJoin(qTSys).on(qTSys.id.eq(qTSysConfig.sysId))
-//					.leftJoin(qTInterface).on(qTInterface.sysId.eq(qTSys.id).and(qTInterface.id.eq(reqInterPath)))
-					.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize).fetchResults();
-			// 分页
-			TableData<InterfaceMonitorDto> tableData = new TableData<>(queryResults.getTotal(),
-					queryResults.getResults());
-			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "", tableData);
-		} catch (Exception e) {
-			logger.error("查看服务监控列表失败! MSG:{}", ExceptionUtil.dealException(e));
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "服务监控列表获取失败");
-		}
-	}
 
 	@ApiOperation(value = "查看监控日志列表")
 	@GetMapping("/logInfoList")
-	public ResultDto<TableData<TLog>> logInfoList(String interfaceId, String status, String visitAddr,
-												   @ApiParam(value = "开始时间") @RequestParam(value = "startTime", required = true) String startTime,
-												   @ApiParam(value = "结束时间") @RequestParam(value = "endTime", required = true) String endTime,
+	public ResultDto<TableData<TLog>> logInfoList(String interfaceId, String status, String visitAddr, String interfaceName,
+												   @ApiParam(value = "开始时间") @RequestParam(value = "startTime", required = false) String startTime,
+												   @ApiParam(value = "结束时间") @RequestParam(value = "endTime", required = false) String endTime,
 												   @ApiParam(value = "请求方请求") @RequestParam(value = "businessReq", required = false) String businessReq,
 												   @ApiParam(value = "请求方响应") @RequestParam(value = "businessRep", required = false) String businessRep,
 												   @ApiParam(value = "被请求方请求") @RequestParam(value = "venderReq", required = false) String venderReq,
@@ -192,31 +102,31 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 //		if (StringUtils.isEmpty(interfaceId)) {
 //			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取日志详细列表，id必传");
 //		}
-		Map<String , Integer> biorderMap = new Hashtable<String , Integer>();
-		Map<String , String> biNameMap = new Hashtable<>();
 		// 查询条件
 		ArrayList<Predicate> list = new ArrayList<>();
 		if(interfaceId != null && interfaceId != ""){
 			if(!"0".equals(interfaceId)) {
-				List<TBusinessInterface> bis = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface).where(qTBusinessInterface.requestInterfaceId.eq(interfaceId)).fetch();
-				bis.forEach(tbis->{
-					biorderMap.put(tbis.getId(), tbis.getExcErrOrder());
-					biNameMap.put(tbis.getId(), tbis.getBusinessInterfaceName());
-				});
-				list.add(qTLog.businessInterfaceId.in(biorderMap.keySet()));
+				list.add(qTInterface.id.eq(interfaceId));
 			}else {
-				list.add(qTLog.businessInterfaceId.eq("0"));
+				list.add(qTInterface.id.eq("0"));
 			}
 		}
 		
 		try{
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			list.add(qTLog.createdTime.goe(sdf.parse(startTime)));
-			list.add(qTLog.createdTime.loe(sdf.parse(endTime)));
+			if(startTime != null && startTime != ""){
+				list.add(qTLog.createdTime.goe(sdf.parse(startTime)));
+			}
+			if(endTime != null && endTime != ""){
+				list.add(qTLog.createdTime.loe(sdf.parse(endTime)));
+			}
 		}catch (ParseException e){
 			e.printStackTrace();
 		}
-		
+
+		if (StringUtils.isNotBlank(interfaceName)) {
+			list.add(qTInterface.interfaceName.eq(interfaceName));
+		}
 		if (StringUtils.isNotBlank(status)) {
 			list.add(qTLog.status.eq(status));
 		}
@@ -246,8 +156,12 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		}
 		SQLQuery<TLog> tlogQuery = sqlQueryFactory
 		.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status, qTLog.venderRepTime,
-				qTLog.businessRepTime, qTLog.visitAddr,qTLog.businessInterfaceId, qTLog.debugreplayFlag))
-		.from(qTLog);
+				qTLog.businessRepTime, qTLog.visitAddr,qTLog.businessInterfaceId, qTLog.debugreplayFlag,
+				qTInterface.interfaceName, qTInterface.interfaceUrl))
+				.from(qTLog)
+				.leftJoin(qTBusinessInterface).on(qTLog.businessInterfaceId.eq(qTBusinessInterface.id))
+				.leftJoin(qTInterface).on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id))
+				;
 		if(!"postgresql".equals(dbType)) {
 			tlogQuery = tlogQuery.addFlag(new QueryFlag(Position.BEFORE_FILTERS, Expressions.stringTemplate(" FORCE INDEX ( log_query_idx )")));
 		}
@@ -255,21 +169,6 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 				.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
 				.orderBy(qTLog.createdTime.desc()).fetchResults();
 		
-		long l = biorderMap.size();
-		List<TLog> tlogList = queryResults.getResults();
-		for(TLog log : tlogList){
-			if("0".equals(interfaceId)) {
-				log.setInterfaceOrder("1/1");
-				continue;
-			}
-			Integer order = biorderMap.get(log.getBusinessInterfaceId());
-			if(order == null) {
-				order = 0;
-			}
-			String interfaceOrder = (order + 1)+"/"+ l;
-			log.setInterfaceOrder(interfaceOrder);
-			log.setBusinessInterfaceName(biNameMap.get(log.getBusinessInterfaceId()));
-		}
 		// 分页
 		TableData<TLog> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志详细列表获取成功!", tableData);
@@ -277,32 +176,21 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 
 	@ApiOperation(value = "查看日志详细信息")
 	@GetMapping("/logInfo")
-	public ResultDto<TLog> logInfo(String id, String interfaceId) {
+	public ResultDto<TLog> logInfo(String id) {
 		if (StringUtils.isEmpty(id)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取日志详细，id必传");
-		}
-		if (StringUtils.isEmpty(interfaceId)) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取被请求方接口条数，interfaceId必传");
 		}
 
 		// 查询详情
 		TLog tLog = sqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status,
-				qTLog.venderRepTime, qTLog.businessRepTime, qTLog.visitAddr, qTLog.businessReq, qTLog.venderReq,
-				qTLog.businessRep, qTLog.venderRep,qTLog.debugreplayFlag,
-				qTBusinessInterface.businessInterfaceName.as("businessInterfaceName"),
-				qTBusinessInterface.excErrOrder.add(1).as("excErrOrder"), qTLog.QIResult, qTLog.ipAddress))
+						qTLog.venderRepTime, qTLog.businessRepTime, qTLog.visitAddr, qTLog.businessReq, qTLog.venderReq,
+						qTLog.businessRep, qTLog.venderRep,qTLog.debugreplayFlag,
+						qTInterface.interfaceName, qTInterface.interfaceUrl))
 				.from(qTLog)
-				.leftJoin(qTBusinessInterface).on(qTBusinessInterface.id.eq(qTLog.businessInterfaceId))
-						.where(qTLog.id.eq(Long.valueOf(id))).fetchFirst();
-		String interfaceOrder = "";
-		if("0".equals(interfaceId)) {
-			interfaceOrder = "1/1";
-		}else {
-			long l = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
-					.where(qTBusinessInterface.requestInterfaceId.eq(interfaceId)).fetchCount();
-			interfaceOrder = tLog.getExcErrOrder()+"/"+ l;
-		}
-		tLog.setInterfaceOrder(interfaceOrder);
+				.leftJoin(qTBusinessInterface).on(qTLog.businessInterfaceId.eq(qTBusinessInterface.id))
+				.leftJoin(qTInterface).on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id))
+				.where(qTLog.id.eq(Long.valueOf(id)))
+				.fetchFirst();
 
 		// 解密，脱敏处理数据
 		String businessRep = decryptAndFilterSensitive(tLog.getBusinessRep());
@@ -316,36 +204,11 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		}
 		tLog.setVenderRep(venderRep);
 
-		String QIResult = decryptAndFilterSensitive(tLog.getQIResult());
-		if (StringUtils.isNotBlank(QIResult)) {
-			QIResult = QIResult.length() > 5000 ? QIResult.substring(0, 5000) + "......" : QIResult;
-		}
-		tLog.setQIResult(QIResult);
-
 		tLog.setBusinessReq(decryptAndFilterSensitive(tLog.getBusinessReq()));
 		tLog.setVenderReq(decryptAndFilterSensitive(tLog.getVenderReq()));
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志详细获取成功!", tLog);
 	}
 
-	@ApiOperation(value = "获取接口请求状态")
-	@GetMapping("/getInterfaceStatus")
-	public String getInterfaceStatus(String interfaceId) {
-		// 查询条件
-		ArrayList<Predicate> list = new ArrayList<>();
-		if (StringUtils.isEmpty(interfaceId)) {
-			throw new RuntimeException("获取接口请求状态，id必传");
-		}
-		list.add(qTInterface.id.eq(interfaceId));
-		String status = sqlQueryFactory
-				.select(qTLog.status)
-				.from(qTLog)
-				.leftJoin(qTInterfaceMonitor).on(qTInterfaceMonitor.businessInterfaceId.eq(qTLog.businessInterfaceId))
-				.leftJoin(qTBusinessInterface).on(qTBusinessInterface.id.eq(qTInterfaceMonitor.businessInterfaceId))
-				.leftJoin(qTInterface).on(qTInterface.id.eq(qTBusinessInterface.requestInterfaceId))
-				.where(list.toArray(new Predicate[list.size()])).limit(1)
-				.orderBy(qTLog.createdTime.desc()).fetchOne();
-		return status;
-	}
 
 	@ApiOperation(value = "下载详细日志")
 	@GetMapping(path = "/downloadLogInfo/{id}")
@@ -391,10 +254,11 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		}
 	}
 
+
 	@ApiOperation(value = "接口调试重放")
 	@PostMapping("/interfaceDebugRedo/{authFlag}")
 	public ResultDto<String> interfaceDebugRedo(@PathVariable("authFlag") String authFlag,
-			@ApiParam(value = "接口转换配置ids") @RequestParam(value = "ids", required = true) String ids) {
+												@ApiParam(value = "接口转换配置ids") @RequestParam(value = "ids", required = true) String ids) {
 
 		if (StringUtils.isBlank(ids)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "接口转换配置ids必传");
@@ -420,20 +284,26 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 						headerMap.put("Debugreplay-Flag", "3");
 					}
 					String format = decryptAndFilterSensitive(tlog.getBusinessReq());
-					if("0".equals(tlog.getProjectId()) || "0".equals(tlog.getBusinessInterfaceId())) {
+					String regConnectionType = tlog.getRegConnectionType();
+					if(StringUtils.isNotEmpty(regConnectionType)) {
 						if(StringUtils.isBlank(tlog.getVisitAddr())){
 							continue;
 						}
-						String wsdlUrl = tlog.getVisitAddr();
-						List<String> wsOperationNames = PlatformUtil.getWsdlOperationNames(wsdlUrl);
-						if(wsOperationNames == null || wsOperationNames.size() == 0) {
-							continue;
+						if("1".equals(regConnectionType)){
+							String wsdlUrl = tlog.getVisitAddr();
+							List<String> wsOperationNames = PlatformUtil.getWsdlOperationNames(wsdlUrl);
+							if(wsOperationNames == null || wsOperationNames.size() == 0) {
+								continue;
+							}
+							String methodName = wsOperationNames.get(0);
+							PlatformUtil.invokeWsServiceWithOrigin(wsdlUrl, methodName, format , headerMap, readTimeout);
+						}else if("2".equals(regConnectionType)){
+							niFiRequestUtil.interfaceDebug(format , headerMap , "1".equals(authFlag));
+						}else if("3".equals(regConnectionType)){
+
 						}
-						String methodName = wsOperationNames.get(0);
-						PlatformUtil.invokeWsServiceWithOrigin(wsdlUrl, methodName, format , headerMap, readTimeout);
-						continue;
 					}
-					niFiRequestUtil.interfaceDebug(format , headerMap , "1".equals(authFlag));
+
 				}
 			} catch (Exception e) {
 				logger.error("获取接口调试显示数据失败! MSG:{}", ExceptionUtil.dealException(e));
@@ -442,6 +312,5 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		}
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志重放成功");
 	}
-
 
 }

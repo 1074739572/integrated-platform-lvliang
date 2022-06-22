@@ -198,7 +198,7 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
 
     public TSysRegistry getOneBySysId(String sysId){
         return sqlQueryFactory
-                .select(Projections.bean(TSysRegistry.class, qTSysRegistry.id, qTSysRegistry.sysId, qTSysPublish.publishName))
+                .select(Projections.bean(TSysRegistry.class, qTSysRegistry.id, qTSysRegistry.sysId, qTSysRegistry.registryName))
                 .from(qTSysRegistry)
                 .where(qTSysRegistry.sysId.eq(sysId))
                 .fetchFirst();
