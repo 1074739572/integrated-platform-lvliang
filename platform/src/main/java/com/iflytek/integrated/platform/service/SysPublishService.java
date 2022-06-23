@@ -149,12 +149,12 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
             dto.setUpdatedBy(loginUserName);
             long l = this.put(registryId, dto);
             if (l < 1) {
-                throw new RuntimeException("服务注册编辑失败!");
+                throw new RuntimeException("服务发布编辑失败!");
             }
         }
         Map<String , String> data = new HashMap<String , String>();
         data.put("id", registryId);
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存服务注册信息成功!", JSON.toJSONString(data));
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存服务发布信息成功!", JSON.toJSONString(data));
     }
 
     /**
@@ -174,8 +174,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
                 .select(Projections
                         .bean(TSysRegistry.class, qTSysPublish.id))
                 .from(qTSysPublish)
-                .where(qTSysPublish.id.notEqualsIgnoreCase(id)
-                        .and(qTSysPublish.sysId.eq(sysId)))
+                .where(list.toArray(new Predicate[list.size()]))
                 .fetch();
         if(!CollectionUtils.isEmpty(srList)){
             return false;
@@ -184,7 +183,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
     }
 
     @Transactional(rollbackFor = Exception.class)
-    @ApiOperation(value = "服务注册删除", notes = "服务注册删除")
+    @ApiOperation(value = "服务发布删除", notes = "服务发布删除")
     @PostMapping("/delById/{id}")
     public ResultDto<String> delById(
             @ApiParam(value = "服务id") @PathVariable(value = "id", required = true) String id) {

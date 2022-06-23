@@ -103,11 +103,11 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
                     .offset((pageNo - 1) * pageSize).orderBy(qTSysRegistry.createdTime.desc()).fetchResults();
             // 分页
             TableData<TSysRegistry> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取服务发布列表成功!", tableData);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取服务注册列表成功!", tableData);
         } catch (BeansException e) {
-            logger.error("获取服务发布列表失败! MSG:{}", ExceptionUtil.dealException(e));
+            logger.error("获取服务注册列表失败! MSG:{}", ExceptionUtil.dealException(e));
             e.printStackTrace();
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取服务发布列表失败!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取服务注册列表失败!");
         }
     }
 
