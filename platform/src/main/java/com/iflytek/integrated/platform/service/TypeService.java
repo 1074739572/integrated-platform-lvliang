@@ -116,7 +116,7 @@ public class TypeService extends BaseService<TType, String, StringPath> {
         dto.setCreatedBy(loginUserName);
         dto.setCreatedTime(new Date());
         this.post(dto);
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "业务类型新增成功!", null);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "业务类型新增成功!", String.valueOf(typeId));
     }
 
     @Transactional(rollbackFor = Exception.class)

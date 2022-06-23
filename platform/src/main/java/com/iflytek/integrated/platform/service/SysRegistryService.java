@@ -71,6 +71,7 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
     @GetMapping("/getRegistryList")
     public ResultDto<TableData<TSysRegistry>> getInterfaceList(
             @ApiParam(value = "系统id") @RequestParam(value = "sysId", required = false) String sysId,
+            @ApiParam(value = "注册id") @RequestParam(value = "registryId", required = false) String registryId,
             @ApiParam(value = "注册名称") @RequestParam(value = "registryName", required = false) String registryName,
             @ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
             @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
@@ -79,6 +80,9 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
             ArrayList<Predicate> list = new ArrayList<>();
             if (StringUtils.isNotEmpty(sysId)) {
                 list.add(qTSysRegistry.sysId.eq(sysId));
+            }
+            if (StringUtils.isNotEmpty(registryId)) {
+                list.add(qTSysRegistry.id.eq(registryId));
             }
             if (StringUtils.isNotEmpty(registryName)) {
                 list.add(qTSysRegistry.registryName.like(PlatformUtil.createFuzzyText(registryName)));
