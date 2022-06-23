@@ -41,7 +41,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 import static com.iflytek.integrated.platform.entity.QTSysPublish.qTSysPublish;
 
@@ -86,7 +85,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
                                     qTSysPublish.sysId,qTSys.sysName,qTSysPublish.connectionType,
                                     qTSysPublish.addressUrl, qTSysPublish.limitIps,
                                     qTSysPublish.createdBy, qTSysPublish.createdTime,
-                                    qTSysPublish.updatedBy, qTSysPublish.updatedTime,qTSysPublish.serverStatus))
+                                    qTSysPublish.updatedBy, qTSysPublish.updatedTime,qTSysPublish.isValid,qTSysPublish.isAuthen))
                     .from(qTSysPublish).leftJoin(qTSys)
                     .on(qTSysPublish.sysId.eq(qTSys.id))
                     .where(list.toArray(new Predicate[list.size()]))
@@ -128,10 +127,10 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
         String registryId = dto.getId();
-        //校验 校验“接入系统+适配类型”是否发布过
-        if(!checkPublishIsExist(registryId,dto.getSysId(),dto.getConnectionType())){
+        //校验 校验“接入系统”是否发布过
+        if(!checkPublishIsExist(registryId,dto.getSysId())){
             //查询系统名称和类型
-            throw new RuntimeException(dto.getSysName()+"已发布过"+Constant.ConnectionType.getByType(dto.getConnectionType())+"服务");
+            throw new RuntimeException(dto.getSysName()+"已发布过服务");
         }
 
         // 新增系统配置信息
@@ -158,22 +157,21 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
      * 校验新增或者修改是否重复
      * @param id
      * @param sysId
-     * @param connectionType
      * @return
      */
-    private Boolean checkPublishIsExist(String id,String sysId,String connectionType){
+    private Boolean checkPublishIsExist(String id,String sysId){
         ArrayList<Predicate> list = new ArrayList<>();
         if (StringUtils.isNotEmpty(id)) {
             list.add(qTSysPublish.id.notEqualsIgnoreCase(id));
         }
         list.add(qTSysPublish.sysId.eq(sysId));
-        list.add(qTSysPublish.connectionType.eq(connectionType));
 
         List<TSysRegistry> srList = sqlQueryFactory
                 .select(Projections
                         .bean(TSysRegistry.class, qTSysPublish.id))
                 .from(qTSysPublish)
-                .where(list.toArray(new Predicate[list.size()]))
+                .where(qTSysPublish.id.notEqualsIgnoreCase(id)
+                        .and(qTSysPublish.sysId.eq(sysId)))
                 .fetch();
         if(!CollectionUtils.isEmpty(srList)){
             return false;

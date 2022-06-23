@@ -29,6 +29,7 @@ import com.iflytek.integrated.platform.entity.TInterfaceParam;
 import com.iflytek.integrated.platform.entity.TPlugin;
 import com.iflytek.integrated.platform.entity.TSys;
 import com.iflytek.integrated.platform.entity.TSysDriveLink;
+import com.iflytek.integrated.platform.entity.TSysPublish;
 import com.iflytek.integrated.platform.entity.TSysRegistry;
 import com.iflytek.integrated.platform.entity.TType;
 import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
@@ -79,6 +80,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -89,6 +91,7 @@ import static com.iflytek.integrated.platform.entity.QTInterfaceParam.qTInterfac
 import static com.iflytek.integrated.platform.entity.QTPlugin.qTPlugin;
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
+import static com.iflytek.integrated.platform.entity.QTSysPublish.qTSysPublish;
 import static com.iflytek.integrated.platform.entity.QTSysRegistry.qTSysRegistry;
 import static com.iflytek.integrated.platform.entity.QTType.qTType;
 
@@ -270,12 +273,12 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                     });
                 }
                 paramsMap.put("funcode", businessInterface.getInterfaceUrl());
-                paramsMap.put("productcode", businessInterface.getSysCode());
+                paramsMap.put("productcode", "");
                 resDto.setSysIntfParamFormatType("3");
                 resDto.setWsInParams(objectMapper.writeValueAsString(paramsMap));
             }
             resDto.setFuncode(businessInterface.getInterfaceUrl());
-            resDto.setProductcode(businessInterface.getSysCode());
+            resDto.setProductcode("");
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取服务调试显示数据成功!", resDto);
         } catch (Exception e) {
             logger.error("获取服务调试显示数据失败! MSG:{}", ExceptionUtil.dealException(e));
@@ -434,6 +437,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 tip.setParamType(obj.getParamType());
                 tip.setParamInstruction(obj.getParamInstruction());
                 tip.setParamInOut(Constant.ParmInOut.IN);
+                tip.setEncryptionStatus(obj.getEncryptionStatus() == null ? 0 : obj.getEncryptionStatus());
+                tip.setMaskStatus(obj.getMaskStatus() == null ? 0 : obj.getMaskStatus());
                 tip.setCreatedTime(new Date());
                 tip.setCreatedBy(loginUserName);
                 interfaceParamService.post(tip);
@@ -530,7 +535,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 .set(qTInterface.updatedBy, loginUserName).set(qTInterface.allowLogDiscard, allowLogDiscard)
                 .set(qTInterface.interfaceType, interfaceType)
                 .set(qTInterface.asyncFlag, asyncFlag)
-
                 .set(qTInterface.encryptionType, encryptionType)
                 .set(qTInterface.maskPosStart, maskPosStart)
                 .set(qTInterface.maskPosEnd, maskPosEnd)
@@ -554,6 +558,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 tip.setParamInOut(Constant.ParmInOut.IN);
                 tip.setCreatedTime(new Date());
                 tip.setCreatedBy(loginUserName);
+                tip.setEncryptionStatus(obj.getEncryptionStatus() == null ? 0 : obj.getEncryptionStatus());
+                tip.setMaskStatus(obj.getMaskStatus() == null ? 0 : obj.getMaskStatus());
                 interfaceParamService.post(tip);
             }
         }
@@ -565,6 +571,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             TInterfaceParam obj = outParamList.get(i);
             tip.setParamName(obj.getParamName());
             tip.setParamType(obj.getParamType());
+            tip.setEncryptionStatus(obj.getEncryptionStatus() == null ? 0 : obj.getEncryptionStatus());
+            tip.setMaskStatus(obj.getMaskStatus() == null ? 0 : obj.getMaskStatus());
             tip.setParamInstruction(obj.getParamInstruction());
             tip.setParamInOut(Constant.ParmInOut.OUT);
             tip.setCreatedTime(new Date());
@@ -863,8 +871,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             String versionId = "";
             Integer interfaceSlowFlag = null;
             Integer replayFlag = null;
-            String QIId = null;
-            Integer QIFlag = null;
             String requestInterfaceName = "";
             String typeId = "";
             String requestSysId = "";
@@ -898,15 +904,19 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             map.put("requestInterfaceTypeId", typeId);
             map.put("interfaceSlowFlag", interfaceSlowFlag);
             map.put("replayFlag", replayFlag);
-            map.put("QIId", QIId);
-            map.put("QIFlag", QIFlag);
             String hisShow = JSON.toJSONString(map);
             historyService.insertHis(list, 1, loginUserName, lastRecordId, lastRecordId, hisShow);
         }
 
+
+
         // 返回缓存集成配置id
         List<String> rtnId = new ArrayList<>();
         List<TBusinessInterface> tbiList = dto.getBusinessInterfaceList();
+
+        //为了做到服务+顺序的唯一   如果包含修改超过两条则先把所有顺序按照最大值+自己当前顺序值
+        updateSeq(tbiList);
+
         for (int i = 0; i < tbiList.size(); i++) {
             TBusinessInterface tbi = tbiList.get(i);
             if (StringUtils.isBlank(tbi.getId())) {
@@ -949,6 +959,17 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         //TODO 注释redis
         List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "编辑集成配置成功", new RedisDto(redisKeyDtoList).toString());
+    }
+
+    private void updateSeq(List<TBusinessInterface> tbiList) {
+        List<String> list = tbiList.stream().map(TBusinessInterface::getId).collect(Collectors.toList());
+        //如果不存在两条修改  则不涉及顺序调整
+        if(CollectionUtils.isEmpty(list) || list.size()<2){
+            return;
+        }
+
+        sqlQueryFactory.update(qTBusinessInterface).set(qTBusinessInterface.excErrOrder,qTBusinessInterface.excErrOrder.add(list.size()))
+                .where(qTBusinessInterface.id.in(list)).execute();
     }
 
     @ApiOperation(value = "根据参数格式获取jolt", notes = "根据参数格式获取jolt")
