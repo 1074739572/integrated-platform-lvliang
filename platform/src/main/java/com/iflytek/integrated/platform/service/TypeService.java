@@ -208,7 +208,7 @@ public class TypeService extends BaseService<TType, String, StringPath> {
         QueryResults<TType> queryResults = sqlQueryFactory
                 .select(Projections.bean(TType.class, qTType.id, qTType.typeCode, qTType.typeName, qTType.updatedTime))
                 .from(qTType).where(qTType.type.eq(1))
-                .orderBy(qTType.createdTime.desc())
+                .limit(pageSize)
                 .offset((pageNo - 1) * pageSize).orderBy(qTType.createdTime.desc()).fetchResults();
         // 分页
         TableData<TType> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
