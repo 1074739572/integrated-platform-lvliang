@@ -116,7 +116,7 @@ public class TypeService extends BaseService<TType, String, StringPath> {
         dto.setCreatedBy(loginUserName);
         dto.setCreatedTime(new Date());
         this.post(dto);
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "业务类型新增成功!", null);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "业务类型新增成功!", String.valueOf(typeId));
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -208,7 +208,7 @@ public class TypeService extends BaseService<TType, String, StringPath> {
         QueryResults<TType> queryResults = sqlQueryFactory
                 .select(Projections.bean(TType.class, qTType.id, qTType.typeCode, qTType.typeName, qTType.updatedTime))
                 .from(qTType).where(qTType.type.eq(1))
-                .orderBy(qTType.createdTime.desc())
+                .limit(pageSize)
                 .offset((pageNo - 1) * pageSize).orderBy(qTType.createdTime.desc()).fetchResults();
         // 分页
         TableData<TType> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());

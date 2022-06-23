@@ -279,8 +279,8 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 	@ApiOperation(value = "选择系统下拉列表")
 	@GetMapping("/getDisSys")
 	public ResultDto<List<TSys>> getDisSys() {
-		List<TSys> syss = sqlQueryFactory.select(Projections.bean(TSys.class, qTSys.id, qTSys.sysName, qTSys.sysCode))
-				.from(qTSys).orderBy(qTSys.updatedTime.desc()).fetch();
+		List<TSys> syss = sqlQueryFactory.select(Projections.bean(TSys.class, qTSys.id, qTSys.sysName, qTSys.sysCode, qTSys.isValid))
+				.from(qTSys).where(qTSys.isValid.eq("1")).orderBy(qTSys.updatedTime.desc()).fetch();
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "选择系统下拉列表获取成功!", syss);
 	}
 
