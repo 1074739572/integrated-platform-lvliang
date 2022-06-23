@@ -39,7 +39,7 @@ public class QTSysPublish extends com.querydsl.sql.RelationalPathBase<TSysPublis
 
 	public final StringPath updatedBy = createString("updatedBy");
 
-	public final StringPath serverStatus = createString("serverStatus");
+	public final StringPath isValid = createString("isValid");
 
 	public final DateTimePath<java.util.Date> updatedTime = createDateTime("updatedTime", java.util.Date.class);
 
@@ -91,8 +91,8 @@ public class QTSysPublish extends com.querydsl.sql.RelationalPathBase<TSysPublis
 				ColumnMetadata.named("UPDATED_BY").withIndex(11).ofType(Types.VARCHAR).withSize(32).notNull());
 		addMetadata(updatedTime,
 				ColumnMetadata.named("UPDATED_TIME").withIndex(12).ofType(Types.TIMESTAMP).withSize(19).notNull());
-		addMetadata(serverStatus,
-				ColumnMetadata.named("SERVER_STATUS").withIndex(12).ofType(Types.INTEGER).withSize(2).notNull());
+		addMetadata(isValid,
+				ColumnMetadata.named("IS_VALID").withIndex(13).ofType(Types.VARCHAR).withSize(1).notNull());
 	}
 
 }
