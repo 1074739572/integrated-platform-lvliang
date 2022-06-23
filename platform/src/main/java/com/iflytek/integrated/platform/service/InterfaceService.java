@@ -262,9 +262,11 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 String suffix = "services/";
                 wsUrl = wsUrl + suffix;
                 resDto.setWsdlUrl(wsUrl);
+                log.info("之前wsUrl====={}",wsUrl);
                 List<String> wsOperationNames = PlatformUtil.getWsdlOperationNames(wsUrl);
                 resDto.setWsOperationNames(wsOperationNames);
                 resDto.setSysIntfParamFormatType("2");
+                log.info("之后wsUrl====={}",wsUrl);
             } else {
                 List<String> paramNames = sqlQueryFactory.select(qTInterfaceParam.paramName).from(qTInterfaceParam)
                         .where(qTInterfaceParam.interfaceId.eq(interfaceId)
@@ -282,6 +284,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 resDto.setSysIntfParamFormatType("3");
                 resDto.setWsInParams(objectMapper.writeValueAsString(paramsMap));
             }
+
             resDto.setFuncode(businessInterface.getInterfaceUrl());
             resDto.setProductcode("");
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取服务调试显示数据成功!", resDto);
