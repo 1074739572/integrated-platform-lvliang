@@ -597,7 +597,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
     @ApiOperation(value = "获取服务分类")
     @GetMapping("/getInterfaceType")
-    public ResultDto<TableData<TType>> getInterfaceType(@ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
+    public ResultDto<List<TType>> getInterfaceType(@ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
                                                    @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
         List<TType> vendors = sqlQueryFactory
                 .select(Projections.bean(TType.class, qTType.id, qTType.typeCode, qTType.typeName, qTType.updatedTime))
