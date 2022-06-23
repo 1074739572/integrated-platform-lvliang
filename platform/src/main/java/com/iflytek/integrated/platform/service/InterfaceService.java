@@ -28,6 +28,7 @@ import com.iflytek.integrated.platform.entity.TInterface;
 import com.iflytek.integrated.platform.entity.TInterfaceParam;
 import com.iflytek.integrated.platform.entity.TPlugin;
 import com.iflytek.integrated.platform.entity.TSys;
+import com.iflytek.integrated.platform.entity.TSysConfig;
 import com.iflytek.integrated.platform.entity.TSysDriveLink;
 import com.iflytek.integrated.platform.entity.TSysPublish;
 import com.iflytek.integrated.platform.entity.TSysRegistry;
@@ -123,6 +124,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     private HistoryService historyService;
     @Autowired
     private InterfaceService interfaceService;
+    @Autowired
+    private SysRegistryService sysRegistryService;
+    @Autowired
+    private SysService sysService;
 
     @Value("${config.request.nifiapi.readtimeout}")
     private int readTimeout;
@@ -609,6 +614,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @GetMapping("/getInterfaceList")
     public ResultDto<TableData<TInterface>> getInterfaceList(
             @ApiParam(value = "业务类型id") @RequestParam(value = "typeId", required = false) String typeId,
+            @ApiParam(value = "服务id") @RequestParam(value = "interfaceId", required = false) String interfaceId,
             @ApiParam(value = "服务名称") @RequestParam(value = "interfaceName", required = false) String interfaceName,
             @ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
             @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
@@ -616,6 +622,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         ArrayList<Predicate> list = new ArrayList<>();
         if (StringUtils.isNotEmpty(typeId)) {
             list.add(qTInterface.typeId.eq(typeId));
+        }
+        if (StringUtils.isNotEmpty(interfaceId)) {
+            list.add(qTInterface.id.eq(interfaceId));
         }
         if (StringUtils.isNotEmpty(interfaceName)) {
             list.add(qTInterface.interfaceName.like(PlatformUtil.createFuzzyText(interfaceName)));
@@ -672,8 +681,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @GetMapping("/getInterfaceConfigureList")
     public ResultDto<TableData<TBusinessInterface>> getInterfaceConfigureList(
             @ApiParam(value = "分类id") @RequestParam(value = "typeId", required = false) Integer typeId,
-            @ApiParam(value = "服务名称") @RequestParam(value = "requestInterfaceName", required = false) String requestInterfaceName,
-            @ApiParam(value = "服务id") @RequestParam(value = "requestInterfaceId", required = false) String requestInterfaceId,
+            @ApiParam(value = "服务名称") @RequestParam(value = "interfaceName", required = false) String interfaceName,
+            @ApiParam(value = "服务id") @RequestParam(value = "interfaceId", required = false) String interfaceId,
             @ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
             @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
 
@@ -681,11 +690,11 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         if (typeId != null && typeId.intValue() != 0) {
             predicateList.add(qTInterface.typeId.eq(typeId.toString()));
         }
-        if (StringUtils.isNotEmpty(requestInterfaceName)) {
-            predicateList.add(qTInterface.interfaceName.like("%" + requestInterfaceName + "%"));
+        if (StringUtils.isNotEmpty(interfaceName)) {
+            predicateList.add(qTInterface.interfaceName.like("%" + interfaceName + "%"));
         }
-        if (StringUtils.isNotEmpty(requestInterfaceId)) {
-            predicateList.add(qTBusinessInterface.requestInterfaceId.eq(requestInterfaceId));
+        if (StringUtils.isNotEmpty(interfaceId)) {
+            predicateList.add(qTBusinessInterface.requestInterfaceId.eq(interfaceId));
         }
         // 获取集成配置列表信息
         QueryResults<TBusinessInterface> queryResults = businessInterfaceService.getInterfaceConfigureList(predicateList, pageNo, pageSize);
@@ -876,7 +885,17 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             String requestSysId = "";
             for (int i = 0; i < list.size(); i++) {
                 TBusinessInterface tbi = list.get(i);
+                //查询服务名称
                 TInterface tInterface = interfaceService.getOne(tbi.getRequestInterfaceId());
+                requestInterfaceName = tInterface.getInterfaceName();
+
+                if(StringUtils.isNotBlank(tbi.getSysRegistryId())){
+                    TSysRegistry tSysRegistry = sysRegistryService.getOne(tbi.getSysRegistryId());
+                    TSys requestedSys = sysService.getOne(tSysRegistry.getSysId());
+                    businessInterfaceName += (requestedSys.getSysName()+"/"+tbi.getBusinessInterfaceName()+",");
+                }
+
+
                 if (interfaceSlowFlag == null) {
                     interfaceSlowFlag = tbi.getInterfaceSlowFlag();
                 }
@@ -891,15 +910,12 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             if (businessInterfaceName.endsWith(",")) {
                 businessInterfaceName = businessInterfaceName.substring(0, businessInterfaceName.length() - 1);
             }
-            if (versionId.endsWith(",")) {
-                versionId = versionId.substring(0, versionId.length() - 1);
-            }
+
             //插入历史记录
             Map map = new HashMap();
             map.put("requestInterfaceId", exsitsBI.getRequestInterfaceId());
             map.put("businessInterfaceName", businessInterfaceName);
             map.put("requestInterfaceName", requestInterfaceName);
-            map.put("versionId", versionId);
             map.put("requestSysId", requestSysId);
             map.put("requestInterfaceTypeId", typeId);
             map.put("interfaceSlowFlag", interfaceSlowFlag);

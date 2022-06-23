@@ -66,6 +66,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
     @GetMapping("/getPublishList")
     public ResultDto<TableData<TSysPublish>> getInterfaceList(
             @ApiParam(value = "系统id") @RequestParam(value = "sysId", required = false) String sysId,
+            @ApiParam(value = "发布id") @RequestParam(value = "publishId", required = false) String publishId,
             @ApiParam(value = "发布名称") @RequestParam(value = "publishName", required = false) String publishName,
             @ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
             @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
@@ -74,6 +75,9 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
             ArrayList<Predicate> list = new ArrayList<>();
             if (StringUtils.isNotEmpty(sysId)) {
                 list.add(qTSysPublish.sysId.eq(sysId));
+            }
+            if (StringUtils.isNotEmpty(publishId)) {
+                list.add(qTSysPublish.id.eq(publishId));
             }
             if (StringUtils.isNotEmpty(publishName)) {
                 list.add(qTSysPublish.publishName.like(PlatformUtil.createFuzzyText(publishName)));
@@ -145,12 +149,12 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
             dto.setUpdatedBy(loginUserName);
             long l = this.put(registryId, dto);
             if (l < 1) {
-                throw new RuntimeException("服务注册编辑失败!");
+                throw new RuntimeException("服务发布编辑失败!");
             }
         }
         Map<String , String> data = new HashMap<String , String>();
         data.put("id", registryId);
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存服务注册信息成功!", JSON.toJSONString(data));
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存服务发布信息成功!", JSON.toJSONString(data));
     }
 
     /**
@@ -170,8 +174,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
                 .select(Projections
                         .bean(TSysRegistry.class, qTSysPublish.id))
                 .from(qTSysPublish)
-                .where(qTSysPublish.id.notEqualsIgnoreCase(id)
-                        .and(qTSysPublish.sysId.eq(sysId)))
+                .where(list.toArray(new Predicate[list.size()]))
                 .fetch();
         if(!CollectionUtils.isEmpty(srList)){
             return false;
@@ -180,7 +183,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
     }
 
     @Transactional(rollbackFor = Exception.class)
-    @ApiOperation(value = "服务注册删除", notes = "服务注册删除")
+    @ApiOperation(value = "服务发布删除", notes = "服务发布删除")
     @PostMapping("/delById/{id}")
     public ResultDto<String> delById(
             @ApiParam(value = "服务id") @PathVariable(value = "id", required = true) String id) {
