@@ -29,6 +29,7 @@ import com.iflytek.integrated.platform.entity.TInterfaceParam;
 import com.iflytek.integrated.platform.entity.TPlugin;
 import com.iflytek.integrated.platform.entity.TSys;
 import com.iflytek.integrated.platform.entity.TSysDriveLink;
+import com.iflytek.integrated.platform.entity.TSysPublish;
 import com.iflytek.integrated.platform.entity.TSysRegistry;
 import com.iflytek.integrated.platform.entity.TType;
 import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
@@ -89,6 +90,7 @@ import static com.iflytek.integrated.platform.entity.QTInterfaceParam.qTInterfac
 import static com.iflytek.integrated.platform.entity.QTPlugin.qTPlugin;
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
+import static com.iflytek.integrated.platform.entity.QTSysPublish.qTSysPublish;
 import static com.iflytek.integrated.platform.entity.QTSysRegistry.qTSysRegistry;
 import static com.iflytek.integrated.platform.entity.QTType.qTType;
 
@@ -434,6 +436,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 tip.setParamType(obj.getParamType());
                 tip.setParamInstruction(obj.getParamInstruction());
                 tip.setParamInOut(Constant.ParmInOut.IN);
+                tip.setEncryptionStatus(obj.getEncryptionStatus() == null ? 0 : obj.getEncryptionStatus());
+                tip.setMaskStatus(obj.getMaskStatus() == null ? 0 : obj.getMaskStatus());
                 tip.setCreatedTime(new Date());
                 tip.setCreatedBy(loginUserName);
                 interfaceParamService.post(tip);
@@ -530,7 +534,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 .set(qTInterface.updatedBy, loginUserName).set(qTInterface.allowLogDiscard, allowLogDiscard)
                 .set(qTInterface.interfaceType, interfaceType)
                 .set(qTInterface.asyncFlag, asyncFlag)
-
                 .set(qTInterface.encryptionType, encryptionType)
                 .set(qTInterface.maskPosStart, maskPosStart)
                 .set(qTInterface.maskPosEnd, maskPosEnd)
@@ -554,6 +557,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 tip.setParamInOut(Constant.ParmInOut.IN);
                 tip.setCreatedTime(new Date());
                 tip.setCreatedBy(loginUserName);
+                tip.setEncryptionStatus(obj.getEncryptionStatus() == null ? 0 : obj.getEncryptionStatus());
+                tip.setMaskStatus(obj.getMaskStatus() == null ? 0 : obj.getMaskStatus());
                 interfaceParamService.post(tip);
             }
         }
@@ -565,6 +570,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             TInterfaceParam obj = outParamList.get(i);
             tip.setParamName(obj.getParamName());
             tip.setParamType(obj.getParamType());
+            tip.setEncryptionStatus(obj.getEncryptionStatus() == null ? 0 : obj.getEncryptionStatus());
+            tip.setMaskStatus(obj.getMaskStatus() == null ? 0 : obj.getMaskStatus());
             tip.setParamInstruction(obj.getParamInstruction());
             tip.setParamInOut(Constant.ParmInOut.OUT);
             tip.setCreatedTime(new Date());
@@ -590,11 +597,16 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
     @ApiOperation(value = "获取服务分类")
     @GetMapping("/getInterfaceType")
-    public ResultDto<List<TType>> getInterfaceType() {
-        List<TType> vendors = sqlQueryFactory
+    public ResultDto<TableData<TType>> getInterfaceType(@ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
+                                                   @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
+        QueryResults<TType> queryResults = sqlQueryFactory
                 .select(Projections.bean(TType.class, qTType.id, qTType.typeCode, qTType.typeName, qTType.updatedTime))
-                .from(qTType).where(qTType.type.eq(1)).orderBy(qTType.createdTime.desc()).fetch();
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "数据获取成功!", vendors);
+                .from(qTType).where(qTType.type.eq(1))
+                .orderBy(qTType.createdTime.desc())
+                .offset((pageNo - 1) * pageSize).orderBy(qTType.createdTime.desc()).fetchResults();
+        // 分页
+        TableData<TType> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "数据获取成功!", tableData);
     }
 
     @ApiOperation(value = "系统服务列表")
