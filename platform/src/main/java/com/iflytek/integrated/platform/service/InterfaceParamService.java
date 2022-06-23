@@ -46,6 +46,7 @@ public class InterfaceParamService extends BaseService<TInterfaceParam, String, 
                 Projections.bean(TInterfaceParam.class, qTInterfaceParam.id, qTInterfaceParam.paramName, qTInterfaceParam.paramInstruction,
                         qTInterfaceParam.interfaceId, qTInterfaceParam.paramType, qTInterfaceParam.paramLength, qTInterfaceParam.paramInOut,
                         qTInterfaceParam.createdBy, qTInterfaceParam.createdTime, qTInterfaceParam.updatedBy, qTInterfaceParam.updatedTime,
+                        qTInterfaceParam.encryptionStatus, qTInterfaceParam.maskStatus,
                         qTInterface.paramOutStatus.as("paramOutStatus"), qTInterface.paramOutStatusSuccess.as("paramOutStatusSuccess")))
                 .from(qTInterfaceParam)
                 .leftJoin(qTInterface).on(qTInterface.id.eq(qTInterfaceParam.interfaceId))
