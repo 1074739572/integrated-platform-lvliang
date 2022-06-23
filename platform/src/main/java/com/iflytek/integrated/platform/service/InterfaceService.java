@@ -259,7 +259,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 if (!wsUrl.endsWith("/")) {
                     wsUrl = wsUrl + "/";
                 }
-                String suffix = "services/" + businessInterface.getSysCode();
+                String suffix = "services/";
                 wsUrl = wsUrl + suffix;
                 resDto.setWsdlUrl(wsUrl);
                 List<String> wsOperationNames = PlatformUtil.getWsdlOperationNames(wsUrl);
