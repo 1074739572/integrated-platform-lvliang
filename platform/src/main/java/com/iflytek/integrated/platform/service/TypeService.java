@@ -1,11 +1,13 @@
 package com.iflytek.integrated.platform.service;
 
 import com.iflytek.integrated.common.dto.ResultDto;
+import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.TypeDto;
 import com.iflytek.integrated.platform.entity.TType;
+import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
@@ -197,6 +199,20 @@ public class TypeService extends BaseService<TType, String, StringPath> {
             return null;
         }
         return sqlQueryFactory.select(qTType).from(qTType).where(list.toArray(new Predicate[list.size()])).fetchFirst();
+    }
+
+    @ApiOperation(value = "获取服务分类列表")
+    @GetMapping("/getTypeList")
+    public ResultDto<TableData<TType>> getInterfaceType(@ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
+                                                        @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
+        QueryResults<TType> queryResults = sqlQueryFactory
+                .select(Projections.bean(TType.class, qTType.id, qTType.typeCode, qTType.typeName, qTType.updatedTime))
+                .from(qTType).where(qTType.type.eq(1))
+                .orderBy(qTType.createdTime.desc())
+                .offset((pageNo - 1) * pageSize).orderBy(qTType.createdTime.desc()).fetchResults();
+        // 分页
+        TableData<TType> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "数据获取成功!", tableData);
     }
 
 

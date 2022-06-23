@@ -599,14 +599,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @GetMapping("/getInterfaceType")
     public ResultDto<TableData<TType>> getInterfaceType(@ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
                                                    @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
-        QueryResults<TType> queryResults = sqlQueryFactory
+        List<TType> vendors = sqlQueryFactory
                 .select(Projections.bean(TType.class, qTType.id, qTType.typeCode, qTType.typeName, qTType.updatedTime))
-                .from(qTType).where(qTType.type.eq(1))
-                .orderBy(qTType.createdTime.desc())
-                .offset((pageNo - 1) * pageSize).orderBy(qTType.createdTime.desc()).fetchResults();
-        // 分页
-        TableData<TType> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "数据获取成功!", tableData);
+                .from(qTType).where(qTType.type.eq(1)).orderBy(qTType.createdTime.desc()).fetch();
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "数据获取成功!", vendors);
     }
 
     @ApiOperation(value = "系统服务列表")
