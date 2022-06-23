@@ -120,7 +120,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		}
 
 		if (StringUtils.isNotBlank(interfaceName)) {
-			list.add(qTInterface.interfaceName.eq(interfaceName));
+			list.add(qTInterface.interfaceName.like("%"+interfaceName+"%"));
 		}
 		if (StringUtils.isNotBlank(status)) {
 			list.add(qTLog.status.eq(status));
@@ -184,10 +184,14 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		TLog tLog = sqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status,
 						qTLog.venderRepTime, qTLog.businessRepTime, qTLog.visitAddr, qTLog.businessReq, qTLog.venderReq,
 						qTLog.businessRep, qTLog.venderRep,qTLog.debugreplayFlag,
-						qTInterface.interfaceName, qTInterface.interfaceUrl))
+						qTInterface.id.as("interfaceId"), qTInterface.interfaceName, qTInterface.interfaceUrl,
+						qTSysPublish.id.as("publishId"), qTSysPublish.publishName,
+						qTSys.id.as("publishSysId"), qTSys.sysName.as("publishSysName")))
 				.from(qTLog)
 				.leftJoin(qTBusinessInterface).on(qTLog.businessInterfaceId.eq(qTBusinessInterface.id))
 				.leftJoin(qTInterface).on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id))
+				.leftJoin(qTSysPublish).on(qTLog.publishId.eq(qTSysPublish.id))
+				.leftJoin(qTSys).on(qTSysPublish.sysId.eq(qTSys.id))
 				.where(qTLog.id.eq(Long.valueOf(id)))
 				.fetchFirst();
 
