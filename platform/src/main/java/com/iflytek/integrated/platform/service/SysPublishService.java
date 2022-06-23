@@ -66,6 +66,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
     @GetMapping("/getPublishList")
     public ResultDto<TableData<TSysPublish>> getInterfaceList(
             @ApiParam(value = "系统id") @RequestParam(value = "sysId", required = false) String sysId,
+            @ApiParam(value = "发布id") @RequestParam(value = "publishId", required = false) String publishId,
             @ApiParam(value = "发布名称") @RequestParam(value = "publishName", required = false) String publishName,
             @ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
             @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
@@ -74,6 +75,9 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
             ArrayList<Predicate> list = new ArrayList<>();
             if (StringUtils.isNotEmpty(sysId)) {
                 list.add(qTSysPublish.sysId.eq(sysId));
+            }
+            if (StringUtils.isNotEmpty(publishId)) {
+                list.add(qTSysPublish.id.eq(publishId));
             }
             if (StringUtils.isNotEmpty(publishName)) {
                 list.add(qTSysPublish.publishName.like(PlatformUtil.createFuzzyText(publishName)));
