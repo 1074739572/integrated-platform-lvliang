@@ -245,9 +245,7 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
         //校验
         String oldRecordId = tHistory.getRecordId();
         String lastRecordId = dto.getInterfaceId();
-        String[] arr = oldRecordId.split(",");
-        String hisReqSysId = arr[0];
-        String hisReqInterfaceId = arr[1];
+        String hisReqInterfaceId = oldRecordId;
         boolean noModReq = hisReqInterfaceId.equals(dto.getInterfaceId());
         if (noModReq) {
             //未修改过请求方
@@ -306,7 +304,6 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
         }
         //插入历史记录
         Map map = new HashMap();
-        map.put("requestSysConfigId", hisReqSysId);
         map.put("requestInterfaceId", hisReqInterfaceId);
         map.put("businessInterfaceName", businessInterfaceName);
         map.put("requestInterfaceName", requestInterfaceName);
@@ -314,8 +311,6 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
         map.put("requestInterfaceTypeId", typeId);
         map.put("interfaceSlowFlag", interfaceSlowFlag);
         map.put("replayFlag", replayFlag);
-        map.put("QIId", QIId);
-        map.put("QIFlag", QIFlag);
         String hisShow = JSON.toJSONString(map);
         this.insertHis(list, 1, loginUserName, lastRecordId, lastRecordId, hisShow);
 

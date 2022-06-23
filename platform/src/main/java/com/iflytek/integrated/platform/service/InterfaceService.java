@@ -28,6 +28,7 @@ import com.iflytek.integrated.platform.entity.TInterface;
 import com.iflytek.integrated.platform.entity.TInterfaceParam;
 import com.iflytek.integrated.platform.entity.TPlugin;
 import com.iflytek.integrated.platform.entity.TSys;
+import com.iflytek.integrated.platform.entity.TSysConfig;
 import com.iflytek.integrated.platform.entity.TSysDriveLink;
 import com.iflytek.integrated.platform.entity.TSysPublish;
 import com.iflytek.integrated.platform.entity.TSysRegistry;
@@ -123,6 +124,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     private HistoryService historyService;
     @Autowired
     private InterfaceService interfaceService;
+    @Autowired
+    private SysRegistryService sysRegistryService;
+    @Autowired
+    private SysService sysService;
 
     @Value("${config.request.nifiapi.readtimeout}")
     private int readTimeout;
@@ -876,7 +881,17 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             String requestSysId = "";
             for (int i = 0; i < list.size(); i++) {
                 TBusinessInterface tbi = list.get(i);
+                //查询服务名称
                 TInterface tInterface = interfaceService.getOne(tbi.getRequestInterfaceId());
+                requestInterfaceName = tInterface.getInterfaceName();
+
+                if(StringUtils.isNotBlank(tbi.getSysRegistryId())){
+                    TSysRegistry tSysRegistry = sysRegistryService.getOne(tbi.getSysRegistryId());
+                    TSys requestedSys = sysService.getOne(tSysRegistry.getSysId());
+                    businessInterfaceName += (requestedSys.getSysName()+"/"+tbi.getBusinessInterfaceName()+",");
+                }
+
+
                 if (interfaceSlowFlag == null) {
                     interfaceSlowFlag = tbi.getInterfaceSlowFlag();
                 }
@@ -891,15 +906,12 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             if (businessInterfaceName.endsWith(",")) {
                 businessInterfaceName = businessInterfaceName.substring(0, businessInterfaceName.length() - 1);
             }
-            if (versionId.endsWith(",")) {
-                versionId = versionId.substring(0, versionId.length() - 1);
-            }
+
             //插入历史记录
             Map map = new HashMap();
             map.put("requestInterfaceId", exsitsBI.getRequestInterfaceId());
             map.put("businessInterfaceName", businessInterfaceName);
             map.put("requestInterfaceName", requestInterfaceName);
-            map.put("versionId", versionId);
             map.put("requestSysId", requestSysId);
             map.put("requestInterfaceTypeId", typeId);
             map.put("interfaceSlowFlag", interfaceSlowFlag);
