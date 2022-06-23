@@ -29,6 +29,7 @@ import com.iflytek.integrated.platform.entity.TInterfaceParam;
 import com.iflytek.integrated.platform.entity.TPlugin;
 import com.iflytek.integrated.platform.entity.TSys;
 import com.iflytek.integrated.platform.entity.TSysDriveLink;
+import com.iflytek.integrated.platform.entity.TSysPublish;
 import com.iflytek.integrated.platform.entity.TSysRegistry;
 import com.iflytek.integrated.platform.entity.TType;
 import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
@@ -89,6 +90,7 @@ import static com.iflytek.integrated.platform.entity.QTInterfaceParam.qTInterfac
 import static com.iflytek.integrated.platform.entity.QTPlugin.qTPlugin;
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
+import static com.iflytek.integrated.platform.entity.QTSysPublish.qTSysPublish;
 import static com.iflytek.integrated.platform.entity.QTSysRegistry.qTSysRegistry;
 import static com.iflytek.integrated.platform.entity.QTType.qTType;
 
@@ -434,6 +436,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 tip.setParamType(obj.getParamType());
                 tip.setParamInstruction(obj.getParamInstruction());
                 tip.setParamInOut(Constant.ParmInOut.IN);
+                tip.setEncryptionStatus(obj.getEncryptionStatus() == null ? 0 : obj.getEncryptionStatus());
+                tip.setMaskStatus(obj.getMaskStatus() == null ? 0 : obj.getMaskStatus());
                 tip.setCreatedTime(new Date());
                 tip.setCreatedBy(loginUserName);
                 interfaceParamService.post(tip);
@@ -530,7 +534,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 .set(qTInterface.updatedBy, loginUserName).set(qTInterface.allowLogDiscard, allowLogDiscard)
                 .set(qTInterface.interfaceType, interfaceType)
                 .set(qTInterface.asyncFlag, asyncFlag)
-
                 .set(qTInterface.encryptionType, encryptionType)
                 .set(qTInterface.maskPosStart, maskPosStart)
                 .set(qTInterface.maskPosEnd, maskPosEnd)
@@ -554,6 +557,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 tip.setParamInOut(Constant.ParmInOut.IN);
                 tip.setCreatedTime(new Date());
                 tip.setCreatedBy(loginUserName);
+                tip.setEncryptionStatus(obj.getEncryptionStatus() == null ? 0 : obj.getEncryptionStatus());
+                tip.setMaskStatus(obj.getMaskStatus() == null ? 0 : obj.getMaskStatus());
                 interfaceParamService.post(tip);
             }
         }
@@ -565,6 +570,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             TInterfaceParam obj = outParamList.get(i);
             tip.setParamName(obj.getParamName());
             tip.setParamType(obj.getParamType());
+            tip.setEncryptionStatus(obj.getEncryptionStatus() == null ? 0 : obj.getEncryptionStatus());
+            tip.setMaskStatus(obj.getMaskStatus() == null ? 0 : obj.getMaskStatus());
             tip.setParamInstruction(obj.getParamInstruction());
             tip.setParamInOut(Constant.ParmInOut.OUT);
             tip.setCreatedTime(new Date());
@@ -590,7 +597,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
     @ApiOperation(value = "获取服务分类")
     @GetMapping("/getInterfaceType")
-    public ResultDto<List<TType>> getInterfaceType() {
+    public ResultDto<TableData<TType>> getInterfaceType(@ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
+                                                   @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
         List<TType> vendors = sqlQueryFactory
                 .select(Projections.bean(TType.class, qTType.id, qTType.typeCode, qTType.typeName, qTType.updatedTime))
                 .from(qTType).where(qTType.type.eq(1)).orderBy(qTType.createdTime.desc()).fetch();
@@ -637,9 +645,13 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @ApiOperation(value = "服务下拉")
     @GetMapping("/getInterfaceSelect")
     public ResultDto<List<TInterface>> getInterfaceSelect(
+            @ApiParam(value = "业务类型id") @RequestParam(value = "typeId", required = false) String typeId,
             @ApiParam(value = "服务名称") @RequestParam(value = "interfaceName", required = false) String interfaceName) {
         // 查询条件
         ArrayList<Predicate> list = new ArrayList<>();
+        if (StringUtils.isNotEmpty(typeId)) {
+            list.add(qTInterface.typeId.eq(typeId));
+        }
         if (StringUtils.isNotEmpty(interfaceName)) {
             list.add(qTInterface.interfaceName.like(PlatformUtil.createFuzzyText(interfaceName)));
         }
@@ -653,7 +665,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 .where(list.toArray(new Predicate[list.size()]))
                 .orderBy(qTInterface.createdTime.desc()).fetch();
 
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准服务列表获取成功!", queryResults);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "服务下拉列表获取成功!", queryResults);
     }
 
     @ApiOperation(value = "获取集成配置列表")
@@ -1308,7 +1320,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             sysIds.add(sysRegistry.getSysId());
             sqlStringBuffer.append("REPLACE INTO `t_sys_registry` (`ID`, `SYS_ID`,  `CONNECTION_TYPE`, `ADDRESS_URL`, `ENDPOINT_URL`," +
                     " `NAMESPACE_URL`, `DATABASE_NAME`, `DATABASE_URL`, `DATABASE_TYPE`, `DATABASE_DRIVER`, `DRIVER_URL`, `JSON_PARAMS`, `USER_NAME`, `USER_PASSWORD`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`, " +
-                    "`REGISTRY_NAME`) VALUES ('" + sysRegistry.getId() + "', '" + sysRegistry.getSysId() + "', '" +
+                    "`REGISTRY_NAME`,'USE_STATUS') VALUES ('" + sysRegistry.getId() + "', '" + sysRegistry.getSysId() + "', '" +
                     sysRegistry.getConnectionType() + "', '" + sysRegistry.getAddressUrl() + "', '" + sysRegistry.getEndpointUrl() + "', " +
                     "'" + sysRegistry.getNamespaceUrl() + "', '" + sysRegistry.getDatabaseName() + "', '" + sysRegistry.getDatabaseUrl() + "', '" + sysRegistry.getDatabaseType() + "', '" + sysRegistry.getDatabaseDriver() + "', " +
                     "'" + sysRegistry.getDriverUrl() + "', '" + sysRegistry.getJsonParams() + "', '" + sysRegistry.getUserName() + "', '" + sysRegistry.getUserPassword() + "','admin', now() , 'admin', now(), '" + sysRegistry.getRegistryName() + "');\n");
