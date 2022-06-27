@@ -263,7 +263,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 wsUrl = wsUrl + suffix;
                 resDto.setWsdlUrl(wsUrl);
                 log.info("之前wsUrl====={}",wsUrl);
-                List<String> wsOperationNames = PlatformUtil.getWsdlOperationNames(wsUrl);
+                List<String> wsOperationNames = PlatformUtil.getWsdlOperationNames(wsUrl+businessInterface.getSysCode());
                 resDto.setWsOperationNames(wsOperationNames);
                 resDto.setSysIntfParamFormatType("2");
                 log.info("之后wsUrl====={}",wsUrl);
