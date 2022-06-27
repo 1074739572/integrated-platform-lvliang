@@ -235,7 +235,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		}
 		// 判断系统名称是否存在
 		TSys tp = getObjBySysName(sysName.trim());
-		if (tp != null) {
+		if (tp != null && !tp.getId().equals(dto.getId())) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该系统名称已存在，不能重复!", "该系统名称已存在!");
 		}
 		String sysId = dto.getId();
