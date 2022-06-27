@@ -8,21 +8,13 @@ import java.io.Serializable;
  * TArea is a Querydsl bean type
  */
 @Data
-public class TEngine implements Serializable {
+public class TFunctionAuth implements Serializable {
 
     private String id;
 
-    private String engineName;
+    private String interfaceId;
 
-    private String engineCode;
-
-    private String isEtl;
-
-    private String engineUrl;
-
-    private String engineUser;
-
-    private String enginePwd;
+    private String publishId;
 
     private String createdBy;
 

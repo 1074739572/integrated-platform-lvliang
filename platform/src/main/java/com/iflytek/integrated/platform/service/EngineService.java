@@ -69,7 +69,7 @@ public class EngineService extends BaseService<TEngine, String, StringPath> {
         }
         List<TEngine> queryResults = sqlQueryFactory
                 .select(Projections.bean(TEngine.class,
-                        qtEngine.id, qtEngine.engineName, qtEngine.engineCode,
+                        qtEngine.id, qtEngine.engineName, qtEngine.isEtl,
                         qtEngine.engineUrl, qtEngine.enginePwd,
                         qtEngine.createdTime))
                 .from(qtEngine)
