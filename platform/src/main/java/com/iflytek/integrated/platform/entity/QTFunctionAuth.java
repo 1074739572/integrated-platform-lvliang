@@ -18,7 +18,7 @@ public class QTFunctionAuth extends com.querydsl.sql.RelationalPathBase<TFunctio
 
     private static final long serialVersionUID = -201223167;
 
-    public static final QTFunctionAuth qtEngine = new QTFunctionAuth("t_function_auth");
+    public static final QTFunctionAuth qtFunctionAuth = new QTFunctionAuth("t_function_auth");
 
     public final StringPath interfaceId = createString("interfaceId");
 

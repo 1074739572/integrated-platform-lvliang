@@ -304,6 +304,38 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 		return interfaces.stream().map(TBusinessInterface::getId).collect(Collectors.toList());
 	}
 
+	/**
+	 * 根据id集合获取集成配置信息
+	 *
+	 * @return
+	 */
+	public List<TBusinessInterface> busInterfaceIdList(List<String> idList) {
+		StringTemplate template = Expressions.stringTemplate("concat(string_agg ( concat(concat({0},'/' ::TEXT),{1}), ',' :: TEXT ))",qTSys.sysName,qTBusinessInterface.businessInterfaceName);
+		List<TBusinessInterface> interfaceList = sqlQueryFactory
+				.select(Projections.bean(TBusinessInterface.class,qTBusinessInterface.id.min().as("id"),qTType.typeName.min().as(qTType.typeName),
+						qTBusinessInterface.requestInterfaceId,
+						qTInterface.interfaceName.min().as("requestInterfaceName"),
+						template.as(qTBusinessInterface.businessInterfaceName),
+						qTBusinessInterface.mockStatus.min().as(qTBusinessInterface.mockStatus),
+						qTBusinessInterface.status.min().as("status"),
+						qTBusinessInterface.createdBy.min().as( qTBusinessInterface.createdBy),
+						qTBusinessInterface.createdTime.max().as(qTBusinessInterface.createdTime),
+						qTBusinessInterface.updatedBy.min().as(qTBusinessInterface.updatedBy),
+						qTBusinessInterface.updatedTime.max().as(qTBusinessInterface.updatedTime)))
+				.from(qTBusinessInterface)
+				.leftJoin(qTSysRegistry).on(qTSysRegistry.id.eq(qTBusinessInterface.sysRegistryId))
+				.leftJoin(qTSys).on(qTSys.id.eq(qTSysRegistry.sysId))
+				.leftJoin(qTInterface).on(qTInterface.id.eq(qTBusinessInterface.requestInterfaceId))
+				.leftJoin(qTType).on(qTType.id.eq(qTInterface.typeId))
+				.where(qTBusinessInterface.requestInterfaceId.in(idList))
+				.groupBy(qTBusinessInterface.requestInterfaceId)
+				.fetch();
+		if (CollectionUtils.isEmpty(interfaceList)) {
+			throw new RuntimeException("没有找到集成配置");
+		}
+		return interfaceList;
+	}
+
 	public long selectByQIId(String QIId){
 		return sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface).fetchCount();
 	}

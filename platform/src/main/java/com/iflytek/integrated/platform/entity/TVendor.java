@@ -20,6 +20,8 @@ public class TVendor implements Serializable {
 
     private String createdBy;
 
+    private String logo;
+
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone="GMT+8")
     private java.util.Date createdTime;
 
