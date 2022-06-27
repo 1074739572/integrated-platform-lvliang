@@ -8,6 +8,7 @@ import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.common.RedisService;
 import com.iflytek.integrated.platform.dto.RedisDto;
 import com.iflytek.integrated.platform.dto.RedisKeyDto;
+import com.iflytek.integrated.platform.entity.TFunctionAuth;
 import com.iflytek.integrated.platform.entity.TPlugin;
 import com.iflytek.integrated.platform.entity.TSys;
 import com.iflytek.integrated.platform.entity.TVendor;
@@ -72,7 +73,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
         }
         QueryResults<TVendor> queryResults = sqlQueryFactory
                 .select(Projections.bean(TVendor.class,qtVendor.id, qtVendor.vendorName, qtVendor.vendorCode, qtVendor.isValid,
-                        qtVendor.createdBy, qtVendor.createdTime, qtVendor.updatedBy, qtVendor.updatedTime))
+                        qtVendor.createdBy, qtVendor.createdTime, qtVendor.updatedBy, qtVendor.updatedTime,qtVendor.logo))
                 .from(qtVendor)
                 .where(list.toArray(new Predicate[list.size()])).limit(pageSize)
                 .limit(pageSize)
@@ -87,38 +88,31 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
 
     @ApiOperation(value = "新增或修改厂商", notes = "新增或修改厂商")
     @PostMapping("/addOrMod")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "id", value = "id"),
-            @ApiImplicitParam(name = "vendorName", value = "厂商名称", required = true),
-            @ApiImplicitParam(name = "vendorCode", value = "厂商编码", required = true),
-    })
-    public ResultDto<String> addOrMod(@RequestBody Map param){
+    public ResultDto<String> addOrMod(@RequestBody TVendor dto){
         // 校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if (StringUtils.isBlank(loginUserName)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
         }
 
-        TVendor record = sqlQueryFactory.select(Projections.bean(TVendor.class,qtVendor.id, qtVendor.vendorName)).from(qtVendor).where(qtVendor.vendorName.eq(param.get("vendorName").toString())).fetchFirst();
+        TVendor record = sqlQueryFactory.select(Projections.bean(TVendor.class,qtVendor.id, qtVendor.vendorName)).from(qtVendor).where(qtVendor.vendorName.eq(dto.getVendorName())).fetchFirst();
 
         String msg = "";
 
         TVendor vendor = new TVendor();
-        vendor.setVendorName(param.get("vendorName").toString());
-        vendor.setVendorCode(param.get("vendorCode").toString());
         vendor.setIsValid("1");
         vendor.setCreatedBy(loginUserName);
         vendor.setCreatedTime(new Date());
         vendor.setUpdatedBy(loginUserName);
         vendor.setUpdatedTime(new Date());
-        Object id = param.get("id");
-        if(id != null && StringUtils.isNotEmpty(id.toString())){
+        String id = dto.getId();
+        if(id != null && StringUtils.isNotEmpty(id)){
             //修改
             if(record != null && !record.getId().equals(id.toString())){
                 return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "名称已存在！");
             }
-            vendor.setId(id.toString());
-            this.put(id.toString(),vendor);
+            vendor.setId(id);
+            this.put(id,vendor);
             msg = "已修改!";
             // redis缓存信息获取
             ArrayList<Predicate> arr = new ArrayList<>();
