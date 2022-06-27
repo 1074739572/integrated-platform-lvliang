@@ -1445,6 +1445,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         }
     }
 
+    public TInterface getByTypeId(String typeId){
+        return sqlQueryFactory.select(qTInterface).from(qTInterface).where(qTInterface.typeId.eq(typeId)).fetchFirst();
+    }
+
     public static void main(String[] args) {
         String sql = "REPLACE INTO `t_platform` (`ID`, `PROJECT_ID`, `PLATFORM_NAME`, `PLATFORM_CODE`, `PLATFORM_STATUS`, `PLATFORM_TYPE`, `ETL_SERVER_URL`, `ETL_USER`, `ETL_PWD`, `CREATED_BY`, `CREATED_TIME`, `UPDATED_BY`, `UPDATED_TIME`) VALUES ('61195408071721089', 'newProjectId_48109769075982460', '孙思邈医院-智联网', 'ssmyyzhmz', '1', '1', 'null', 'admin', 'wPjVysmnNUWL9sKMJgyKzQ==', 'admin', now() , 'admin', now());";
         String replaced = sql.replaceAll("'newProjectId_\\d+'", "'11111111'");

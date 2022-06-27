@@ -6,6 +6,7 @@ import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.TypeDto;
+import com.iflytek.integrated.platform.entity.TInterface;
 import com.iflytek.integrated.platform.entity.TType;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
@@ -179,6 +180,11 @@ public class TypeService extends BaseService<TType, String, StringPath> {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
         }
         for (String id : typeIds.split(",")) {
+            //先判断是否有关联的服务
+            TInterface anInterface = interfaceService.getByTypeId(id);
+            if(anInterface!=null){
+                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请先删除该类型下关联的服务!", "请先删除该类型下关联的服务!");
+            }
             long l = this.delete(id);
             if (l < 1) {
                 logger.error("接口类型删除失败!");
@@ -186,6 +192,10 @@ public class TypeService extends BaseService<TType, String, StringPath> {
             }
         }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "接口类型删除成功!", "接口类型删除成功!");
+    }
+
+    private void checkRelationService(String id) {
+
     }
 
     //根据类型名获取类型

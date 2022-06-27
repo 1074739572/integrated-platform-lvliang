@@ -3,9 +3,11 @@ package com.iflytek.integrated.platform.service;
 import com.alibaba.fastjson.JSON;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
+import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.entity.TEngine;
+import com.iflytek.integrated.platform.entity.TSysRegistry;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.types.Predicate;
@@ -18,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -152,5 +155,19 @@ public class EngineService extends BaseService<TEngine, String, StringPath> {
             throw new RuntimeException("删除成功!");
         }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "删除成功!");
+    }
+
+    @ApiOperation(value = "获取集成引擎", notes = "获取集成引擎")
+    @GetMapping("/getEngine/{id}")
+    public ResultDto<TEngine> getEngine(
+            @ApiParam(value = "集成引擎id") @PathVariable(value = "id", required = false) String id) {
+        try {
+            TEngine tEngine = this.getOne(id);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取集成引擎信息成功!", tEngine);
+        } catch (BeansException e) {
+            logger.error("获取集成引擎信息失败! MSG:{}", ExceptionUtil.dealException(e));
+            e.printStackTrace();
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取集成引擎信息失败!");
+        }
     }
 }
