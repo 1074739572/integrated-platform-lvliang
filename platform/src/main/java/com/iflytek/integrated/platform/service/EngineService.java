@@ -143,7 +143,7 @@ public class EngineService extends BaseService<TEngine, String, StringPath> {
     }
 
     @ApiOperation(value = "引擎信息删除", notes = "引擎信息删除")
-    @PostMapping("/delById/{id}")
+    @GetMapping("/delById/{id}")
     public ResultDto<String> delById(
             @ApiParam(value = "引擎id") @PathVariable(value = "id", required = true) String id) {
         // 删除接口
