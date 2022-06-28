@@ -41,9 +41,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
-import static com.iflytek.integrated.platform.entity.QTSysPublish.qTSysPublish;
 import static com.iflytek.integrated.platform.entity.QTSysRegistry.qTSysRegistry;
 
 @Slf4j
@@ -53,9 +51,6 @@ import static com.iflytek.integrated.platform.entity.QTSysRegistry.qTSysRegistry
 public class SysRegistryService extends BaseService<TSysRegistry, String, StringPath> {
 
     private static final Logger logger = LoggerFactory.getLogger(SysRegistryService.class);
-
-    @Autowired
-    private RedisService redisService;
 
     @Autowired
     private BusinessInterfaceService businessInterfaceService;
@@ -90,9 +85,9 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
 
             QueryResults<TSysRegistry> queryResults = sqlQueryFactory
                     .select(Projections
-                            .bean(TSysRegistry.class, qTSysRegistry.id,qTSysRegistry.registryName,
-                                    qTSysRegistry.sysId,qTSys.sysName,qTSysRegistry.connectionType,
-                                   qTSysRegistry.addressUrl, qTSysRegistry.endpointUrl,
+                            .bean(TSysRegistry.class, qTSysRegistry.id, qTSysRegistry.registryName,
+                                    qTSysRegistry.sysId, qTSys.sysName, qTSysRegistry.connectionType,
+                                    qTSysRegistry.addressUrl, qTSysRegistry.endpointUrl,
                                     qTSysRegistry.namespaceUrl, qTSysRegistry.databaseName, qTSysRegistry.databaseUrl,
                                     qTSysRegistry.databaseDriver, qTSysRegistry.driverUrl, qTSysRegistry.databaseType, qTSysRegistry.jsonParams,
                                     qTSysRegistry.userName, qTSysRegistry.userPassword, qTSysRegistry.createdBy,
@@ -101,6 +96,14 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
                     .on(qTSysRegistry.sysId.eq(qTSys.id))
                     .where(list.toArray(new Predicate[list.size()]))
                     .offset((pageNo - 1) * pageSize).orderBy(qTSysRegistry.createdTime.desc()).fetchResults();
+            if(!queryResults.isEmpty()){
+                //如果是数据库视图  则url显示数据的url
+                for (TSysRegistry result : queryResults.getResults()) {
+                    if(Constant.ConnectionType.VIEW.getCode().equals(result.getConnectionType())){
+                        result.setAddressUrl(result.getDatabaseUrl());
+                    }
+                }
+            }
             // 分页
             TableData<TSysRegistry> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取服务注册列表成功!", tableData);
@@ -134,7 +137,7 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
             if (StringUtils.isNotEmpty(registryName)) {
                 pre.add(qTSysRegistry.registryName.like(PlatformUtil.createFuzzyText(registryName)));
             }
-            List<TSysRegistry> list= sqlQueryFactory
+            List<TSysRegistry> list = sqlQueryFactory
                     .select(Projections.bean(TSysRegistry.class, qTSysRegistry.id, qTSysRegistry.sysId, qTSysRegistry.registryName))
                     .from(qTSysRegistry)
                     .where(pre.toArray(new Predicate[pre.size()]))
@@ -177,7 +180,7 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
                 throw new RuntimeException("服务注册编辑失败!");
             }
         }
-        Map<String , String> data = new HashMap<String , String>();
+        Map<String, String> data = new HashMap<String, String>();
         data.put("id", registryId);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存服务注册信息成功!", JSON.toJSONString(data));
     }
@@ -200,7 +203,7 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "注册服务删除成功!");
     }
 
-    public TSysRegistry getOneBySysId(String sysId){
+    public TSysRegistry getOneBySysId(String sysId) {
         return sqlQueryFactory
                 .select(Projections.bean(TSysRegistry.class, qTSysRegistry.id, qTSysRegistry.sysId, qTSysRegistry.registryName))
                 .from(qTSysRegistry)

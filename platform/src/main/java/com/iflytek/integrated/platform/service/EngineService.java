@@ -7,7 +7,6 @@ import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.entity.TEngine;
-import com.iflytek.integrated.platform.entity.TSysRegistry;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.types.Predicate;
@@ -59,9 +58,7 @@ public class EngineService extends BaseService<TEngine, String, StringPath> {
 
     @ApiOperation(value = "系统服务列表")
     @GetMapping("/getEngineList")
-    public ResultDto<List<TEngine>> getEngineList(
-            @ApiParam(value = "引擎id") @RequestParam(value = "engineId", required = false) String engineId,
-            @ApiParam(value = "引擎名称") @RequestParam(value = "engineName", required = false) String engineName) {
+    public ResultDto<List<TEngine>> getEngineList(@ApiParam(value = "引擎id") @RequestParam(value = "engineId", required = false) String engineId, @ApiParam(value = "引擎名称") @RequestParam(value = "engineName", required = false) String engineName) {
         // 查询条件
         ArrayList<Predicate> list = new ArrayList<>();
         if (StringUtils.isNotEmpty(engineId)) {
@@ -70,14 +67,7 @@ public class EngineService extends BaseService<TEngine, String, StringPath> {
         if (StringUtils.isNotEmpty(engineName)) {
             list.add(qtEngine.engineName.like(PlatformUtil.createFuzzyText(engineName)));
         }
-        List<TEngine> queryResults = sqlQueryFactory
-                .select(Projections.bean(TEngine.class,
-                        qtEngine.id, qtEngine.engineName, qtEngine.isEtl,
-                        qtEngine.engineUrl, qtEngine.enginePwd,
-                        qtEngine.createdTime))
-                .from(qtEngine)
-                .where(list.toArray(new Predicate[list.size()]))
-                .orderBy(qtEngine.createdTime.desc()).fetch();
+        List<TEngine> queryResults = sqlQueryFactory.select(Projections.bean(TEngine.class, qtEngine.id, qtEngine.engineName, qtEngine.isEtl, qtEngine.engineUrl, qtEngine.enginePwd, qtEngine.createdTime)).from(qtEngine).where(list.toArray(new Predicate[list.size()])).orderBy(qtEngine.createdTime.desc()).fetch();
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "引擎列表获取成功!", queryResults);
     }
 
@@ -95,9 +85,9 @@ public class EngineService extends BaseService<TEngine, String, StringPath> {
         }
         String engineId = entity.getId();
         //校验 校验“引擎名称”是存在
-        if(!checkNameExist(engineId, entity.getEngineName())){
+        if (!checkNameExist(engineId, entity.getEngineName())) {
             //查询系统名称和类型
-            throw new RuntimeException(entity.getEngineName()+"引擎名称已存在");
+            throw new RuntimeException(entity.getEngineName() + "引擎名称已存在");
         }
 
         // 新增系统配置信息
@@ -115,31 +105,27 @@ public class EngineService extends BaseService<TEngine, String, StringPath> {
                 throw new RuntimeException("引擎信息编辑失败!");
             }
         }
-        Map<String , String> data = new HashMap<String , String>();
+        Map<String, String> data = new HashMap<String, String>();
         data.put("id", engineId);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存引擎信息成功!", JSON.toJSONString(data));
     }
 
     /**
      * 校验新增或者修改是否重复
+     *
      * @param id
      * @param engineName
      * @return
      */
-    private Boolean checkNameExist(String id,String engineName){
+    private Boolean checkNameExist(String id, String engineName) {
         ArrayList<Predicate> list = new ArrayList<>();
         if (StringUtils.isNotEmpty(id)) {
             list.add(qtEngine.id.notEqualsIgnoreCase(id));
         }
         list.add(qtEngine.engineName.eq(engineName));
 
-        List<TEngine> srList = sqlQueryFactory
-                .select(Projections
-                        .bean(TEngine.class, qtEngine.id))
-                .from(qtEngine)
-                .where(list.toArray(new Predicate[list.size()]))
-                .fetch();
-        if(!CollectionUtils.isEmpty(srList)){
+        List<TEngine> srList = sqlQueryFactory.select(Projections.bean(TEngine.class, qtEngine.id)).from(qtEngine).where(list.toArray(new Predicate[list.size()])).fetch();
+        if (!CollectionUtils.isEmpty(srList)) {
             return false;
         }
         return true;
@@ -147,8 +133,7 @@ public class EngineService extends BaseService<TEngine, String, StringPath> {
 
     @ApiOperation(value = "引擎信息删除", notes = "引擎信息删除")
     @GetMapping("/delById/{id}")
-    public ResultDto<String> delById(
-            @ApiParam(value = "引擎id") @PathVariable(value = "id", required = true) String id) {
+    public ResultDto<String> delById(@ApiParam(value = "引擎id") @PathVariable(value = "id", required = true) String id) {
         // 删除接口
         long l = this.delete(id);
         if (l < 1) {
@@ -159,8 +144,7 @@ public class EngineService extends BaseService<TEngine, String, StringPath> {
 
     @ApiOperation(value = "获取集成引擎", notes = "获取集成引擎")
     @GetMapping("/getEngine/{id}")
-    public ResultDto<TEngine> getEngine(
-            @ApiParam(value = "集成引擎id") @PathVariable(value = "id", required = false) String id) {
+    public ResultDto<TEngine> getEngine(@ApiParam(value = "集成引擎id") @PathVariable(value = "id", required = false) String id) {
         try {
             TEngine tEngine = this.getOne(id);
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取集成引擎信息成功!", tEngine);
