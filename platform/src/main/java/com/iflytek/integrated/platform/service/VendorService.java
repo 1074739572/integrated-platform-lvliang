@@ -23,8 +23,11 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.system.ApplicationHome;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.PostConstruct;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -53,7 +56,16 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
     @Autowired
     SysService sysService;
 
+    String uploadPath;
 
+    @PostConstruct
+    public void init() {
+        ApplicationHome h = new ApplicationHome(getClass());
+        String root = h.getSource()
+                .getParentFile().getParentFile().toString();
+        uploadPath = root + File.separator + "upload" + File.separator;
+        logger.info("==>图片存储目录为：{}",uploadPath);
+    }
 
     @ApiOperation(value = "获取列表", notes = "获取厂商列表")
     @GetMapping("/getList")
