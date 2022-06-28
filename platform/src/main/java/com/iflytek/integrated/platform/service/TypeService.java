@@ -194,10 +194,6 @@ public class TypeService extends BaseService<TType, String, StringPath> {
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "接口类型删除成功!", "接口类型删除成功!");
     }
 
-    private void checkRelationService(String id) {
-
-    }
-
     //根据类型名获取类型
     private TType getTypeByName(String typeName, String id) {
         List<Predicate> list = new ArrayList<>();
@@ -224,6 +220,4 @@ public class TypeService extends BaseService<TType, String, StringPath> {
         TableData<TType> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "数据获取成功!", tableData);
     }
-
-
 }

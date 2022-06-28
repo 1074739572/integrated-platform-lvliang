@@ -67,7 +67,9 @@ public class EngineService extends BaseService<TEngine, String, StringPath> {
         if (StringUtils.isNotEmpty(engineName)) {
             list.add(qtEngine.engineName.like(PlatformUtil.createFuzzyText(engineName)));
         }
-        List<TEngine> queryResults = sqlQueryFactory.select(Projections.bean(TEngine.class, qtEngine.id, qtEngine.engineName, qtEngine.isEtl, qtEngine.engineUrl, qtEngine.enginePwd, qtEngine.createdTime)).from(qtEngine).where(list.toArray(new Predicate[list.size()])).orderBy(qtEngine.createdTime.desc()).fetch();
+        List<TEngine> queryResults = sqlQueryFactory.select(Projections.bean(TEngine.class, qtEngine.id, qtEngine.engineName,
+                qtEngine.isEtl, qtEngine.engineUrl,qtEngine.engineUser,
+                qtEngine.enginePwd, qtEngine.createdTime)).from(qtEngine).where(list.toArray(new Predicate[list.size()])).orderBy(qtEngine.createdTime.desc()).fetch();
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "引擎列表获取成功!", queryResults);
     }
 
