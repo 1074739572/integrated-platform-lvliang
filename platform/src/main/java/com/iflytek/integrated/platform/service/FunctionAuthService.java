@@ -8,14 +8,10 @@ import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.entity.TFunctionAuth;
-import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.QueryResults;
-import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringPath;
-import com.querydsl.core.types.dsl.StringTemplate;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -34,17 +30,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
 import static com.iflytek.integrated.platform.entity.QTFunctionAuth.qtFunctionAuth;
-import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
-import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 import static com.iflytek.integrated.platform.entity.QTSysRegistry.qTSysRegistry;
-import static com.iflytek.integrated.platform.entity.QTType.qTType;
 
 @Slf4j
 @Api(tags = "功能权限管理")
@@ -61,68 +52,30 @@ public class FunctionAuthService extends BaseService<TFunctionAuth, String, Stri
         super(qtFunctionAuth, qtFunctionAuth.id);
     }
 
-    @ApiOperation(value = "功能权限列表")
+    @ApiOperation(value = "获取功能权限信息", notes = "获取功能权限信息")
     @GetMapping("/getFunctionAuthList")
-    public ResultDto<TableData<TFunctionAuth>> getFunctionAuthList(
-            @ApiParam(value = "业务类型id") @RequestParam(value = "typeId", required = false) String typeId,
-            @ApiParam(value = "服务id") @RequestParam(value = "interfaceId", required = false) String interfaceId,
-            @ApiParam(value = "服务名称") @RequestParam(value = "interfaceName", required = false) String interfaceName,
+    public ResultDto<TableData<TFunctionAuth>> getFunctionAuth(
+            @ApiParam(value = "服务id") @RequestParam(value = "interfaceId", required = true) String interfaceId,
             @ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
             @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
         try {
-            // 查询条件
-            ArrayList<Predicate> list = new ArrayList<>();
-            if (StringUtils.isNotEmpty(typeId)) {
-                list.add(qTInterface.typeId.eq(typeId));
-            }
-            if (StringUtils.isNotEmpty(interfaceId)) {
-                list.add(qTInterface.id.eq(interfaceId));
-            }
-            if (StringUtils.isNotEmpty(interfaceName)) {
-                list.add(qTInterface.interfaceName.like(PlatformUtil.createFuzzyText(interfaceName)));
-            }
-
-            StringTemplate template = Expressions.stringTemplate("concat(string_agg ( concat(concat({0},'/' ::TEXT),{1}), ',' :: TEXT ))",qTSys.sysName,qTBusinessInterface.businessInterfaceName);
             QueryResults<TFunctionAuth> queryResults = sqlQueryFactory
-                    .select(Projections.bean(TFunctionAuth.class,qtFunctionAuth.id.min().as("id"),
-                            qtFunctionAuth.interfaceId.min().as(qtFunctionAuth.interfaceId),
-                            qtFunctionAuth.publishId.min().as(qtFunctionAuth.publishId),
-                            qTType.typeName.min().as(qTType.typeName),
-                            qTBusinessInterface.requestInterfaceId,
-                            qTInterface.interfaceName.min().as("interfaceName"),
-                            qTBusinessInterface.createdTime.max().as(qTBusinessInterface.createdTime),
-                            template.as(qTBusinessInterface.businessInterfaceName)))
-                    .from(qtFunctionAuth).leftJoin(qTBusinessInterface).on(qTBusinessInterface.requestInterfaceId.eq(qtFunctionAuth.interfaceId))
-                    .leftJoin(qTSysRegistry).on(qTSysRegistry.id.eq(qTBusinessInterface.sysRegistryId))
-                    .leftJoin(qTSys).on(qTSys.id.eq(qTSysRegistry.sysId))
-                    .leftJoin(qTInterface).on(qTInterface.id.eq(qTBusinessInterface.requestInterfaceId))
-                    .leftJoin(qTType).on(qTType.id.eq(qTInterface.typeId))
-                    .where(list.toArray(new Predicate[list.size()]))
-                    .groupBy(qTBusinessInterface.requestInterfaceId)
+                    .select(Projections.bean(TFunctionAuth.class, qtFunctionAuth.id,
+                            qtFunctionAuth.publishId, qtFunctionAuth.createdBy,
+                            qtFunctionAuth.createdTime, qtFunctionAuth.updatedTime,
+                            qtFunctionAuth.updatedBy,qtFunctionAuth.interfaceId
+                    ))
+                    .from(qtFunctionAuth)
+                    .where(qtFunctionAuth.interfaceId.eq(interfaceId))
                     .limit(pageSize).offset((pageNo - 1) * pageSize)
-                    .orderBy(qtFunctionAuth.createdTime.as("createdTime").desc()).fetchResults();
-
+                    .orderBy(qtFunctionAuth.createdTime.desc()).fetchResults();
             // 分页
             TableData<TFunctionAuth> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
-            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取功能权限列表成功!", tableData);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取功能权限明细列表成功!", tableData);
         } catch (BeansException e) {
-            logger.error("获取功能权限列表失败! MSG:{}", ExceptionUtil.dealException(e));
+            logger.error("获取功能权限明细列表失败! MSG:{}", ExceptionUtil.dealException(e));
             e.printStackTrace();
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取功能权限列表失败!");
-        }
-    }
-
-    @ApiOperation(value = "获取功能权限信息", notes = "获取功能权限信息")
-    @GetMapping("/getFunctionAuth/{id}")
-    public ResultDto<TFunctionAuth> getFunctionAuth(
-            @ApiParam(value = "功能权限id") @PathVariable(value = "id", required = false) String id) {
-        try {
-            TFunctionAuth tFunctionAuth = this.getOne(id);
-            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取功能权限信息成功!", tFunctionAuth);
-        } catch (BeansException e) {
-            logger.error("获取功能权限信息失败! MSG:{}", ExceptionUtil.dealException(e));
-            e.printStackTrace();
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取功能权限信息失败!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取功能权限明细列表失败!");
         }
     }
 
