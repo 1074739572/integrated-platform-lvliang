@@ -43,6 +43,7 @@ import java.util.Map;
 
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 import static com.iflytek.integrated.platform.entity.QTSysPublish.qTSysPublish;
+import static com.iflytek.integrated.platform.entity.QTSysRegistry.qTSysRegistry;
 
 @Slf4j
 @Api(tags = "服务发布管理")
@@ -195,6 +196,28 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "删除成功!");
     }
 
+    @ApiOperation(value = "获取服务发布下拉列表", notes = "获取服务发布下拉列表")
+    @GetMapping("/getPublishSelect")
+    public ResultDto<List<TSysPublish>> getRegistryList(
+            @ApiParam(value = "服务发布名称") @PathVariable(value = "publishName", required = false) String publishName) {
+        try {
+            ArrayList<Predicate> pre = new ArrayList<>();
+            if (StringUtils.isNotEmpty(publishName)) {
+                pre.add(qTSysPublish.publishName.like(PlatformUtil.createFuzzyText(publishName)));
+            }
+            List<TSysPublish> list = sqlQueryFactory
+                    .select(Projections.bean(TSysPublish.class, qTSysPublish.id, qTSysPublish.sysId, qTSysPublish.publishName))
+                    .from(qTSysPublish)
+                    .where(pre.toArray(new Predicate[pre.size()]))
+                    .orderBy(qTSysPublish.createdTime.desc())
+                    .fetch();
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取服务发布下拉列表成功!", list);
+        } catch (BeansException e) {
+            logger.error("获取服务发布下拉列表失败! MSG:{}", ExceptionUtil.dealException(e));
+            e.printStackTrace();
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取服务发布下拉列表失败!");
+        }
+    }
 
     public TSysPublish getOneBySysId(String sysId){
         return sqlQueryFactory
