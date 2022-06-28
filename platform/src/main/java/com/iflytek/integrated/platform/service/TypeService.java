@@ -183,7 +183,7 @@ public class TypeService extends BaseService<TType, String, StringPath> {
             //先判断是否有关联的服务
             TInterface anInterface = interfaceService.getByTypeId(id);
             if(anInterface!=null){
-                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请先删除该类型下关联的服务!", "请先删除该类型下关联的服务!");
+                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "业务类型有关联的服务不能删除!", "业务类型有关联的服务不能删除!");
             }
             long l = this.delete(id);
             if (l < 1) {
