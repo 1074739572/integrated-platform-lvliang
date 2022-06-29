@@ -49,6 +49,6 @@ public class UploadService {
         String filePath = uploadPath + fileName;
         File newFile = new File(filePath);
         file.transferTo(newFile);
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取列表成功!", fileName);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "文件上传成功!", "/file/"+fileName);
     }
 }
