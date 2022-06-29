@@ -8,7 +8,6 @@ import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.common.RedisService;
 import com.iflytek.integrated.platform.dto.RedisDto;
 import com.iflytek.integrated.platform.dto.RedisKeyDto;
-import com.iflytek.integrated.platform.entity.TFunctionAuth;
 import com.iflytek.integrated.platform.entity.TPlugin;
 import com.iflytek.integrated.platform.entity.TSys;
 import com.iflytek.integrated.platform.entity.TVendor;
@@ -17,17 +16,28 @@ import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.StringPath;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.system.ApplicationHome;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.PostConstruct;
-import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -45,7 +55,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
         super(qtVendor, qtVendor.id);
     }
 
-    private static final Logger logger = LoggerFactory.getLogger(SysService.class);
+    private static final Logger logger = LoggerFactory.getLogger(VendorService.class);
 
     @Autowired
     RedisService redisService;
@@ -55,17 +65,6 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
 
     @Autowired
     SysService sysService;
-
-    String uploadPath;
-
-    @PostConstruct
-    public void init() {
-        ApplicationHome h = new ApplicationHome(getClass());
-        String root = h.getSource()
-                .getParentFile().getParentFile().toString();
-        uploadPath = root + File.separator + "upload" + File.separator;
-        logger.info("==>图片存储目录为：{}",uploadPath);
-    }
 
     @ApiOperation(value = "获取列表", notes = "获取厂商列表")
     @GetMapping("/getList")
@@ -100,14 +99,14 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
 
     @ApiOperation(value = "新增或修改厂商", notes = "新增或修改厂商")
     @PostMapping("/addOrMod")
-    public ResultDto<String> addOrMod(@RequestBody TVendor dto){
+    public ResultDto<String> addOrMod(@RequestParam("file") MultipartFile file, String id,String vendorName) throws IOException {
         // 校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if (StringUtils.isBlank(loginUserName)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
         }
 
-        TVendor record = sqlQueryFactory.select(Projections.bean(TVendor.class,qtVendor.id, qtVendor.vendorName)).from(qtVendor).where(qtVendor.vendorName.eq(dto.getVendorName())).fetchFirst();
+        TVendor record = sqlQueryFactory.select(Projections.bean(TVendor.class,qtVendor.id, qtVendor.vendorName)).from(qtVendor).where(qtVendor.vendorName.eq(vendorName)).fetchFirst();
 
         String msg = "";
 
@@ -117,7 +116,8 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
         vendor.setCreatedTime(new Date());
         vendor.setUpdatedBy(loginUserName);
         vendor.setUpdatedTime(new Date());
-        String id = dto.getId();
+        InputStream is = file.getInputStream();
+        vendor.setLogo(IOUtils.toString(is, "UTF-8"));
         if(id != null && StringUtils.isNotEmpty(id)){
             //修改
             if(record != null && !record.getId().equals(id.toString())){
