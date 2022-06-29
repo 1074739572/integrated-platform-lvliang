@@ -96,10 +96,10 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
                     .on(qTSysRegistry.sysId.eq(qTSys.id))
                     .where(list.toArray(new Predicate[list.size()]))
                     .offset((pageNo - 1) * pageSize).orderBy(qTSysRegistry.createdTime.desc()).fetchResults();
-            if(!queryResults.isEmpty()){
+            if (!queryResults.isEmpty()) {
                 //如果是数据库视图  则url显示数据的url
                 for (TSysRegistry result : queryResults.getResults()) {
-                    if(Constant.ConnectionType.VIEW.getCode().equals(result.getConnectionType())){
+                    if (Constant.ConnectionType.VIEW.getCode().equals(result.getConnectionType())) {
                         result.setAddressUrl(result.getDatabaseUrl());
                     }
                 }
@@ -131,7 +131,8 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
     @ApiOperation(value = "获取服务注册下拉列表", notes = "获取服务注册下拉列表")
     @GetMapping("/getRegistrySelect")
     public ResultDto<List<TSysRegistry>> getRegistryList(
-            @ApiParam(value = "服务注册名称") @PathVariable(value = "registryName", required = false) String registryName) {
+            @ApiParam(value = "服务注册名称") @RequestParam(value = "registryName", required = false) String registryName,
+            @ApiParam(value = "使用状态") @RequestParam(value = "useStatus", required = false, defaultValue = "1") String useStatus) {
         try {
             ArrayList<Predicate> pre = new ArrayList<>();
             if (StringUtils.isNotEmpty(registryName)) {
