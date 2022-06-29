@@ -45,10 +45,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
 import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
@@ -150,11 +148,12 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 					.like(PlatformUtil.createFuzzyText(venderRep)));
 		}
 		SQLQuery<TLog> tlogQuery = sqlQueryFactory
-		.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status, qTLog.venderRepTime,
-				qTLog.businessRepTime, qTLog.visitAddr,qTLog.businessInterfaceId, qTLog.debugreplayFlag,
+		.select(Projections.bean(TLog.class, qTLog.id, qTLog.businessInterfaceId, qTLog.createdTime, qTLog.status, qTLog.venderRepTime,
+				qTLog.businessRepTime, qTLog.visitAddr, qTLog.debugreplayFlag,
 				qTInterface.id.as("interfaceId"), qTInterface.interfaceName, qTInterface.interfaceUrl,
 				qTSysPublish.id.as("publishId"), qTSysPublish.publishName,
-				qTSys.id.as("publishSysId"), qTSys.sysName.as("publishSysName")))
+				qTSys.id.as("publishSysId"), qTSys.sysName.as("publishSysName"),
+				qTBusinessInterface.excErrOrder, qTBusinessInterface.requestInterfaceId))
 				.from(qTLog)
 				.leftJoin(qTBusinessInterface).on(qTLog.businessInterfaceId.eq(qTBusinessInterface.id))
 				.leftJoin(qTInterface).on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id))
@@ -166,7 +165,33 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		}
 		QueryResults<TLog> queryResults = tlogQuery
 				.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
-				.orderBy(qTLog.createdTime.desc()).fetchResults();
+				.orderBy(qTLog.createdTime.desc(), qTLog.requestIdentifier.desc(), qTBusinessInterface.excErrOrder.asc()).fetchResults();
+
+		if(queryResults != null && queryResults.getResults() != null && queryResults.getResults().size() > 0){
+			Set<String> set = new HashSet<>();
+			queryResults.getResults().forEach(
+					record -> set.add(record.getBusinessInterfaceId())
+			);
+			List<TBusinessInterface> businessInterfaces = sqlQueryFactory.select(Projections.bean(TBusinessInterface.class,
+					qTBusinessInterface.requestInterfaceId, qTBusinessInterface.excErrOrder.max().as("maxOrder")))
+					.from(qTBusinessInterface)
+					.where(qTBusinessInterface.id.in(set))
+					.groupBy(qTBusinessInterface.requestInterfaceId)
+					.fetch();
+			Map map = new HashMap();
+			businessInterfaces.forEach(bi -> {
+				map.put(bi.getRequestInterfaceId(),bi.getMaxOrder());
+			});
+			queryResults.getResults().forEach(record -> {
+				if("0".equals(record.getBusinessInterfaceId())){
+					record.setShowOrder("1/1");
+				}else{
+					int excErrOrder = record.getExcErrOrder() + 1;
+					int maxOrder = record.getBusinessInterfaceId() == null ? 0:(Integer) map.get(record.getRequestInterfaceId());
+					record.setShowOrder(excErrOrder + "/" + (maxOrder+1));
+				}
+			});
+		}
 		
 		// 分页
 		TableData<TLog> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
