@@ -116,7 +116,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
         dto.setCreatedTime(new Date());
         dto.setUpdatedBy(loginUserName);
         dto.setUpdatedTime(new Date());
-        dto.setLogo("/upload/"+dto.getLogo());
+        dto.setLogo("/file/"+dto.getLogo());
         String id = dto.getId();
         if(id != null && StringUtils.isNotEmpty(id)){
             //修改
