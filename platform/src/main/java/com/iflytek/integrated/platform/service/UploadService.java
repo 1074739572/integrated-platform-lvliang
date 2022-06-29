@@ -31,7 +31,7 @@ public class UploadService {
     public void init() {
         ApplicationHome h = new ApplicationHome(getClass());
         String root = h.getSource()
-                .getParentFile().toString();
+                .getParentFile().getParentFile().toString();
         uploadPath = root + File.separator + "upload" + File.separator;
         logger.info("==>图片存储目录为：{}", uploadPath);
     }

@@ -68,7 +68,7 @@ public class WebInterceptConfig extends WebMvcConfigurationSupport {
         //新增图片静态资源处理
         ApplicationHome h = new ApplicationHome(getClass());
         File jarF = h.getSource();
-        String dirPath = jarF.getParentFile().toString() + "/upload/";
+        String dirPath = jarF.getParentFile().getParentFile().toString() + "/upload/";
 
         String os = System.getProperty("os.name");
 
