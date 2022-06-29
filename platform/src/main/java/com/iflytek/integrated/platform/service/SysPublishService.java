@@ -8,6 +8,7 @@ import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.common.RedisService;
+import com.iflytek.integrated.platform.entity.TSys;
 import com.iflytek.integrated.platform.entity.TSysPublish;
 import com.iflytek.integrated.platform.entity.TSysRegistry;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
@@ -43,7 +44,6 @@ import java.util.Map;
 
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 import static com.iflytek.integrated.platform.entity.QTSysPublish.qTSysPublish;
-import static com.iflytek.integrated.platform.entity.QTSysRegistry.qTSysRegistry;
 
 @Slf4j
 @Api(tags = "服务发布管理")
@@ -55,6 +55,9 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
 
     @Autowired
     private RedisService redisService;
+
+    @Autowired
+    private SysService sysService;
 
     @Autowired
     private BatchUidService batchUidService;
@@ -135,7 +138,11 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
         //校验 校验“接入系统”是否发布过
         if(!checkPublishIsExist(registryId,dto.getSysId())){
             //查询系统名称和类型
-            throw new RuntimeException(dto.getSysName()+"已发布过服务");
+            TSys sys = sysService.getOne(dto.getSysName());
+            if(sys!=null){
+                dto.setSysName(sys.getSysName());
+            }
+            throw new RuntimeException(dto.getSysName()+"系统已发布过服务");
         }
 
         // 新增系统配置信息

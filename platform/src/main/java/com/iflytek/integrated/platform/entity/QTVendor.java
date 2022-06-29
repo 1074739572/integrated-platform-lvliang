@@ -72,6 +72,6 @@ public class QTVendor extends com.querydsl.sql.RelationalPathBase<TVendor> {
         addMetadata(createdTime, ColumnMetadata.named("created_time").withIndex(6).ofType(Types.TIMESTAMP).withSize(19));
         addMetadata(updatedBy, ColumnMetadata.named("updated_by").withIndex(7).ofType(Types.VARCHAR).withSize(32));
         addMetadata(updatedTime, ColumnMetadata.named("updated_time").withIndex(8).ofType(Types.TIMESTAMP).withSize(19));
-        addMetadata(logo, ColumnMetadata.named("logo").withIndex(9).ofType(Types.VARCHAR).withSize(255));
+        addMetadata(logo, ColumnMetadata.named("logo").withIndex(9).ofType(Types.LONGVARCHAR));
     }
 }
