@@ -1386,8 +1386,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     }
 
 
-    @PostMapping(path = "/uploadInterFaceSql/{projectId}")
-    public ResultDto<String> uploadInterFaceSql(@PathVariable String projectId, @RequestParam("sqlFiles") MultipartFile[] sqlFiles) {
+    @PostMapping(path = "/uploadInterFaceSql")
+    public ResultDto<String> uploadInterFaceSql( @RequestParam("sqlFiles") MultipartFile[] sqlFiles) {
         //校验是否获取到登录用户
         String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if (org.apache.commons.lang3.StringUtils.isBlank(loginUserName)) {
@@ -1418,7 +1418,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                         sql.append(lineText).append("\r\n");
                     }
                     //将sys_config表中的平台id以及项目id进行替换
-                    sql = new StringBuilder(sql.toString().replaceAll("'newProjectId_\\d+'", "'" + projectId + "'"));
+                    sql = new StringBuilder(sql.toString());
                     String[] sqls = sql.toString().split("END_OF_SQL");
                     for (String str : sqls) {
                         if (str.trim().startsWith("INSERT") || str.trim().startsWith("REPLACE"))
