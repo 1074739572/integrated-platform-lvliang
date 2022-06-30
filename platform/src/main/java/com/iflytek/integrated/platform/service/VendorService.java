@@ -122,7 +122,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
         String id = dto.getId();
         if(id != null && StringUtils.isNotEmpty(id)){
             //修改
-            if(record != null && !record.getId().equals(id.toString())){
+            if(record != null && !record.getId().equals(id)){
                 return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "名称已存在！");
             }
             dto.setId(id);
