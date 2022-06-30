@@ -137,12 +137,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
         String registryId = dto.getId();
         //校验 校验“接入系统”是否发布过
         if(!checkPublishIsExist(registryId,dto.getSysId())){
-            //查询系统名称和类型
-            TSys sys = sysService.getOne(dto.getSysName());
-            if(sys!=null){
-                dto.setSysName(sys.getSysName());
-            }
-            throw new RuntimeException(dto.getSysName()+"系统已发布过服务");
+            throw new RuntimeException("该系统已经发布过服务");
         }
 
         // 新增系统配置信息
