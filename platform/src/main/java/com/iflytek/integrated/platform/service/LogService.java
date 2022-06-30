@@ -183,7 +183,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 				map.put(bi.getRequestInterfaceId(),bi.getMaxOrder());
 			});
 			queryResults.getResults().forEach(record -> {
-				if("0".equals(record.getBusinessInterfaceId())){
+				if("0".equals(record.getBusinessInterfaceId()) || record.getExcErrOrder() == null){
 					record.setShowOrder("1/1");
 				}else{
 					int excErrOrder = record.getExcErrOrder() + 1;
