@@ -138,6 +138,9 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
             if (StringUtils.isNotEmpty(registryName)) {
                 pre.add(qTSysRegistry.registryName.like(PlatformUtil.createFuzzyText(registryName)));
             }
+            if (StringUtils.isNotEmpty(useStatus)) {
+                pre.add(qTSysRegistry.useStatus.eq(useStatus));
+            }
             List<TSysRegistry> list = sqlQueryFactory
                     .select(Projections.bean(TSysRegistry.class, qTSysRegistry.id, qTSysRegistry.sysId, qTSysRegistry.registryName))
                     .from(qTSysRegistry)
