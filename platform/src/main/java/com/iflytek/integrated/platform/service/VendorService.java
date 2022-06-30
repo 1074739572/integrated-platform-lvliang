@@ -164,11 +164,11 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
             }
 
             //redis缓存信息获取
-            ArrayList<Predicate> arr = new ArrayList<>();
-            arr.add(qtVendor.id.in(id.toString()));
-            List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+//            ArrayList<Predicate> arr = new ArrayList<>();
+//            arr.add(qtVendor.id.in(id.toString()));
+//            List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
             this.delete(id.toString());
-            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "已删除!",new RedisDto(redisKeyDtoList).toString());
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "已删除!",null);
         }else{
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "Id不能为空！");
         }
