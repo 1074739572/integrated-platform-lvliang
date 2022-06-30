@@ -72,14 +72,12 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
     @GetMapping("/getList")
     public ResultDto getList(
             @ApiParam(value = "厂商名称") @RequestParam(value = "vendorName",required = false) String vendorName,
+            @RequestParam("loginUsername ") String loginUserName,
             @ApiParam(value = "页码") @RequestParam(defaultValue = "1")Integer pageNo,
             @ApiParam(value = "每页大小") @RequestParam(defaultValue = "10")Integer pageSize
     ){
         // 校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-        if (StringUtils.isBlank(loginUserName)) {
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
-        }
+       logger.info("========="+loginUserName+"===============");
         ArrayList<Predicate> list = new ArrayList<>();
         if (StringUtils.isNotEmpty(vendorName)) {
             list.add(qtVendor.vendorName.like("%"+vendorName+"%"));
