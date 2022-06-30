@@ -42,8 +42,8 @@ public class WebInterceptConfig extends WebMvcConfigurationSupport {
     @Override
     public void addInterceptors(InterceptorRegistry registry){
         //用户登录拦截器
-        InterceptorRegistration rationUserLogin = registry.addInterceptor(userLoginIntercept);
-        rationUserLogin.addPathPatterns("/*/pt/**").excludePathPatterns("/**/loginManage/**");
+//        InterceptorRegistration rationUserLogin = registry.addInterceptor(userLoginIntercept);
+//        rationUserLogin.addPathPatterns("/*/pt/**").excludePathPatterns("/**/loginManage/**");
 
         //通过获取配置文件，接口处理后执行配置文件
         for (String key: map.keySet()){

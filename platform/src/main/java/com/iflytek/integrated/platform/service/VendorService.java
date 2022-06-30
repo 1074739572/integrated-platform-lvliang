@@ -102,12 +102,12 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
     @ApiOperation(value = "新增或修改厂商", notes = "新增或修改厂商")
     @Transactional(rollbackFor = Exception.class)
     @PostMapping("/addOrMod")
-    public ResultDto<String> addOrMod(@RequestBody TVendor dto){
-        // 校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-        if (StringUtils.isBlank(loginUserName)) {
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
-        }
+    public ResultDto<String> addOrMod(@RequestBody TVendor dto,@RequestParam("loginUsername ") String loginUserName){
+//        // 校验是否获取到登录用户
+//        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
+//        if (StringUtils.isBlank(loginUserName)) {
+//            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
+//        }
 
         TVendor record = sqlQueryFactory.select(Projections.bean(TVendor.class,qtVendor.id, qtVendor.vendorName)).from(qtVendor).where(qtVendor.vendorName.eq(dto.getVendorName())).fetchFirst();
 
