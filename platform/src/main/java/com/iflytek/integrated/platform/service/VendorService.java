@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.system.ApplicationHome;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
@@ -99,6 +100,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
 
 
     @ApiOperation(value = "新增或修改厂商", notes = "新增或修改厂商")
+    @Transactional(rollbackFor = Exception.class)
     @PostMapping("/addOrMod")
     public ResultDto<String> addOrMod(@RequestBody TVendor dto){
         // 校验是否获取到登录用户
@@ -126,11 +128,11 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
             dto.setId(id);
             this.put(id,dto);
             msg = "已修改!";
-            // redis缓存信息获取
-            ArrayList<Predicate> arr = new ArrayList<>();
-            arr.add(qtVendor.id.in(dto.getId()));
-            List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
-            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,msg, new RedisDto(redisKeyDtoList).toString());
+//            // redis缓存信息获取
+//            ArrayList<Predicate> arr = new ArrayList<>();
+//            arr.add(qtVendor.id.in(dto.getId()));
+//            List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,msg, null);
         }else{
             //新增
             if(record != null){
