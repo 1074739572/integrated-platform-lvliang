@@ -100,7 +100,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
     @ApiOperation(value = "新增或修改厂商", notes = "新增或修改厂商")
     @Transactional(rollbackFor = Exception.class)
     @PostMapping("/addOrMod")
-    public ResultDto<String> addOrMod(@RequestBody TVendor dto,@RequestParam("loginUsername") String loginUserName){
+    public ResultDto<String> addOrMod(@RequestBody TVendor dto,@RequestParam("loginUserName") String loginUserName){
 //        // 校验是否获取到登录用户
 //        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
 //        if (StringUtils.isBlank(loginUserName)) {
