@@ -21,8 +21,6 @@ public class QTEngine extends com.querydsl.sql.RelationalPathBase<TEngine> {
 
     public static final QTEngine qtEngine = new QTEngine("t_engine");
 
-    public final StringPath isEtl = createString("isEtl");
-
     public final StringPath engineName = createString("engineName");
 
     public final StringPath engineCode = createString("engineCode");
@@ -71,7 +69,6 @@ public class QTEngine extends com.querydsl.sql.RelationalPathBase<TEngine> {
     }
 
     public void addMetadata() {
-        addMetadata(isEtl, ColumnMetadata.named("IS_ETL").withIndex(2).ofType(Types.VARCHAR).withSize(1));
         addMetadata(engineName, ColumnMetadata.named("ENGINE_NAME").withIndex(3).ofType(Types.VARCHAR).withSize(32));
         addMetadata(engineCode, ColumnMetadata.named("ENGINE_CODE").withIndex(11).ofType(Types.VARCHAR).withSize(32));
         addMetadata(engineUrl, ColumnMetadata.named("ENGINE_URL").withIndex(4).ofType(Types.VARCHAR).withSize(255));

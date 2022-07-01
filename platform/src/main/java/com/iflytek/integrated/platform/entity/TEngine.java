@@ -16,8 +16,6 @@ public class TEngine implements Serializable {
 
     private String engineCode;
 
-    private String isEtl;
-
     private String engineUrl;
 
     private String engineUser;
