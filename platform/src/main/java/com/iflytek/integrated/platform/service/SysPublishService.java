@@ -125,12 +125,11 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增/修改服务发布信息", notes = "新增/修改服务发布信息")
     @PostMapping("/saveOrUpdate")
-    public ResultDto<String> saveOrUpdate(@RequestBody TSysPublish dto) {
+    public ResultDto<String> saveOrUpdate(@RequestBody TSysPublish dto,@RequestParam("loginUserName") String loginUserName) {
         if (dto == null) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "数据传入有误!", "数据传入有误!");
         }
         // 校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if (StringUtils.isBlank(loginUserName)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }

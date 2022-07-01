@@ -926,11 +926,6 @@ public class ResourceCenterService {
 
 	@PostMapping(path = "/uploadResources")
 	public ResultDto<String> uploadResources(@RequestParam("sqlFiles") MultipartFile[] sqlFiles) {
-		//校验是否获取到登录用户
-		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-		if (org.apache.commons.lang3.StringUtils.isBlank(loginUserName)) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
-		}
 		//获取数据库连接
 		StringBuilder message = new StringBuilder();
 		try (Connection connection = sqlQueryFactory.getConnection()) {
