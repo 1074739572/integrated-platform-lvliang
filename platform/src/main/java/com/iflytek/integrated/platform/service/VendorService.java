@@ -72,7 +72,7 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
     @GetMapping("/getList")
     public ResultDto getList(
             @ApiParam(value = "厂商名称") @RequestParam(value = "vendorName",required = false) String vendorName,
-            @RequestParam("loginUsername") String loginUserName,
+            @RequestParam("loginUserName") String loginUserName,
             @ApiParam(value = "页码") @RequestParam(defaultValue = "1")Integer pageNo,
             @ApiParam(value = "每页大小") @RequestParam(defaultValue = "10")Integer pageSize
     ){
