@@ -88,12 +88,6 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
             @ApiParam(value = "每页大小") @RequestParam(defaultValue = "10") Integer pageSize
     ) {
         try {
-            // 校验是否获取到登录用户
-            String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-            if (StringUtils.isBlank(loginUserName)) {
-                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
-            }
-
             QueryResults<THistory> queryResults = sqlQueryFactory
                     .select(Projections.bean(THistory.class, qtHistory.pkId, qtHistory.hisType, qtHistory.hisShow,
                             qtHistory.hisContent,
@@ -119,12 +113,6 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
     public ResultDto getByKey(
             @ApiParam(value = "主键") @RequestParam(value = "pkId", required = true) String pkId
     ) {
-        // 校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-        if (StringUtils.isBlank(loginUserName)) {
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
-        }
-
         THistory tHistory = sqlQueryFactory
                 .select(Projections.bean(THistory.class, qtHistory.pkId, qtHistory.hisType, qtHistory.hisShow, qtHistory.hisContent,
                         qtHistory.createdBy, qtHistory.createdTime, qtHistory.originId, qtHistory.recordId))
@@ -140,13 +128,8 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
     @PostMapping("/rollback")
     @Transactional(rollbackFor = Exception.class)
     public ResultDto rollback(
-            @RequestBody HisRollbackDto hisRollbackDto
+            @RequestBody HisRollbackDto hisRollbackDto,@RequestParam("loginUserName") String loginUserName
     ) {
-        // 校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-        if (StringUtils.isBlank(loginUserName)) {
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
-        }
         //获取历史版本
         THistory tHistory = sqlQueryFactory
                 .select(Projections.bean(THistory.class, qtHistory.pkId, qtHistory.hisType, qtHistory.hisContent, qtHistory.recordId))
@@ -216,16 +199,11 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
     @PostMapping("/rollback/businessInterface")
     @Transactional(rollbackFor = Exception.class)
     public ResultDto rollback(
-            @RequestBody HisRollbackBIDto dto
+            @RequestBody HisRollbackBIDto dto,@RequestParam("loginUserName") String loginUserName
     ) {
         if (dto == null || StringUtils.isBlank(dto.getPkId())
                 || StringUtils.isBlank(dto.getInterfaceId())) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "入参为空!");
-        }
-        // 校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-        if (StringUtils.isBlank(loginUserName)) {
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
         }
         //获取历史版本
         THistory tHistory = sqlQueryFactory

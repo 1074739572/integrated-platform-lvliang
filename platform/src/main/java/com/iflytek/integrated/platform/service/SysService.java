@@ -162,12 +162,11 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 	@Transactional(rollbackFor = Exception.class)
 	@ApiOperation(value = "系统管理新增/编辑")
 	@PostMapping("/saveAndUpdateSys")
-	public ResultDto<String> saveAndUpdateSys(@RequestBody SysDto dto) {
+	public ResultDto<String> saveAndUpdateSys(@RequestBody SysDto dto,@RequestParam("loginUserName") String loginUserName) {
 		if (dto == null) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
 		}
 		// 校验是否获取到登录用户
-		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
 		if (StringUtils.isBlank(loginUserName)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
 		}

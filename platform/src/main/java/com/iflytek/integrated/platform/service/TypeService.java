@@ -72,12 +72,11 @@ public class TypeService extends BaseService<TType, String, StringPath> {
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增/修改分类", notes = "新增/修改分类")
     @PostMapping("/saveOrUpdate")
-    public ResultDto<String> saveOrUpdate(@RequestBody TType dto) {
+    public ResultDto<String> saveOrUpdate(@RequestBody TType dto,@RequestParam("loginUserName") String loginUserName) {
         if (dto == null) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
         }
         // 校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if (StringUtils.isBlank(loginUserName)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
@@ -123,12 +122,11 @@ public class TypeService extends BaseService<TType, String, StringPath> {
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "批量新增分类", notes = "批量新增分类")
     @PostMapping("/saveBatchType")
-    public ResultDto<String> saveBatchType(@RequestBody TypeDto dto) {
+    public ResultDto<String> saveBatchType(@RequestBody TypeDto dto,@RequestParam("loginUserName") String loginUserName) {
         if (dto == null) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
         }
         // 校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if (StringUtils.isBlank(loginUserName)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
