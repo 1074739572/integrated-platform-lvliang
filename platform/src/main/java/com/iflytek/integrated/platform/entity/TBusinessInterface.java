@@ -93,5 +93,8 @@ public class TBusinessInterface implements Serializable {
     private String interfaceUrl;
     @Transient
     private String sysIntfInParamFormatType;
+
+    private Integer maxOrder;
+
 }
 

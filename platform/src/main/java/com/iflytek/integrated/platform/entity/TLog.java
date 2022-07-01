@@ -13,6 +13,8 @@ public class TLog implements Serializable {
 
     private Long id;
 
+    private String businessInterfaceId;
+
     private String interfaceId;
 
     private String visitAddr;
@@ -51,6 +53,85 @@ public class TLog implements Serializable {
     private String interfaceUrl;
 
     private String regConnectionType;
+
+    private String publishId;
+
+    private String publishName;
+
+    private String publishSysId;
+
+    private String publishSysName;
+
+    private String showOrder;
+
+    private Integer excErrOrder;
+
+    private String requestInterfaceId;
+
+    public String getRequestInterfaceId() {
+        return requestInterfaceId;
+    }
+
+    public void setRequestInterfaceId(String requestInterfaceId) {
+        this.requestInterfaceId = requestInterfaceId;
+    }
+
+    public Integer getExcErrOrder() {
+        return excErrOrder;
+    }
+
+    public void setExcErrOrder(Integer excErrOrder) {
+        this.excErrOrder = excErrOrder;
+    }
+
+    public String getShowOrder() {
+        return showOrder;
+    }
+
+    public void setShowOrder(String showOrder) {
+        this.showOrder = showOrder;
+    }
+
+    public String getBusinessInterfaceId() {
+        return businessInterfaceId;
+    }
+
+    public void setBusinessInterfaceId(String businessInterfaceId) {
+        this.businessInterfaceId = businessInterfaceId;
+    }
+
+    public String getPublishSysId() {
+        return publishSysId;
+    }
+
+    public void setPublishSysId(String publishSysId) {
+        this.publishSysId = publishSysId;
+    }
+
+    public String getPublishSysName() {
+        return publishSysName;
+    }
+
+    public void setPublishSysName(String publishSysName) {
+        this.publishSysName = publishSysName;
+    }
+
+    public String getPublishId() {
+        return publishId;
+    }
+
+    public void setPublishId(String publishId) {
+        this.publishId = publishId;
+    }
+
+    public String getPublishName() {
+        return publishName;
+    }
+
+    public void setPublishName(String publishName) {
+        this.publishName = publishName;
+    }
+
 
     public String getRegConnectionType() {
         return regConnectionType;

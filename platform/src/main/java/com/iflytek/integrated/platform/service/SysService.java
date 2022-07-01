@@ -34,7 +34,6 @@ import java.util.List;
 
 import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
-import static com.iflytek.integrated.platform.entity.QTSysConfig.qTSysConfig;
 import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
 import static com.iflytek.integrated.platform.entity.QTVendor.qtVendor;
 import static com.querydsl.sql.SQLExpressions.groupConcat;
@@ -81,7 +80,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 			SQLQuery<SysDto> queryer = sqlQueryFactory
 					.select(Projections.bean(SysDto.class, qTSys.id, qTSys.sysName, qTSys.sysCode, qTSys.isValid,
 							qTSys.createdBy, qTSys.createdTime, qTSys.updatedBy, qTSys.updatedTime, qTSys.sysDesc,
-							qTSys.vendorId, groupConcat(qtVendor.vendorName,"|").as("vendorName"),
+							qTSys.vendorId, qtVendor.vendorName.max().as("vendorName"),
 							groupConcat(qTDrive.driveName, "|").as("driverNames")))
 					.from(qTSys)
 					.leftJoin((qTSysDriveLink)).on(qTSys.id.eq(qTSysDriveLink.sysId))
@@ -101,6 +100,23 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		} catch (Exception e) {
 			logger.error("获取系统管理列表失败! MSG:{}", ExceptionUtil.dealException(e));
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取系统管理列表失败");
+		}
+	}
+
+	@ApiOperation(value = "详情")
+	@GetMapping("/getSysInfo")
+	public ResultDto<TSys> getSysInfo(
+			@ApiParam(value = "系统id") @RequestParam(value = "id", required = true) String id) {
+		try {
+			TSys tSys = sqlQueryFactory
+					.select(qTSys)
+					.from(qTSys)
+					.where(qTSys.id.eq(id)).fetchFirst();
+			// 分页
+			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "系统详情获取成功", tSys);
+		} catch (Exception e) {
+			logger.error("获取系统管理列表失败! MSG:{}", ExceptionUtil.dealException(e));
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "系统详情获取失败");
 		}
 	}
 
@@ -129,7 +145,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 
 		//redis缓存信息获取
 		ArrayList<Predicate> arr = new ArrayList<>();
-		arr.add(qTSysConfig.sysId.in(id));
+		arr.add(qTSys.id.in(id));
 		List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
 		// 删除系统
 		long count = this.delete(id);
@@ -213,8 +229,16 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 
 	/** 编辑系统 */
 	private ResultDto updateSys(SysDto dto, String loginUserName) {
-		String sysId = dto.getId();
 		String sysName = dto.getSysName();
+		if (StringUtils.isBlank(sysName)) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "系统名称未填!", dto);
+		}
+		// 判断系统名称是否存在
+		TSys tp = getObjBySysName(sysName.trim());
+		if (tp != null && !tp.getId().equals(dto.getId())) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该系统名称已存在，不能重复!", "该系统名称已存在!");
+		}
+		String sysId = dto.getId();
 		String isValid = dto.getIsValid();
 		String vendorId = dto.getVendorId();
 		String sysDesc = dto.getSysDesc();
@@ -222,12 +246,13 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 
 		//redis缓存信息获取
 		ArrayList<Predicate> arr = new ArrayList<>();
-        arr.add(qTSysConfig.sysId.in(sysId));
+        arr.add(qTSys.id.in(sysId));
 		List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
 		// 更新系统信息
 		SQLUpdateClause updater = sqlQueryFactory.update(qTSys);
 		if (StringUtils.isNotBlank(sysName)) {
 			updater.set(qTSys.sysName, sysName);
+			updater.set(qTSys.sysCode, generateCode(qTSys.sysCode, qTSys, sysName));
 		}
 		if (StringUtils.isNotBlank(isValid)) {
 			updater.set(qTSys.isValid, isValid);
@@ -263,8 +288,8 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 	@ApiOperation(value = "选择系统下拉列表")
 	@GetMapping("/getDisSys")
 	public ResultDto<List<TSys>> getDisSys() {
-		List<TSys> syss = sqlQueryFactory.select(Projections.bean(TSys.class, qTSys.id, qTSys.sysName, qTSys.sysCode))
-				.from(qTSys).orderBy(qTSys.updatedTime.desc()).fetch();
+		List<TSys> syss = sqlQueryFactory.select(Projections.bean(TSys.class, qTSys.id, qTSys.sysName, qTSys.sysCode, qTSys.isValid))
+				.from(qTSys).where(qTSys.isValid.eq("1")).orderBy(qTSys.updatedTime.desc()).fetch();
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "选择系统下拉列表获取成功!", syss);
 	}
 
