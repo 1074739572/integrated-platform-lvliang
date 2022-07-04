@@ -32,6 +32,7 @@ import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.dml.SQLUpdateClause;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * @author lsn
@@ -76,14 +77,13 @@ public class EtlGroupService extends BaseService<TEtlGroup, String, StringPath> 
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "", groupDtoList);
 	}
 
-	public String saveEtlGroup(EtlGroupDto groupDto) throws Exception {
+	public String saveEtlGroup(EtlGroupDto groupDto,String loginUserName) throws Exception {
 
 		TEtlGroup groupEntity = JackSonUtils.jsonToTransfer(JackSonUtils.transferToJson(groupDto), TEtlGroup.class);
 		ResultDto<List<EtlGroupDto>> queryResults = this.getEtlGroups(groupEntity);
 		if (queryResults != null && queryResults.getData() != null && queryResults.getData().size() > 0) {
 			return queryResults.getData().get(0).getId();
 		}
-		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
 		String id = batchUidService.getUid(qTEtlGroup.getTableName()) + "";
 		groupEntity.setId(id);
 		groupEntity.setCreatedBy(loginUserName != null ? loginUserName : "");
@@ -94,14 +94,7 @@ public class EtlGroupService extends BaseService<TEtlGroup, String, StringPath> 
 		return id;
 	}
 
-	public ResultDto<String> editEtlGroup(EtlGroupDto groupDto) {
-
-		// 校验是否获取到登录用户
-//		String loginUserName = "admin";
-		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-		if (StringUtils.isBlank(loginUserName)) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
-		}
+	public ResultDto<String> editEtlGroup(EtlGroupDto groupDto,String loginUserName) {
 		String etlGroupName = groupDto.getEtlGroupName();
 		String etlGroupId = groupDto.getEtlGroupId();
 		String sysId = groupDto.getSysId();
@@ -133,12 +126,6 @@ public class EtlGroupService extends BaseService<TEtlGroup, String, StringPath> 
 
 	@Transactional
 	public ResultDto<String> delEtlGroup(String id , String parentGroupId) throws Exception {
-
-		// 校验是否获取到登录用户
-		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-		if (StringUtils.isBlank(loginUserName)) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
-		}
 		TEtlGroup etlGroup = this.getOne(id);
 		long result = 0;
 		if(etlGroup != null) {
@@ -150,12 +137,6 @@ public class EtlGroupService extends BaseService<TEtlGroup, String, StringPath> 
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "删除流程组成功", result + "");
 	}
 	public ResultDto<String> stopEtlGroup(String id) throws Exception {
-
-		// 校验是否获取到登录用户
-		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-		if (StringUtils.isBlank(loginUserName)) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
-		}
 		TEtlGroup etlGroup = this.getOne(id);
 		if(etlGroup != null) {
 			TPlatform platform = sqlQueryFactory.select(qTPlatform).from(qTPlatform).where(qTPlatform.id.eq(etlGroup.getPlatformId())).fetchOne();
@@ -176,17 +157,11 @@ public class EtlGroupService extends BaseService<TEtlGroup, String, StringPath> 
 	
 	/**
 	 * 清空etl组队列信息
-	 * @param id
+	 * @param
 	 * @return
 	 * @throws Exception
 	 */
 	public ResultDto<String> emptyEtlGroupQueues(Map<String , Object> params){
-
-		// 校验是否获取到登录用户
-		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-		if (StringUtils.isBlank(loginUserName)) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
-		}
 		try {
 			niFiRequestUtil.emptyNifiCollections(params);
 			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "清空流程组队列成功", "");
