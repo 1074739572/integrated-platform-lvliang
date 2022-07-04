@@ -208,10 +208,9 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 
 	@ApiOperation(value = "保存流程配置")
 	@PostMapping(path = "/saveEtlFlow")
-	public ResultDto<String> saveEtlFlow(@RequestBody EtlFlowDto flowDto) {
+	public ResultDto<String> saveEtlFlow(@RequestBody EtlFlowDto flowDto, @RequestParam("loginUserName") String loginUserName) {
 
 		// 校验是否获取到登录用户
-		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
 		if (StringUtils.isBlank(loginUserName)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
 		}
@@ -229,7 +228,7 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 		EtlGroupDto groupDto = flowDto.getEtlGroupDto();
 		String groupId = "";
 		try {
-			groupId = etlGroupService.saveEtlGroup(groupDto);
+			groupId = etlGroupService.saveEtlGroup(groupDto,loginUserName);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "保存流程配置处理流程组数据异常", "");
@@ -284,7 +283,7 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 		EtlGroupDto groupDto = flowDto.getEtlGroupDto();
 		String groupId = "";
 		try {
-			groupId = etlGroupService.saveEtlGroup(groupDto);
+			groupId = etlGroupService.saveEtlGroup(groupDto,loginUserName);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("保存流程配置处理流程组数据异常");
@@ -341,10 +340,9 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 
 	@ApiOperation(value = "修改流程配置")
 	@PostMapping(path = "/updateEtlFlow/{id}")
-	public ResultDto<String> editEtlFlow(@RequestBody EtlFlowDto flowDto) {
+	public ResultDto<String> editEtlFlow(@RequestBody EtlFlowDto flowDto, @RequestParam("loginUserName") String loginUserName) {
 
 		// 校验是否获取到登录用户
-		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
 		if (StringUtils.isBlank(loginUserName)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
 		}
@@ -358,7 +356,7 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 			groupDto.setId(groupId);
 		}
 		try {
-			etlGroupService.editEtlGroup(groupDto);
+			etlGroupService.editEtlGroup(groupDto,loginUserName);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "修改流程配置处理流程组数据异常", "");
@@ -421,10 +419,9 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 	
 	@ApiOperation(value = "修改流程状态")
 	@GetMapping(path = "/updateEtlFlowStatus/{id}")
-	public ResultDto<String> updateEtlFlowStatus(@PathVariable String id, @RequestParam String status) {
+	public ResultDto<String> updateEtlFlowStatus(@PathVariable String id, @RequestParam String status, @RequestParam("loginUserName") String loginUserName) {
 
 		// 校验是否获取到登录用户
-		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
 		if (StringUtils.isBlank(loginUserName)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
 		}
@@ -458,12 +455,6 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 	@PostMapping(path = "/delEtlFlow/{id}")
 	@Transactional(rollbackFor = Exception.class)
 	public ResultDto<String> delEtlFlow(@PathVariable String id) {
-
-		// 校验是否获取到登录用户
-		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-		if (StringUtils.isBlank(loginUserName)) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
-		}
 		long result = 0;
 		TEtlFlow etlFlow = this.getOne(id);
 		if(etlFlow != null) {
@@ -484,12 +475,6 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 	@PostMapping(path = "/stopEtlFlow/{id}")
 	@Transactional(rollbackFor = Exception.class)
 	public ResultDto<String> stopEtlFlow(@PathVariable String id) {
-
-		// 校验是否获取到登录用户
-		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-		if (StringUtils.isBlank(loginUserName)) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
-		}
 		try {
 			etlGroupService.stopEtlGroup(id);
 		} catch (Exception e) {
@@ -537,10 +522,9 @@ public class EtlFlowService extends BaseService<TEtlFlow, String, StringPath> {
 	@ApiOperation(value = "保存流程配置")
 	@PostMapping(path = "/batchSaveEtlFlow")
 	@Transactional(rollbackFor = Exception.class)
-	public ResultDto<String> batchSaveEtlFlow(@RequestBody BatchEtlFlowDto befDto) {
+	public ResultDto<String> batchSaveEtlFlow(@RequestBody BatchEtlFlowDto befDto, @RequestParam("loginUserName") String loginUserName) {
 
 		// 校验是否获取到登录用户
-		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
 		if (StringUtils.isBlank(loginUserName)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
 		}

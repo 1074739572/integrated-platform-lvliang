@@ -132,14 +132,7 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 	@ApiOperation(value = "上传模板")
 	@PostMapping(path = "/uploadEtlTpls/{tplType}/{tplFunType}")
 	public ResultDto<String> uploadEtlTpls(@PathVariable Integer tplType, @PathVariable Integer tplFunType,
-			@RequestParam("tplFiles") MultipartFile[] tplFiles, String tplDesp) {
-
-		// 校验是否获取到登录用户
-		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-		if (StringUtils.isBlank(loginUserName)) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
-		}
-
+			@RequestParam("tplFiles") MultipartFile[] tplFiles, String tplDesp, @RequestParam("loginUserName") String loginUserName) {
 		SQLInsertClause insertClause = sqlQueryFactory.insert(qTEtlTpl);
 		// 流程模板
 		try {
@@ -205,14 +198,7 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 
 	@ApiOperation(value = "修改模板")
 	@PostMapping(path = "/editEtlTpl/{id}")
-	public ResultDto<String> editEtlTpl(@PathVariable String id, @RequestBody EtlTplDto tplDto) {
-
-		// 校验是否获取到登录用户
-		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-		if (StringUtils.isBlank(loginUserName)) {
-			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
-		}
-
+	public ResultDto<String> editEtlTpl(@PathVariable String id, @RequestBody EtlTplDto tplDto, @RequestParam("loginUserName") String loginUserName) {
 		SQLUpdateClause updateClause = sqlQueryFactory.update(qTEtlTpl);
 		// 流程模板
 		try {
@@ -256,12 +242,6 @@ public class EtlTplService extends BaseService<TEtlTpl, String, StringPath> {
 	@ApiOperation(value = "下载模板")
 	@GetMapping(path = "/downloadEtlTpl/{ids}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
 	public void downloadEtlTpl(@PathVariable String ids, HttpServletRequest request, HttpServletResponse response) {
-
-		// 校验是否获取到登录用户
-		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-		if (StringUtils.isBlank(loginUserName)) {
-			throw new RuntimeException("没有获取到登录用户!");
-		}
 		String dateStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
 		String tplsZipName = "etl_tpls_" + dateStr + ".zip";
 		String[] idsArr = ids.split(",");
