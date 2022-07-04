@@ -89,11 +89,11 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
 
             QueryResults<TSysPublish> queryResults = sqlQueryFactory
                     .select(Projections
-                            .bean(TSysPublish.class, qTSysPublish.id,qTSysPublish.publishName,
-                                    qTSysPublish.sysId,qTSys.sysName,qTSysPublish.connectionType,
+                            .bean(TSysPublish.class, qTSysPublish.id, qTSysPublish.publishName,
+                                    qTSysPublish.sysId, qTSys.sysName, qTSysPublish.connectionType,
                                     qTSysPublish.addressUrl, qTSysPublish.limitIps,
                                     qTSysPublish.createdBy, qTSysPublish.createdTime,
-                                    qTSysPublish.updatedBy, qTSysPublish.updatedTime,qTSysPublish.isValid,qTSysPublish.isAuthen))
+                                    qTSysPublish.updatedBy, qTSysPublish.updatedTime, qTSysPublish.isValid, qTSysPublish.isAuthen))
                     .from(qTSysPublish).leftJoin(qTSys)
                     .on(qTSysPublish.sysId.eq(qTSys.id))
                     .where(list.toArray(new Predicate[list.size()]))
@@ -125,7 +125,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增/修改服务发布信息", notes = "新增/修改服务发布信息")
     @PostMapping("/saveOrUpdate")
-    public ResultDto<String> saveOrUpdate(@RequestBody TSysPublish dto,@RequestParam("loginUserName") String loginUserName) {
+    public ResultDto<String> saveOrUpdate(@RequestBody TSysPublish dto, @RequestParam("loginUserName") String loginUserName) {
         if (dto == null) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "数据传入有误!", "数据传入有误!");
         }
@@ -135,7 +135,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
         }
         String registryId = dto.getId();
         //校验 校验“接入系统”是否发布过
-        if(!checkPublishIsExist(registryId,dto.getSysId())){
+        if (!checkPublishIsExist(registryId, dto.getSysId())) {
             throw new RuntimeException("该系统已经发布过服务");
         }
 
@@ -154,18 +154,19 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
                 throw new RuntimeException("服务发布编辑失败!");
             }
         }
-        Map<String , String> data = new HashMap<String , String>();
+        Map<String, String> data = new HashMap<String, String>();
         data.put("id", registryId);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存服务发布信息成功!", JSON.toJSONString(data));
     }
 
     /**
      * 校验新增或者修改是否重复
+     *
      * @param id
      * @param sysId
      * @return
      */
-    private Boolean checkPublishIsExist(String id,String sysId){
+    private Boolean checkPublishIsExist(String id, String sysId) {
         ArrayList<Predicate> list = new ArrayList<>();
         if (StringUtils.isNotEmpty(id)) {
             list.add(qTSysPublish.id.notEqualsIgnoreCase(id));
@@ -178,7 +179,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
                 .from(qTSysPublish)
                 .where(list.toArray(new Predicate[list.size()]))
                 .fetch();
-        if(!CollectionUtils.isEmpty(srList)){
+        if (!CollectionUtils.isEmpty(srList)) {
             return false;
         }
         return true;
@@ -200,11 +201,16 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
     @ApiOperation(value = "获取服务发布下拉列表", notes = "获取服务发布下拉列表")
     @GetMapping("/getPublishSelect")
     public ResultDto<List<TSysPublish>> getRegistryList(
-            @ApiParam(value = "服务发布名称") @PathVariable(value = "publishName", required = false) String publishName) {
+            @ApiParam(value = "服务发布名称") @RequestParam(value = "publishName", required = false) String publishName,
+            @ApiParam(value = "服务发布状态") @RequestParam(value = "isValid", required = false, defaultValue = "1") String isValid
+    ) {
         try {
             ArrayList<Predicate> pre = new ArrayList<>();
             if (StringUtils.isNotEmpty(publishName)) {
                 pre.add(qTSysPublish.publishName.like(PlatformUtil.createFuzzyText(publishName)));
+            }
+            if (StringUtils.isNotEmpty(publishName)) {
+                pre.add(qTSysPublish.isValid.eq(isValid));
             }
             List<TSysPublish> list = sqlQueryFactory
                     .select(Projections.bean(TSysPublish.class, qTSysPublish.id, qTSysPublish.sysId, qTSysPublish.publishName))
@@ -220,7 +226,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
         }
     }
 
-    public TSysPublish getOneBySysId(String sysId){
+    public TSysPublish getOneBySysId(String sysId) {
         return sqlQueryFactory
                 .select(Projections.bean(TSysPublish.class, qTSysPublish.id, qTSysPublish.sysId, qTSysPublish.publishName))
                 .from(qTSysPublish)
