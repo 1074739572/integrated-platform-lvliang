@@ -136,7 +136,7 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
 	@Transactional(rollbackFor = Exception.class)
 	@ApiOperation(value = "医院管理新增/编辑")
 	@PostMapping("/saveAndUpdateHospital")
-	public ResultDto<String> saveAndUpdateHospital(@RequestBody THospital hospital) {
+	public ResultDto<String> saveAndUpdateHospital(@RequestBody THospital hospital,@RequestParam("loginUserName") String loginUserName) {
 		if (hospital == null) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "传入数据不正确!", "传入数据不正确!");
 		}
@@ -147,7 +147,6 @@ public class HospitalService extends BaseService<THospital, String, StringPath> 
 					validationResult.getErrorMsg());
 		}
 		// 校验是否获取到登录用户
-		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
 		if (StringUtils.isBlank(loginUserName)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
 		}

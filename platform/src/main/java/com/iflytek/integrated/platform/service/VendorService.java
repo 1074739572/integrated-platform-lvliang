@@ -8,6 +8,7 @@ import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.common.RedisService;
 import com.iflytek.integrated.platform.dto.RedisDto;
 import com.iflytek.integrated.platform.dto.RedisKeyDto;
+import com.iflytek.integrated.platform.entity.TFunctionAuth;
 import com.iflytek.integrated.platform.entity.TPlugin;
 import com.iflytek.integrated.platform.entity.TSys;
 import com.iflytek.integrated.platform.entity.TVendor;
@@ -22,8 +23,12 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.system.ApplicationHome;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.PostConstruct;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -52,27 +57,34 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
     @Autowired
     SysService sysService;
 
+    String uploadPath;
 
+    @PostConstruct
+    public void init() {
+        ApplicationHome h = new ApplicationHome(getClass());
+        String root = h.getSource()
+                .getParentFile().getParentFile().toString();
+        uploadPath = root + File.separator + "upload" + File.separator;
+        logger.info("==>图片存储目录为：{}",uploadPath);
+    }
 
     @ApiOperation(value = "获取列表", notes = "获取厂商列表")
     @GetMapping("/getList")
     public ResultDto getList(
             @ApiParam(value = "厂商名称") @RequestParam(value = "vendorName",required = false) String vendorName,
+            @RequestParam("loginUserName") String loginUserName,
             @ApiParam(value = "页码") @RequestParam(defaultValue = "1")Integer pageNo,
             @ApiParam(value = "每页大小") @RequestParam(defaultValue = "10")Integer pageSize
     ){
         // 校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-        if (StringUtils.isBlank(loginUserName)) {
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
-        }
+       logger.info("========="+loginUserName+"===============");
         ArrayList<Predicate> list = new ArrayList<>();
         if (StringUtils.isNotEmpty(vendorName)) {
             list.add(qtVendor.vendorName.like("%"+vendorName+"%"));
         }
         QueryResults<TVendor> queryResults = sqlQueryFactory
                 .select(Projections.bean(TVendor.class,qtVendor.id, qtVendor.vendorName, qtVendor.vendorCode, qtVendor.isValid,
-                        qtVendor.createdBy, qtVendor.createdTime, qtVendor.updatedBy, qtVendor.updatedTime))
+                        qtVendor.createdBy, qtVendor.createdTime, qtVendor.updatedBy, qtVendor.updatedTime,qtVendor.logo))
                 .from(qtVendor)
                 .where(list.toArray(new Predicate[list.size()])).limit(pageSize)
                 .limit(pageSize)
@@ -86,52 +98,46 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
 
 
     @ApiOperation(value = "新增或修改厂商", notes = "新增或修改厂商")
+    @Transactional(rollbackFor = Exception.class)
     @PostMapping("/addOrMod")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "id", value = "id"),
-            @ApiImplicitParam(name = "vendorName", value = "厂商名称", required = true),
-            @ApiImplicitParam(name = "vendorCode", value = "厂商编码", required = true),
-    })
-    public ResultDto<String> addOrMod(@RequestBody Map param){
-        // 校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-        if (StringUtils.isBlank(loginUserName)) {
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
-        }
+    public ResultDto<String> addOrMod(@RequestBody TVendor dto,@RequestParam("loginUserName") String loginUserName){
+//        // 校验是否获取到登录用户
+//        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
+//        if (StringUtils.isBlank(loginUserName)) {
+//            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
+//        }
 
-        TVendor record = sqlQueryFactory.select(Projections.bean(TVendor.class,qtVendor.id, qtVendor.vendorName)).from(qtVendor).where(qtVendor.vendorName.eq(param.get("vendorName").toString())).fetchFirst();
+        TVendor record = sqlQueryFactory.select(Projections.bean(TVendor.class,qtVendor.id, qtVendor.vendorName)).from(qtVendor).where(qtVendor.vendorName.eq(dto.getVendorName())).fetchFirst();
 
         String msg = "";
 
-        TVendor vendor = new TVendor();
-        vendor.setVendorName(param.get("vendorName").toString());
-        vendor.setVendorCode(param.get("vendorCode").toString());
-        vendor.setIsValid("1");
-        vendor.setCreatedBy(loginUserName);
-        vendor.setCreatedTime(new Date());
-        vendor.setUpdatedBy(loginUserName);
-        vendor.setUpdatedTime(new Date());
-        Object id = param.get("id");
-        if(id != null && StringUtils.isNotEmpty(id.toString())){
+        dto.setIsValid("1");
+        dto.setCreatedBy(loginUserName);
+        dto.setCreatedTime(new Date());
+        dto.setUpdatedBy(loginUserName);
+        dto.setUpdatedTime(new Date());
+        dto.setLogo(dto.getLogo());
+        String id = dto.getId();
+        if(id != null && StringUtils.isNotEmpty(id)){
             //修改
-            if(record != null && !record.getId().equals(id.toString())){
+            if(record != null && !record.getId().equals(id)){
                 return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "名称已存在！");
             }
-            vendor.setId(id.toString());
-            this.put(id.toString(),vendor);
+            dto.setId(id);
+            this.put(id,dto);
             msg = "已修改!";
-            // redis缓存信息获取
-            ArrayList<Predicate> arr = new ArrayList<>();
-            arr.add(qtVendor.id.in(vendor.getId()));
-            List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
-            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,msg, new RedisDto(redisKeyDtoList).toString());
+//            // redis缓存信息获取
+//            ArrayList<Predicate> arr = new ArrayList<>();
+//            arr.add(qtVendor.id.in(dto.getId()));
+//            List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,msg, null);
         }else{
             //新增
             if(record != null){
                 return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "名称已存在！");
             }
-            vendor.setId(batchUidService.getUid(qtVendor.getTableName())+"");
-            this.post(vendor);
+            dto.setId(batchUidService.getUid(qtVendor.getTableName())+"");
+            this.post(dto);
             msg = "已新增!";
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, msg);
         }
@@ -144,11 +150,6 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
             @ApiImplicitParam(name = "id", value = "ID",required = true)
     })
     public ResultDto del(@RequestBody Map param){
-        // 校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-        if (StringUtils.isBlank(loginUserName)) {
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
-        }
         Object id = param.get("id");
         if(id != null && StringUtils.isNotEmpty(id.toString())){
             //厂商是否被关联
@@ -158,11 +159,11 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
             }
 
             //redis缓存信息获取
-            ArrayList<Predicate> arr = new ArrayList<>();
-            arr.add(qtVendor.id.in(id.toString()));
-            List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+//            ArrayList<Predicate> arr = new ArrayList<>();
+//            arr.add(qtVendor.id.in(id.toString()));
+//            List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
             this.delete(id.toString());
-            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "已删除!",new RedisDto(redisKeyDtoList).toString());
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "已删除!",null);
         }else{
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "Id不能为空！");
         }
@@ -172,11 +173,6 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
     @ApiOperation(value = "下拉选", notes = "厂商下拉选")
     @GetMapping(value = "/getAll")
     public ResultDto getAll(){
-        // 校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-        if (StringUtils.isBlank(loginUserName)) {
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
-        }
         List<TVendor> list = sqlQueryFactory
                 .select(Projections.bean(TVendor.class,qtVendor.id, qtVendor.vendorName, qtVendor.vendorCode, qtVendor.isValid,
                         qtVendor.createdBy,qtVendor.createdTime,qtVendor.updatedTime,qtVendor.updatedBy))

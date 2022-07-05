@@ -2,6 +2,9 @@ package com.iflytek.integrated.platform.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
 import java.io.Serializable;
 
 /**
@@ -20,6 +23,8 @@ public class TVendor implements Serializable {
 
     private String createdBy;
 
+    private String logo;
+
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone="GMT+8")
     private java.util.Date createdTime;
 
@@ -27,6 +32,5 @@ public class TVendor implements Serializable {
 
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone="GMT+8")
     private java.util.Date updatedTime;
-
 }
 

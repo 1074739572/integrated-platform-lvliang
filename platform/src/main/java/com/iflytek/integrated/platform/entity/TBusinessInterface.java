@@ -1,9 +1,7 @@
 package com.iflytek.integrated.platform.entity;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
-
 import org.springframework.data.annotation.Transient;
 
 import java.io.Serializable;
@@ -95,5 +93,8 @@ public class TBusinessInterface implements Serializable {
     private String interfaceUrl;
     @Transient
     private String sysIntfInParamFormatType;
+
+    private Integer maxOrder;
+
 }
 

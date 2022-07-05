@@ -143,9 +143,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @Transactional(rollbackFor = Exception.class)
     public ResultDto<String> updateMockStatus(
             @ApiParam(value = "集成配置id") @RequestParam(value = "id", required = true) String id,
-            @ApiParam(value = "更改后的状态") @RequestParam(value = "mockStatus", required = true) String mockStatus) {
+            @ApiParam(value = "更改后的状态") @RequestParam(value = "mockStatus", required = true) String mockStatus,
+            @RequestParam("loginUserName") String loginUserName) {
         // 校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if (StringUtils.isBlank(loginUserName)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
         }
@@ -157,9 +157,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @Transactional(rollbackFor = Exception.class)
     public ResultDto<String> updateStatus(
             @ApiParam(value = "集成配置") @RequestParam(value = "id", required = true) String id,
-            @ApiParam(value = "更改后的状态") @RequestParam(value = "status", required = true) String status) {
+            @ApiParam(value = "更改后的状态") @RequestParam(value = "status", required = true) String status,
+            @RequestParam("loginUserName") String loginUserName) {
         // 校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if (StringUtils.isBlank(loginUserName)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
         }
@@ -191,9 +191,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @ApiOperation(value = "保存mock模板", notes = "保存mock模板")
     @PostMapping("/saveMockTemplate")
     @Transactional(rollbackFor = Exception.class)
-    public ResultDto<String> saveMockTemplate(@RequestBody List<MockTemplateDto> dtoList) {
+    public ResultDto<String> saveMockTemplate(@RequestBody List<MockTemplateDto> dtoList,@RequestParam("loginUserName") String loginUserName) {
         // 校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if (StringUtils.isBlank(loginUserName)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
         }
@@ -234,7 +233,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                     .select(Projections.bean(TBusinessInterface.class, qTBusinessInterface.id,
                             qTBusinessInterface.requestInterfaceId,
                             qTInterface.interfaceUrl.as("interfaceUrl"),
-                            qTSys.sysCode.as("sysCode"),qTInterface.inParamFormatType.as("sysIntfInParamFormatType")))
+                            qTSys.sysCode.as("sysCode"), qTInterface.inParamFormatType.as("sysIntfInParamFormatType")))
                     .from(qTBusinessInterface)
                     .leftJoin(qTInterface).on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id))
                     .leftJoin(qTSysRegistry).on(qTSysRegistry.id.eq(qTBusinessInterface.sysRegistryId))
@@ -262,9 +261,11 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 String suffix = "services/";
                 wsUrl = wsUrl + suffix;
                 resDto.setWsdlUrl(wsUrl);
-                List<String> wsOperationNames = PlatformUtil.getWsdlOperationNames(wsUrl);
+                log.info("之前wsUrl====={}", wsUrl);
+                List<String> wsOperationNames = PlatformUtil.getWsdlOperationNames(wsUrl + businessInterface.getSysCode());
                 resDto.setWsOperationNames(wsOperationNames);
                 resDto.setSysIntfParamFormatType("2");
+                log.info("之后wsUrl====={}", wsUrl);
             } else {
                 List<String> paramNames = sqlQueryFactory.select(qTInterfaceParam.paramName).from(qTInterfaceParam)
                         .where(qTInterfaceParam.interfaceId.eq(interfaceId)
@@ -282,6 +283,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 resDto.setSysIntfParamFormatType("3");
                 resDto.setWsInParams(objectMapper.writeValueAsString(paramsMap));
             }
+
             resDto.setFuncode(businessInterface.getInterfaceUrl());
             resDto.setProductcode("");
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取服务调试显示数据成功!", resDto);
@@ -344,7 +346,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         ArrayList<Predicate> arr = new ArrayList<>();
         arr.add(qTInterface.id.in(id));
         //TODO REDIS暂时不用
-        List<RedisKeyDto> redisKeyDtoList =null;// redisService.getRedisKeyDtoList(arr);
+        List<RedisKeyDto> redisKeyDtoList = null;// redisService.getRedisKeyDtoList(arr);
         // 删除服务
         long l = this.delete(id);
         if (l < 1) {
@@ -356,12 +358,11 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "标准服务新增/编辑", notes = "标准服务新增/编辑")
     @PostMapping("/saveAndUpdateInterface")
-    public ResultDto<String> saveAndUpdateInterface(@RequestBody InterfaceDto dto) {
+    public ResultDto<String> saveAndUpdateInterface(@RequestBody InterfaceDto dto,@RequestParam("loginUserName") String loginUserName) {
         if (dto == null) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
         }
         // 校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if (StringUtils.isBlank(loginUserName)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
@@ -745,13 +746,12 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @ApiOperation(value = "获取服务信息（重放标识）", notes = "获取服务信息（重放标识）")
     @GetMapping("/getBusItfInfo")
     public ResultDto getBusItfInfo(
-            @ApiParam(value = "请求方系统服务ID") @RequestParam(value = "reqItfId", required = true) String reqItfId) {
+            @ApiParam(value = "请求方系统服务ID") @RequestParam(value = "reqItfId", required = true) String reqItfId,@RequestParam("loginUserName") String loginUserName) {
         //校验入参
         if (StringUtils.isBlank(reqItfId)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求参数不能为空!");
         }
         // 校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if (StringUtils.isBlank(loginUserName)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
         }
@@ -764,15 +764,14 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增/编辑服务配置", notes = "新增/编辑服务配置")
     @PostMapping("/saveAndUpdateInterfaceConfig")
-    public ResultDto<String> saveAndUpdateInterfaceConfig(@RequestBody BusinessInterfaceDto dto ) {
+    public ResultDto<String> saveAndUpdateInterfaceConfig(@RequestBody BusinessInterfaceDto dto,@RequestParam("loginUserName") String loginUserName) {
         if (dto == null) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求参数不能为空!");
         }
-        if(StringUtils.isBlank(dto.getRequestInterfaceId())) {
+        if (StringUtils.isBlank(dto.getRequestInterfaceId())) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求方服务不能为空!");
         }
         // 校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if (StringUtils.isBlank(loginUserName)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
         }
@@ -889,10 +888,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 TInterface tInterface = interfaceService.getOne(tbi.getRequestInterfaceId());
                 requestInterfaceName = tInterface.getInterfaceName();
 
-                if(StringUtils.isNotBlank(tbi.getSysRegistryId())){
+                if (StringUtils.isNotBlank(tbi.getSysRegistryId())) {
                     TSysRegistry tSysRegistry = sysRegistryService.getOne(tbi.getSysRegistryId());
                     TSys requestedSys = sysService.getOne(tSysRegistry.getSysId());
-                    businessInterfaceName += (requestedSys.getSysName()+"/"+tbi.getBusinessInterfaceName()+",");
+                    businessInterfaceName += (requestedSys.getSysName() + "/" + tbi.getBusinessInterfaceName() + ",");
                 }
 
 
@@ -923,7 +922,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             String hisShow = JSON.toJSONString(map);
             historyService.insertHis(list, 1, loginUserName, lastRecordId, lastRecordId, hisShow);
         }
-
 
 
         // 返回缓存集成配置id
@@ -980,11 +978,11 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     private void updateSeq(List<TBusinessInterface> tbiList) {
         List<String> list = tbiList.stream().map(TBusinessInterface::getId).collect(Collectors.toList());
         //如果不存在两条修改  则不涉及顺序调整
-        if(CollectionUtils.isEmpty(list) || list.size()<2){
+        if (CollectionUtils.isEmpty(list) || list.size() < 2) {
             return;
         }
 
-        sqlQueryFactory.update(qTBusinessInterface).set(qTBusinessInterface.excErrOrder,qTBusinessInterface.excErrOrder.add(list.size()))
+        sqlQueryFactory.update(qTBusinessInterface).set(qTBusinessInterface.excErrOrder, qTBusinessInterface.excErrOrder.add(list.size()))
                 .where(qTBusinessInterface.id.in(list)).execute();
     }
 
@@ -1383,10 +1381,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     }
 
 
-    @PostMapping(path = "/uploadInterFaceSql/{projectId}")
-    public ResultDto<String> uploadInterFaceSql(@PathVariable String projectId, @RequestParam("sqlFiles") MultipartFile[] sqlFiles) {
+    @PostMapping(path = "/uploadInterFaceSql")
+    public ResultDto<String> uploadInterFaceSql(@RequestParam("sqlFiles") MultipartFile[] sqlFiles,@RequestParam("loginUserName") String loginUserName) {
         //校验是否获取到登录用户
-        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
         if (org.apache.commons.lang3.StringUtils.isBlank(loginUserName)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
@@ -1415,7 +1412,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                         sql.append(lineText).append("\r\n");
                     }
                     //将sys_config表中的平台id以及项目id进行替换
-                    sql = new StringBuilder(sql.toString().replaceAll("'newProjectId_\\d+'", "'" + projectId + "'"));
+                    sql = new StringBuilder(sql.toString());
                     String[] sqls = sql.toString().split("END_OF_SQL");
                     for (String str : sqls) {
                         if (str.trim().startsWith("INSERT") || str.trim().startsWith("REPLACE"))
@@ -1440,6 +1437,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         } catch (Exception e) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "执行sql脚本失败", e.getLocalizedMessage());
         }
+    }
+
+    public TInterface getByTypeId(String typeId) {
+        return sqlQueryFactory.select(qTInterface).from(qTInterface).where(qTInterface.typeId.eq(typeId)).fetchFirst();
     }
 
     public static void main(String[] args) {

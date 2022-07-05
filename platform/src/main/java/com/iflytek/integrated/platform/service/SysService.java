@@ -80,7 +80,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 			SQLQuery<SysDto> queryer = sqlQueryFactory
 					.select(Projections.bean(SysDto.class, qTSys.id, qTSys.sysName, qTSys.sysCode, qTSys.isValid,
 							qTSys.createdBy, qTSys.createdTime, qTSys.updatedBy, qTSys.updatedTime, qTSys.sysDesc,
-							qTSys.vendorId, groupConcat(qtVendor.vendorName,"|").as("vendorName"),
+							qTSys.vendorId, qtVendor.vendorName.max().as("vendorName"),
 							groupConcat(qTDrive.driveName, "|").as("driverNames")))
 					.from(qTSys)
 					.leftJoin((qTSysDriveLink)).on(qTSys.id.eq(qTSysDriveLink.sysId))
@@ -162,12 +162,11 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 	@Transactional(rollbackFor = Exception.class)
 	@ApiOperation(value = "系统管理新增/编辑")
 	@PostMapping("/saveAndUpdateSys")
-	public ResultDto<String> saveAndUpdateSys(@RequestBody SysDto dto) {
+	public ResultDto<String> saveAndUpdateSys(@RequestBody SysDto dto,@RequestParam("loginUserName") String loginUserName) {
 		if (dto == null) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
 		}
 		// 校验是否获取到登录用户
-		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
 		if (StringUtils.isBlank(loginUserName)) {
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
 		}
@@ -229,8 +228,16 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 
 	/** 编辑系统 */
 	private ResultDto updateSys(SysDto dto, String loginUserName) {
-		String sysId = dto.getId();
 		String sysName = dto.getSysName();
+		if (StringUtils.isBlank(sysName)) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "系统名称未填!", dto);
+		}
+		// 判断系统名称是否存在
+		TSys tp = getObjBySysName(sysName.trim());
+		if (tp != null && !tp.getId().equals(dto.getId())) {
+			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该系统名称已存在，不能重复!", "该系统名称已存在!");
+		}
+		String sysId = dto.getId();
 		String isValid = dto.getIsValid();
 		String vendorId = dto.getVendorId();
 		String sysDesc = dto.getSysDesc();
@@ -244,6 +251,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		SQLUpdateClause updater = sqlQueryFactory.update(qTSys);
 		if (StringUtils.isNotBlank(sysName)) {
 			updater.set(qTSys.sysName, sysName);
+			updater.set(qTSys.sysCode, generateCode(qTSys.sysCode, qTSys, sysName));
 		}
 		if (StringUtils.isNotBlank(isValid)) {
 			updater.set(qTSys.isValid, isValid);
