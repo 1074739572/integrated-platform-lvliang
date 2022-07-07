@@ -124,6 +124,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     private SysRegistryService sysRegistryService;
     @Autowired
     private SysService sysService;
+    @Autowired
+    private InterfaceHisService interfaceHisService;
 
     @Value("${config.request.nifiapi.readtimeout}")
     private int readTimeout;
@@ -483,6 +485,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据传入id未查出对应标准服务,检查是否传入错误!",
                     "根据传入id未查出对应标准服务,检查是否传入错误!");
         }
+        //先写进历史
+        interfaceHisService.saveHis(id);
         //redis缓存信息获取
         ArrayList<Predicate> arr = new ArrayList<>();
         arr.add(qTInterface.id.eq(id));
@@ -595,13 +599,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 }
             }
         }
-        //记录历史
-        write2His(id);
+
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准服务修改成功!", new RedisDto(redisKeyDtoList).toString());
-    }
-
-    private void write2His(String id) {
-
     }
 
     @ApiOperation(value = "获取服务分类")

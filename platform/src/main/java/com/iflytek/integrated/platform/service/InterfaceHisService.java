@@ -110,17 +110,27 @@ public class InterfaceHisService extends BaseService<TInterfaceHis, String, Stri
     @GetMapping("/rollback")
     public ResultDto<InterfaceDto> rollback(
             @ApiParam(value = "服务历史id") @RequestParam(value = "id", required = true) String id) {
-        TInterface ti = this.getOne(id);
+        TInterfaceHis ti = this.getOne(id);
         if (ti == null) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据id未查出该服务!", null);
         }
         try {
-            InterfaceDto iDto=interfaceService.handleInterface(ti);
-            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取服务历史详情成功!", iDto);
+            //先插入当前服务
+            saveHis(ti.getOriginInterfaceId());
+
+            //再替换当前服务为历史服务
+            TInterface tInterface=new TInterface();
+            BeanUtils.copyProperties(ti,tInterface);
+            tInterface.setId(ti.getOriginInterfaceId());
+            interfaceService.put(tInterface.getId(),tInterface);
+
+            //再删除当前历史
+            this.delete(id);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "回滚成功!", null);
         } catch (Exception e) {
-            logger.error("获取服务历史详情失败! MSG:{}", ExceptionUtil.dealException(e));
+            logger.error("回滚失败! MSG:{}", ExceptionUtil.dealException(e));
             e.printStackTrace();
-            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取服务历史详情失败!");
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "回滚失败!");
         }
     }
 
