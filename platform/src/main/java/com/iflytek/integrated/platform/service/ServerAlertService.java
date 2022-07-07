@@ -71,12 +71,14 @@ public class ServerAlertService extends BaseService<TServerAlert, String, String
             dto.setId(batchUidService.getUid(qTSysRegistry.getTableName()) + "");
             dto.setCreatedTime(new Date());
             dto.setCreatedBy(loginUserName);
+            dto.setUpdatedTime(new Date());
+            dto.setUpdatedBy(loginUserName);
             this.post(dto);
         } else {
             dto.setUpdatedBy(loginUserName);
             dto.setUpdatedTime(new Date());
             this.put(dto.getId(), dto);
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "服务告警配置保存成功!", null);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "服务告警配置保存成功!", dto.getId());
     }
 }
