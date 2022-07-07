@@ -165,7 +165,7 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
             statisticsDto.setVendorTopTen(toptenVendorCall(queryResults));
 
             //服务类型访问次数统计
-            statisticsDto.setTypeTopTen(typeCall(queryResults));
+            statisticsDto.setTypeCall(typeCall(queryResults));
 
             //服务调用速度TOP10
             statisticsDto.setSpeedTopTen(toptenSpeedCall(queryResults));
@@ -364,7 +364,7 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
     @GetMapping("/getEveryHour")
     public ResultDto<List<CallStatisticsDTO>> getEveryHour() {
         try {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:00");
             //获取当前日期和7天前日期
             Calendar c = Calendar.getInstance();
             c.add(Calendar.DATE, -9);

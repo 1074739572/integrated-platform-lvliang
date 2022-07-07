@@ -62,7 +62,7 @@ public class TotalStatisticsDTO {
     /**
      * 服务类型访问次数统计
      */
-    List<CallStatisticsDTO> typeTopTen;
+    List<CallStatisticsDTO> typeCall;
 
     /**
      * 服务调用速度TOP10
