@@ -54,12 +54,6 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
     private static final Logger logger = LoggerFactory.getLogger(SysPublishService.class);
 
     @Autowired
-    private RedisService redisService;
-
-    @Autowired
-    private SysService sysService;
-
-    @Autowired
     private BatchUidService batchUidService;
 
     public SysPublishService() {
@@ -209,7 +203,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
             if (StringUtils.isNotEmpty(publishName)) {
                 pre.add(qTSysPublish.publishName.like(PlatformUtil.createFuzzyText(publishName)));
             }
-            if (StringUtils.isNotEmpty(publishName)) {
+            if (StringUtils.isNotEmpty(isValid)) {
                 pre.add(qTSysPublish.isValid.eq(isValid));
             }
             List<TSysPublish> list = sqlQueryFactory
