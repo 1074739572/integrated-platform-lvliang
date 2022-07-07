@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
-import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.common.validator.ValidationResult;
 import com.iflytek.integrated.common.validator.ValidatorHelper;
@@ -28,9 +27,7 @@ import com.iflytek.integrated.platform.entity.TInterface;
 import com.iflytek.integrated.platform.entity.TInterfaceParam;
 import com.iflytek.integrated.platform.entity.TPlugin;
 import com.iflytek.integrated.platform.entity.TSys;
-import com.iflytek.integrated.platform.entity.TSysConfig;
 import com.iflytek.integrated.platform.entity.TSysDriveLink;
-import com.iflytek.integrated.platform.entity.TSysPublish;
 import com.iflytek.integrated.platform.entity.TSysRegistry;
 import com.iflytek.integrated.platform.entity.TType;
 import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
@@ -92,7 +89,6 @@ import static com.iflytek.integrated.platform.entity.QTInterfaceParam.qTInterfac
 import static com.iflytek.integrated.platform.entity.QTPlugin.qTPlugin;
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
-import static com.iflytek.integrated.platform.entity.QTSysPublish.qTSysPublish;
 import static com.iflytek.integrated.platform.entity.QTSysRegistry.qTSysRegistry;
 import static com.iflytek.integrated.platform.entity.QTType.qTType;
 
@@ -599,7 +595,13 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 }
             }
         }
+        //记录历史
+        write2His(id);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准服务修改成功!", new RedisDto(redisKeyDtoList).toString());
+    }
+
+    private void write2His(String id) {
+
     }
 
     @ApiOperation(value = "获取服务分类")
@@ -1059,47 +1061,52 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据id未查出该服务!", null);
         }
         try {
-            InterfaceDto iDto = new InterfaceDto();
-            BeanUtils.copyProperties(ti, iDto);
-            // 获取服务参数
-            List<TInterfaceParam> paramsList = interfaceParamService.getParamsByInterfaceId(id);
-            // 入参
-            List<TInterfaceParam> inParamList = new ArrayList<>();
-            // 出参
-            List<TInterfaceParam> outParamList = new ArrayList<>();
-            if (CollectionUtils.isNotEmpty(paramsList)) {
-                TInterfaceParam tip;
-                for (TInterfaceParam obj : paramsList) {
-                    tip = new TInterfaceParam();
-                    tip.setParamName(obj.getParamName());
-                    tip.setParamType(obj.getParamType());
-                    tip.setParamInstruction(obj.getParamInstruction());
-                    tip.setParamLength(obj.getParamLength());
-                    tip.setParamInOut(obj.getParamInOut());
-                    tip.setEncryptionStatus(obj.getEncryptionStatus());
-                    tip.setMaskStatus(obj.getMaskStatus());
-                    if (iDto.getParamOutStatus().equals(obj.getParamName())) {
-                        // 开启状态
-                        tip.setIsStart("1");
-                        tip.setParamOutStatus(obj.getParamOutStatus());
-                        tip.setParamOutStatusSuccess(obj.getParamOutStatusSuccess());
-                    }
-                    if (Constant.ParmInOut.IN.equals(obj.getParamInOut())) {
-                        inParamList.add(tip);
-                    }
-                    if (Constant.ParmInOut.OUT.equals(obj.getParamInOut())) {
-                        outParamList.add(tip);
-                    }
-                }
-            }
-            iDto.setInParamList(inParamList);
-            iDto.setOutParamList(outParamList);
+            InterfaceDto iDto=handleInterface(ti);
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取标准服务详情成功!", iDto);
         } catch (Exception e) {
             logger.error("获取标准服务详情失败! MSG:{}", ExceptionUtil.dealException(e));
             e.printStackTrace();
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取标准服务详情失败!");
         }
+    }
+
+    public InterfaceDto handleInterface(TInterface ti){
+        InterfaceDto iDto = new InterfaceDto();
+        BeanUtils.copyProperties(ti, iDto);
+        // 获取服务参数
+        List<TInterfaceParam> paramsList = interfaceParamService.getParamsByInterfaceId(ti.getId());
+        // 入参
+        List<TInterfaceParam> inParamList = new ArrayList<>();
+        // 出参
+        List<TInterfaceParam> outParamList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(paramsList)) {
+            TInterfaceParam tip;
+            for (TInterfaceParam obj : paramsList) {
+                tip = new TInterfaceParam();
+                tip.setParamName(obj.getParamName());
+                tip.setParamType(obj.getParamType());
+                tip.setParamInstruction(obj.getParamInstruction());
+                tip.setParamLength(obj.getParamLength());
+                tip.setParamInOut(obj.getParamInOut());
+                tip.setEncryptionStatus(obj.getEncryptionStatus());
+                tip.setMaskStatus(obj.getMaskStatus());
+                if (iDto.getParamOutStatus().equals(obj.getParamName())) {
+                    // 开启状态
+                    tip.setIsStart("1");
+                    tip.setParamOutStatus(obj.getParamOutStatus());
+                    tip.setParamOutStatusSuccess(obj.getParamOutStatusSuccess());
+                }
+                if (Constant.ParmInOut.IN.equals(obj.getParamInOut())) {
+                    inParamList.add(tip);
+                }
+                if (Constant.ParmInOut.OUT.equals(obj.getParamInOut())) {
+                    outParamList.add(tip);
+                }
+            }
+        }
+        iDto.setInParamList(inParamList);
+        iDto.setOutParamList(outParamList);
+        return iDto;
     }
 
     @ApiOperation(value = "选择服务下拉(可根据当前项目操作选择)")
