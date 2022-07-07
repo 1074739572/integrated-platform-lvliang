@@ -10,7 +10,7 @@ public class CallStatisticsDTO {
     private String name;
 
     /**
-     * 访问量
+     * 指标值
      */
     private Long indexCount;
 
