@@ -20,6 +20,9 @@ public class TSysRegistry implements Serializable {
     @Transient
     private String sysName;
 
+    @Transient
+    private String sysCode;
+
     private String connectionType;
 
     @Length(max = 128, message = "调用地址长度不能超过128")
