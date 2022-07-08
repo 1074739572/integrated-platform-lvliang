@@ -300,6 +300,7 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
             Calendar c = Calendar.getInstance();
             Date now = c.getTime();
             String nowStr = sdf.format(now);
+            c.add(Calendar.DATE, -6);
             String sevenDay = sdf.format(c.getTime());
 
             //获得近7天的数据
