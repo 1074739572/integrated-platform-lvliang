@@ -124,8 +124,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     private SysRegistryService sysRegistryService;
     @Autowired
     private SysService sysService;
-    @Autowired
-    private InterfaceHisService interfaceHisService;
 
     @Value("${config.request.nifiapi.readtimeout}")
     private int readTimeout;
