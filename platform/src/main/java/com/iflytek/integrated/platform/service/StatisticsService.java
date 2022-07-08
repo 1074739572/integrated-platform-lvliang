@@ -59,7 +59,6 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             //获取当前日期
             Calendar c = Calendar.getInstance();
-            c.add(Calendar.DATE,-9);
             Date now = c.getTime();
             String nowStr = sdf.format(now);
             //查询当日数据
@@ -367,7 +366,6 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:00");
             //获取当前日期和7天前日期
             Calendar c = Calendar.getInstance();
-            c.add(Calendar.DATE, -9);
             Date now = c.getTime();
             String nowStr = sdf.format(now);
             c.add(Calendar.HOUR, -23);
@@ -376,7 +374,6 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
             //获得近24小时的数据
             List<String> sevenDayList = new ArrayList<>();
             Calendar c1 = Calendar.getInstance();
-            c1.add(Calendar.DATE, -9);
             sevenDayList.add(sdf.format(c1.getTime()).substring(5));
             for (int i = 0; i < 23; i++) {
                 c1.add(Calendar.HOUR, -1);

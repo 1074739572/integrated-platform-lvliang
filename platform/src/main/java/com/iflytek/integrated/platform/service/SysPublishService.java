@@ -84,7 +84,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
             QueryResults<TSysPublish> queryResults = sqlQueryFactory
                     .select(Projections
                             .bean(TSysPublish.class, qTSysPublish.id, qTSysPublish.publishName,
-                                    qTSysPublish.sysId, qTSys.sysName, qTSysPublish.connectionType,
+                                    qTSysPublish.sysId, qTSys.sysName,qTSys.sysCode, qTSysPublish.connectionType,
                                     qTSysPublish.addressUrl, qTSysPublish.limitIps,
                                     qTSysPublish.createdBy, qTSysPublish.createdTime,
                                     qTSysPublish.updatedBy, qTSysPublish.updatedTime, qTSysPublish.isValid, qTSysPublish.isAuthen))

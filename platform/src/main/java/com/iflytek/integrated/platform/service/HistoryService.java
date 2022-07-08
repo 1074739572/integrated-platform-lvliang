@@ -5,18 +5,18 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
-import com.iflytek.integrated.common.intercept.UserLoginIntercept;
+import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.dto.HisRollbackBIDto;
 import com.iflytek.integrated.platform.dto.HisRollbackDto;
+import com.iflytek.integrated.platform.dto.InterfaceDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TDrive;
 import com.iflytek.integrated.platform.entity.THistory;
 import com.iflytek.integrated.platform.entity.TInterface;
 import com.iflytek.integrated.platform.entity.TPlugin;
 import com.iflytek.integrated.platform.entity.TSys;
-import com.iflytek.integrated.platform.entity.TSysConfig;
 import com.iflytek.integrated.platform.entity.TSysRegistry;
 import com.iflytek.integrated.platform.entity.TType;
 import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
@@ -83,7 +83,7 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
     @GetMapping("/getHisList")
     public ResultDto getHisList(
             @ApiParam(value = "接口转换/驱动/插件的id") @RequestParam(value = "recordId", required = true) String recordId,
-            @ApiParam(value = "历史版本类型（1接口转换 2驱动 3插件）") @RequestParam(value = "hisType", required = true) Integer hisType,
+            @ApiParam(value = "历史版本类型（1接口转换 2驱动 3插件 4服务管理）") @RequestParam(value = "hisType", required = true) Integer hisType,
             @ApiParam(value = "页码") @RequestParam(defaultValue = "1") Integer pageNo,
             @ApiParam(value = "每页大小") @RequestParam(defaultValue = "10") Integer pageSize
     ) {
@@ -334,6 +334,33 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
         }
 
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "回滚历史版本成功!", null);
+    }
+
+
+    @ApiOperation(value = "回滚历史版本-服务管理", notes = "回滚历史版本-服务管理")
+    @GetMapping("/rollback/interface")
+    @Transactional(rollbackFor = Exception.class)
+    public ResultDto rollbackInterface(@RequestParam String id,@RequestParam("loginUserName") String loginUserName) {
+        THistory ti = this.getOne(id);
+        if (ti == null) {
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据id未查出该服务!", null);
+        }
+        try {
+            //先查询出当前的服务存入历史
+            interfaceService.write2His(ti.getRecordId(),loginUserName);
+
+            //再替换当前服务为历史服务
+            InterfaceDto tInterface=JSONObject.parseObject(ti.getHisContent(),InterfaceDto.class);
+            interfaceService.updateInterface(tInterface,loginUserName,false);
+
+            //再删除当前历史
+            this.delete(id);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "回滚成功!", null);
+        } catch (Exception e) {
+            logger.error("回滚失败! MSG:{}", ExceptionUtil.dealException(e));
+            e.printStackTrace();
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "回滚失败!");
+        }
     }
 
 
