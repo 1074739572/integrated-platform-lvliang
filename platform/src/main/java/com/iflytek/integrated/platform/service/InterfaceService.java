@@ -187,7 +187,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @ApiOperation(value = "保存mock模板", notes = "保存mock模板")
     @PostMapping("/saveMockTemplate")
     @Transactional(rollbackFor = Exception.class)
-    public ResultDto<String> saveMockTemplate(@RequestBody List<MockTemplateDto> dtoList,@RequestParam("loginUserName") String loginUserName) {
+    public ResultDto<String> saveMockTemplate(@RequestBody List<MockTemplateDto> dtoList, @RequestParam("loginUserName") String loginUserName) {
         // 校验是否获取到登录用户
         if (StringUtils.isBlank(loginUserName)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
@@ -354,7 +354,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "标准服务新增/编辑", notes = "标准服务新增/编辑")
     @PostMapping("/saveAndUpdateInterface")
-    public ResultDto<String> saveAndUpdateInterface(@RequestBody InterfaceDto dto,@RequestParam("loginUserName") String loginUserName) {
+    public ResultDto<String> saveAndUpdateInterface(@RequestBody InterfaceDto dto, @RequestParam("loginUserName") String loginUserName) {
         if (dto == null) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "数据传入错误!", "数据传入错误!");
         }
@@ -374,7 +374,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         if (StringUtils.isBlank(id)) {
             return this.saveInterface(dto, loginUserName);
         }
-        return this.updateInterface(dto, loginUserName,true);
+        return this.updateInterface(dto, loginUserName, true);
     }
 
     /**
@@ -476,7 +476,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     /**
      * 修改标准服务
      */
-    public ResultDto updateInterface(InterfaceDto dto, String loginUserName,boolean saveHis) {
+    public ResultDto updateInterface(InterfaceDto dto, String loginUserName, boolean saveHis) {
         String id = dto.getId();
         TInterface tf = this.getOne(id);
         if (tf == null) {
@@ -484,7 +484,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                     "根据传入id未查出对应标准服务,检查是否传入错误!");
         }
         //先写进历史
-        if(saveHis) {
+        if (saveHis) {
             write2His(id, loginUserName);
         }
         //redis缓存信息获取
@@ -603,7 +603,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准服务修改成功!", new RedisDto(redisKeyDtoList).toString());
     }
 
-    public void write2His(String id,String loginUserName) {
+    public void write2His(String id, String loginUserName) {
         TInterface ti = this.getOne(id);
         InterfaceDto interfaceInfo = handleInterface(ti);
         //写入历史
@@ -757,7 +757,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @ApiOperation(value = "获取服务信息（重放标识）", notes = "获取服务信息（重放标识）")
     @GetMapping("/getBusItfInfo")
     public ResultDto getBusItfInfo(
-            @ApiParam(value = "请求方系统服务ID") @RequestParam(value = "reqItfId", required = true) String reqItfId,@RequestParam("loginUserName") String loginUserName) {
+            @ApiParam(value = "请求方系统服务ID") @RequestParam(value = "reqItfId", required = true) String reqItfId, @RequestParam("loginUserName") String loginUserName) {
         //校验入参
         if (StringUtils.isBlank(reqItfId)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求参数不能为空!");
@@ -775,7 +775,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增/编辑服务配置", notes = "新增/编辑服务配置")
     @PostMapping("/saveAndUpdateInterfaceConfig")
-    public ResultDto<String> saveAndUpdateInterfaceConfig(@RequestBody BusinessInterfaceDto dto,@RequestParam("loginUserName") String loginUserName) {
+    public ResultDto<String> saveAndUpdateInterfaceConfig(@RequestBody BusinessInterfaceDto dto, @RequestParam("loginUserName") String loginUserName) {
         if (dto == null) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "请求参数不能为空!");
         }
@@ -1070,7 +1070,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据id未查出该服务!", null);
         }
         try {
-            InterfaceDto iDto=handleInterface(ti);
+            InterfaceDto iDto = handleInterface(ti);
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取标准服务详情成功!", iDto);
         } catch (Exception e) {
             logger.error("获取标准服务详情失败! MSG:{}", ExceptionUtil.dealException(e));
@@ -1079,7 +1079,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         }
     }
 
-    public InterfaceDto handleInterface(TInterface ti){
+    public InterfaceDto handleInterface(TInterface ti) {
         InterfaceDto iDto = new InterfaceDto();
         BeanUtils.copyProperties(ti, iDto);
         // 获取服务参数
@@ -1314,6 +1314,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             if (StringUtils.isNotBlank(requestInterfaceId)) {
                 List<TBusinessInterface> tBusinessInterfaces = sqlQueryFactory.select(Projections.bean(TBusinessInterface.class, lists.toArray(new Path[0]))).from(qTBusinessInterface)
                         .where(qTBusinessInterface.requestInterfaceId.eq(requestInterfaceId)).fetch();
+
+                //集成配置
+
                 for (TBusinessInterface tBusinessInterface : tBusinessInterfaces) {
                     interfaceIds.add(tBusinessInterface.getRequestInterfaceId());
                     pluginIds.add(tBusinessInterface.getPluginId());
@@ -1322,6 +1325,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                     if (StringUtils.isBlank(mocktpl)) {
                         mocktpl = tBusinessInterface.getOutParamFormat();
                     }
+                    sqlStringBuffer.append("delete from t_business_interface where id ='" + tBusinessInterface.getId() + "' \n");
+                    sqlStringBuffer.append("END_OF_SQL\n");
+
                     sqlStringBuffer.append("INSERT INTO  t_business_interface  ( ID ,  " +
                             " REQUEST_INTERFACE_ID ,  SYS_REGISTRY_ID ,  BUSINESS_INTERFACE_NAME ,  REQUEST_TYPE , " +
                             " REQUEST_CONSTANT ,  INTERFACE_TYPE ,  PLUGIN_ID ,  IN_PARAM_FORMAT ,  IN_PARAM_SCHEMA ,  IN_PARAM_TEMPLATE_TYPE , " +
@@ -1334,7 +1340,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                             "" + tBusinessInterface.getInParamTemplateType() + ", '" + PlatformUtil.escapeSqlSingleQuotes(tBusinessInterface.getInParamTemplate()) + "', '" + tBusinessInterface.getInParamFormatType() + "', '" + tBusinessInterface.getOutParamFormat() + "', " +
                             "'" + tBusinessInterface.getOutParamSchema() + "', " + tBusinessInterface.getOutParamTemplateType() + ", '" + PlatformUtil.escapeSqlSingleQuotes(tBusinessInterface.getOutParamTemplate()) + "', '" + tBusinessInterface.getOutParamFormatType() + "', " +
                             "'" + PlatformUtil.escapeSqlSingleQuotes(mocktpl) + "', '" + tBusinessInterface.getMockStatus() + "', '" + tBusinessInterface.getStatus() + "', '" + tBusinessInterface.getExcErrStatus() + "', " +
-                            "" + tBusinessInterface.getExcErrOrder() + ", " + tBusinessInterface.getMockIsUse() + ", 'admin', now() , 'admin', now() , " + tBusinessInterface.getAsyncFlag() + ", " + tBusinessInterface.getInterfaceSlowFlag() + ")  ON conflict(ID) DO nothing; \n");
+                            "" + tBusinessInterface.getExcErrOrder() + ", " + tBusinessInterface.getMockIsUse() + ", 'admin', now() , 'admin', now() , " + tBusinessInterface.getAsyncFlag() + ", " + tBusinessInterface.getInterfaceSlowFlag() + "); \n");
                     sqlStringBuffer.append("END_OF_SQL\n");
                 }
             }
@@ -1342,6 +1348,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
         List<TInterface> tInterfaces = sqlQueryFactory.select(qTInterface).from(qTInterface).where(qTInterface.id.in(interfaceIds)).fetch();
         for (TInterface tInterface : tInterfaces) {
+            sqlStringBuffer.append("delete from t_interface where id ='" + tInterface.getId() + "' \n");
+            sqlStringBuffer.append("END_OF_SQL\n");
+
             sqlStringBuffer.append("INSERT INTO  t_interface  ( ID ,  INTERFACE_NAME ,  TYPE_ID , " +
                     " INTERFACE_URL ,  IN_PARAM_FORMAT ,  OUT_PARAM_FORMAT ,  PARAM_OUT_STATUS ,  PARAM_OUT_STATUS_SUCCESS ," +
                     "  CREATED_BY ,  CREATED_TIME ,  UPDATED_BY ,  UPDATED_TIME ,  IN_PARAM_SCHEMA ,  IN_PARAM_FORMAT_TYPE , " +
@@ -1352,6 +1361,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         }
         List<TInterfaceParam> tInterfaceParams = sqlQueryFactory.select(qTInterfaceParam).from(qTInterfaceParam).where(qTInterfaceParam.interfaceId.in(interfaceIds)).fetch();
         for (TInterfaceParam tInterfaceParam : tInterfaceParams) {
+            sqlStringBuffer.append("delete from t_interface_param where id ='" + tInterfaceParam.getId() + "' \n");
+            sqlStringBuffer.append("END_OF_SQL\n");
+
             sqlStringBuffer.append("INSERT INTO  t_interface_param  ( ID ,  PARAM_NAME ,  PARAM_INSTRUCTION ,  INTERFACE_ID ,  PARAM_TYPE ,  PARAM_LENGTH ,  PARAM_IN_OUT ,  CREATED_BY ,  CREATED_TIME , " +
                     " UPDATED_BY ,  UPDATED_TIME ) VALUES ('" + tInterfaceParam.getId() + "', '" + tInterfaceParam.getParamName() + "', '" + tInterfaceParam.getParamInstruction() + "', '" + tInterfaceParam.getInterfaceId() + "'," +
                     " '" + tInterfaceParam.getParamType() + "', " + tInterfaceParam.getParamLength() + ", '" + tInterfaceParam.getParamInOut() + "', 'admin', now() , 'admin', now()) ON conflict(ID) DO nothing;\n");
@@ -1361,6 +1373,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         List<TSysRegistry> tSysRegistrys = sqlQueryFactory.select(qTSysRegistry).from(qTSysRegistry).where(qTSysRegistry.id.in(sysRegistryIds)).fetch();
         for (TSysRegistry sysRegistry : tSysRegistrys) {
             sysIds.add(sysRegistry.getSysId());
+            sqlStringBuffer.append("delete from t_sys_registry where id ='" + sysRegistry.getId() + "' \n");
+            sqlStringBuffer.append("END_OF_SQL\n");
+
             sqlStringBuffer.append("INSERT INTO  t_sys_registry  ( ID ,  SYS_ID ,   CONNECTION_TYPE ,  ADDRESS_URL ,  ENDPOINT_URL ," +
                     "  NAMESPACE_URL ,  DATABASE_NAME ,  DATABASE_URL ,  DATABASE_TYPE ,  DATABASE_DRIVER , " +
                     " DRIVER_URL ,  JSON_PARAMS ,  USER_NAME ,  USER_PASSWORD ,  CREATED_BY , " +
@@ -1368,23 +1383,32 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                     " REGISTRY_NAME ,USE_STATUS) VALUES ('" + sysRegistry.getId() + "', '" + sysRegistry.getSysId() + "', '" +
                     sysRegistry.getConnectionType() + "', '" + sysRegistry.getAddressUrl() + "', '" + sysRegistry.getEndpointUrl() + "', " +
                     "'" + sysRegistry.getNamespaceUrl() + "', '" + sysRegistry.getDatabaseName() + "', '" + sysRegistry.getDatabaseUrl() + "', '" + sysRegistry.getDatabaseType() + "', '" + sysRegistry.getDatabaseDriver() + "', " +
-                    "'" + sysRegistry.getDriverUrl() + "', '" + sysRegistry.getJsonParams() + "', '" + sysRegistry.getUserName() + "', '" + sysRegistry.getUserPassword() + "','admin', now() , 'admin', now(), '" + sysRegistry.getRegistryName() + "','"+sysRegistry.getUseStatus()+"') ON conflict(ID) DO nothing;\n");
+                    "'" + sysRegistry.getDriverUrl() + "', '" + sysRegistry.getJsonParams() + "', '" + sysRegistry.getUserName() + "', '" + sysRegistry.getUserPassword() + "','admin', now() , 'admin', now(), '" + sysRegistry.getRegistryName() + "','" + sysRegistry.getUseStatus() + "') ON conflict(ID) DO nothing;\n");
             sqlStringBuffer.append("END_OF_SQL\n");
         }
         List<TPlugin> tPlugins = sqlQueryFactory.select(qTPlugin).from(qTPlugin).where(qTPlugin.id.in(pluginIds)).fetch();
         for (TPlugin tPlugin : tPlugins) {
+            sqlStringBuffer.append("delete from t_plugin where id ='" + tPlugin.getId() + "' \n");
+            sqlStringBuffer.append("END_OF_SQL\n");
+
             sqlStringBuffer.append("INSERT INTO  t_plugin  ( ID ,  PLUGIN_NAME ,  PLUGIN_CODE ,  TYPE_ID ,  PLUGIN_INSTRUCTION ,  PLUGIN_CONTENT ,  CREATED_BY ,  CREATED_TIME ,  UPDATED_BY ,  UPDATED_TIME ,  DEPENDENT_PATH ) " +
                     "VALUES ('" + tPlugin.getId() + "', '" + PlatformUtil.escapeSqlSingleQuotes(tPlugin.getPluginName()) + "', '" + tPlugin.getPluginCode() + "', '" + tPlugin.getTypeId() + "', '" + tPlugin.getPluginInstruction() + "', '" + PlatformUtil.escapeSqlSingleQuotes(tPlugin.getPluginContent()) + "', 'admin', now() , 'admin', now(), '" + tPlugin.getDependentPath() + "') ON conflict(ID) DO nothing;\n");
             sqlStringBuffer.append("END_OF_SQL\n");
         }
         List<TSys> tSyss = sqlQueryFactory.select(qTSys).from(qTSys).where(qTSys.id.in(sysIds)).fetch();
         for (TSys tSys : tSyss) {
+            sqlStringBuffer.append("delete from t_sys where id ='" + tSys.getId() + "' \n");
+            sqlStringBuffer.append("END_OF_SQL\n");
+
             sqlStringBuffer.append("INSERT INTO  t_sys  ( ID ,  SYS_NAME ,  SYS_CODE ,  IS_VALID ,  CREATED_BY ,  CREATED_TIME ,  UPDATED_BY ,  UPDATED_TIME ) VALUES " +
                     "('" + tSys.getId() + "', '" + tSys.getSysName() + "', '" + tSys.getSysCode() + "', '" + tSys.getIsValid() + "', 'admin', now() , 'admin', now()) ON conflict(ID) DO nothing;\n");
             sqlStringBuffer.append("END_OF_SQL\n");
         }
         List<TSysDriveLink> tSysDriveLinks = sqlQueryFactory.select(qTSysDriveLink).from(qTSysDriveLink).where(qTSysDriveLink.sysId.in(sysIds)).fetch();
         for (TSysDriveLink tSysDriveLink : tSysDriveLinks) {
+            sqlStringBuffer.append("delete from t_sys_drive_link where id ='" + tSysDriveLink.getId() + "' \n");
+            sqlStringBuffer.append("END_OF_SQL\n");
+
             driverIds.add(tSysDriveLink.getDriveId());
             sqlStringBuffer.append("INSERT INTO  t_sys_drive_link  ( ID ,  SYS_ID ,  DRIVE_ID ,  DRIVE_ORDER ,  CREATED_BY ,  CREATED_TIME ,  UPDATED_BY ,  UPDATED_TIME ) VALUES " +
                     "('" + tSysDriveLink.getId() + "', '" + tSysDriveLink.getSysId() + "', '" + tSysDriveLink.getDriveId() + "', " + tSysDriveLink.getDriveOrder() + ", 'admin', now() , 'admin', now()) ON conflict(ID) DO nothing;\n");
@@ -1392,6 +1416,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         }
         List<TDrive> tDrives = sqlQueryFactory.select(qTDrive).from(qTDrive).where(qTDrive.id.in(driverIds)).fetch();
         for (TDrive tDrive : tDrives) {
+            sqlStringBuffer.append("delete from t_sys t_drive id ='" + tDrive.getId() + "' \n");
+            sqlStringBuffer.append("END_OF_SQL\n");
+
             sqlStringBuffer.append("INSERT INTO  t_drive  ( ID ,  DRIVE_NAME ,  DRIVE_CODE ,  TYPE_ID ,  DRIVE_INSTRUCTION ,  DRIVE_CONTENT ,  CREATED_BY ,  CREATED_TIME ,  UPDATED_BY ,  UPDATED_TIME ,  DRIVE_CALL_TYPE ,  DEPENDENT_PATH ) VALUES " +
                     "('" + tDrive.getId() + "', '" + PlatformUtil.escapeSqlSingleQuotes(tDrive.getDriveName()) + "', '" + tDrive.getDriveCode() + "', '" + tDrive.getTypeId() + "', '" + tDrive.getDriveInstruction() + "', '" + PlatformUtil.escapeSqlSingleQuotes(tDrive.getDriveContent()) + "', 'admin', now() , 'admin', now(), '" + tDrive.getDriveCallType() + "', '" + tDrive.getDependentPath() + "') ON conflict(ID) DO nothing;\n");
             sqlStringBuffer.append("END_OF_SQL\n");
@@ -1400,7 +1427,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
 
     @PostMapping(path = "/uploadInterFaceSql")
-    public ResultDto<String> uploadInterFaceSql(@RequestParam("sqlFiles") MultipartFile[] sqlFiles,@RequestParam("loginUserName") String loginUserName) {
+    public ResultDto<String> uploadInterFaceSql(@RequestParam("sqlFiles") MultipartFile[]
+                                                        sqlFiles, @RequestParam("loginUserName") String loginUserName) {
         //校验是否获取到登录用户
         if (org.apache.commons.lang3.StringUtils.isBlank(loginUserName)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
