@@ -48,6 +48,8 @@ public class TLog implements Serializable {
     
     private Integer debugreplayFlag;
 
+    private Integer replayFlag;
+
     private String interfaceName;
 
     private String interfaceUrl;
@@ -67,6 +69,54 @@ public class TLog implements Serializable {
     private Integer excErrOrder;
 
     private String requestInterfaceId;
+
+    private String regId;
+
+    private String registryName;
+
+    private String regSysId;
+
+    private String regSysName;
+
+    public String getRegId() {
+        return regId;
+    }
+
+    public void setRegId(String regId) {
+        this.regId = regId;
+    }
+
+    public String getRegistryName() {
+        return registryName;
+    }
+
+    public void setRegistryName(String registryName) {
+        this.registryName = registryName;
+    }
+
+    public String getRegSysId() {
+        return regSysId;
+    }
+
+    public void setRegSysId(String regSysId) {
+        this.regSysId = regSysId;
+    }
+
+    public String getRegSysName() {
+        return regSysName;
+    }
+
+    public void setRegSysName(String regSysName) {
+        this.regSysName = regSysName;
+    }
+
+    public Integer getReplayFlag() {
+        return replayFlag;
+    }
+
+    public void setReplayFlag(Integer replayFlag) {
+        this.replayFlag = replayFlag;
+    }
 
     public String getRequestInterfaceId() {
         return requestInterfaceId;

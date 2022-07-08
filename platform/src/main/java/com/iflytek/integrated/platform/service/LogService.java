@@ -53,6 +53,7 @@ import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
 import static com.iflytek.integrated.platform.entity.QTLog.qTLog;
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 import static com.iflytek.integrated.platform.entity.QTSysPublish.qTSysPublish;
+import static com.iflytek.integrated.platform.entity.QTSysRegistry.qTSysRegistry;
 
 /**
  * @author czzhan
@@ -147,18 +148,26 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 			list.add(Expressions.stringTemplate(tplStr, qTLog.venderRep)
 					.like(PlatformUtil.createFuzzyText(venderRep)));
 		}
+
+		String q = "sys";
+		QTSys qtSysAlias = new QTSys(q);
+
 		SQLQuery<TLog> tlogQuery = sqlQueryFactory
 		.select(Projections.bean(TLog.class, qTLog.id, qTLog.businessInterfaceId, qTLog.createdTime, qTLog.status, qTLog.venderRepTime,
 				qTLog.businessRepTime, qTLog.visitAddr, qTLog.debugreplayFlag,
 				qTInterface.id.as("interfaceId"), qTInterface.interfaceName, qTInterface.interfaceUrl,
 				qTSysPublish.id.as("publishId"), qTSysPublish.publishName,
 				qTSys.id.as("publishSysId"), qTSys.sysName.as("publishSysName"),
-				qTBusinessInterface.excErrOrder, qTBusinessInterface.requestInterfaceId))
+				qTBusinessInterface.excErrOrder, qTBusinessInterface.requestInterfaceId, qTBusinessInterface.replayFlag,
+				qTSysRegistry.id.as("regId"), qTSysRegistry.registryName.as("registryName"),
+				qtSysAlias.id.as("regSysId"), qtSysAlias.sysName.as("regSysName")))
 				.from(qTLog)
 				.leftJoin(qTBusinessInterface).on(qTLog.businessInterfaceId.eq(qTBusinessInterface.id))
 				.leftJoin(qTInterface).on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id))
 				.leftJoin(qTSysPublish).on(qTLog.publishId.eq(qTSysPublish.id))
 				.leftJoin(qTSys).on(qTSysPublish.sysId.eq(qTSys.id))
+				.leftJoin(qTSysRegistry).on(qTLog.regId.eq(qTSysRegistry.id))
+				.leftJoin(qtSysAlias).on(qTLog.regSysId.eq(qtSysAlias.id))
 				;
 		if(!"postgresql".equals(dbType)) {
 			tlogQuery = tlogQuery.addFlag(new QueryFlag(Position.BEFORE_FILTERS, Expressions.stringTemplate(" FORCE INDEX ( log_query_idx )")));
@@ -313,24 +322,20 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 					}
 					String format = decryptAndFilterSensitive(tlog.getBusinessReq());
 					String regConnectionType = tlog.getRegConnectionType();
-					if(StringUtils.isNotEmpty(regConnectionType)) {
+					if("1".equals(regConnectionType)){
 						if(StringUtils.isBlank(tlog.getVisitAddr())){
 							continue;
 						}
-						if("1".equals(regConnectionType)){
-							String wsdlUrl = tlog.getVisitAddr();
-							List<String> wsOperationNames = PlatformUtil.getWsdlOperationNames(wsdlUrl);
-							if(wsOperationNames == null || wsOperationNames.size() == 0) {
-								continue;
-							}
-							String methodName = wsOperationNames.get(0);
-							PlatformUtil.invokeWsServiceWithOrigin(wsdlUrl, methodName, format , headerMap, readTimeout);
-						}else if("2".equals(regConnectionType)){
-							niFiRequestUtil.interfaceDebug(format , headerMap , "1".equals(authFlag));
-						}else if("3".equals(regConnectionType)){
-
+						String wsdlUrl = tlog.getVisitAddr();
+						List<String> wsOperationNames = PlatformUtil.getWsdlOperationNames(wsdlUrl);
+						if(wsOperationNames == null || wsOperationNames.size() == 0) {
+							continue;
 						}
+						String methodName = wsOperationNames.get(0);
+						PlatformUtil.invokeWsServiceWithOrigin(wsdlUrl, methodName, format , headerMap, readTimeout);
+						continue;
 					}
+					niFiRequestUtil.interfaceDebug(format , headerMap , "1".equals(authFlag));
 
 				}
 			} catch (Exception e) {
