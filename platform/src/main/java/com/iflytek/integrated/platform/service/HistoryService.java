@@ -351,7 +351,7 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
 
             //再替换当前服务为历史服务
             InterfaceDto tInterface=JSONObject.parseObject(ti.getHisContent(),InterfaceDto.class);
-            interfaceService.updateInterface(tInterface,loginUserName);
+            interfaceService.updateInterface(tInterface,loginUserName,false);
 
             //再删除当前历史
             this.delete(id);

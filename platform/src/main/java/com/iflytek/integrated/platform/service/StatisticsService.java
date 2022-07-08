@@ -59,7 +59,6 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             //获取当前日期
             Calendar c = Calendar.getInstance();
-            c.add(Calendar.DATE,-9);
             Date now = c.getTime();
             String nowStr = sdf.format(now);
             //查询当日数据

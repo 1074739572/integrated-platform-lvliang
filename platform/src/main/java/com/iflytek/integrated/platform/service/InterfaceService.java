@@ -374,7 +374,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         if (StringUtils.isBlank(id)) {
             return this.saveInterface(dto, loginUserName);
         }
-        return this.updateInterface(dto, loginUserName);
+        return this.updateInterface(dto, loginUserName,true);
     }
 
     /**
@@ -476,7 +476,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     /**
      * 修改标准服务
      */
-    public ResultDto updateInterface(InterfaceDto dto, String loginUserName) {
+    public ResultDto updateInterface(InterfaceDto dto, String loginUserName,boolean saveHis) {
         String id = dto.getId();
         TInterface tf = this.getOne(id);
         if (tf == null) {
@@ -484,7 +484,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                     "根据传入id未查出对应标准服务,检查是否传入错误!");
         }
         //先写进历史
-        write2His(id,loginUserName);
+        if(saveHis) {
+            write2His(id, loginUserName);
+        }
         //redis缓存信息获取
         ArrayList<Predicate> arr = new ArrayList<>();
         arr.add(qTInterface.id.eq(id));
