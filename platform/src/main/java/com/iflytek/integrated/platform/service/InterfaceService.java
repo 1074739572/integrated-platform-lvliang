@@ -478,7 +478,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     /**
      * 修改标准服务
      */
-    private ResultDto updateInterface(InterfaceDto dto, String loginUserName) {
+    public ResultDto updateInterface(InterfaceDto dto, String loginUserName) {
         String id = dto.getId();
         TInterface tf = this.getOne(id);
         if (tf == null) {
@@ -486,7 +486,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                     "根据传入id未查出对应标准服务,检查是否传入错误!");
         }
         //先写进历史
-        interfaceHisService.saveHis(id);
+        write2His(id,loginUserName);
         //redis缓存信息获取
         ArrayList<Predicate> arr = new ArrayList<>();
         arr.add(qTInterface.id.eq(id));
@@ -601,6 +601,16 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         }
 
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准服务修改成功!", new RedisDto(redisKeyDtoList).toString());
+    }
+
+    public void write2His(String id,String loginUserName) {
+        TInterface ti = this.getOne(id);
+        InterfaceDto interfaceInfo = handleInterface(ti);
+        //写入历史
+        Map map = new HashMap();
+        map.put("interfaceName", interfaceInfo.getInterfaceName());
+        String hisShow = JSON.toJSONString(map);
+        historyService.insertHis(interfaceInfo, 4, loginUserName, interfaceInfo.getId(), interfaceInfo.getId(), hisShow);
     }
 
     @ApiOperation(value = "获取服务分类")
