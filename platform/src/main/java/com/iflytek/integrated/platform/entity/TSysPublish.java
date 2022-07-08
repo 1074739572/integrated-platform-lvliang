@@ -39,5 +39,8 @@ public class TSysPublish implements Serializable {
 
     @Transient
     private String sysName;
+
+    @Transient
+    private String sysCode;
 }
 
