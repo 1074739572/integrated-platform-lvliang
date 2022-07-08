@@ -1325,7 +1325,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                     if (StringUtils.isBlank(mocktpl)) {
                         mocktpl = tBusinessInterface.getOutParamFormat();
                     }
-                    sqlStringBuffer.append("delete from t_business_interface where id ='" + tBusinessInterface.getId() + "' \n");
+                    sqlStringBuffer.append("delete from t_business_interface where id ='" + tBusinessInterface.getId() + "'; \n");
                     sqlStringBuffer.append("END_OF_SQL\n");
 
                     sqlStringBuffer.append("INSERT INTO  t_business_interface  ( ID ,  " +
@@ -1348,7 +1348,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
         List<TInterface> tInterfaces = sqlQueryFactory.select(qTInterface).from(qTInterface).where(qTInterface.id.in(interfaceIds)).fetch();
         for (TInterface tInterface : tInterfaces) {
-            sqlStringBuffer.append("delete from t_interface where id ='" + tInterface.getId() + "' \n");
+            sqlStringBuffer.append("delete from t_interface where id ='" + tInterface.getId() + "'; \n");
             sqlStringBuffer.append("END_OF_SQL\n");
 
             sqlStringBuffer.append("INSERT INTO  t_interface  ( ID ,  INTERFACE_NAME ,  TYPE_ID , " +
@@ -1361,7 +1361,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         }
         List<TInterfaceParam> tInterfaceParams = sqlQueryFactory.select(qTInterfaceParam).from(qTInterfaceParam).where(qTInterfaceParam.interfaceId.in(interfaceIds)).fetch();
         for (TInterfaceParam tInterfaceParam : tInterfaceParams) {
-            sqlStringBuffer.append("delete from t_interface_param where id ='" + tInterfaceParam.getId() + "' \n");
+            sqlStringBuffer.append("delete from t_interface_param where id ='" + tInterfaceParam.getId() + "'; \n");
             sqlStringBuffer.append("END_OF_SQL\n");
 
             sqlStringBuffer.append("INSERT INTO  t_interface_param  ( ID ,  PARAM_NAME ,  PARAM_INSTRUCTION ,  INTERFACE_ID ,  PARAM_TYPE ,  PARAM_LENGTH ,  PARAM_IN_OUT ,  CREATED_BY ,  CREATED_TIME , " +
@@ -1373,7 +1373,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         List<TSysRegistry> tSysRegistrys = sqlQueryFactory.select(qTSysRegistry).from(qTSysRegistry).where(qTSysRegistry.id.in(sysRegistryIds)).fetch();
         for (TSysRegistry sysRegistry : tSysRegistrys) {
             sysIds.add(sysRegistry.getSysId());
-            sqlStringBuffer.append("delete from t_sys_registry where id ='" + sysRegistry.getId() + "' \n");
+            sqlStringBuffer.append("delete from t_sys_registry where id ='" + sysRegistry.getId() + "'; \n");
             sqlStringBuffer.append("END_OF_SQL\n");
 
             sqlStringBuffer.append("INSERT INTO  t_sys_registry  ( ID ,  SYS_ID ,   CONNECTION_TYPE ,  ADDRESS_URL ,  ENDPOINT_URL ," +
@@ -1388,7 +1388,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         }
         List<TPlugin> tPlugins = sqlQueryFactory.select(qTPlugin).from(qTPlugin).where(qTPlugin.id.in(pluginIds)).fetch();
         for (TPlugin tPlugin : tPlugins) {
-            sqlStringBuffer.append("delete from t_plugin where id ='" + tPlugin.getId() + "' \n");
+            sqlStringBuffer.append("delete from t_plugin where id ='" + tPlugin.getId() + "'; \n");
             sqlStringBuffer.append("END_OF_SQL\n");
 
             sqlStringBuffer.append("INSERT INTO  t_plugin  ( ID ,  PLUGIN_NAME ,  PLUGIN_CODE ,  TYPE_ID ,  PLUGIN_INSTRUCTION ,  PLUGIN_CONTENT ,  CREATED_BY ,  CREATED_TIME ,  UPDATED_BY ,  UPDATED_TIME ,  DEPENDENT_PATH ) " +
@@ -1397,7 +1397,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         }
         List<TSys> tSyss = sqlQueryFactory.select(qTSys).from(qTSys).where(qTSys.id.in(sysIds)).fetch();
         for (TSys tSys : tSyss) {
-            sqlStringBuffer.append("delete from t_sys where id ='" + tSys.getId() + "' \n");
+            sqlStringBuffer.append("delete from t_sys where id ='" + tSys.getId() + "'; \n");
             sqlStringBuffer.append("END_OF_SQL\n");
 
             sqlStringBuffer.append("INSERT INTO  t_sys  ( ID ,  SYS_NAME ,  SYS_CODE ,  IS_VALID ,  CREATED_BY ,  CREATED_TIME ,  UPDATED_BY ,  UPDATED_TIME ) VALUES " +
@@ -1406,7 +1406,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         }
         List<TSysDriveLink> tSysDriveLinks = sqlQueryFactory.select(qTSysDriveLink).from(qTSysDriveLink).where(qTSysDriveLink.sysId.in(sysIds)).fetch();
         for (TSysDriveLink tSysDriveLink : tSysDriveLinks) {
-            sqlStringBuffer.append("delete from t_sys_drive_link where id ='" + tSysDriveLink.getId() + "' \n");
+            sqlStringBuffer.append("delete from t_sys_drive_link where id ='" + tSysDriveLink.getId() + "'; \n");
             sqlStringBuffer.append("END_OF_SQL\n");
 
             driverIds.add(tSysDriveLink.getDriveId());
@@ -1416,7 +1416,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         }
         List<TDrive> tDrives = sqlQueryFactory.select(qTDrive).from(qTDrive).where(qTDrive.id.in(driverIds)).fetch();
         for (TDrive tDrive : tDrives) {
-            sqlStringBuffer.append("delete from t_sys t_drive id ='" + tDrive.getId() + "' \n");
+            sqlStringBuffer.append("delete from t_drive where id ='" + tDrive.getId() + "'; \n");
             sqlStringBuffer.append("END_OF_SQL\n");
 
             sqlStringBuffer.append("INSERT INTO  t_drive  ( ID ,  DRIVE_NAME ,  DRIVE_CODE ,  TYPE_ID ,  DRIVE_INSTRUCTION ,  DRIVE_CONTENT ,  CREATED_BY ,  CREATED_TIME ,  UPDATED_BY ,  UPDATED_TIME ,  DRIVE_CALL_TYPE ,  DEPENDENT_PATH ) VALUES " +
@@ -1460,7 +1460,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                     sql = new StringBuilder(sql.toString());
                     String[] sqls = sql.toString().split("END_OF_SQL");
                     for (String str : sqls) {
-                        if (str.trim().startsWith("INSERT") || str.trim().startsWith("REPLACE"))
+                        if (str.trim().startsWith("INSERT") || str.trim().startsWith("REPLACE") || str.trim().startsWith("delete") )
                             statement.addBatch(str);
                     }
                     //事务提交，整体成功或失败
