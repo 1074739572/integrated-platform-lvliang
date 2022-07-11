@@ -14,7 +14,6 @@ import com.querydsl.core.types.dsl.StringPath;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -31,6 +30,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
@@ -49,13 +49,24 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
     private static final Logger logger = LoggerFactory.getLogger(StatisticsService.class);
 
     public StatisticsService() {
-        super(qTServerStatisticsDay, qTServerStatisticsDay.id);
+        super(qTServerStatisticsDay, null);
     }
 
     @ApiOperation(value = "查询今日统计的数据")
     @GetMapping("/getTodayStatistics")
     public ResultDto<TodayStatisticsDTO> getTodayStatistics() {
         try {
+            //统计结果对象
+            TodayStatisticsDTO dto=new TodayStatisticsDTO();
+            Long requestTotal = 0L;
+            Long requestOkTotal = 0L;
+            Long requestTimesTotal = 0L;
+            Long exceptionServerTotal = 0L;
+            BigDecimal okRate=BigDecimal.ZERO;
+            BigDecimal failRate=BigDecimal.ZERO;
+            Long failTotal=0L;
+            BigDecimal avgTime=BigDecimal.ZERO;
+
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             //获取当前日期
             Calendar c = Calendar.getInstance();
@@ -74,40 +85,38 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
                     .where(qTServerStatisticsDay.dt.eq(sdf.parse(nowStr)))
                     .groupBy(qTServerStatisticsDay.serverId)
                     .fetch();
-            if (queryResults.isEmpty()) {
-                return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取统计数据成功!", null);
-            }
-            TodayStatisticsDTO dto=new TodayStatisticsDTO();
-            Long requestTotal = 0L;
-            Long requestOkTotal = 0L;
-            Long requestTimesTotal = 0L;
-            Long exceptionServerTotal = 0L;
-            for (TServerStatisticsDay queryResult : queryResults) {
-                //服务请求总量
-                requestTotal += queryResult.getCurrRequestTotal();
-                //服务请求成功总量
-                requestOkTotal += queryResult.getCurrRequestOkTotal();
-                //服务响应时间
-                requestTimesTotal += queryResult.getCurrResponseTimeTotal();
-                if(queryResult.getCurrRequestTotal()-queryResult.getCurrRequestOkTotal()>0){
-                    //如果该服务存在失败的 则该服务异常
-                    exceptionServerTotal+=1;
+            if (!queryResults.isEmpty()) {
+                for (TServerStatisticsDay queryResult : queryResults) {
+                    //服务请求总量
+                    requestTotal += queryResult.getCurrRequestTotal();
+                    //服务请求成功总量
+                    requestOkTotal += queryResult.getCurrRequestOkTotal();
+                    //服务响应时间
+                    requestTimesTotal += queryResult.getCurrResponseTimeTotal();
+                    if (queryResult.getCurrRequestTotal() - queryResult.getCurrRequestOkTotal() > 0) {
+                        //如果该服务存在失败的 则该服务异常
+                        exceptionServerTotal += 1;
+                    }
                 }
+
+                //请求成功率
+                okRate = new BigDecimal(requestOkTotal.longValue()).divide(new BigDecimal(requestTotal.longValue()), 4, RoundingMode.HALF_UP);
+
+                //请求失败率
+                failRate=BigDecimal.ONE.subtract(okRate);
+
+                //访问失败
+                failTotal = requestTotal - requestOkTotal;
+
+                //平均响应时长(ms)
+                avgTime = new BigDecimal(requestTimesTotal.longValue()).divide(new BigDecimal(requestTotal.longValue()), 2, RoundingMode.HALF_UP);
             }
-
-            //请求成功率
-            BigDecimal okRate = new BigDecimal(requestOkTotal.longValue()).divide(new BigDecimal(requestTotal.longValue()), 4, RoundingMode.HALF_UP);
-
-            //访问失败
-            Long failTotal = requestTotal - requestOkTotal;
-
-            //平均响应时长(ms)
-            BigDecimal avgTime = new BigDecimal(requestTimesTotal.longValue()).divide(new BigDecimal(requestTotal.longValue()), 2, RoundingMode.HALF_UP);
 
             //查询请求方系统总量
             dto.setServerRequestTotal(requestTotal.toString());
             dto.setServerRequestOkTotal(requestOkTotal.toString());
             dto.setOkRate(okRate.multiply(new BigDecimal(100)).setScale(2,RoundingMode.HALF_UP).toPlainString()+"%");
+            dto.setFailRate(failRate.multiply(new BigDecimal(100)).setScale(2,RoundingMode.HALF_UP).toPlainString()+"%");
             dto.setServerRequestFailTotal(failTotal.toString());
             dto.setAvgResponseTime(avgTime.toPlainString());
             dto.setExceptionServerTotal(exceptionServerTotal.toString());
@@ -270,6 +279,9 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
         //请求成功率
         BigDecimal okRate = new BigDecimal(requestOkTotal.longValue()).divide(new BigDecimal(requestTotal.longValue()), 4, RoundingMode.HALF_UP);
 
+        //请求失败率
+        BigDecimal failRate=BigDecimal.ONE.subtract(okRate);
+
         //访问失败
         Long failTotal = requestTotal - requestOkTotal;
 
@@ -285,6 +297,7 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
         dto.setServerRequestTotal(requestTotal.toString());
         dto.setServerRequestOkTotal(requestOkTotal.toString());
         dto.setOkRate(okRate.multiply(new BigDecimal(100)).setScale(2,RoundingMode.HALF_UP).toPlainString()+"%");
+        dto.setFailRate(failRate.multiply(new BigDecimal(100)).setScale(2,RoundingMode.HALF_UP).toPlainString()+"%");
         dto.setServerRequestFailTotal(failTotal.toString());
         dto.setAvgResponseTime(avgTime.toPlainString());
         dto.setServerTotal(serverCount.toString());
@@ -304,12 +317,17 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
             String sevenDay = sdf.format(c.getTime());
 
             //获得近7天的数据
-            List<String> sevenDayList = new ArrayList<>();
+            List<CallStatisticsDTO> list = new ArrayList<>();
+            CallStatisticsDTO dto = new CallStatisticsDTO();
             Calendar c1 = Calendar.getInstance();
-            sevenDayList.add(sdf.format(c1.getTime()).substring(5));
+            dto.setName(sdf.format(c1.getTime()).substring(5));
+            dto.setIndexCount(0L);
+            list.add(dto);
             for (int i = 0; i < 6; i++) {
+                dto = new CallStatisticsDTO();
                 c1.add(Calendar.DATE, -1);
-                sevenDayList.add(sdf.format(c1.getTime()).substring(5));
+                dto.setName(sdf.format(c1.getTime()).substring(5));
+                list.add(dto);
             }
 
             //查询累计数据
@@ -324,30 +342,13 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
                     .where(qTServerStatisticsDay.dt.between(sdf.parse(sevenDay), sdf.parse(nowStr)))
                     .groupBy(qTServerStatisticsDay.dt)
                     .fetch();
-            if (queryResults.isEmpty()) {
-                return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取统计数据成功!", null);
-            }
-
-            List<CallStatisticsDTO> list = new ArrayList<>();
-            for (TServerStatisticsDay queryResult : queryResults) {
-                CallStatisticsDTO dto = new CallStatisticsDTO();
-                String dateStr = sdf.format(queryResult.getDt()).substring(5);
-                dto.setName(dateStr);
-                sevenDayList.remove(dateStr);
-                dto.setIndexCount(queryResult.getCurrRequestTotal());
-                list.add(dto);
-            }
-
-            //没有匹配上的日期指标计数0
-            if (CollectionUtils.isNotEmpty(sevenDayList)) {
-                for (String s : sevenDayList) {
-                    CallStatisticsDTO dto = new CallStatisticsDTO();
-                    dto.setName(s);
-                    dto.setIndexCount(0L);
-                    list.add(dto);
+            if (!queryResults.isEmpty()) {
+                Map<Date, TServerStatisticsDay> map = queryResults.stream().collect(Collectors.toMap(TServerStatisticsDay::getDt, Function.identity()));
+                for (CallStatisticsDTO sto : list) {
+                    TServerStatisticsDay tServerStatisticsDay = map.get(sto.getName());
+                    sto.setIndexCount(tServerStatisticsDay==null?0L:tServerStatisticsDay.getCurrRequestTotal());
                 }
             }
-
             //最后按照日期升序排序
             list = list.stream().sorted(Comparator.comparing(CallStatisticsDTO::getName)).collect(Collectors.toList());
 
@@ -372,12 +373,18 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
             String hourDay = sdf.format(c.getTime());
 
             //获得近24小时的数据
-            List<String> sevenDayList = new ArrayList<>();
+            List<CallStatisticsDTO> list = new ArrayList<>();
+            CallStatisticsDTO dto = new CallStatisticsDTO();
             Calendar c1 = Calendar.getInstance();
-            sevenDayList.add(sdf.format(c1.getTime()).substring(5));
+            dto.setName(sdf.format(c1.getTime()).substring(5));
+            dto.setIndexCount(0L);
+            list.add(dto);
             for (int i = 0; i < 23; i++) {
+                dto = new CallStatisticsDTO();
                 c1.add(Calendar.HOUR, -1);
-                sevenDayList.add(sdf.format(c1.getTime()).substring(5));
+                dto.setName(sdf.format(c1.getTime()).substring(5));
+                dto.setIndexCount(0L);
+                list.add(dto);
             }
 
             //查询累计数据
@@ -388,27 +395,11 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
                     .from(qtServerStatisticsHour)
                     .where(qtServerStatisticsHour.dt.between(sdf.parse(hourDay), sdf.parse(nowStr)))
                     .fetch();
-            if (queryResults.isEmpty()) {
-                return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取统计数据成功!", null);
-            }
-
-            List<CallStatisticsDTO> list = new ArrayList<>();
-            for (TServerStatisticsHour queryResult : queryResults) {
-                CallStatisticsDTO dto = new CallStatisticsDTO();
-                String dateStr = sdf.format(queryResult.getDt()).substring(5);
-                dto.setName(dateStr);
-                sevenDayList.remove(dateStr);
-                dto.setIndexCount(queryResult.getServerRequestTotal());
-                list.add(dto);
-            }
-
-            //没有匹配上的日期指标计数0
-            if (CollectionUtils.isNotEmpty(sevenDayList)) {
-                for (String s : sevenDayList) {
-                    CallStatisticsDTO dto = new CallStatisticsDTO();
-                    dto.setName(s);
-                    dto.setIndexCount(0L);
-                    list.add(dto);
+            if (!queryResults.isEmpty()) {
+                Map<Date, TServerStatisticsHour> map = queryResults.stream().collect(Collectors.toMap(TServerStatisticsHour::getDt, Function.identity()));
+                for (CallStatisticsDTO sto : list) {
+                    TServerStatisticsHour tServerStatisticsHour = map.get(sto.getName());
+                    sto.setIndexCount(tServerStatisticsHour==null?0L:tServerStatisticsHour.getServerRequestTotal());
                 }
             }
 
