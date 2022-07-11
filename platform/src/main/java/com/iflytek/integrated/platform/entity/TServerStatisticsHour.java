@@ -12,8 +12,6 @@ import java.io.Serializable;
 @Data
 public class TServerStatisticsHour implements Serializable {
 
-    private String id;
-
     private Long serverRequestTotal;
 
     private java.util.Date dt;

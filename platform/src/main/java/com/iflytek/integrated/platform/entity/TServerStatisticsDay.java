@@ -12,8 +12,6 @@ import java.io.Serializable;
 @Data
 public class TServerStatisticsDay implements Serializable {
 
-    private String id;
-
     private String serverId;
 
     private String typeId;

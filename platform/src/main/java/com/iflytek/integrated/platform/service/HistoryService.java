@@ -353,8 +353,6 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
             InterfaceDto tInterface=JSONObject.parseObject(ti.getHisContent(),InterfaceDto.class);
             interfaceService.updateInterface(tInterface,loginUserName,false);
 
-            //再删除当前历史
-            this.delete(id);
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "回滚成功!", null);
         } catch (Exception e) {
             logger.error("回滚失败! MSG:{}", ExceptionUtil.dealException(e));

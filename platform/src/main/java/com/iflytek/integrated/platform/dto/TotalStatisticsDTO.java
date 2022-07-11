@@ -30,6 +30,11 @@ public class TotalStatisticsDTO {
     private String okRate;
 
     /**
+     * 访问失败率
+     */
+    private String failRate;
+
+    /**
      * 访问失败次数
      */
     private String serverRequestFailTotal;

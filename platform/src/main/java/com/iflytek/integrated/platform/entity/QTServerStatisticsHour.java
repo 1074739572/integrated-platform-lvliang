@@ -25,12 +25,9 @@ public class QTServerStatisticsHour extends com.querydsl.sql.RelationalPathBase<
 
     public final DateTimePath<java.util.Date> dt = createDateTime("dt", java.util.Date.class);
 
-    public final StringPath id = createString("id");
 
     public final NumberPath<Long> serverRequestTotal = createNumber("serverRequestTotal",Long.class);
 
-
-    public final com.querydsl.sql.PrimaryKey<TServerStatisticsHour> primary = createPrimaryKey(id);
 
     public QTServerStatisticsHour(String variable) {
         super(TServerStatisticsHour.class, forVariable(variable), "null", "t_server_statistics_hour");
@@ -60,7 +57,6 @@ public class QTServerStatisticsHour extends com.querydsl.sql.RelationalPathBase<
     public void addMetadata() {
         addMetadata(dt, ColumnMetadata.named("DT").withIndex(10).ofType(Types.DATE).withSize(19));
         addMetadata(updateTime, ColumnMetadata.named("UPDATE_TIME").withIndex(11).ofType(Types.TIMESTAMP).withSize(19).notNull());
-        addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.VARCHAR).withSize(32).notNull());
         addMetadata(serverRequestTotal, ColumnMetadata.named("SERVER_REQUEST_TOTAL").withIndex(5).ofType(Types.BIGINT));
     }
 
