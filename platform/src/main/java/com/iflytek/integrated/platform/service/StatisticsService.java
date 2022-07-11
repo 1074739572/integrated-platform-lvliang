@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -210,7 +211,8 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
     private List<CallStatisticsDTO> typeCall(List<TServerStatisticsDay> queryResults) {
         List<CallStatisticsDTO> list = new ArrayList<>();
         //按照服务分组
-        Map<String, List<TServerStatisticsDay>> map = queryResults.stream().collect(Collectors.groupingBy(TServerStatisticsDay::getTypeName));
+        Map<String, List<TServerStatisticsDay>> map = queryResults.stream().filter(e->!StringUtils.isEmpty(e.getTypeName()))
+                .collect(Collectors.groupingBy(TServerStatisticsDay::getTypeName));
         for (Map.Entry<String, List<TServerStatisticsDay>> entry : map.entrySet()) {
             Long serverTotal = 0L;
             CallStatisticsDTO dto = new CallStatisticsDTO();
@@ -228,7 +230,8 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
     private List<CallStatisticsDTO> toptenVendorCall(List<TServerStatisticsDay> queryResults) {
         List<CallStatisticsDTO> list = new ArrayList<>();
         //按照服务分组
-        Map<String, List<TServerStatisticsDay>> map = queryResults.stream().collect(Collectors.groupingBy(TServerStatisticsDay::getVendorName));
+        Map<String, List<TServerStatisticsDay>> map = queryResults.stream().filter(e->!StringUtils.isEmpty(e.getVendorName()))
+                .collect(Collectors.groupingBy(TServerStatisticsDay::getVendorName));
         for (Map.Entry<String, List<TServerStatisticsDay>> entry : map.entrySet()) {
             Long serverTotal = 0L;
             CallStatisticsDTO dto = new CallStatisticsDTO();
@@ -249,7 +252,8 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
     private List<CallStatisticsDTO> serverCall(List<TServerStatisticsDay> queryResults) {
         List<CallStatisticsDTO> list = new ArrayList<>();
         //按照服务分组
-        Map<String, List<TServerStatisticsDay>> map = queryResults.stream().collect(Collectors.groupingBy(TServerStatisticsDay::getInterfaceName));
+        Map<String, List<TServerStatisticsDay>> map = queryResults.stream().filter(e->!StringUtils.isEmpty(e.getInterfaceName()))
+                .collect(Collectors.groupingBy(TServerStatisticsDay::getInterfaceName));
         for (Map.Entry<String, List<TServerStatisticsDay>> entry : map.entrySet()) {
             Long serverTotal = 0L;
             CallStatisticsDTO dto = new CallStatisticsDTO();
@@ -309,6 +313,7 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
     public ResultDto<List<CallStatisticsDTO>> getLastSevenDayStatistics() {
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat sdfMh = new SimpleDateFormat("MM-dd");
             //获取当前日期和7天前日期
             Calendar c = Calendar.getInstance();
             Date now = c.getTime();
@@ -320,13 +325,13 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
             List<CallStatisticsDTO> list = new ArrayList<>();
             CallStatisticsDTO dto = new CallStatisticsDTO();
             Calendar c1 = Calendar.getInstance();
-            dto.setName(sdf.format(c1.getTime()).substring(5));
+            dto.setName(sdfMh.format(c1.getTime()));
             dto.setIndexCount(0L);
             list.add(dto);
             for (int i = 0; i < 6; i++) {
                 dto = new CallStatisticsDTO();
                 c1.add(Calendar.DATE, -1);
-                dto.setName(sdf.format(c1.getTime()).substring(5));
+                dto.setName(sdfMh.format(c1.getTime()));
                 list.add(dto);
             }
 
@@ -343,7 +348,7 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
                     .groupBy(qTServerStatisticsDay.dt)
                     .fetch();
             if (!queryResults.isEmpty()) {
-                Map<Date, TServerStatisticsDay> map = queryResults.stream().collect(Collectors.toMap(TServerStatisticsDay::getDt, Function.identity()));
+                Map<String, TServerStatisticsDay> map = queryResults.stream().collect(Collectors.toMap(e->sdfMh.format(e.getDt()), Function.identity()));
                 for (CallStatisticsDTO sto : list) {
                     TServerStatisticsDay tServerStatisticsDay = map.get(sto.getName());
                     sto.setIndexCount(tServerStatisticsDay==null?0L:tServerStatisticsDay.getCurrRequestTotal());
@@ -365,6 +370,7 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
     public ResultDto<List<CallStatisticsDTO>> getEveryHour() {
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:00");
+            SimpleDateFormat sdfMh = new SimpleDateFormat("MM-dd HH:00");
             //获取当前日期和7天前日期
             Calendar c = Calendar.getInstance();
             Date now = c.getTime();
@@ -376,13 +382,13 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
             List<CallStatisticsDTO> list = new ArrayList<>();
             CallStatisticsDTO dto = new CallStatisticsDTO();
             Calendar c1 = Calendar.getInstance();
-            dto.setName(sdf.format(c1.getTime()).substring(5));
+            dto.setName(sdfMh.format(c1.getTime()));
             dto.setIndexCount(0L);
             list.add(dto);
             for (int i = 0; i < 23; i++) {
                 dto = new CallStatisticsDTO();
                 c1.add(Calendar.HOUR, -1);
-                dto.setName(sdf.format(c1.getTime()).substring(5));
+                dto.setName(sdfMh.format(c1.getTime()));
                 dto.setIndexCount(0L);
                 list.add(dto);
             }
@@ -396,7 +402,7 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
                     .where(qtServerStatisticsHour.dt.between(sdf.parse(hourDay), sdf.parse(nowStr)))
                     .fetch();
             if (!queryResults.isEmpty()) {
-                Map<Date, TServerStatisticsHour> map = queryResults.stream().collect(Collectors.toMap(TServerStatisticsHour::getDt, Function.identity()));
+                Map<String, TServerStatisticsHour> map = queryResults.stream().collect(Collectors.toMap(e->sdfMh.format(e.getDt()), Function.identity()));
                 for (CallStatisticsDTO sto : list) {
                     TServerStatisticsHour tServerStatisticsHour = map.get(sto.getName());
                     sto.setIndexCount(tServerStatisticsHour==null?0L:tServerStatisticsHour.getServerRequestTotal());
