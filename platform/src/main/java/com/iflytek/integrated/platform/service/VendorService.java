@@ -104,9 +104,14 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
     @ApiOperation(value = "新增或修改厂商", notes = "新增或修改厂商")
     @Transactional(rollbackFor = Exception.class)
     @PostMapping("/addOrMod")
-    public ResultDto<String> addOrMod(@RequestBody TVendor dto, @RequestParam("loginUserName") String loginUserName, @RequestParam(value = "file",required = false) MultipartFile file){
-        TVendor record = sqlQueryFactory.select(Projections.bean(TVendor.class,qtVendor.id, qtVendor.vendorName)).from(qtVendor).where(qtVendor.vendorName.eq(dto.getVendorName())).fetchFirst();
+    public ResultDto<String> addOrMod(@RequestParam(value = "id",required = false) String id,
+                                      @RequestParam(value = "vendorName",required = false) String vendorName,
+                                      @RequestParam(value = "vendorCode",required = false) String vendorCode,
+                                      @RequestParam("loginUserName") String loginUserName,
+                                      @RequestParam(value = "file",required = false) MultipartFile file){
+        TVendor record = sqlQueryFactory.select(Projections.bean(TVendor.class,qtVendor.id, qtVendor.vendorName)).from(qtVendor).where(qtVendor.vendorName.eq(vendorName)).fetchFirst();
 
+        TVendor dto=new TVendor();
         String msg = "";
 
         dto.setIsValid("1");
@@ -115,10 +120,9 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
         dto.setUpdatedBy(loginUserName);
         dto.setUpdatedTime(new Date());
         dto.setLogo(dto.getLogo());
-        String id = dto.getId();
+        dto.setVendorName(vendorName);
+        dto.setVendorCode(vendorCode);
         try {
-
-
         if(id != null && StringUtils.isNotEmpty(id)){
             //修改
             if(record != null && !record.getId().equals(id)){
