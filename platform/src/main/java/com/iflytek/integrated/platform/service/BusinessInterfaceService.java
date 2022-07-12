@@ -278,15 +278,8 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 		if (businessInterface == null) {
 			throw new RuntimeException("没有找到集成配置");
 		}
-		ArrayList<Predicate> list = new ArrayList<>();
-		if (StringUtils.isNotBlank(businessInterface.getRequestInterfaceId())) {
-			list.add(qTBusinessInterface.requestInterfaceId.eq(businessInterface.getRequestInterfaceId()));
-		}
-		if (StringUtils.isNotBlank(businessInterface.getSysRegistryId())) {
-			list.add(qTBusinessInterface.sysRegistryId.eq(businessInterface.getSysRegistryId()));
-		}
 		List<TBusinessInterface> interfaces = sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
-				.where(list.toArray(new Predicate[list.size()])).orderBy(qTBusinessInterface.excErrOrder.asc()).fetch();
+				.where(qTBusinessInterface.requestInterfaceId.eq(businessInterface.getRequestInterfaceId())).orderBy(qTBusinessInterface.excErrOrder.asc()).fetch();
 		if (CollectionUtils.isEmpty(interfaces)) {
 			throw new RuntimeException("没有找到多服务配置集合");
 		}

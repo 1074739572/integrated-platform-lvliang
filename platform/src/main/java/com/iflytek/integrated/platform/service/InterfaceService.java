@@ -1386,7 +1386,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                     " REGISTRY_NAME ,USE_STATUS) VALUES ('" + sysRegistry.getId() + "', '" + sysRegistry.getSysId() + "', '" +
                     sysRegistry.getConnectionType() + "', '" + sysRegistry.getAddressUrl() + "', '" + sysRegistry.getEndpointUrl() + "', " +
                     "'" + sysRegistry.getNamespaceUrl() + "', '" + sysRegistry.getDatabaseName() + "', '" + sysRegistry.getDatabaseUrl() + "', '" + sysRegistry.getDatabaseType() + "', '" + sysRegistry.getDatabaseDriver() + "', " +
-                    "'" + sysRegistry.getDriverUrl() + "', '" + sysRegistry.getJsonParams() + "', '" + sysRegistry.getUserName() + "', '" + sysRegistry.getUserPassword() + "','admin', now() , 'admin', now(), '" + sysRegistry.getRegistryName() + "','" + sysRegistry.getUseStatus() + "') ON conflict(ID) DO nothing;\n");
+                    "'" + sysRegistry.getDriverUrl() + "', '" + sysRegistry.getJsonParams() + "', '" + sysRegistry.getUserName() + "', '" + sysRegistry.getUserPassword() + "','admin', now() , 'admin', now(), '" + sysRegistry.getRegistryName() + "','" + sysRegistry.getUseStatus() + "') ;\n");
             sqlStringBuffer.append("END_OF_SQL\n");
         }
         List<TPlugin> tPlugins = sqlQueryFactory.select(qTPlugin).from(qTPlugin).where(qTPlugin.id.in(pluginIds)).fetch();
