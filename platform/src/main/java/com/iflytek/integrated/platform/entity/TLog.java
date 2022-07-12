@@ -15,6 +15,8 @@ public class TLog implements Serializable {
 
     private String businessInterfaceId;
 
+    private String businessInterfaceName;
+
     private String interfaceId;
 
     private String visitAddr;
@@ -77,6 +79,14 @@ public class TLog implements Serializable {
     private String regSysId;
 
     private String regSysName;
+
+    public String getBusinessInterfaceName() {
+        return businessInterfaceName;
+    }
+
+    public void setBusinessInterfaceName(String businessInterfaceName) {
+        this.businessInterfaceName = businessInterfaceName;
+    }
 
     public String getRegId() {
         return regId;

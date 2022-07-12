@@ -158,7 +158,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 				qTInterface.id.as("interfaceId"), qTInterface.interfaceName, qTInterface.interfaceUrl,
 				qTSysPublish.id.as("publishId"), qTSysPublish.publishName,
 				qTSys.id.as("publishSysId"), qTSys.sysName.as("publishSysName"),
-				qTBusinessInterface.excErrOrder, qTBusinessInterface.requestInterfaceId, qTBusinessInterface.replayFlag,
+				qTBusinessInterface.excErrOrder, qTBusinessInterface.requestInterfaceId, qTBusinessInterface.replayFlag, qTBusinessInterface.businessInterfaceName,
 				qTSysRegistry.id.as("regId"), qTSysRegistry.registryName.as("registryName"),
 				qtSysAlias.id.as("regSysId"), qtSysAlias.sysName.as("regSysName")))
 				.from(qTLog)

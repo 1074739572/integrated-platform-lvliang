@@ -251,7 +251,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		SQLUpdateClause updater = sqlQueryFactory.update(qTSys);
 		if (StringUtils.isNotBlank(sysName)) {
 			updater.set(qTSys.sysName, sysName);
-			updater.set(qTSys.sysCode, generateCode(qTSys.sysCode, qTSys, sysName));
+//			updater.set(qTSys.sysCode, generateCode(qTSys.sysCode, qTSys, sysName));
 		}
 		if (StringUtils.isNotBlank(isValid)) {
 			updater.set(qTSys.isValid, isValid);
