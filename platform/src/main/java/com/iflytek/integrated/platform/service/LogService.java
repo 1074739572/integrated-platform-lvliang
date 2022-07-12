@@ -166,8 +166,8 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 				.leftJoin(qTInterface).on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id))
 				.leftJoin(qTSysPublish).on(qTLog.publishId.eq(qTSysPublish.id))
 				.leftJoin(qTSys).on(qTSysPublish.sysId.eq(qTSys.id))
-				.leftJoin(qTSysRegistry).on(qTLog.regId.eq(qTSysRegistry.id))
-				.leftJoin(qtSysAlias).on(qTLog.regSysId.eq(qtSysAlias.id))
+				.leftJoin(qTSysRegistry).on(qTBusinessInterface.sysRegistryId.eq(qTSysRegistry.id))
+				.leftJoin(qtSysAlias).on(qTSysRegistry.sysId.eq(qtSysAlias.id))
 				;
 		if(!"postgresql".equals(dbType)) {
 			tlogQuery = tlogQuery.addFlag(new QueryFlag(Position.BEFORE_FILTERS, Expressions.stringTemplate(" FORCE INDEX ( log_query_idx )")));
