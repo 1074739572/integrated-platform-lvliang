@@ -154,4 +154,14 @@ public class FunctionAuthService extends BaseService<TFunctionAuth, String, Stri
         }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "功能权限删除成功!");
     }
+
+    public List<TFunctionAuth> getByPublishId(String publishId) {
+        // 删除接口
+        return sqlQueryFactory
+                .select(Projections
+                        .bean(TFunctionAuth.class, qtFunctionAuth.id))
+                .from(qtFunctionAuth)
+                .where(qtFunctionAuth.publishId.eq(publishId))
+                .fetch();
+    }
 }

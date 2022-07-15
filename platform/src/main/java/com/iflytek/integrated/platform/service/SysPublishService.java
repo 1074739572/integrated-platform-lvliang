@@ -3,12 +3,10 @@ package com.iflytek.integrated.platform.service;
 import com.alibaba.fastjson.JSON;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
-import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
-import com.iflytek.integrated.platform.common.RedisService;
-import com.iflytek.integrated.platform.entity.TSys;
+import com.iflytek.integrated.platform.entity.TFunctionAuth;
 import com.iflytek.integrated.platform.entity.TSysPublish;
 import com.iflytek.integrated.platform.entity.TSysRegistry;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
@@ -55,6 +53,9 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
 
     @Autowired
     private BatchUidService batchUidService;
+
+    @Autowired
+    private FunctionAuthService functionAuthService;
 
     public SysPublishService() {
         super(qTSysPublish, qTSysPublish.id);
@@ -184,6 +185,11 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
     @PostMapping("/delById/{id}")
     public ResultDto<String> delById(
             @ApiParam(value = "服务id") @PathVariable(value = "id", required = true) String id) {
+        //先判断有没有关联权限
+        List<TFunctionAuth> list = functionAuthService.getByPublishId(id);
+        if (!CollectionUtils.isEmpty(list)) {
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该服务发布已有功能权限关联,无法删除!", "该服务发布已有功能权限关联,无法删除!");
+        }
         // 删除接口
         long l = this.delete(id);
         if (l < 1) {
