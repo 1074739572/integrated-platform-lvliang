@@ -1,10 +1,11 @@
 package com.iflytek.integrated.platform.service;
 
+import com.iflytek.integrated.common.config.MetricsConfig;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
-import com.iflytek.integrated.platform.entity.TCadFile;
+import com.iflytek.integrated.platform.entity.TCdaFile;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.system.ApplicationHome;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,25 +35,23 @@ import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static com.iflytek.integrated.platform.entity.QTCadFile.qtCadFile;
-import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
+import static com.iflytek.integrated.platform.entity.QTCdaFile.qtCdaFile;
 
 /**
- * 分类
+ * CDA
  *
  * @author weihe9
  * @date 2020/12/20 17:02
  */
 @Slf4j
-@Api(tags = "CAD文档管理")
+@Api(tags = "CDA文档管理")
 @RestController
-@RequestMapping("/{version}/pt/cadFileManage")
-public class CadService extends BaseService<TCadFile, String, StringPath> {
+@RequestMapping("/{version}/pt/cdaFileManage")
+public class CdaService extends BaseService<TCdaFile, String, StringPath> {
+    private static final Logger logger = LoggerFactory.getLogger(CdaService.class);
 
-    private static final Logger logger = LoggerFactory.getLogger(CadService.class);
-
-    public CadService() {
-        super(qtCadFile, qtCadFile.id);
+    public CdaService() {
+        super(qtCdaFile, qtCdaFile.id);
     }
 
     String uploadPath;
@@ -65,32 +65,32 @@ public class CadService extends BaseService<TCadFile, String, StringPath> {
         logger.info("==>图片存储目录为：{}",uploadPath);
     }
 
-    @ApiOperation(value = "获取服务分类列表")
+    @ApiOperation(value = "获取CDA列表")
     @GetMapping("/getFileList")
-    public ResultDto<TableData<TCadFile>> getInterfaceType(
+    public ResultDto<TableData<TCdaFile>> getFileList(
             @ApiParam(value = "文件主题") @RequestParam(value = "docTheme", required = false) String docTheme,
             @ApiParam(value = "页码", example = "1") @RequestParam(value = "pageNo", defaultValue = "1", required = false) Integer pageNo,
             @ApiParam(value = "每页大小", example = "10") @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize) {
         ArrayList<Predicate> list = new ArrayList<>();
         // 判断条件是否为空
         if (StringUtils.isNotEmpty(docTheme)) {
-            list.add(qtCadFile.docTheme.like(PlatformUtil.createFuzzyText(docTheme)));
+            list.add(qtCdaFile.docTheme.like(PlatformUtil.createFuzzyText(docTheme)));
         }
-        QueryResults<TCadFile> queryResults = sqlQueryFactory
-                .select(Projections.bean(TCadFile.class, qtCadFile.id, qtCadFile.docNo, qtCadFile.docTheme, qtCadFile.docStandardNo, qtCadFile.docStandardDesc, qtCadFile.filePath))
-                .from(qtCadFile).where(list.toArray(new Predicate[list.size()]))
+        QueryResults<TCdaFile> queryResults = sqlQueryFactory
+                .select(Projections.bean(TCdaFile.class, qtCdaFile.id, qtCdaFile.docNo, qtCdaFile.docTheme, qtCdaFile.docStandardNo, qtCdaFile.docStandardDesc, qtCdaFile.filePath))
+                .from(qtCdaFile).where(list.toArray(new Predicate[list.size()]))
                 .limit(pageSize)
-                .offset((pageNo - 1) * pageSize).orderBy(qtCadFile.docNo.desc()).fetchResults();
+                .offset((pageNo - 1) * pageSize).orderBy(qtCdaFile.docNo.desc()).fetchResults();
         // 分页
-        TableData<TCadFile> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
+        TableData<TCdaFile> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "数据获取成功!", tableData);
     }
 
     @ApiOperation(value = "导出")
     @GetMapping("/export")
-    public void downloadResources(@ApiParam(value = "id") @RequestParam String id, HttpServletResponse response) {
+    public void export(@ApiParam(value = "id") @RequestParam String id, HttpServletResponse response) {
         //根据id查询文件路径
-        TCadFile cadFile = this.getOne(id);
+        TCdaFile cadFile = this.getOne(id);
         if (cadFile == null || StringUtils.isEmpty(cadFile.getFilePath())) {
             throw new RuntimeException("该文档未维护文件目录!");
         }

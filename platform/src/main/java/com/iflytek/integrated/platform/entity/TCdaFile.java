@@ -9,7 +9,7 @@ import java.io.Serializable;
  * TType is a Querydsl bean type
  */
 @Data
-public class TCadFile implements Serializable {
+public class TCdaFile implements Serializable {
 
     private String id;
 
