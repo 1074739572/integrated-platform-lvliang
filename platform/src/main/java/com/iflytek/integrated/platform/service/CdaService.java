@@ -77,7 +77,7 @@ public class CdaService extends BaseService<TCdaFile, String, StringPath> {
             list.add(qtCdaFile.docTheme.like(PlatformUtil.createFuzzyText(docTheme)));
         }
         QueryResults<TCdaFile> queryResults = sqlQueryFactory
-                .select(Projections.bean(TCdaFile.class, qtCdaFile.id, qtCdaFile.docNo, qtCdaFile.docTheme, qtCdaFile.docStandardNo, qtCdaFile.docStandardDesc, qtCdaFile.filePath))
+                .select(Projections.bean(TCdaFile.class, qtCdaFile.id, qtCdaFile.docNo, qtCdaFile.docTheme, qtCdaFile.docStandardNo, qtCdaFile.docStandardDesc, qtCdaFile.filePath,qtCdaFile.docFileName))
                 .from(qtCdaFile).where(list.toArray(new Predicate[list.size()]))
                 .limit(pageSize)
                 .offset((pageNo - 1) * pageSize).orderBy(qtCdaFile.docNo.desc()).fetchResults();
