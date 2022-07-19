@@ -190,7 +190,7 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
     private List<CallStatisticsDTO> toptenSpeedCall(List<TServerStatisticsDay> queryResults) {
         List<CallStatisticsDTO> list = new ArrayList<>();
         //按照服务分组
-        Map<String, List<TServerStatisticsDay>> map = queryResults.stream().collect(Collectors.groupingBy(TServerStatisticsDay::getInterfaceName));
+        Map<String, List<TServerStatisticsDay>> map = queryResults.stream().filter(e->!StringUtils.isEmpty(e.getInterfaceName())).collect(Collectors.groupingBy(TServerStatisticsDay::getInterfaceName));
         for (Map.Entry<String, List<TServerStatisticsDay>> entry : map.entrySet()) {
             Long serverTimesTotal = 0L;
             CallStatisticsDTO dto = new CallStatisticsDTO();
@@ -203,7 +203,7 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
         }
 
         return list.stream()
-                .sorted(Comparator.comparing(CallStatisticsDTO::getIndexCount).reversed())
+                .sorted(Comparator.comparing(CallStatisticsDTO::getIndexCount))
                 .limit(10)
                 .collect(Collectors.toList());
     }
