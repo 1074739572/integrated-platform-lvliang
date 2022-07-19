@@ -3,7 +3,6 @@ package com.iflytek.integrated.platform.entity;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.PathMetadata;
 import com.querydsl.core.types.dsl.DateTimePath;
-import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 
@@ -15,11 +14,11 @@ import static com.querydsl.core.types.PathMetadataFactory.forVariable;
 /**
  * QTType is a Querydsl query type for TType
  */
-public class QTCadFile extends com.querydsl.sql.RelationalPathBase<TCadFile> {
+public class QTCdaFile extends com.querydsl.sql.RelationalPathBase<TCdaFile> {
 
     private static final long serialVersionUID = -200650066;
 
-    public static final QTCadFile qtCadFile = new QTCadFile("t_cad_file");
+    public static final QTCdaFile qtCdaFile = new QTCdaFile("t_cad_file");
 
     public final StringPath createdBy = createString("createdBy");
 
@@ -43,30 +42,30 @@ public class QTCadFile extends com.querydsl.sql.RelationalPathBase<TCadFile> {
 
     public final DateTimePath<java.util.Date> updatedTime = createDateTime("updatedTime", java.util.Date.class);
 
-    public final com.querydsl.sql.PrimaryKey<TCadFile> primary = createPrimaryKey(id);
+    public final com.querydsl.sql.PrimaryKey<TCdaFile> primary = createPrimaryKey(id);
 
-    public QTCadFile(String variable) {
-        super(TCadFile.class, forVariable(variable), "null", "t_cad_file");
+    public QTCdaFile(String variable) {
+        super(TCdaFile.class, forVariable(variable), "null", "t_cad_file");
         addMetadata();
     }
 
-    public QTCadFile(String variable, String schema, String table) {
-        super(TCadFile.class, forVariable(variable), schema, table);
+    public QTCdaFile(String variable, String schema, String table) {
+        super(TCdaFile.class, forVariable(variable), schema, table);
         addMetadata();
     }
 
-    public QTCadFile(String variable, String schema) {
-        super(TCadFile.class, forVariable(variable), schema, "t_cad_file");
+    public QTCdaFile(String variable, String schema) {
+        super(TCdaFile.class, forVariable(variable), schema, "t_cad_file");
         addMetadata();
     }
 
-    public QTCadFile(Path<? extends TCadFile> path) {
+    public QTCdaFile(Path<? extends TCdaFile> path) {
         super(path.getType(), path.getMetadata(), "null", "t_cad_file");
         addMetadata();
     }
 
-    public QTCadFile(PathMetadata metadata) {
-        super(TCadFile.class, metadata, "null", "t_cad_file");
+    public QTCdaFile(PathMetadata metadata) {
+        super(TCdaFile.class, metadata, "null", "t_cad_file");
         addMetadata();
     }
 
