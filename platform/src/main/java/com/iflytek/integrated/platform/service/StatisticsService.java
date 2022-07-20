@@ -177,7 +177,7 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
             statisticsDto.setTypeCall(typeCall(queryResults));
 
             //服务调用速度TOP10
-            statisticsDto.setSpeedTopTen(toptenSpeedCall(queryResults,statisticsDto.getServerRequestTotal()));
+            statisticsDto.setSpeedTopTen(toptenSpeedCall(queryResults));
 
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取统计数据成功!", statisticsDto);
         } catch (BeansException e) {
@@ -187,18 +187,20 @@ public class StatisticsService extends BaseService<TServerStatisticsDay, String,
         }
     }
 
-    private List<CallStatisticsDTO> toptenSpeedCall(List<TServerStatisticsDay> queryResults,String serverRequestTotal) {
+    private List<CallStatisticsDTO> toptenSpeedCall(List<TServerStatisticsDay> queryResults) {
         List<CallStatisticsDTO> list = new ArrayList<>();
         //按照服务分组
         Map<String, List<TServerStatisticsDay>> map = queryResults.stream().filter(e->!StringUtils.isEmpty(e.getInterfaceName())).collect(Collectors.groupingBy(TServerStatisticsDay::getInterfaceName));
         for (Map.Entry<String, List<TServerStatisticsDay>> entry : map.entrySet()) {
             Long serverTimesTotal = 0L;
+            Long serverRequestTotal = 0L;
             CallStatisticsDTO dto = new CallStatisticsDTO();
             for (TServerStatisticsDay tServerStatisticsDay : entry.getValue()) {
                 serverTimesTotal += tServerStatisticsDay.getCurrResponseTimeTotal();
+                serverRequestTotal+=tServerStatisticsDay.getCurrRequestTotal();
             }
             dto.setName(entry.getKey());
-            dto.setIndexCount(serverTimesTotal/Long.valueOf(serverRequestTotal));
+            dto.setIndexCount(serverTimesTotal/serverRequestTotal);
             list.add(dto);
         }
 
