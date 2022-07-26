@@ -158,8 +158,6 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
         }
     }
 
-
-
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增/修改服务发布信息", notes = "新增/修改服务发布信息")
     @PostMapping("/saveOrUpdate")
@@ -185,6 +183,8 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
             dto.setCreatedBy(loginUserName);
             this.post(dto);
         } else {
+            //重新查询下签名密码防止传过来密文覆盖数据库明文
+            dto.setSignKey(getOne(registryId).getSignKey());
             dto.setUpdatedTime(new Date());
             dto.setUpdatedBy(loginUserName);
             long l = this.put(registryId, dto);
