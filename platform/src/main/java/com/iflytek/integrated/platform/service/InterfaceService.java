@@ -1357,9 +1357,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                     " OUT_PARAM_SCHEMA ,  OUT_PARAM_FORMAT_TYPE,allow_log_discard,interface_type,async_flag," +
                     " encryption_type,mask_pos_start,mask_pos_end) VALUES ('" + tInterface.getId() + "', '" + PlatformUtil.escapeSqlSingleQuotes(tInterface.getInterfaceName()) + "', '" + tInterface.getTypeId() + "', " +
                     "'" + tInterface.getInterfaceUrl() + "', '" + PlatformUtil.escapeSqlSingleQuotes(tInterface.getInParamFormat()) + "', '" + PlatformUtil.escapeSqlSingleQuotes(tInterface.getOutParamFormat()) + "', '" + tInterface.getParamOutStatus() + "', '" + tInterface.getParamOutStatusSuccess() +
-                    "', 'admin', now() , 'admin', now(), '" + tInterface.getInParamSchema() + "', '" + tInterface.getInParamFormatType() + "', '" + tInterface.getOutParamSchema() + "', '" + tInterface.getOutParamFormatType() +"', '" + tInterface.getAllowLogDiscard()+"', '" + tInterface.getInterfaceType() + "', '" + tInterface.getAsyncFlag() +
-                    "','" + tInterface.getEncryptionType() + "', '" + tInterface.getMaskPosStart() + "', '" + tInterface.getMaskPosEnd() +
-                    "') ;\n");
+                    "', 'admin', now() , 'admin', now(), '" + tInterface.getInParamSchema() + "', '" + tInterface.getInParamFormatType() + "', '" + tInterface.getOutParamSchema() + "', '" + tInterface.getOutParamFormatType() +"', '" + tInterface.getAllowLogDiscard()+"', " + tInterface.getInterfaceType() + ", " + tInterface.getAsyncFlag() +
+                    "," + tInterface.getEncryptionType() + ", " + tInterface.getMaskPosStart() + ", " + tInterface.getMaskPosEnd() +
+                    ") ;\n");
             sqlStringBuffer.append("END_OF_SQL\n");
         }
         List<TInterfaceParam> tInterfaceParams = sqlQueryFactory.select(qTInterfaceParam).from(qTInterfaceParam).where(qTInterfaceParam.interfaceId.in(interfaceIds)).fetch();
