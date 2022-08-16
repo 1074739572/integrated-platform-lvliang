@@ -31,6 +31,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
@@ -135,13 +137,6 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		if(registry != null){
 			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该系统已关联服务注册方,无法删除!", "该系统已关联服务注册方,无法删除!");
 		}
-
-
-		// 删除系统前先查询是否与接口关联
-//		List<TInterface> interfaceList = interfaceService.getObjBySysId(id);
-//		if (CollectionUtils.isNotEmpty(interfaceList)) {
-//			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该系统已有关联接口,无法删除!", "该系统已有关联接口,无法删除!");
-//		}
 
 		//redis缓存信息获取
 		ArrayList<Predicate> arr = new ArrayList<>();
@@ -302,7 +297,65 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 		return sqlQueryFactory.select(qTSys).from(qTSys).where(qTSys.sysName.eq(sysName)).fetchFirst();
 	}
 
+	/**
+	 * 根据系统id列表查询所有系统
+	 *
+	 * @param sysIds
+	 * @return
+	 */
+	public List<TSys> getBySysIds(List<String> sysIds) {
+		return sqlQueryFactory.select(qTSys).from(qTSys).where(qTSys.id.in(sysIds)).fetch();
+	}
+
 	public TSys getByVendorId(String vendorId){
 		return sqlQueryFactory.select(qTSys).from(qTSys).where(qTSys.vendorId.eq(vendorId)).fetchFirst();
+	}
+
+	private void cacheDelete(String sysId) {
+		//1.删除驱动缓存
+		List<TSysDriveLink> drivers = sysDriveLinkService.getSysDriveLinkBySysId(sysId);
+
+		//2.删除webservice接口schema缓存删除(这里实际上需要查询出所有服务，然后拼接出key)
+		List<TInterface> tInterfaces = interfaceService.getAll();
+		List<RedisKeyDto> interfaceCacheKeys = new ArrayList<>();
+		if(CollectionUtils.isNotEmpty(tInterfaces)){
+			for (TInterface tInterface : tInterfaces) {
+				RedisKeyDto dto=new RedisKeyDto();
+				dto.setFunCode(tInterface.getInterfaceUrl());
+				dto.setSysCode(sysId);
+			}
+
+		}
+
+
+		//3.认证（登录、ip白名单）缓存删除
+
+		//4.接口元数据查询缓存删除
+		//根据驱动id查询系统
+		List<TSysDriveLink> beans = sysDriveLinkService.getSysDriveLinkByDriveId(driveId);
+		if (CollectionUtils.isEmpty(beans)) {
+			return;
+		}
+
+		//遍历得到 key:驱动id  value:系统id的map
+		Map<String, String> linksMap = beans.stream().filter(e -> StringUtils.isNotEmpty(e.getSysId()))
+				.collect(Collectors.toMap(TSysDriveLink::getDriveId, TSysDriveLink::getSysId));
+		if (linksMap != null && !linksMap.isEmpty()) {
+			List<RedisKeyDto> list = new ArrayList<>();
+
+			//Configs:_productcode_funcode 缓存删除
+			for (Map.Entry<String, String> entry : linksMap.entrySet()) {
+				RedisKeyDto dto = new RedisKeyDto();
+				dto.setSysCode(dto.getSysCode());
+				dto.setFunCode(dto.getFunCode());
+				list.add(dto);
+			}
+
+			//WS:drivers 缓存删除的删除
+			redisService.delWsDriverRedisKey(list);
+
+			//Configs:_productcode_funcode 缓存的删除
+			redisService.delRedisKey(list);
+		}
 	}
 }

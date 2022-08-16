@@ -215,8 +215,7 @@ public class RedisService {
 		List<String> keys = new ArrayList<>();
 		for (RedisKeyDto obj : list) {
 			String key = "IntegratedPlatform:Configs:_" + obj.getSysCode() + "_"
-					+ obj.getFunCode() + "_" + obj.getOrgId();
-//			redisUtil.del(key);
+					+ obj.getFunCode();
 			keys.add(key);
 		}
 		niFiRequestUtil.metacacheClean(keys);
@@ -225,9 +224,8 @@ public class RedisService {
 
 	public void delWsDriverRedisKey(List<RedisKeyDto> list) {
 		List<String> keys = new ArrayList<>();
-		for (RedisKeyDto obj : list) {
-			String key = "IntegratedPlatform:Configs:WS:drivers:_" + obj.getSysCode() + "_" + obj.getOrgId();
-//			redisUtil.del(key);
+		for (RedisKeyDto dto : list) {
+			String key = "IntegratedPlatform:Configs:WS:drivers:_" + dto.getSysCode();
 			keys.add(key);
 		}
 		niFiRequestUtil.metacacheClean(keys);

@@ -15,6 +15,7 @@ import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.platform.dto.RedisDto;
 import com.iflytek.integrated.platform.dto.RedisKeyDto;
 import com.iflytek.integrated.platform.entity.TDrive;
+import com.iflytek.integrated.platform.entity.TSys;
 import com.iflytek.integrated.platform.entity.TSysDriveLink;
 import com.iflytek.integrated.platform.entity.TType;
 import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
@@ -38,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
 import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
@@ -74,6 +76,8 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
     private HistoryService historyService;
     @Autowired
     private TypeService typeService;
+    @Autowired
+    private SysService sysService;
 
     @ApiOperation(value = "获取驱动下拉")
     @GetMapping("/getAllDrive")
@@ -166,16 +170,15 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
         if (CollectionUtils.isNotEmpty(tvdlList)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该驱动已有系统相关联,无法删除!", "该驱动已有系统相关联,无法删除!");
         }
-        // redis缓存信息获取
-        ArrayList<Predicate> arr = new ArrayList<>();
-        arr.add(qTSysDriveLink.driveId.in(id));
-        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+        // nifi缓存信息获取
+        cacheDelete(drive.getId());
+
         // 删除驱动
         Long lon = sqlQueryFactory.delete(qTDrive).where(qTDrive.id.eq(drive.getId())).execute();
         if (lon <= 0) {
             throw new RuntimeException("驱动删除失败!");
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "驱动删除成功!", new RedisDto(redisKeyDtoList).toString());
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "驱动删除成功!", null);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -215,10 +218,10 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
             historyService.insertHis(drive, 2, loginUserName, null, drive.getId(), null);
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "驱动新增成功", null);
         }
-        // redis缓存信息获取
-        ArrayList<Predicate> arr = new ArrayList<>();
-        arr.add(qTSysDriveLink.driveId.in(drive.getId()));
-        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+
+        //删除缓存
+        cacheDelete(drive.getId());
+
         //插入历史
         TDrive tDrive = this.getOne(drive.getId());
         TType tType = typeService.getOne(tDrive.getTypeId());
@@ -237,7 +240,47 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
         if (lon <= 0) {
             throw new RuntimeException("驱动编辑失败!");
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "驱动编辑成功!", new RedisDto(redisKeyDtoList).toString());
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "驱动编辑成功!", null);
+    }
+
+    private void cacheDelete(String driveId) {
+        //根据驱动id查询系统
+        List<TSysDriveLink> beans = sysDriveLinkService.getSysDriveLinkByDriveId(driveId);
+        if (CollectionUtils.isEmpty(beans)) {
+            return;
+        }
+
+        //驱动编辑和删除涉及两块缓存
+        //1.Configs:WS:drivers:_productcode 通过驱动获取到所有系统然后删除对应key
+
+
+        //2.Configs:_productcode_funcode  通过驱动获取
+
+
+        //遍历得到 key:驱动id  value:系统id的map
+        Map<String, String> linksMap = beans.stream().filter(e -> StringUtils.isNotEmpty(e.getSysId()))
+                .collect(Collectors.toMap(TSysDriveLink::getDriveId, TSysDriveLink::getSysId));
+        if (linksMap != null && !linksMap.isEmpty()) {
+            List<RedisKeyDto> list = new ArrayList<>();
+            //查询系统编码
+            List<TSys> sysList = sysService.getBySysIds(new ArrayList<>(linksMap.values()));
+            //转换成map形式
+            Map<String, String> sysMap = sysList.stream().collect(Collectors.toMap(TSys::getId, TSys::getSysCode));
+
+            //Configs:_productcode_funcode 缓存删除
+            for (Map.Entry<String, String> entry : linksMap.entrySet()) {
+                RedisKeyDto dto = new RedisKeyDto();
+                dto.setSysCode(sysMap.get(entry.getKey()));
+                dto.setFunCode(dto.getFunCode());
+                list.add(dto);
+            }
+
+            //WS:drivers 缓存删除的删除
+            redisService.delWsDriverRedisKey(list);
+
+            //Configs:_productcode_funcode 缓存的删除
+            redisService.delRedisKey(list);
+        }
     }
 
     @ApiOperation(value = "新增厂商弹窗展示的驱动选择信息")
