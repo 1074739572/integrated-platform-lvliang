@@ -1048,7 +1048,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         }
         //删除缓存
         cacheDeleteIntegration(id);
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "单个集成配置信息删除成功!",null);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "单个集成配置信息删除成功!", null);
     }
 
     @ApiOperation(value = "获取服务详情", notes = "获取服务详情")
@@ -1491,6 +1491,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
 
     private void cacheDelete(String id) {
         TInterface tInterface = this.getOne(id);
+        if (StringUtils.isEmpty((tInterface.getInterfaceUrl()))) {
+            return;
+        }
         CacheDeleteDto keyDto = new CacheDeleteDto();
         keyDto.setInterfaceCodes(Arrays.asList(tInterface.getInterfaceUrl()));
         //需要删除下面两种缓存key
@@ -1510,7 +1513,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     private void cacheDeleteIntegration(String id) {
         TBusinessInterface businessInterface = businessInterfaceService.getOne(id);
         CacheDeleteDto keyDto = new CacheDeleteDto();
-        keyDto.setInterfaceIds(Arrays.asList(businessInterface.getInterfaceUrl()));
+        if (StringUtils.isEmpty((businessInterface.getInterfaceUrl()))) {
+            return;
+        }
+        keyDto.setInterfaceCodes(Arrays.asList(businessInterface.getInterfaceUrl()));
         //需要删除下面两种缓存key
         keyDto.setCacheTypeList(Arrays.asList(
                 Constant.CACHE_KEY_PREFIX.COMMON_TYPE
