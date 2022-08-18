@@ -1,6 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
@@ -8,13 +9,16 @@ import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.common.validator.ValidationResult;
 import com.iflytek.integrated.common.validator.ValidatorHelper;
 import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.CacheDeleteService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.common.RedisService;
+import com.iflytek.integrated.platform.dto.CacheDeleteDto;
 import com.iflytek.integrated.platform.dto.DriveDto;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.platform.dto.RedisDto;
 import com.iflytek.integrated.platform.dto.RedisKeyDto;
 import com.iflytek.integrated.platform.entity.TDrive;
+import com.iflytek.integrated.platform.entity.TInterface;
 import com.iflytek.integrated.platform.entity.TSys;
 import com.iflytek.integrated.platform.entity.TSysDriveLink;
 import com.iflytek.integrated.platform.entity.TType;
@@ -78,6 +82,12 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
     private TypeService typeService;
     @Autowired
     private SysService sysService;
+
+    @Autowired
+    private InterfaceService interfaceService;
+
+    @Autowired
+    private CacheDeleteService cacheDeleteService;
 
     @ApiOperation(value = "获取驱动下拉")
     @GetMapping("/getAllDrive")
@@ -170,7 +180,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
         if (CollectionUtils.isNotEmpty(tvdlList)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该驱动已有系统相关联,无法删除!", "该驱动已有系统相关联,无法删除!");
         }
-        // nifi缓存信息获取
+        // 缓存删除
         cacheDelete(drive.getId());
 
         // 删除驱动
@@ -250,37 +260,19 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
             return;
         }
 
-        //驱动编辑和删除涉及两块缓存
-        //1.Configs:WS:drivers:_productcode 通过驱动获取到所有系统然后删除对应key
+        CacheDeleteDto sysKeyDto = new CacheDeleteDto();
+        List<String> sysIdList = beans.stream().filter(e -> StringUtils.isNotEmpty(e.getSysId()))
+                .map(TSysDriveLink::getSysId)
+                .collect(Collectors.toList());
+        sysKeyDto.setSysIds(sysIdList);
 
+        //需要生成两种类型的key 因为驱动无法获取到funcode所以获取所有的funcode
+        sysKeyDto.setCacheTypeList(Arrays.asList(
+                Constant.CACHE_KEY_PREFIX.DRIVERS_TYPE,
+                Constant.CACHE_KEY_PREFIX.COMMON_TYPE));
 
-        //2.Configs:_productcode_funcode  通过驱动获取
-
-
-        //遍历得到 key:驱动id  value:系统id的map
-        Map<String, String> linksMap = beans.stream().filter(e -> StringUtils.isNotEmpty(e.getSysId()))
-                .collect(Collectors.toMap(TSysDriveLink::getDriveId, TSysDriveLink::getSysId));
-        if (linksMap != null && !linksMap.isEmpty()) {
-            List<RedisKeyDto> list = new ArrayList<>();
-            //查询系统编码
-            List<TSys> sysList = sysService.getBySysIds(new ArrayList<>(linksMap.values()));
-            //转换成map形式
-            Map<String, String> sysMap = sysList.stream().collect(Collectors.toMap(TSys::getId, TSys::getSysCode));
-
-            //Configs:_productcode_funcode 缓存删除
-            for (Map.Entry<String, String> entry : linksMap.entrySet()) {
-                RedisKeyDto dto = new RedisKeyDto();
-                dto.setSysCode(sysMap.get(entry.getKey()));
-                dto.setFunCode(dto.getFunCode());
-                list.add(dto);
-            }
-
-            //WS:drivers 缓存删除的删除
-            redisService.delWsDriverRedisKey(list);
-
-            //Configs:_productcode_funcode 缓存的删除
-            redisService.delRedisKey(list);
-        }
+        //获得到系统编码的缓存键集合
+        cacheDeleteService.cacheKeyDelete(sysKeyDto);
     }
 
     @ApiOperation(value = "新增厂商弹窗展示的驱动选择信息")

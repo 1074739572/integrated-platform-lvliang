@@ -6,8 +6,10 @@ import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.CacheDeleteService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.common.RedisService;
+import com.iflytek.integrated.platform.dto.CacheDeleteDto;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TSysRegistry;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
@@ -36,10 +38,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 import static com.iflytek.integrated.platform.entity.QTSysRegistry.qTSysRegistry;
@@ -57,6 +61,9 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
 
     @Autowired
     private BatchUidService batchUidService;
+
+    @Autowired
+    private CacheDeleteService cacheDeleteService;
 
     public SysRegistryService() {
         super(qTSysRegistry, qTSysRegistry.id);
@@ -182,6 +189,8 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
             if (l < 1) {
                 throw new RuntimeException("服务注册编辑失败!");
             }
+            //删除缓存
+            cacheDelete(registryId);
         }
         Map<String, String> data = new HashMap<String, String>();
         data.put("id", registryId);
@@ -203,6 +212,8 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
         if (l < 1) {
             throw new RuntimeException("注册服务删除成功!");
         }
+        //删除缓存
+        cacheDelete(id);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "注册服务删除成功!");
     }
 
@@ -212,5 +223,22 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
                 .from(qTSysRegistry)
                 .where(qTSysRegistry.sysId.eq(sysId))
                 .fetchFirst();
+    }
+
+    private void cacheDelete(String id) {
+        //根据服务注册查询 集成配置 找到对应的服务
+        List<TBusinessInterface> businessInterfaces = businessInterfaceService.getListBySysRegistryId(id);
+        if(CollectionUtils.isEmpty(businessInterfaces)){
+            return;
+        }
+        List<String> funcodes = businessInterfaces.stream().map(TBusinessInterface::getInterfaceUrl).collect(Collectors.toList());
+        CacheDeleteDto keyDto = new CacheDeleteDto();
+        keyDto.setInterfaceCodes(funcodes);
+        //需要删除下面两种缓存key
+        keyDto.setCacheTypeList(Arrays.asList(
+                Constant.CACHE_KEY_PREFIX.COMMON_TYPE
+        ));
+
+        cacheDeleteService.cacheKeyDelete(keyDto);
     }
 }

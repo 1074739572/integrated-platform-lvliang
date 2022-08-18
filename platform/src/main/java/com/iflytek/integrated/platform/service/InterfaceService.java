@@ -1,6 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iflytek.integrated.common.dto.ResultDto;
@@ -9,9 +10,11 @@ import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.common.validator.ValidationResult;
 import com.iflytek.integrated.common.validator.ValidatorHelper;
 import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.CacheDeleteService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.common.RedisService;
 import com.iflytek.integrated.platform.dto.BusinessInterfaceDto;
+import com.iflytek.integrated.platform.dto.CacheDeleteDto;
 import com.iflytek.integrated.platform.dto.DbUrlTestDto;
 import com.iflytek.integrated.platform.dto.InDebugResDto;
 import com.iflytek.integrated.platform.dto.InterfaceDebugDto;
@@ -124,6 +127,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     private SysRegistryService sysRegistryService;
     @Autowired
     private SysService sysService;
+    @Autowired
+    private CacheDeleteService cacheDeleteService;
 
     @Value("${config.request.nifiapi.readtimeout}")
     private int readTimeout;
@@ -338,17 +343,14 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         if (CollectionUtils.isNotEmpty(list)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该标准服务已有集成配置关联,无法删除!", "该标准服务已有集成配置关联,无法删除!");
         }
-        // redis缓存信息获取
-        ArrayList<Predicate> arr = new ArrayList<>();
-        arr.add(qTInterface.id.in(id));
-        //TODO REDIS暂时不用
-        List<RedisKeyDto> redisKeyDtoList = null;// redisService.getRedisKeyDtoList(arr);
         // 删除服务
         long l = this.delete(id);
         if (l < 1) {
             throw new RuntimeException("标准服务删除成功!");
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准服务删除成功!", new RedisDto(redisKeyDtoList).toString());
+        //删除缓存
+        cacheDelete(id);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准服务删除成功!", null);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -487,11 +489,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         if (saveHis) {
             write2His(id, loginUserName);
         }
-        //redis缓存信息获取
-        ArrayList<Predicate> arr = new ArrayList<>();
-        arr.add(qTInterface.id.eq(id));
-        //TODO redis调用先注释
-        List<RedisKeyDto> redisKeyDtoList = null;//redisService.getRedisKeyDtoList(arr);
         // 传入标准服务方法
         String interfaceUrl = dto.getInterfaceUrl();
         if (!tf.getInterfaceUrl().equals(interfaceUrl)) {
@@ -599,8 +596,10 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 }
             }
         }
+        //删除缓存
+        cacheDelete(id);
 
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准服务修改成功!", new RedisDto(redisKeyDtoList).toString());
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准服务修改成功!", null);
     }
 
     public void write2His(String id, String loginUserName) {
@@ -887,7 +886,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             //插入history
             List<TBusinessInterface> list = businessInterfaceService.getListByCondition(exsitsBI.getRequestInterfaceId());
             String businessInterfaceName = "";
-            String versionId = "";
             Integer interfaceSlowFlag = null;
             Integer replayFlag = null;
             String requestInterfaceName = "";
@@ -934,8 +932,6 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             historyService.insertHis(list, 1, loginUserName, lastRecordId, lastRecordId, hisShow);
         }
 
-
-        // 返回缓存集成配置id
         List<String> rtnId = new ArrayList<>();
         List<TBusinessInterface> tbiList = dto.getBusinessInterfaceList();
 
@@ -948,8 +944,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 // 新增的厂商配置
                 tbi.setId(batchUidService.getUid(qTBusinessInterface.getTableName()) + "");
                 tbi.setRequestInterfaceId(dto.getRequestInterfaceId());
-                tbi.setStatus(tbi.getStatus());
-                tbi.setMockStatus(tbi.getMockStatus());
+                tbi.setStatus(exsitsBI.getStatus());
+                tbi.setMockStatus(exsitsBI.getMockStatus());
                 tbi.setCreatedTime(new Date());
                 tbi.setCreatedBy(loginUserName);
                 tbi.setExcErrOrder(i);
@@ -978,12 +974,9 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             }
         }
 
-        // redis缓存信息获取
-        ArrayList<Predicate> arr = new ArrayList<>();
-        arr.add(qTBusinessInterface.id.in(rtnId));
-        //TODO 注释redis
-        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "编辑集成配置成功", new RedisDto(redisKeyDtoList).toString());
+        // redis缓存删除
+        cacheDeleteIntegration(dto.getId());
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "编辑集成配置成功", null);
     }
 
     private void updateSeq(List<TBusinessInterface> tbiList) {
@@ -1048,17 +1041,14 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         if (tbi == null) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据id未查出该集成配置信息!", id);
         }
-        // redis缓存信息获取
-        ArrayList<Predicate> arr = new ArrayList<>();
-        arr.add(qTBusinessInterface.id.eq(id));
-        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
 
         long count = businessInterfaceService.delete(id);
         if (count < 1) {
             throw new RuntimeException("根据id删除该集成配置信息失败!");
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "单个集成配置信息删除成功!",
-                new RedisDto(redisKeyDtoList).toString());
+        //删除缓存
+        cacheDeleteIntegration(id);
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "单个集成配置信息删除成功!",null);
     }
 
     @ApiOperation(value = "获取服务详情", notes = "获取服务详情")
@@ -1357,7 +1347,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                     " OUT_PARAM_SCHEMA ,  OUT_PARAM_FORMAT_TYPE,allow_log_discard,interface_type,async_flag," +
                     " encryption_type,mask_pos_start,mask_pos_end) VALUES ('" + tInterface.getId() + "', '" + PlatformUtil.escapeSqlSingleQuotes(tInterface.getInterfaceName()) + "', '" + tInterface.getTypeId() + "', " +
                     "'" + tInterface.getInterfaceUrl() + "', '" + PlatformUtil.escapeSqlSingleQuotes(tInterface.getInParamFormat()) + "', '" + PlatformUtil.escapeSqlSingleQuotes(tInterface.getOutParamFormat()) + "', '" + tInterface.getParamOutStatus() + "', '" + tInterface.getParamOutStatusSuccess() +
-                    "', 'admin', now() , 'admin', now(), '" + tInterface.getInParamSchema() + "', '" + tInterface.getInParamFormatType() + "', '" + tInterface.getOutParamSchema() + "', '" + tInterface.getOutParamFormatType() +"', '" + tInterface.getAllowLogDiscard()+"', " + tInterface.getInterfaceType() + ", " + tInterface.getAsyncFlag() +
+                    "', 'admin', now() , 'admin', now(), '" + tInterface.getInParamSchema() + "', '" + tInterface.getInParamFormatType() + "', '" + tInterface.getOutParamSchema() + "', '" + tInterface.getOutParamFormatType() + "', '" + tInterface.getAllowLogDiscard() + "', " + tInterface.getInterfaceType() + ", " + tInterface.getAsyncFlag() +
                     "," + tInterface.getEncryptionType() + ", " + tInterface.getMaskPosStart() + ", " + tInterface.getMaskPosEnd() +
                     ") ;\n");
             sqlStringBuffer.append("END_OF_SQL\n");
@@ -1463,7 +1453,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                     sql = new StringBuilder(sql.toString());
                     String[] sqls = sql.toString().split("END_OF_SQL");
                     for (String str : sqls) {
-                        if (str.trim().startsWith("INSERT") || str.trim().startsWith("REPLACE") || str.trim().startsWith("delete") )
+                        if (str.trim().startsWith("INSERT") || str.trim().startsWith("REPLACE") || str.trim().startsWith("delete"))
                             statement.addBatch(str);
                     }
                     //事务提交，整体成功或失败
@@ -1491,8 +1481,42 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         return sqlQueryFactory.select(qTInterface).from(qTInterface).where(qTInterface.typeId.eq(typeId)).fetchFirst();
     }
 
-    public List<TInterface> getAll(){
+    public List<TInterface> getAll() {
         return sqlQueryFactory.select(qTInterface).from(qTInterface).fetch();
+    }
+
+    public List<TInterface> getByIdList(List<String> idList) {
+        return sqlQueryFactory.select(qTInterface).from(qTInterface).where(qTInterface.id.in(idList)).fetch();
+    }
+
+    private void cacheDelete(String id) {
+        TInterface tInterface = this.getOne(id);
+        CacheDeleteDto keyDto = new CacheDeleteDto();
+        keyDto.setInterfaceCodes(Arrays.asList(tInterface.getInterfaceUrl()));
+        //需要删除下面两种缓存key
+        keyDto.setCacheTypeList(Arrays.asList(
+                Constant.CACHE_KEY_PREFIX.DRIVERS_TYPE,
+                Constant.CACHE_KEY_PREFIX.COMMON_TYPE
+        ));
+
+        cacheDeleteService.cacheKeyDelete(keyDto);
+    }
+
+    /**
+     * 集成配置编辑/删除时候缓存的删除
+     *
+     * @param id
+     */
+    private void cacheDeleteIntegration(String id) {
+        TBusinessInterface businessInterface = businessInterfaceService.getOne(id);
+        CacheDeleteDto keyDto = new CacheDeleteDto();
+        keyDto.setInterfaceIds(Arrays.asList(businessInterface.getInterfaceUrl()));
+        //需要删除下面两种缓存key
+        keyDto.setCacheTypeList(Arrays.asList(
+                Constant.CACHE_KEY_PREFIX.COMMON_TYPE
+        ));
+
+        cacheDeleteService.cacheKeyDelete(keyDto);
     }
 
     public static void main(String[] args) {

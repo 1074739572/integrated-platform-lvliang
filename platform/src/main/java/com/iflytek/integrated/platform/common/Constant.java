@@ -132,6 +132,38 @@ public class Constant {
 	/**
 	 * 分类类型
 	 */
+	public interface CACHE_KEY_PREFIX {
+		/**
+		 * 驱动
+		 */
+		public static String DRIVERS = "IntegratedPlatform:Configs:WS:drivers:";
+		public static Integer DRIVERS_TYPE = 1;
+		/**
+		 * schema
+		 */
+		public static String SCHEMA = "IntegratedPlatform:Configs:WS:schema:";
+		public static Integer SCHEMA_TYPE = 2;
+		/**
+		 * 认证
+		 */
+		public static String AUTHENTICATION = "IntegratedPlatform:Configs:authentication:";
+		public static Integer AUTHENTICATION_TYPE = 2;
+
+		/**
+		 * 告警
+		 */
+		public static String ALERT = "IntegratedPlatform:Configs:alert";
+		public static Integer ALERT_TYPE = 4;
+		/**
+		 * 通用
+		 */
+		public static String COMMON = "IntegratedPlatform:Configs:";
+		public static Integer COMMON_TYPE = 5;
+	}
+
+	/**
+	 * 分类类型
+	 */
 	public interface TypeStatus {
 		/**
 		 * 接口分类
