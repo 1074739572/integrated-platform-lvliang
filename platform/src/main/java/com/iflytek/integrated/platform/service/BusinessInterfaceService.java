@@ -195,7 +195,7 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
      */
     public QueryResults<TBusinessInterface> getInterfaceConfigureList(ArrayList<Predicate> list, Integer pageNo, Integer pageSize) {
         StringTemplate template = Expressions.stringTemplate("concat(string_agg (concat(concat(concat(concat({0},'/' ::TEXT),{1}),'/' ::TEXT),{2}), ',' :: TEXT ))",
-                qTSys.sysName, qTBusinessInterface.businessInterfaceName,qTBusinessInterface.excErrOrder);
+                qTSys.sysName, qTBusinessInterface.businessInterfaceName, qTBusinessInterface.excErrOrder);
         QueryResults<TBusinessInterface> queryResults = sqlQueryFactory
                 .select(Projections.bean(TBusinessInterface.class, qTBusinessInterface.id.min().as("id"), qTType.typeName.min().as(qTType.typeName),
                         qTBusinessInterface.requestInterfaceId,
@@ -219,7 +219,7 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
 
         //处理其中requestInterfaceName  按照执行顺序组装
         List<TBusinessInterface> results = queryResults.getResults();
-        if(CollectionUtils.isEmpty(results)){
+        if (CollectionUtils.isEmpty(results)) {
             return queryResults;
         }
 
@@ -227,11 +227,9 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
             String businessInterfaceName = result.getBusinessInterfaceName();
             String[] nameSplit = businessInterfaceName.split(",");
             //取出每个里面的
-            if(nameSplit.length>1) {
-                List<String> strings = Arrays.asList(nameSplit).stream().sorted(Comparator.comparing(e -> e.substring(e.lastIndexOf("/")))).collect(Collectors.toList());
-                strings=strings.stream().map(e->e.substring(0,e.lastIndexOf("/"))).collect(Collectors.toList());
-                result.setBusinessInterfaceName(String.join(",",strings));
-            }
+            List<String> strings = Arrays.asList(nameSplit).stream().sorted(Comparator.comparing(e -> e.substring(e.lastIndexOf("/")))).collect(Collectors.toList());
+            strings = strings.stream().map(e -> e.substring(0, e.lastIndexOf("/"))).collect(Collectors.toList());
+            result.setBusinessInterfaceName(String.join(",", strings));
         }
 
         return queryResults;
@@ -367,7 +365,7 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
      *
      * @param pluginId
      */
-    public List<TBusinessInterface> getByPlugin(String pluginId){
+    public List<TBusinessInterface> getByPlugin(String pluginId) {
         return sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface).where(qTBusinessInterface.pluginId.eq(pluginId)).fetch();
     }
 
