@@ -58,7 +58,7 @@ public class AfterCompletionIntercept extends HandlerInterceptorAdapter {
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
         //获取返回结果
         if(resultDto.getData() != null){
-//            redisService.delRedisKey(resultDto, key);
+            redisService.delRedisKey(resultDto, key);
         }
     }
 
@@ -81,6 +81,4 @@ public class AfterCompletionIntercept extends HandlerInterceptorAdapter {
             resultDto = null;
         }
     }
-
-
 }

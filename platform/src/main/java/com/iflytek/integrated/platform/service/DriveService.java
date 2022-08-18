@@ -1,6 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
@@ -8,13 +9,17 @@ import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.common.validator.ValidationResult;
 import com.iflytek.integrated.common.validator.ValidatorHelper;
 import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.CacheDeleteService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.common.RedisService;
+import com.iflytek.integrated.platform.dto.CacheDeleteDto;
 import com.iflytek.integrated.platform.dto.DriveDto;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.platform.dto.RedisDto;
 import com.iflytek.integrated.platform.dto.RedisKeyDto;
 import com.iflytek.integrated.platform.entity.TDrive;
+import com.iflytek.integrated.platform.entity.TInterface;
+import com.iflytek.integrated.platform.entity.TSys;
 import com.iflytek.integrated.platform.entity.TSysDriveLink;
 import com.iflytek.integrated.platform.entity.TType;
 import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
@@ -38,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
 import static com.iflytek.integrated.platform.entity.QTSysDriveLink.qTSysDriveLink;
@@ -74,6 +80,14 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
     private HistoryService historyService;
     @Autowired
     private TypeService typeService;
+    @Autowired
+    private SysService sysService;
+
+    @Autowired
+    private InterfaceService interfaceService;
+
+    @Autowired
+    private CacheDeleteService cacheDeleteService;
 
     @ApiOperation(value = "获取驱动下拉")
     @GetMapping("/getAllDrive")
@@ -166,16 +180,15 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
         if (CollectionUtils.isNotEmpty(tvdlList)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该驱动已有系统相关联,无法删除!", "该驱动已有系统相关联,无法删除!");
         }
-        // redis缓存信息获取
-        ArrayList<Predicate> arr = new ArrayList<>();
-        arr.add(qTSysDriveLink.driveId.in(id));
-        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+        // 缓存删除
+        cacheDelete(drive.getId());
+
         // 删除驱动
         Long lon = sqlQueryFactory.delete(qTDrive).where(qTDrive.id.eq(drive.getId())).execute();
         if (lon <= 0) {
             throw new RuntimeException("驱动删除失败!");
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "驱动删除成功!", new RedisDto(redisKeyDtoList).toString());
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "驱动删除成功!", null);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -215,10 +228,10 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
             historyService.insertHis(drive, 2, loginUserName, null, drive.getId(), null);
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "驱动新增成功", null);
         }
-        // redis缓存信息获取
-        ArrayList<Predicate> arr = new ArrayList<>();
-        arr.add(qTSysDriveLink.driveId.in(drive.getId()));
-        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+
+        //删除缓存
+        cacheDelete(drive.getId());
+
         //插入历史
         TDrive tDrive = this.getOne(drive.getId());
         TType tType = typeService.getOne(tDrive.getTypeId());
@@ -237,7 +250,29 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
         if (lon <= 0) {
             throw new RuntimeException("驱动编辑失败!");
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "驱动编辑成功!", new RedisDto(redisKeyDtoList).toString());
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "驱动编辑成功!", null);
+    }
+
+    private void cacheDelete(String driveId) {
+        //根据驱动id查询系统
+        List<TSysDriveLink> beans = sysDriveLinkService.getSysDriveLinkByDriveId(driveId);
+        if (CollectionUtils.isEmpty(beans)) {
+            return;
+        }
+
+        CacheDeleteDto sysKeyDto = new CacheDeleteDto();
+        List<String> sysIdList = beans.stream().filter(e -> StringUtils.isNotEmpty(e.getSysId()))
+                .map(TSysDriveLink::getSysId)
+                .collect(Collectors.toList());
+        sysKeyDto.setSysIds(sysIdList);
+
+        //需要生成两种类型的key 因为驱动无法获取到funcode所以获取所有的funcode
+        sysKeyDto.setCacheTypeList(Arrays.asList(
+                Constant.CACHE_KEY_PREFIX.DRIVERS_TYPE,
+                Constant.CACHE_KEY_PREFIX.COMMON_TYPE));
+
+        //获得到系统编码的缓存键集合
+        cacheDeleteService.cacheKeyDelete(sysKeyDto);
     }
 
     @ApiOperation(value = "新增厂商弹窗展示的驱动选择信息")

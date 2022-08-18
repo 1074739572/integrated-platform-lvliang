@@ -7,8 +7,10 @@ import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.common.validator.ValidationResult;
 import com.iflytek.integrated.common.validator.ValidatorHelper;
 import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.CacheDeleteService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.common.RedisService;
+import com.iflytek.integrated.platform.dto.CacheDeleteDto;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
 import com.iflytek.integrated.platform.dto.PluginDto;
 import com.iflytek.integrated.platform.dto.RedisDto;
@@ -36,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
 import static com.iflytek.integrated.platform.entity.QTPlugin.qTPlugin;
@@ -71,6 +74,8 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
     private HistoryService historyService;
     @Autowired
     private TypeService typeService;
+    @Autowired
+    private CacheDeleteService cacheDeleteService;
 
 
     @ApiOperation(value = "接口配置选择插件下拉")
@@ -176,16 +181,14 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
         if (CollectionUtils.isNotEmpty(tbiList)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该插件有接口配置相关联,无法删除!");
         }
-        //redis缓存信息获取
-        ArrayList<Predicate> arr = new ArrayList<>();
-        arr.add(qTBusinessInterface.pluginId.in(id));
-        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
         //删除插件
         Long lon = sqlQueryFactory.delete(qTPlugin).where(qTPlugin.id.eq(plugin.getId())).execute();
         if(lon <= 0){
             throw new RuntimeException("插件删除失败!");
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "插件删除成功", new RedisDto(redisKeyDtoList).toString());
+        //删除缓存
+        cacheDelete(plugin.getId());
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "插件删除成功", null);
     }
 
 
@@ -223,10 +226,6 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
             historyService.insertHis(plugin,3,loginUserName,null,plugin.getId(),null);
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"插件新增成功", null);
         }
-        // redis缓存信息获取
-        ArrayList<Predicate> arr = new ArrayList<>();
-        arr.add(qTBusinessInterface.pluginId.in(plugin.getId()));
-        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
         //插入历史
         TPlugin old = this.getOne(plugin.getId());
         TType tType = typeService.getOne(old.getTypeId());
@@ -239,7 +238,9 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
         if(lon <= 0){
             throw new RuntimeException("插件编辑失败!");
         }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"插件编辑成功!", new RedisDto(redisKeyDtoList).toString());
+        //删除缓存
+        cacheDelete(plugin.getId());
+        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"插件编辑成功!", null);
     }
 
     /**
@@ -271,6 +272,23 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
             rtnMap.put("message", "插件内容格式错误!");
         }
         return rtnMap;
+    }
+
+    private void cacheDelete(String id) {
+        //根据插件查找集成配置
+        List<TBusinessInterface> businessInterfaces = businessInterfaceService.getByPlugin(id);
+        if(CollectionUtils.isEmpty(businessInterfaces)){
+            return;
+        }
+        List<String> funcodes = businessInterfaces.stream().map(TBusinessInterface::getInterfaceUrl).collect(Collectors.toList());
+        CacheDeleteDto keyDto = new CacheDeleteDto();
+        keyDto.setInterfaceCodes(funcodes);
+        //需要删除下面两种缓存key
+        keyDto.setCacheTypeList(Arrays.asList(
+                Constant.CACHE_KEY_PREFIX.COMMON_TYPE
+        ));
+
+        cacheDeleteService.cacheKeyDelete(keyDto);
     }
 
 

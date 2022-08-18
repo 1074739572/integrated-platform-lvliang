@@ -6,9 +6,12 @@ import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.common.utils.RedisUtil;
 import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.CacheDeleteService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.common.RedisService;
+import com.iflytek.integrated.platform.dto.CacheDeleteDto;
 import com.iflytek.integrated.platform.entity.TFunctionAuth;
+import com.iflytek.integrated.platform.entity.TSysDriveLink;
 import com.iflytek.integrated.platform.entity.TSysPublish;
 import com.iflytek.integrated.platform.entity.TSysRegistry;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
@@ -37,10 +40,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.iflytek.integrated.platform.entity.QTSys.qTSys;
 import static com.iflytek.integrated.platform.entity.QTSysPublish.qTSysPublish;
@@ -61,6 +66,9 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
 
     @Autowired
     private RedisUtil redisUtil;
+
+    @Autowired
+    private CacheDeleteService cacheDeleteService;
 
     public SysPublishService() {
         super(qTSysPublish, qTSysPublish.id);
@@ -169,31 +177,34 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
         if (StringUtils.isBlank(loginUserName)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
         }
-        String registryId = dto.getId();
+        String pubId = dto.getId();
         //校验 校验“接入系统”是否发布过
-        if (!checkPublishIsExist(registryId, dto.getSysId())) {
+        if (!checkPublishIsExist(pubId, dto.getSysId())) {
             throw new RuntimeException("该系统已经发布过服务");
         }
-
+        //缓存
+        List<String> list =new ArrayList<>();
         // 新增系统配置信息
-        if (StringUtils.isBlank(registryId)) {
-            registryId = batchUidService.getUid(qTSysPublish.getTableName()) + "";
-            dto.setId(registryId);
+        if (StringUtils.isBlank(pubId)) {
+            pubId = batchUidService.getUid(qTSysPublish.getTableName()) + "";
+            dto.setId(pubId);
             dto.setCreatedTime(new Date());
             dto.setCreatedBy(loginUserName);
             this.post(dto);
         } else {
             //重新查询下签名密码防止传过来密文覆盖数据库明文
-            dto.setSignKey(getOne(registryId).getSignKey());
+            dto.setSignKey(getOne(pubId).getSignKey());
             dto.setUpdatedTime(new Date());
             dto.setUpdatedBy(loginUserName);
-            long l = this.put(registryId, dto);
+            long l = this.put(pubId, dto);
+            //删除缓存
+            cacheDelete(pubId);
             if (l < 1) {
                 throw new RuntimeException("服务发布编辑失败!");
             }
         }
         Map<String, String> data = new HashMap<String, String>();
-        data.put("id", registryId);
+        data.put("id", pubId);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存服务发布信息成功!", JSON.toJSONString(data));
     }
 
@@ -235,6 +246,8 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
         }
         // 删除接口
         long l = this.delete(id);
+        //删除缓存
+        cacheDelete(id);
         if (l < 1) {
             throw new RuntimeException("删除成功!");
         }
@@ -275,6 +288,23 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
                 .from(qTSysPublish)
                 .where(qTSysPublish.sysId.eq(sysId))
                 .fetchFirst();
+    }
+
+    private void cacheDelete(String pubId) {
+        //根据驱动id查询系统
+        TSysPublish publish = this.getOne(pubId);
+
+        CacheDeleteDto sysKeyDto=new CacheDeleteDto();
+        sysKeyDto.setSysCodes(Arrays.asList(publish.getSysCode()));
+
+        //需要生成两种类型的key 因为驱动无法获取到funcode所以获取所有的funcode
+        sysKeyDto.setCacheTypeList(Arrays.asList(
+                Constant.CACHE_KEY_PREFIX.SCHEMA_TYPE,
+                Constant.CACHE_KEY_PREFIX.AUTHENTICATION_TYPE,
+                Constant.CACHE_KEY_PREFIX.COMMON_TYPE));
+
+        //获得到系统编码的缓存键集合
+        cacheDeleteService.cacheKeyDelete(sysKeyDto);
     }
 
 }
