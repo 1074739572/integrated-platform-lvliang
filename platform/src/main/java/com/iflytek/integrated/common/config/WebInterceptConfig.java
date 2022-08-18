@@ -45,17 +45,17 @@ public class WebInterceptConfig extends WebMvcConfigurationSupport {
 //        InterceptorRegistration rationUserLogin = registry.addInterceptor(userLoginIntercept);
 //        rationUserLogin.addPathPatterns("/*/pt/**").excludePathPatterns("/**/loginManage/**");
 
-        //通过获取配置文件，接口处理后执行配置文件
-        for (String key: map.keySet()){
-            //创建一个AfterCompletionIntercept拦截器
-            AfterCompletionIntercept completionIntercept = new AfterCompletionIntercept();
-            //给拦截器添加key和调用方法
-            BeanUtils.copyProperties(afterCompletionIntercept,completionIntercept);
-            completionIntercept.setKey(key);
-            //添加拦截器
-            InterceptorRegistration rationAfterCompletion = registry.addInterceptor(completionIntercept);
-            rationAfterCompletion.addPathPatterns(map.get(key));
-        }
+//        //通过获取配置文件，接口处理后执行配置文件
+//        for (String key: map.keySet()){
+//            //创建一个AfterCompletionIntercept拦截器
+//            AfterCompletionIntercept completionIntercept = new AfterCompletionIntercept();
+//            //给拦截器添加key和调用方法
+//            BeanUtils.copyProperties(afterCompletionIntercept,completionIntercept);
+//            completionIntercept.setKey(key);
+//            //添加拦截器
+//            InterceptorRegistration rationAfterCompletion = registry.addInterceptor(completionIntercept);
+//            rationAfterCompletion.addPathPatterns(map.get(key));
+//        }
         super.addInterceptors(registry);
     }
 

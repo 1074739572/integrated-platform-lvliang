@@ -2,8 +2,11 @@ package com.iflytek.integrated.platform.service;
 
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.CacheDeleteService;
 import com.iflytek.integrated.platform.common.Constant;
+import com.iflytek.integrated.platform.dto.CacheDeleteDto;
 import com.iflytek.integrated.platform.entity.TServerAlert;
+import com.iflytek.integrated.platform.entity.TSysPublish;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.types.dsl.StringPath;
 import io.swagger.annotations.Api;
@@ -21,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Arrays;
 import java.util.Date;
 
 import static com.iflytek.integrated.platform.entity.QTServerAlert.qtServerAlert;
@@ -42,6 +46,9 @@ public class ServerAlertService extends BaseService<TServerAlert, String, String
 
     @Autowired
     private BatchUidService batchUidService;
+
+    @Autowired
+    CacheDeleteService cacheDeleteService;
 
     public ServerAlertService() {
         super(qtServerAlert, qtServerAlert.id);
@@ -75,10 +82,21 @@ public class ServerAlertService extends BaseService<TServerAlert, String, String
             dto.setUpdatedBy(loginUserName);
             this.post(dto);
         } else {
+            //删除缓存
+            cacheDelete();
             dto.setUpdatedBy(loginUserName);
             dto.setUpdatedTime(new Date());
             this.put(dto.getId(), dto);
         }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "服务告警配置保存成功!", dto.getId());
+    }
+
+    private void cacheDelete() {
+        CacheDeleteDto sysKeyDto=new CacheDeleteDto();
+        //需要生成两种类型的key 因为驱动无法获取到funcode所以获取所有的funcode
+        sysKeyDto.setCacheTypeList(Arrays.asList(Constant.CACHE_KEY_PREFIX.ALERT_TYPE));
+
+        //获得到系统编码的缓存键集合
+        cacheDeleteService.cacheKeyDelete(sysKeyDto);
     }
 }

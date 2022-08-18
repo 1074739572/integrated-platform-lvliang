@@ -6,8 +6,12 @@ import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.BaseService;
+import com.iflytek.integrated.platform.common.CacheDeleteService;
 import com.iflytek.integrated.platform.common.Constant;
+import com.iflytek.integrated.platform.dto.CacheDeleteDto;
+import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TFunctionAuth;
+import com.iflytek.integrated.platform.entity.TSysPublish;
 import com.iflytek.integrated.platform.entity.TSysRegistry;
 import com.iflytek.medicalboot.core.id.BatchUidService;
 import com.querydsl.core.QueryResults;
@@ -34,6 +38,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -53,6 +58,10 @@ public class FunctionAuthService extends BaseService<TFunctionAuth, String, Stri
 
     @Autowired
     private BatchUidService batchUidService;
+    @Autowired
+    private SysPublishService sysPublishService;
+    @Autowired
+    private CacheDeleteService cacheDeleteService;
 
     public FunctionAuthService() {
         super(qtFunctionAuth, qtFunctionAuth.id);
@@ -69,7 +78,7 @@ public class FunctionAuthService extends BaseService<TFunctionAuth, String, Stri
                     .select(Projections.bean(TFunctionAuth.class, qtFunctionAuth.id,
                             qtFunctionAuth.publishId, qtFunctionAuth.createdBy,
                             qtFunctionAuth.createdTime, qtFunctionAuth.updatedTime,
-                            qtFunctionAuth.updatedBy,qtFunctionAuth.interfaceId
+                            qtFunctionAuth.updatedBy, qtFunctionAuth.interfaceId
                     ))
                     .from(qtFunctionAuth)
                     .where(qtFunctionAuth.interfaceId.eq(interfaceId))
@@ -89,7 +98,7 @@ public class FunctionAuthService extends BaseService<TFunctionAuth, String, Stri
     @Transactional(rollbackFor = Exception.class)
     @ApiOperation(value = "新增/修改功能权限信息", notes = "新增/修改功能权限信息")
     @PostMapping("/saveOrUpdate")
-    public ResultDto<String> saveOrUpdate(@RequestBody TFunctionAuth dto,@RequestParam("loginUserName") String loginUserName) {
+    public ResultDto<String> saveOrUpdate(@RequestBody TFunctionAuth dto, @RequestParam("loginUserName") String loginUserName) {
         if (dto == null) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "数据传入有误!", "数据传入有误!");
         }
@@ -98,7 +107,7 @@ public class FunctionAuthService extends BaseService<TFunctionAuth, String, Stri
         }
         String id = dto.getId();
         //校验服务与发布是否之前配置过
-        if(!checkExist(dto)){
+        if (!checkExist(dto)) {
             throw new RuntimeException("该服务发布已经授权给该服务,请勿重复授权!");
         }
         if (StringUtils.isBlank(id)) {
@@ -116,8 +125,10 @@ public class FunctionAuthService extends BaseService<TFunctionAuth, String, Stri
             if (l < 1) {
                 throw new RuntimeException("功能权限编辑失败!");
             }
+            //删除缓存
+            cacheDelete(id);
         }
-        Map<String , String> data = new HashMap<String , String>();
+        Map<String, String> data = new HashMap<String, String>();
         data.put("id", id);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存功能权限信息成功!", JSON.toJSONString(data));
     }
@@ -136,7 +147,7 @@ public class FunctionAuthService extends BaseService<TFunctionAuth, String, Stri
                 .from(qtFunctionAuth)
                 .where(list.toArray(new Predicate[list.size()]))
                 .fetch();
-        if(!CollectionUtils.isEmpty(srList)){
+        if (!CollectionUtils.isEmpty(srList)) {
             return false;
         }
         return true;
@@ -152,6 +163,8 @@ public class FunctionAuthService extends BaseService<TFunctionAuth, String, Stri
         if (l < 1) {
             throw new RuntimeException("功能权限删除成功!");
         }
+        //删除缓存
+        cacheDelete(id);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "功能权限删除成功!");
     }
 
@@ -163,5 +176,26 @@ public class FunctionAuthService extends BaseService<TFunctionAuth, String, Stri
                 .from(qtFunctionAuth)
                 .where(qtFunctionAuth.publishId.eq(publishId))
                 .fetch();
+    }
+
+    private void cacheDelete(String id) {
+        //根据功能权限id找到对应的服务和发布系统
+        TFunctionAuth functionAuth = this.getOne(id);
+        if (functionAuth == null) {
+            return;
+        }
+
+        //找到服务的系统
+        TSysPublish sysPublish = sysPublishService.getOne(functionAuth.getPublishId());
+
+        CacheDeleteDto keyDto = new CacheDeleteDto();
+        keyDto.setInterfaceIds(Arrays.asList(functionAuth.getInterfaceId()));
+        keyDto.setSysCodes(Arrays.asList(sysPublish.getSysCode()));
+        //需要删除下面两种缓存key
+        keyDto.setCacheTypeList(Arrays.asList(
+                Constant.CACHE_KEY_PREFIX.COMMON_TYPE
+        ));
+
+        cacheDeleteService.cacheKeyDelete(keyDto);
     }
 }
