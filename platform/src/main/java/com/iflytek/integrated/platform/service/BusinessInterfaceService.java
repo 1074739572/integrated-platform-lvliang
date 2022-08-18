@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -193,7 +194,8 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
      * @return
      */
     public QueryResults<TBusinessInterface> getInterfaceConfigureList(ArrayList<Predicate> list, Integer pageNo, Integer pageSize) {
-        StringTemplate template = Expressions.stringTemplate("concat(string_agg ( concat(concat({0},'/' ::TEXT),{1}), ',' :: TEXT ))", qTSys.sysName, qTBusinessInterface.businessInterfaceName);
+        StringTemplate template = Expressions.stringTemplate("concat(string_agg (concat(concat(concat(concat({0},'/' ::TEXT),{1}),'/' ::TEXT),{2}), ',' :: TEXT ))",
+                qTSys.sysName, qTBusinessInterface.businessInterfaceName,qTBusinessInterface.excErrOrder);
         QueryResults<TBusinessInterface> queryResults = sqlQueryFactory
                 .select(Projections.bean(TBusinessInterface.class, qTBusinessInterface.id.min().as("id"), qTType.typeName.min().as(qTType.typeName),
                         qTBusinessInterface.requestInterfaceId,
@@ -214,7 +216,23 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
                 .groupBy(qTBusinessInterface.requestInterfaceId)
                 .limit(pageSize).offset((pageNo - 1) * pageSize)
                 .orderBy(qTBusinessInterface.createdTime.as("createdTime").desc()).fetchResults();
-        ;
+
+        //处理其中requestInterfaceName  按照执行顺序组装
+        List<TBusinessInterface> results = queryResults.getResults();
+        if(CollectionUtils.isEmpty(results)){
+            return queryResults;
+        }
+
+        for (TBusinessInterface result : results) {
+            String businessInterfaceName = result.getBusinessInterfaceName();
+            String[] nameSplit = businessInterfaceName.split(",");
+            //取出每个里面的
+            if(nameSplit.length>1) {
+                List<String> strings = Arrays.asList(nameSplit).stream().sorted(Comparator.comparing(e -> e.substring(e.lastIndexOf("/")))).collect(Collectors.toList());
+                result.setRequestInterfaceName(String.join(",",strings));
+            }
+        }
+
         return queryResults;
     }
 
