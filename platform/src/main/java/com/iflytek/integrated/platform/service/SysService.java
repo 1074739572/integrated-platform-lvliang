@@ -247,46 +247,42 @@ public class SysService extends BaseService<TSys, String, StringPath> {
         String sysDesc = dto.getSysDesc();
         String driveIds = dto.getDriveIds();
 
-        //redis缓存信息获取
-        ArrayList<Predicate> arr = new ArrayList<>();
-        arr.add(qTSys.id.in(sysId));
-        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
-        // 更新系统信息
-        SQLUpdateClause updater = sqlQueryFactory.update(qTSys);
-        if (StringUtils.isNotBlank(sysName)) {
-            updater.set(qTSys.sysName, sysName);
-            updater.set(qTSys.sysCode, generateCode(qTSys.sysCode, qTSys, sysName));
-        }
-        if (StringUtils.isNotBlank(isValid)) {
-            updater.set(qTSys.isValid, isValid);
-        }
-        if (StringUtils.isNotBlank(vendorId)) {
-            updater.set(qTSys.vendorId, vendorId);
-        }
-        updater.set(qTSys.sysDesc, sysDesc);
-        long l = updater.set(qTSys.updatedTime, new Date()).set(qTSys.updatedBy, loginUserName)
-                .where(qTSys.id.eq(sysId)).execute();
-        if (l <= 0) {
-            throw new RuntimeException("系统信息更新失败!");
-        }
-        // 删除关联
-        sysDriveLinkService.deleteSysDriveLinkBySysId(sysId);
-        // 添加新关联
-        if (StringUtils.isNotBlank(driveIds)) {
-            String[] driveIdArr = driveIds.split(",");
-            for (int i = 0; i < driveIdArr.length; i++) {
-                TSysDriveLink tvdl = new TSysDriveLink();
-                tvdl.setId(batchUidService.getUid(qTSysDriveLink.getTableName()) + "");
-                tvdl.setSysId(sysId);
-                tvdl.setDriveId(driveIdArr[i]);
-                tvdl.setDriveOrder(i + 1);
-                tvdl.setCreatedTime(new Date());
-                tvdl.setCreatedBy(loginUserName);
-                sysDriveLinkService.post(tvdl);
-            }
-        }
-        return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "修改系统成功", new RedisDto(redisKeyDtoList).toString());
-    }
+		// 更新系统信息
+		SQLUpdateClause updater = sqlQueryFactory.update(qTSys);
+		if (StringUtils.isNotBlank(sysName)) {
+			updater.set(qTSys.sysName, sysName);
+//			updater.set(qTSys.sysCode, generateCode(qTSys.sysCode, qTSys, sysName));
+		}
+		if (StringUtils.isNotBlank(isValid)) {
+			updater.set(qTSys.isValid, isValid);
+		}
+		if (StringUtils.isNotBlank(vendorId)) {
+			updater.set(qTSys.vendorId, vendorId);
+		}
+		updater.set(qTSys.sysDesc, sysDesc);
+		long l = updater.set(qTSys.updatedTime, new Date()).set(qTSys.updatedBy, loginUserName)
+				.where(qTSys.id.eq(sysId)).execute();
+		if (l <= 0) {
+			throw new RuntimeException("系统信息更新失败!");
+		}
+		// 删除关联
+		sysDriveLinkService.deleteSysDriveLinkBySysId(sysId);
+		// 添加新关联
+		if (StringUtils.isNotBlank(driveIds)) {
+			String[] driveIdArr = driveIds.split(",");
+			for (int i = 0; i < driveIdArr.length; i++) {
+				TSysDriveLink tvdl = new TSysDriveLink();
+				tvdl.setId(batchUidService.getUid(qTSysDriveLink.getTableName()) + "");
+				tvdl.setSysId(sysId);
+				tvdl.setDriveId(driveIdArr[i]);
+				tvdl.setDriveOrder(i + 1);
+				tvdl.setCreatedTime(new Date());
+				tvdl.setCreatedBy(loginUserName);
+				sysDriveLinkService.post(tvdl);
+			}
+		}
+		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "修改系统成功", null);
+	}
 
     @ApiOperation(value = "选择系统下拉列表")
     @GetMapping("/getDisSys")
