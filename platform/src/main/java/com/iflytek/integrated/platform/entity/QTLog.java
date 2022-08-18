@@ -61,6 +61,11 @@ public class QTLog extends com.querydsl.sql.RelationalPathBase<TLog> {
 
     public final StringPath publishId = createString("publishId");
 
+    public final StringPath logType = createString("logType");
+
+    public final StringPath logNode = createString("logNode");
+
+    public final StringPath logHeader = createString("logHeader");
 
     public final com.querydsl.sql.PrimaryKey<TLog> primary = createPrimaryKey(id);
 
@@ -108,7 +113,9 @@ public class QTLog extends com.querydsl.sql.RelationalPathBase<TLog> {
         addMetadata(debugreplayFlag, ColumnMetadata.named("debugreplay_flag").withIndex(20).ofType(Types.INTEGER).withSize(1).notNull());
         addMetadata(regConnectionType, ColumnMetadata.named("reg_connection_type").withIndex(20).ofType(Types.INTEGER).withSize(1).notNull());
         addMetadata(publishId, ColumnMetadata.named("publish_id").withIndex(20).ofType(Types.INTEGER).withSize(32).notNull());
-
+        addMetadata(logType, ColumnMetadata.named("log_type").withIndex(21).ofType(Types.VARCHAR).withSize(16));
+        addMetadata(logNode, ColumnMetadata.named("log_node").withIndex(22).ofType(Types.VARCHAR).withSize(100));
+        addMetadata(logHeader, ColumnMetadata.named("log_header").withIndex(23).ofType(Types.VARCHAR).withSize(255));
 
         addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.BIGINT).withSize(19).notNull());
     }

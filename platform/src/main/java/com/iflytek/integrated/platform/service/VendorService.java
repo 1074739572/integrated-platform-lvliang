@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.system.ApplicationHome;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
@@ -56,6 +57,9 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
 
     @Autowired
     SysService sysService;
+
+    @Autowired
+    private UploadService uploadService;
 
     String uploadPath;
 
@@ -100,15 +104,14 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
     @ApiOperation(value = "新增或修改厂商", notes = "新增或修改厂商")
     @Transactional(rollbackFor = Exception.class)
     @PostMapping("/addOrMod")
-    public ResultDto<String> addOrMod(@RequestBody TVendor dto,@RequestParam("loginUserName") String loginUserName){
-//        // 校验是否获取到登录用户
-//        String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-//        if (StringUtils.isBlank(loginUserName)) {
-//            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!");
-//        }
+    public ResultDto<String> addOrMod(@RequestParam(value = "id",required = false) String id,
+                                      @RequestParam(value = "vendorName",required = false) String vendorName,
+                                      @RequestParam(value = "vendorCode",required = false) String vendorCode,
+                                      @RequestParam("loginUserName") String loginUserName,
+                                      @RequestParam(value = "file",required = false) MultipartFile file){
+        TVendor record = sqlQueryFactory.select(Projections.bean(TVendor.class,qtVendor.id, qtVendor.vendorName)).from(qtVendor).where(qtVendor.vendorName.eq(vendorName)).fetchFirst();
 
-        TVendor record = sqlQueryFactory.select(Projections.bean(TVendor.class,qtVendor.id, qtVendor.vendorName)).from(qtVendor).where(qtVendor.vendorName.eq(dto.getVendorName())).fetchFirst();
-
+        TVendor dto=new TVendor();
         String msg = "";
 
         dto.setIsValid("1");
@@ -117,12 +120,19 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
         dto.setUpdatedBy(loginUserName);
         dto.setUpdatedTime(new Date());
         dto.setLogo(dto.getLogo());
-        String id = dto.getId();
+        dto.setVendorName(vendorName);
+        dto.setVendorCode(vendorCode);
+        try {
         if(id != null && StringUtils.isNotEmpty(id)){
             //修改
             if(record != null && !record.getId().equals(id)){
                 return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "名称已存在！");
             }
+            if(file!=null){
+                ResultDto upload = uploadService.upload(file);
+                dto.setLogo(upload.getData().toString());
+            }
+
             dto.setId(id);
             this.put(id,dto);
             msg = "已修改!";
@@ -136,10 +146,17 @@ public class VendorService extends BaseService<TVendor, String, StringPath> {
             if(record != null){
                 return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "名称已存在！");
             }
+            if(file!=null){
+                ResultDto upload = uploadService.upload(file);
+                dto.setLogo(upload.getData().toString());
+            }
             dto.setId(batchUidService.getUid(qtVendor.getTableName())+"");
             this.post(dto);
             msg = "已新增!";
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, msg);
+        }
+        }catch (Exception e){
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存出错!");
         }
     }
 

@@ -3,12 +3,12 @@ package com.iflytek.integrated.platform.service;
 import com.alibaba.fastjson.JSON;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
-import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
+import com.iflytek.integrated.common.utils.RedisUtil;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
 import com.iflytek.integrated.platform.common.RedisService;
-import com.iflytek.integrated.platform.entity.TSys;
+import com.iflytek.integrated.platform.entity.TFunctionAuth;
 import com.iflytek.integrated.platform.entity.TSysPublish;
 import com.iflytek.integrated.platform.entity.TSysRegistry;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
@@ -54,13 +54,13 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
     private static final Logger logger = LoggerFactory.getLogger(SysPublishService.class);
 
     @Autowired
-    private RedisService redisService;
-
-    @Autowired
-    private SysService sysService;
-
-    @Autowired
     private BatchUidService batchUidService;
+
+    @Autowired
+    private FunctionAuthService functionAuthService;
+
+    @Autowired
+    private RedisUtil redisUtil;
 
     public SysPublishService() {
         super(qTSysPublish, qTSysPublish.id);
@@ -90,7 +90,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
             QueryResults<TSysPublish> queryResults = sqlQueryFactory
                     .select(Projections
                             .bean(TSysPublish.class, qTSysPublish.id, qTSysPublish.publishName,
-                                    qTSysPublish.sysId, qTSys.sysName, qTSysPublish.connectionType,
+                                    qTSysPublish.sysId, qTSys.sysName,qTSys.sysCode, qTSysPublish.connectionType,
                                     qTSysPublish.addressUrl, qTSysPublish.limitIps,
                                     qTSysPublish.createdBy, qTSysPublish.createdTime,
                                     qTSysPublish.updatedBy, qTSysPublish.updatedTime, qTSysPublish.isValid, qTSysPublish.isAuthen))
@@ -111,14 +111,50 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
     @ApiOperation(value = "获取服务发布信息", notes = "获取服务发布信息")
     @GetMapping("/getPublish/{id}")
     public ResultDto<TSysPublish> getSysPublish(
-            @ApiParam(value = "发布id") @PathVariable(value = "id", required = true) String id) {
+            @ApiParam(value = "发布id") @PathVariable(value = "id", required = true) String id,@RequestParam("loginUserName") String loginUserName) {
         try {
             TSysPublish publish = this.getOne(id);
+            //获取签名密钥
+            String key=id+"::"+loginUserName;
+            Object sign = redisUtil.get(key);
+            if(sign==null){
+                publish.setIsShow("0");
+                //密码中间用*替换
+                String signKey = publish.getSignKey();
+                if(StringUtils.isNotEmpty(signKey)){
+                    StringBuffer buffer = new StringBuffer(signKey);
+                    buffer.replace(1,buffer.length()-1,"******");
+                    publish.setSignKey(buffer.toString());
+                }
+            }else{
+                //明文显示
+                publish.setIsShow("1");
+            }
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取服务发布信息成功!", publish);
         } catch (BeansException e) {
             logger.error("获取服务发布信息失败! MSG:{}", ExceptionUtil.dealException(e));
             e.printStackTrace();
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取服务发布信息失败!");
+        }
+    }
+
+    @ApiOperation(value = "获取签名密钥", notes = "获取签名密钥")
+    @GetMapping("/getSignKey/{id}")
+    public ResultDto<String> getSignKey(
+            @ApiParam(value = "发布id") @PathVariable(value = "id", required = true) String id, @RequestParam("loginUserName") String loginUserName) {
+        try {
+            TSysPublish publish = this.getOne(id);
+            if(publish==null){
+                return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "未查询到该服务发布!", "未查询到该服务发布!");
+            }
+            //将明文保存进redis  时效1分钟
+            String key=id+"::"+loginUserName;
+            redisUtil.set(key,publish.getSignKey(),60000L);
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取签名密钥成功!", publish.getSignKey());
+        } catch (BeansException e) {
+            logger.error("获取签名密钥失败! MSG:{}", ExceptionUtil.dealException(e));
+            e.printStackTrace();
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取签名密钥失败!");
         }
     }
 
@@ -147,6 +183,8 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
             dto.setCreatedBy(loginUserName);
             this.post(dto);
         } else {
+            //重新查询下签名密码防止传过来密文覆盖数据库明文
+            dto.setSignKey(getOne(registryId).getSignKey());
             dto.setUpdatedTime(new Date());
             dto.setUpdatedBy(loginUserName);
             long l = this.put(registryId, dto);
@@ -190,6 +228,11 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
     @PostMapping("/delById/{id}")
     public ResultDto<String> delById(
             @ApiParam(value = "服务id") @PathVariable(value = "id", required = true) String id) {
+        //先判断有没有关联权限
+        List<TFunctionAuth> list = functionAuthService.getByPublishId(id);
+        if (!CollectionUtils.isEmpty(list)) {
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该服务发布已有功能权限关联,无法删除!", "该服务发布已有功能权限关联,无法删除!");
+        }
         // 删除接口
         long l = this.delete(id);
         if (l < 1) {
@@ -209,7 +252,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
             if (StringUtils.isNotEmpty(publishName)) {
                 pre.add(qTSysPublish.publishName.like(PlatformUtil.createFuzzyText(publishName)));
             }
-            if (StringUtils.isNotEmpty(publishName)) {
+            if (StringUtils.isNotEmpty(isValid)) {
                 pre.add(qTSysPublish.isValid.eq(isValid));
             }
             List<TSysPublish> list = sqlQueryFactory

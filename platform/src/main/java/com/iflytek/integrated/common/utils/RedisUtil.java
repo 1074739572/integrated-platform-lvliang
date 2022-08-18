@@ -81,6 +81,23 @@ public class RedisUtil<T> {
             return false;
         }
     }
+
+    /**
+     * 带失效时间缓存放入
+     * @param key   键
+     * @param value 值
+     * @param timeout 有效时间  单位ms
+     * @return true成功 false失败
+     */
+    public boolean set(String key, Object value,Long timeout) {
+        try {
+            redisTemplate.opsForValue().set(key, value,timeout,TimeUnit.MILLISECONDS);
+            return true;
+        } catch (Exception e) {
+            logger.error("redis存储出现异常；异常信息：" + e);
+            return false;
+        }
+    }
     
     public Object get(String key) {
         try {

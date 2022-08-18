@@ -35,9 +35,20 @@ public class TSysPublish implements Serializable {
 
     private String isValid;
 
+    private String signKey;
+
     private java.util.Date updatedTime;
 
     @Transient
     private String sysName;
+
+    @Transient
+    private String sysCode;
+
+    /**
+     * 是否明文
+     */
+    @Transient
+    private String isShow;
 }
 

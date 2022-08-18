@@ -86,7 +86,7 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
             QueryResults<TSysRegistry> queryResults = sqlQueryFactory
                     .select(Projections
                             .bean(TSysRegistry.class, qTSysRegistry.id, qTSysRegistry.registryName,
-                                    qTSysRegistry.sysId, qTSys.sysName, qTSysRegistry.connectionType,
+                                    qTSysRegistry.sysId, qTSys.sysName,qTSys.sysCode, qTSysRegistry.connectionType,
                                     qTSysRegistry.addressUrl, qTSysRegistry.endpointUrl,
                                     qTSysRegistry.namespaceUrl, qTSysRegistry.databaseName, qTSysRegistry.databaseUrl,
                                     qTSysRegistry.databaseDriver, qTSysRegistry.driverUrl, qTSysRegistry.databaseType, qTSysRegistry.jsonParams,
@@ -142,7 +142,7 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
                 pre.add(qTSysRegistry.useStatus.eq(useStatus));
             }
             List<TSysRegistry> list = sqlQueryFactory
-                    .select(Projections.bean(TSysRegistry.class, qTSysRegistry.id, qTSysRegistry.sysId, qTSysRegistry.registryName))
+                    .select(Projections.bean(TSysRegistry.class, qTSysRegistry.id, qTSysRegistry.sysId, qTSysRegistry.registryName,qTSysRegistry.connectionType))
                     .from(qTSysRegistry)
                     .where(pre.toArray(new Predicate[pre.size()]))
                     .orderBy(qTSysRegistry.createdTime.desc())

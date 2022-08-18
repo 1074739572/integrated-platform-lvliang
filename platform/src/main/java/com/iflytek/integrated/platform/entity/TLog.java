@@ -15,6 +15,8 @@ public class TLog implements Serializable {
 
     private String businessInterfaceId;
 
+    private String businessInterfaceName;
+
     private String interfaceId;
 
     private String visitAddr;
@@ -48,6 +50,8 @@ public class TLog implements Serializable {
     
     private Integer debugreplayFlag;
 
+    private Integer replayFlag;
+
     private String interfaceName;
 
     private String interfaceUrl;
@@ -67,6 +71,92 @@ public class TLog implements Serializable {
     private Integer excErrOrder;
 
     private String requestInterfaceId;
+
+    private String regId;
+
+    private String registryName;
+
+    private String regSysId;
+
+    private String regSysName;
+
+    private String logType;
+
+    private String logNode;
+
+    private String logHeader;
+
+    public String getLogType() {
+        return logType;
+    }
+
+    public void setLogType(String logType) {
+        this.logType = logType;
+    }
+
+    public String getLogNode() {
+        return logNode;
+    }
+
+    public void setLogNode(String logNode) {
+        this.logNode = logNode;
+    }
+
+    public String getLogHeader() {
+        return logHeader;
+    }
+
+    public void setLogHeader(String logHeader) {
+        this.logHeader = logHeader;
+    }
+
+    public String getBusinessInterfaceName() {
+        return businessInterfaceName;
+    }
+
+    public void setBusinessInterfaceName(String businessInterfaceName) {
+        this.businessInterfaceName = businessInterfaceName;
+    }
+
+    public String getRegId() {
+        return regId;
+    }
+
+    public void setRegId(String regId) {
+        this.regId = regId;
+    }
+
+    public String getRegistryName() {
+        return registryName;
+    }
+
+    public void setRegistryName(String registryName) {
+        this.registryName = registryName;
+    }
+
+    public String getRegSysId() {
+        return regSysId;
+    }
+
+    public void setRegSysId(String regSysId) {
+        this.regSysId = regSysId;
+    }
+
+    public String getRegSysName() {
+        return regSysName;
+    }
+
+    public void setRegSysName(String regSysName) {
+        this.regSysName = regSysName;
+    }
+
+    public Integer getReplayFlag() {
+        return replayFlag;
+    }
+
+    public void setReplayFlag(Integer replayFlag) {
+        this.replayFlag = replayFlag;
+    }
 
     public String getRequestInterfaceId() {
         return requestInterfaceId;
