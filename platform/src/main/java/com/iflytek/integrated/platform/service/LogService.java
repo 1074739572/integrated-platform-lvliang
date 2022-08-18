@@ -1,5 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
@@ -155,6 +157,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		SQLQuery<TLog> tlogQuery = sqlQueryFactory
 		.select(Projections.bean(TLog.class, qTLog.id, qTLog.businessInterfaceId, qTLog.createdTime, qTLog.status, qTLog.venderRepTime,
 				qTLog.businessRepTime, qTLog.visitAddr, qTLog.debugreplayFlag,
+				qTLog.logType, qTLog.logNode, qTLog.logHeader,
 				qTInterface.id.as("interfaceId"), qTInterface.interfaceName, qTInterface.interfaceUrl,
 				qTSysPublish.id.as("publishId"), qTSysPublish.publishName,
 				qTSys.id.as("publishSysId"), qTSys.sysName.as("publishSysName"),
@@ -218,6 +221,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		TLog tLog = sqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status,
 						qTLog.venderRepTime, qTLog.businessRepTime, qTLog.visitAddr, qTLog.businessReq, qTLog.venderReq,
 						qTLog.businessRep, qTLog.venderRep,qTLog.debugreplayFlag,
+						qTLog.logType, qTLog.logNode, qTLog.logHeader,
 						qTInterface.id.as("interfaceId"), qTInterface.interfaceName, qTInterface.interfaceUrl,
 						qTSysPublish.id.as("publishId"), qTSysPublish.publishName,
 						qTSys.id.as("publishSysId"), qTSys.sysName.as("publishSysName")))
@@ -320,23 +324,37 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 					}else {
 						headerMap.put("Debugreplay-Flag", "3");
 					}
-					String format = decryptAndFilterSensitive(tlog.getBusinessReq());
-					String regConnectionType = tlog.getRegConnectionType();
-					if("1".equals(regConnectionType)){
-						if(StringUtils.isBlank(tlog.getVisitAddr())){
-							continue;
-						}
-						String wsdlUrl = tlog.getVisitAddr();
-						List<String> wsOperationNames = PlatformUtil.getWsdlOperationNames(wsdlUrl);
-						if(wsOperationNames == null || wsOperationNames.size() == 0) {
-							continue;
-						}
-						String methodName = wsOperationNames.get(0);
-						PlatformUtil.invokeWsServiceWithOrigin(wsdlUrl, methodName, format , headerMap, readTimeout);
-						continue;
-					}
-					niFiRequestUtil.interfaceDebug(format , headerMap , "1".equals(authFlag));
 
+					//发布方对接类型
+					if(StringUtils.isNotEmpty(tlog.getPublishId())){
+						TSysPublish publish = sqlQueryFactory.select(qTSysPublish).from(qTSysPublish).where(qTSysPublish.id.eq(tlog.getPublishId())).fetchFirst();
+						//lastMap用来代替headerMap
+						Map lastMap = new HashMap();
+						lastMap.putAll(headerMap);
+						//log_header
+						if(StringUtils.isNotEmpty(tlog.getLogHeader())){
+							JSONObject joHeader = JSONObject.parseObject(tlog.getLogHeader());
+							joHeader.forEach((key,val) -> lastMap.put(key,val == null ? null : val.toString()));
+						}
+						String format = decryptAndFilterSensitive(tlog.getBusinessReq());
+						String conType = publish.getConnectionType();
+						if("1".equals(conType)){
+							if(StringUtils.isBlank(tlog.getVisitAddr())){
+								continue;
+							}
+							String wsdlUrl = tlog.getVisitAddr();
+							List<String> wsOperationNames = PlatformUtil.getWsdlOperationNames(wsdlUrl);
+							if(wsOperationNames == null || wsOperationNames.size() == 0) {
+								continue;
+							}
+							String methodName = wsOperationNames.get(0);
+
+							PlatformUtil.invokeWsServiceWithOrigin(wsdlUrl, methodName, format , lastMap, readTimeout);
+							continue;
+						}else if("2".equals(conType)){
+							niFiRequestUtil.interfaceDebug(format , lastMap , "1".equals(authFlag));
+						}
+					}
 				}
 			} catch (Exception e) {
 				logger.error("获取接口调试显示数据失败! MSG:{}", ExceptionUtil.dealException(e));

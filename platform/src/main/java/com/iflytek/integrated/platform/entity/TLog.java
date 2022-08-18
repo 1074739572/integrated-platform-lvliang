@@ -80,6 +80,36 @@ public class TLog implements Serializable {
 
     private String regSysName;
 
+    private String logType;
+
+    private String logNode;
+
+    private String logHeader;
+
+    public String getLogType() {
+        return logType;
+    }
+
+    public void setLogType(String logType) {
+        this.logType = logType;
+    }
+
+    public String getLogNode() {
+        return logNode;
+    }
+
+    public void setLogNode(String logNode) {
+        this.logNode = logNode;
+    }
+
+    public String getLogHeader() {
+        return logHeader;
+    }
+
+    public void setLogHeader(String logHeader) {
+        this.logHeader = logHeader;
+    }
+
     public String getBusinessInterfaceName() {
         return businessInterfaceName;
     }
