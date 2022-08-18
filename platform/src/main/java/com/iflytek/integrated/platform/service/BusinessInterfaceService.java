@@ -229,7 +229,8 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
             //取出每个里面的
             if(nameSplit.length>1) {
                 List<String> strings = Arrays.asList(nameSplit).stream().sorted(Comparator.comparing(e -> e.substring(e.lastIndexOf("/")))).collect(Collectors.toList());
-                result.setRequestInterfaceName(String.join(",",strings));
+                strings=strings.stream().map(e->e.substring(0,e.lastIndexOf("/"))).collect(Collectors.toList());
+                result.setBusinessInterfaceName(String.join(",",strings));
             }
         }
 
