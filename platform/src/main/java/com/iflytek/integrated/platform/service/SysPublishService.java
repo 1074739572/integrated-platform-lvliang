@@ -244,10 +244,12 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
         if (!CollectionUtils.isEmpty(list)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该服务发布已有功能权限关联,无法删除!", "该服务发布已有功能权限关联,无法删除!");
         }
-        // 删除接口
-        long l = this.delete(id);
         //删除缓存
         cacheDelete(id);
+
+        // 删除接口
+        long l = this.delete(id);
+
         if (l < 1) {
             throw new RuntimeException("删除成功!");
         }

@@ -1019,10 +1019,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 rtnStr.add(obj.getId());
             }
         }
-        // redis缓存信息获取
-        ArrayList<Predicate> arr = new ArrayList<>();
-        arr.add(qTBusinessInterface.id.in(rtnStr));
-        List<RedisKeyDto> redisKeyDtoList = redisService.getRedisKeyDtoList(arr);
+        // 缓存信息获取
+        cacheDeleteIntegration(id);
 
         // 删除相同条件集成配置
         long count = businessInterfaceService.delObjByCondition(tbi.getRequestInterfaceId());
@@ -1030,7 +1028,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             throw new RuntimeException("集成配置删除失败!");
         }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "集成配置删除成功!共删除" + count + "条数据",
-                new RedisDto(redisKeyDtoList).toString());
+                null);
     }
 
     @ApiOperation(value = "根据id删除单个集成配置信息", notes = "根据id删除单个集成配置信息")
@@ -1042,12 +1040,14 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "根据id未查出该集成配置信息!", id);
         }
 
+        //删除缓存
+        cacheDeleteIntegration(id);
+
         long count = businessInterfaceService.delete(id);
         if (count < 1) {
             throw new RuntimeException("根据id删除该集成配置信息失败!");
         }
-        //删除缓存
-        cacheDeleteIntegration(id);
+
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "单个集成配置信息删除成功!", null);
     }
 

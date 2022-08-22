@@ -181,13 +181,15 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
         if (CollectionUtils.isNotEmpty(tbiList)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该插件有接口配置相关联,无法删除!");
         }
+        //删除缓存
+        cacheDelete(plugin.getId());
+
         //删除插件
         Long lon = sqlQueryFactory.delete(qTPlugin).where(qTPlugin.id.eq(plugin.getId())).execute();
         if(lon <= 0){
             throw new RuntimeException("插件删除失败!");
         }
-        //删除缓存
-        cacheDelete(plugin.getId());
+
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "插件删除成功", null);
     }
 
