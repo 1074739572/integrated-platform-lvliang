@@ -204,7 +204,7 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
                         qTBusinessInterface.mockStatus.min().as(qTBusinessInterface.mockStatus),
                         qTBusinessInterface.status.min().as("status"),
                         qTBusinessInterface.createdBy.min().as(qTBusinessInterface.createdBy),
-                        qTBusinessInterface.createdTime.max().as(qTBusinessInterface.createdTime),
+                        qTBusinessInterface.createdTime.min().as(qTBusinessInterface.createdTime),
                         qTBusinessInterface.updatedBy.min().as(qTBusinessInterface.updatedBy),
                         qTBusinessInterface.updatedTime.max().as(qTBusinessInterface.updatedTime)))
                 .from(qTBusinessInterface)
