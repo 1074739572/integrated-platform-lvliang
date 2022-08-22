@@ -143,6 +143,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 
         //删除缓存
         cacheDelete(id);
+
         // 删除系统
         long count = this.delete(id);
         if (count <= 0) {
