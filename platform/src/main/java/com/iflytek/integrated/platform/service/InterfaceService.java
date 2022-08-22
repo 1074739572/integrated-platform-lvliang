@@ -1513,10 +1513,11 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
     private void cacheDeleteIntegration(String id) {
         TBusinessInterface businessInterface = businessInterfaceService.getOne(id);
         CacheDeleteDto keyDto = new CacheDeleteDto();
-        if (StringUtils.isEmpty((businessInterface.getInterfaceUrl()))) {
+        if (StringUtils.isEmpty((businessInterface.getRequestInterfaceId()))) {
             return;
         }
-        keyDto.setInterfaceCodes(Arrays.asList(businessInterface.getInterfaceUrl()));
+
+        keyDto.setInterfaceIds(Arrays.asList(businessInterface.getRequestInterfaceId()));
         //需要删除下面两种缓存key
         keyDto.setCacheTypeList(Arrays.asList(
                 Constant.CACHE_KEY_PREFIX.COMMON_TYPE
