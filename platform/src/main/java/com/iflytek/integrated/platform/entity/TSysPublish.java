@@ -37,7 +37,7 @@ public class TSysPublish implements Serializable {
 
     private String signKey;
 
-    private String mqReponseFormat;
+    private String asyncResponse;
 
     private java.util.Date updatedTime;
 
