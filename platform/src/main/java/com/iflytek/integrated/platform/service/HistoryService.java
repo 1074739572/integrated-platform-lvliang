@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -295,42 +296,13 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
         //删除
         businessInterfaceService.delObjByCondition(hisReqInterfaceId);
         for (Object obj : jsonArray) {
-            JSONObject jObj = JSON.parseObject(obj.toString());
+            TBusinessInterface jObj = JSON.parseObject(obj.toString(),TBusinessInterface.class);
             TBusinessInterface tbi = new TBusinessInterface();
-            tbi.setId(batchUidService.getUid(qTBusinessInterface.getTableName()) + "");
-            tbi.setSysRegistryId(jObj.getString("sysRegistryId"));
-            tbi.setRequestInterfaceId(jObj.getString("requestInterfaceId"));
-            tbi.setBusinessInterfaceName(jObj.getString("businessInterfaceName"));
-            tbi.setRequestType(jObj.getString("requestType"));
-            tbi.setRequestConstant(jObj.getString("requestConstant"));
-            tbi.setInterfaceType(jObj.getString("interfaceType"));
-            tbi.setPluginId(jObj.getString("pluginId"));
-            tbi.setInParamFormat(jObj.getString("inParamFormat"));
-            tbi.setInParamSchema(jObj.getString("inParamSchema"));
-            tbi.setInParamTemplateType(jObj.getString("inParamTemplateType"));
-            tbi.setInParamTemplate(jObj.getString("inParamTemplate"));
-            tbi.setInParamFormatType(jObj.getString("inParamFormatType"));
-            tbi.setOutParamFormat(jObj.getString("outParamFormat"));
-            tbi.setOutParamSchema(jObj.getString("outParamSchema"));
-            tbi.setOutParamTemplateType(jObj.getString("outParamTemplateType"));
-            tbi.setOutParamTemplate(jObj.getString("outParamTemplate"));
-            tbi.setOutParamFormatType(jObj.getString("outParamFormatType"));
-            tbi.setMockTemplate(jObj.getString("mockTemplate"));
-            tbi.setMockStatus(jObj.getString("mockStatus"));
-            tbi.setStatus(jObj.getString("status"));
-            tbi.setExcErrStatus(jObj.getString("excErrStatus"));
-            tbi.setExcErrOrder(jObj.getInteger("excErrOrder"));
-            tbi.setMockIsUse(jObj.getInteger("mockIsUse"));
-            tbi.setCreatedBy(loginUserName);
-            tbi.setCreatedTime(new Date());
-            tbi.setUpdatedBy(loginUserName);
-            tbi.setUpdatedTime(new Date());
-            tbi.setAsyncFlag(jObj.getInteger("asyncFlag"));
-            tbi.setInterfaceSlowFlag(jObj.getInteger("interfaceSlowFlag"));
-            tbi.setReplayFlag(jObj.getInteger("replayFlag"));
+            jObj.setId(batchUidService.getUid(qTBusinessInterface.getTableName()) + "");
+            jObj.setCreatedBy(loginUserName);
             // 获取schema
-            niFiRequestUtil.generateSchemaToInterface(tbi);
-            businessInterfaceService.post(tbi);
+            niFiRequestUtil.generateSchemaToInterface(jObj);
+            businessInterfaceService.post(jObj);
         }
 
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "回滚历史版本成功!", null);
