@@ -297,7 +297,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
         TSysPublish publish = this.getOne(pubId);
 
         CacheDeleteDto sysKeyDto=new CacheDeleteDto();
-        sysKeyDto.setSysCodes(Arrays.asList(publish.getSysCode()));
+        sysKeyDto.setSysIds(Arrays.asList(publish.getSysId()));
 
         //需要生成两种类型的key 因为驱动无法获取到funcode所以获取所有的funcode
         sysKeyDto.setCacheTypeList(Arrays.asList(

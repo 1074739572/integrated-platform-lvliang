@@ -190,7 +190,7 @@ public class FunctionAuthService extends BaseService<TFunctionAuth, String, Stri
 
         CacheDeleteDto keyDto = new CacheDeleteDto();
         keyDto.setInterfaceIds(Arrays.asList(functionAuth.getInterfaceId()));
-        keyDto.setSysCodes(Arrays.asList(sysPublish.getSysCode()));
+        keyDto.setSysIds(Arrays.asList(sysPublish.getSysId()));
         //需要删除下面两种缓存key
         keyDto.setCacheTypeList(Arrays.asList(
                 Constant.CACHE_KEY_PREFIX.COMMON_TYPE
