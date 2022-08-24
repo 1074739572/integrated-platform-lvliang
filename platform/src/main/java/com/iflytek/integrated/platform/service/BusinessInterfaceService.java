@@ -372,7 +372,7 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
     private void cacheDelete(String id) {
         TBusinessInterface businessInterface = this.getOne(id);
         CacheDeleteDto keyDto = new CacheDeleteDto();
-        keyDto.setInterfaceCodes(Arrays.asList(businessInterface.getInterfaceUrl()));
+        keyDto.setInterfaceIds(Arrays.asList(businessInterface.getRequestInterfaceId()));
         //需要删除下面两种缓存key
         keyDto.setCacheTypeList(Arrays.asList(
                 Constant.CACHE_KEY_PREFIX.COMMON_TYPE
