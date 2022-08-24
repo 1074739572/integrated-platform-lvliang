@@ -158,13 +158,13 @@ public class FunctionAuthService extends BaseService<TFunctionAuth, String, Stri
     @GetMapping("/delById/{id}")
     public ResultDto<String> delById(
             @ApiParam(value = "功能权限id") @PathVariable(value = "id", required = true) String id) {
+        //删除缓存
+        cacheDelete(id);
         // 删除接口
         long l = this.delete(id);
         if (l < 1) {
             throw new RuntimeException("功能权限删除成功!");
         }
-        //删除缓存
-        cacheDelete(id);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "功能权限删除成功!");
     }
 

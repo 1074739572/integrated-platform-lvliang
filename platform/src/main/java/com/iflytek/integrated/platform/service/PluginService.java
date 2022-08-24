@@ -282,9 +282,9 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
         if(CollectionUtils.isEmpty(businessInterfaces)){
             return;
         }
-        List<String> funcodes = businessInterfaces.stream().map(TBusinessInterface::getInterfaceUrl).collect(Collectors.toList());
+        List<String> interfaceIds = businessInterfaces.stream().map(TBusinessInterface::getRequestInterfaceId).collect(Collectors.toList());
         CacheDeleteDto keyDto = new CacheDeleteDto();
-        keyDto.setInterfaceCodes(funcodes);
+        keyDto.setInterfaceIds(interfaceIds);
         //需要删除下面两种缓存key
         keyDto.setCacheTypeList(Arrays.asList(
                 Constant.CACHE_KEY_PREFIX.COMMON_TYPE
