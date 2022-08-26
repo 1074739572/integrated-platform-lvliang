@@ -1,14 +1,14 @@
 package com.iflytek.integrated.platform.service;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
-import com.iflytek.integrated.platform.dto.InterfaceMonitorDto;
-import com.iflytek.integrated.platform.entity.*;
+import com.iflytek.integrated.platform.entity.QTSys;
+import com.iflytek.integrated.platform.entity.TBusinessInterface;
+import com.iflytek.integrated.platform.entity.TLog;
 import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.querydsl.core.QueryFlag;
@@ -16,14 +16,10 @@ import com.querydsl.core.QueryFlag.Position;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.SubQueryExpression;
-import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
-import com.querydsl.core.types.dsl.StringExpression;
-import com.querydsl.core.types.dsl.StringPath;
-import com.querydsl.sql.SQLExpressions;
 import com.querydsl.sql.SQLQuery;
+import com.querydsl.sql.SQLQueryFactory;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -47,8 +43,13 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.iflytek.integrated.platform.entity.QTBusinessInterface.qTBusinessInterface;
 import static com.iflytek.integrated.platform.entity.QTInterface.qTInterface;
@@ -71,6 +72,9 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 
 	@Autowired
 	private NiFiRequestUtil niFiRequestUtil;
+
+	@Autowired
+	SQLQueryFactory shardingSqlQueryFactory;
 	
 	@Value("${server.db}")
 	private String dbType;
@@ -154,6 +158,18 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		String q = "sys";
 		QTSys qtSysAlias = new QTSys(q);
 
+		shardingSqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status,
+						qTLog.venderRepTime, qTLog.businessRepTime, qTLog.visitAddr, qTLog.businessReq, qTLog.venderReq,
+						qTLog.businessRep, qTLog.venderRep)).from(qTLog)
+				.where(list.toArray(new Predicate[list.size()])).limit(pageSize).fetch();
+
+		//先分页查询日志表
+		QueryResults<TLog> tLogQueryResults = shardingSqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status,
+						qTLog.venderRepTime, qTLog.businessRepTime, qTLog.visitAddr, qTLog.businessReq, qTLog.venderReq,
+						qTLog.businessRep, qTLog.venderRep)).from(qTLog)
+				.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
+				.orderBy(qTLog.createdTime.desc(), qTLog.requestIdentifier.desc()).fetchResults();
+
 		SQLQuery<TLog> tlogQuery = sqlQueryFactory
 		.select(Projections.bean(TLog.class, qTLog.id, qTLog.businessInterfaceId, qTLog.createdTime, qTLog.status, qTLog.venderRepTime,
 				qTLog.businessRepTime, qTLog.visitAddr, qTLog.debugreplayFlag,
@@ -230,7 +246,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 				.leftJoin(qTInterface).on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id))
 				.leftJoin(qTSysPublish).on(qTLog.publishId.eq(qTSysPublish.id))
 				.leftJoin(qTSys).on(qTSysPublish.sysId.eq(qTSys.id))
-				.where(qTLog.id.eq(Long.valueOf(id)))
+				.where(qTLog.id.eq(Long.valueOf(id)).and(qTLog.createdTime.eq(new Date())))
 				.fetchFirst();
 
 		// 解密，脱敏处理数据
