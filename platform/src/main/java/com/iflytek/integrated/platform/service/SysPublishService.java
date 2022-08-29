@@ -182,8 +182,6 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
         if (!checkPublishIsExist(pubId, dto.getSysId())) {
             throw new RuntimeException("该系统已经发布过服务");
         }
-        //缓存
-        List<String> list =new ArrayList<>();
         // 新增系统配置信息
         if (StringUtils.isBlank(pubId)) {
             pubId = batchUidService.getUid(qTSysPublish.getTableName()) + "";

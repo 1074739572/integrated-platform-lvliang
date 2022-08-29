@@ -117,6 +117,7 @@ public class FunctionAuthService extends BaseService<TFunctionAuth, String, Stri
             dto.setCreatedTime(new Date());
             dto.setCreatedBy(loginUserName);
             this.post(dto);
+            cacheDelete(id);
         } else {
             //修改
             dto.setUpdatedTime(new Date());
