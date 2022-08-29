@@ -96,7 +96,6 @@ public class WebInterceptConfig extends WebMvcConfigurationSupport {
         MappingJackson2HttpMessageConverter jackson2HttpMessageConverter = new MappingJackson2HttpMessageConverter();
         ObjectMapper objectMapper = jackson2HttpMessageConverter.getObjectMapper();
         //不显示为null的字段
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         SimpleModule simpleModule = new SimpleModule();
         simpleModule.addSerializer(Long.class, ToStringSerializer.instance);
         simpleModule.addSerializer(Long.TYPE, ToStringSerializer.instance);
