@@ -102,7 +102,7 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
                     .from(qTSysRegistry).leftJoin(qTSys)
                     .on(qTSysRegistry.sysId.eq(qTSys.id))
                     .where(list.toArray(new Predicate[list.size()]))
-                    .offset((pageNo - 1) * pageSize).orderBy(qTSysRegistry.createdTime.desc()).fetchResults();
+                    .limit(pageSize).offset((pageNo - 1) * pageSize).orderBy(qTSysRegistry.createdTime.desc()).fetchResults();
             if (!queryResults.isEmpty()) {
                 //如果是数据库视图  则url显示数据的url
                 for (TSysRegistry result : queryResults.getResults()) {
@@ -189,9 +189,9 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
             if (l < 1) {
                 throw new RuntimeException("服务注册编辑失败!");
             }
-            //删除缓存
-            cacheDelete(registryId);
         }
+        //删除缓存
+        cacheDelete(registryId);
         Map<String, String> data = new HashMap<String, String>();
         data.put("id", registryId);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存服务注册信息成功!", JSON.toJSONString(data));

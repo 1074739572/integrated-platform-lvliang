@@ -105,7 +105,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
                     .from(qTSysPublish).leftJoin(qTSys)
                     .on(qTSysPublish.sysId.eq(qTSys.id))
                     .where(list.toArray(new Predicate[list.size()]))
-                    .offset((pageNo - 1) * pageSize).orderBy(qTSysPublish.createdTime.desc()).fetchResults();
+                    .limit(pageSize).offset((pageNo - 1) * pageSize).orderBy(qTSysPublish.createdTime.desc()).fetchResults();
             // 分页
             TableData<TSysPublish> tableData = new TableData<>(queryResults.getTotal(), queryResults.getResults());
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取服务发布列表成功!", tableData);
@@ -195,12 +195,12 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
             dto.setUpdatedTime(new Date());
             dto.setUpdatedBy(loginUserName);
             long l = this.put(pubId, dto);
-            //删除缓存
-            cacheDelete(pubId);
             if (l < 1) {
                 throw new RuntimeException("服务发布编辑失败!");
             }
         }
+        //删除缓存
+        cacheDelete(pubId);
         Map<String, String> data = new HashMap<String, String>();
         data.put("id", pubId);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存服务发布信息成功!", JSON.toJSONString(data));
