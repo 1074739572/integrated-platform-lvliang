@@ -327,7 +327,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 				}
 				List<TLog> logs = sqlQueryFactory.select(qTLog).from(qTLog).where(qTLog.id.in(realIds)).fetch();
 				for(TLog tlog: logs) {
-					if(tlog.getDebugreplayFlag() == 0) {
+					if(tlog.getDebugreplayFlag() == 0 || tlog.getDebugreplayFlag() == 2) {
 						headerMap.put("Debugreplay-Flag", "2");
 					}else {
 						headerMap.put("Debugreplay-Flag", "3");
