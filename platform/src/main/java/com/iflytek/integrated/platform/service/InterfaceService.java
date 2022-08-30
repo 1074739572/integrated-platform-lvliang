@@ -343,13 +343,13 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         if (CollectionUtils.isNotEmpty(list)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "该标准服务已有集成配置关联,无法删除!", "该标准服务已有集成配置关联,无法删除!");
         }
+        //删除缓存
+        cacheDelete(id);
         // 删除服务
         long l = this.delete(id);
         if (l < 1) {
             throw new RuntimeException("标准服务删除成功!");
         }
-        //删除缓存
-        cacheDelete(id);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准服务删除成功!", null);
     }
 
