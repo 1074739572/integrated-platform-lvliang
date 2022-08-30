@@ -226,6 +226,8 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
             TType tType = typeService.getOne(plugin.getTypeId());
             plugin.setPluginTypeName(tType.getTypeName());
             historyService.insertHis(plugin,3,loginUserName,null,plugin.getId(),null);
+            //删除缓存
+            cacheDelete(plugin.getId());
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE,"插件新增成功", null);
         }
         //插入历史

@@ -226,6 +226,8 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
                 drive.setDriveCallTypeName("被请求方");
             }
             historyService.insertHis(drive, 2, loginUserName, null, drive.getId(), null);
+            //删除缓存
+            cacheDelete(drive.getId());
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "驱动新增成功", null);
         }
 
