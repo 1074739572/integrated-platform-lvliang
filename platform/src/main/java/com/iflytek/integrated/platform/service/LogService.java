@@ -158,17 +158,46 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 		String q = "sys";
 		QTSys qtSysAlias = new QTSys(q);
 
-		shardingSqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status,
-						qTLog.venderRepTime, qTLog.businessRepTime, qTLog.visitAddr, qTLog.businessReq, qTLog.venderReq,
-						qTLog.businessRep, qTLog.venderRep)).from(qTLog)
-				.where(list.toArray(new Predicate[list.size()])).limit(pageSize).fetch();
-
 		//先分页查询日志表
-		QueryResults<TLog> tLogQueryResults = shardingSqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status,
-						qTLog.venderRepTime, qTLog.businessRepTime, qTLog.visitAddr, qTLog.businessReq, qTLog.venderReq,
-						qTLog.businessRep, qTLog.venderRep)).from(qTLog)
+		QueryResults<TLog> tLogQueryResults = shardingSqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.businessInterfaceId, qTLog.createdTime, qTLog.status, qTLog.venderRepTime,
+						qTLog.businessRepTime, qTLog.visitAddr, qTLog.debugreplayFlag,
+						qTLog.logType, qTLog.logNode, qTLog.logHeader)).from(qTLog)
 				.where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
 				.orderBy(qTLog.createdTime.desc(), qTLog.requestIdentifier.desc()).fetchResults();
+		if(tLogQueryResults!=null && !tLogQueryResults.isEmpty()){
+			return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志详细列表获取成功!", new TableData<>());
+		}
+
+		//组装各分查询的外键
+		List<String> btList=new ArrayList<>();
+		List<String> pubList=new ArrayList<>();
+
+		for (TLog result : tLogQueryResults.getResults()) {
+			if(!StringUtils.isEmpty(result.getBusinessInterfaceId())){
+				btList.add(result.getBusinessInterfaceId());
+			}
+
+			if(!StringUtils.isEmpty(result.getPublishId())){
+				pubList.add(result.getPublishId());
+			}
+		}
+
+		//再根据分页日志记录查找关联信息
+		//1.查找集成配置信息
+//		sqlQueryFactory.select(Projections.bean(TBusinessInterface.class,
+//				qTBusinessInterface.excErrOrder, qTBusinessInterface.requestInterfaceId,
+//				qTBusinessInterface.replayFlag, qTBusinessInterface.businessInterfaceName,
+//				qTInterface.interfaceName, qTInterface.interfaceUrl,
+//				qTSysRegistry.registryName.as("registryName"),
+//				qTSys.id.as("regSysId"), qTSys.sysName.as("regSysName")))
+		//2.查找服务信息
+
+		//3.查找发布信息
+
+		//4.查找系统信息
+
+		//5.查找服务注册信息
+
 
 		SQLQuery<TLog> tlogQuery = sqlQueryFactory
 		.select(Projections.bean(TLog.class, qTLog.id, qTLog.businessInterfaceId, qTLog.createdTime, qTLog.status, qTLog.venderRepTime,
