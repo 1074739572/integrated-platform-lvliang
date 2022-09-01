@@ -13,6 +13,8 @@ public class TLog implements Serializable {
 
     private Long id;
 
+    private Long count;
+
     private String businessInterfaceId;
 
     private String businessInterfaceName;
@@ -381,6 +383,14 @@ public class TLog implements Serializable {
 
     public void setInterfaceId(String interfaceId) {
         this.interfaceId = interfaceId;
+    }
+
+    public Long getCount() {
+        return count;
+    }
+
+    public void setCount(Long count) {
+        this.count = count;
     }
 }
 

@@ -173,10 +173,10 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
                 .where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
                 .orderBy(qTLog.createdTime.desc(), qTLog.requestIdentifier.desc()).fetch();
 
-        Long count = shardingSqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id)).from(qTLog)
-                .where(list.toArray(new Predicate[list.size()])).fetchCount();
+        TLog count = shardingSqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id.count().as("count"))).from(qTLog)
+                .where(list.toArray(new Predicate[list.size()])).fetchOne();
 
-        QueryResults<TLog> tLogQueryResults=new QueryResults<TLog>(tLogList,new Long(pageSize),new Long((pageNo - 1) * pageSize),count);
+        QueryResults<TLog> tLogQueryResults=new QueryResults<TLog>(tLogList,new Long(pageSize),new Long((pageNo - 1) * pageSize),count.getCount());
         if (tLogQueryResults == null && tLogQueryResults.isEmpty()) {
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志详细列表获取成功!", new TableData<>());
         }
