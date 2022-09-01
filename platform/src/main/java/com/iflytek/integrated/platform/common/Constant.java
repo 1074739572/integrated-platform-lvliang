@@ -147,7 +147,7 @@ public class Constant {
 		 * 认证
 		 */
 		public static String AUTHENTICATION = "IntegratedPlatform:Configs:authentication:";
-		public static Integer AUTHENTICATION_TYPE = 2;
+		public static Integer AUTHENTICATION_TYPE = 3;
 
 		/**
 		 * 告警
