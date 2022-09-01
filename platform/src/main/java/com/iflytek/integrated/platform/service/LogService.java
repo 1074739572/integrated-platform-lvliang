@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -307,12 +308,33 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 
     @ApiOperation(value = "查看日志详细信息")
     @GetMapping("/logInfo")
-    public ResultDto<TLog> logInfo(String id) {
+    public ResultDto<TLog> logInfo(String id,@RequestParam(required = true) String createdTime) {
         if (StringUtils.isEmpty(id)) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "获取日志详细，id必传");
         }
+        Date createTime=null;
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            createTime = sdf.parse(createdTime);
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
 
         // 查询详情
+        TLog tLog = shardingSqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status,
+                        qTLog.venderRepTime, qTLog.businessRepTime, qTLog.visitAddr, qTLog.businessReq, qTLog.venderReq,
+                        qTLog.businessRep, qTLog.venderRep, qTLog.debugreplayFlag,qTLog.businessInterfaceId,qTBusinessInterface.requestInterfaceId
+                        qTLog.logType, qTLog.logNode, qTLog.logHeader))
+                .from(qTLog)
+                .where(qTLog.id.eq(Long.valueOf(id)).and(qTLog.createdTime.eq(createTime)))
+                .fetchFirst();
+
+        //分别查询集成和发布
+        sqlQueryFactory.select(Projections.bean(TBusinessInterface.class, qTBusinessInterface.id,
+                qTInterface.id.as("interfaceId"), qTInterface.interfaceName, qTInterface.interfaceUrl))
+                .from(qTBusinessInterface).on
+
         TLog tLog = sqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status,
                         qTLog.venderRepTime, qTLog.businessRepTime, qTLog.visitAddr, qTLog.businessReq, qTLog.venderReq,
                         qTLog.businessRep, qTLog.venderRep, qTLog.debugreplayFlag,
