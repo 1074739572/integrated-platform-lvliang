@@ -47,6 +47,11 @@ public class CacheDeleteService {
                     //得到IntegratedPlatform:Configs:authentication:_productcode 的缓存key
                     list.add(Constant.CACHE_KEY_PREFIX.AUTHENTICATION + "_" + code);
                 }
+
+                if (dto.getCacheTypeList().contains(Constant.CACHE_KEY_PREFIX.MQ_TYPE)) {
+                    //得到IntegratedPlatform:Configs:authentication:_productcode 的缓存key
+                    list.add(Constant.CACHE_KEY_PREFIX.MQ + "_" + code);
+                }
             }
 
         }
@@ -146,6 +151,10 @@ public class CacheDeleteService {
 
         if (cacheTypeList.contains(Constant.CACHE_KEY_PREFIX.ALERT_TYPE)) {
             list.addAll(alertKey());
+        }
+
+        if (cacheTypeList.contains(Constant.CACHE_KEY_PREFIX.MQ_TYPE)) {
+            list.addAll(sysKey(dto));
         }
         //删除缓存
         redisService.delCacheByKeyList(list);

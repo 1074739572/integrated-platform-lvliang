@@ -301,7 +301,8 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
         sysKeyDto.setCacheTypeList(Arrays.asList(
                 Constant.CACHE_KEY_PREFIX.SCHEMA_TYPE,
                 Constant.CACHE_KEY_PREFIX.AUTHENTICATION_TYPE,
-                Constant.CACHE_KEY_PREFIX.COMMON_TYPE));
+                Constant.CACHE_KEY_PREFIX.COMMON_TYPE,
+                Constant.CACHE_KEY_PREFIX.MQ_TYPE));
 
         //获得到系统编码的缓存键集合
         cacheDeleteService.cacheKeyDelete(sysKeyDto);

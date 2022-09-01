@@ -6,6 +6,7 @@ import com.iflytek.integrated.common.dto.TableData;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.platform.common.BaseService;
 import com.iflytek.integrated.platform.common.Constant;
+import com.iflytek.integrated.platform.dto.DebugDto;
 import com.iflytek.integrated.platform.entity.QTSys;
 import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TLog;
@@ -35,6 +36,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -324,31 +326,41 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
         // 查询详情
         TLog tLog = shardingSqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status,
                         qTLog.venderRepTime, qTLog.businessRepTime, qTLog.visitAddr, qTLog.businessReq, qTLog.venderReq,
-                        qTLog.businessRep, qTLog.venderRep, qTLog.debugreplayFlag,qTLog.businessInterfaceId,qTBusinessInterface.requestInterfaceId
+                        qTLog.businessRep, qTLog.venderRep, qTLog.debugreplayFlag,qTLog.businessInterfaceId,qTLog.publishId,
                         qTLog.logType, qTLog.logNode, qTLog.logHeader))
                 .from(qTLog)
                 .where(qTLog.id.eq(Long.valueOf(id)).and(qTLog.createdTime.eq(createTime)))
                 .fetchFirst();
 
-        //分别查询集成和发布
-        sqlQueryFactory.select(Projections.bean(TBusinessInterface.class, qTBusinessInterface.id,
-                qTInterface.id.as("interfaceId"), qTInterface.interfaceName, qTInterface.interfaceUrl))
-                .from(qTBusinessInterface).on
+            //分别查询集成和发布
+            TBusinessInterface tBusinessInterface = sqlQueryFactory.select(Projections.bean(TBusinessInterface.class, qTBusinessInterface.id,
+                            qTBusinessInterface.requestInterfaceId,
+                            qTInterface.interfaceName, qTInterface.interfaceUrl))
+                    .from(qTBusinessInterface)
+                    .leftJoin(qTInterface).on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id))
+                    .where(qTBusinessInterface.id.eq(tLog.getBusinessInterfaceId())).fetchFirst();
 
-        TLog tLog = sqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status,
-                        qTLog.venderRepTime, qTLog.businessRepTime, qTLog.visitAddr, qTLog.businessReq, qTLog.venderReq,
-                        qTLog.businessRep, qTLog.venderRep, qTLog.debugreplayFlag,
-                        qTLog.logType, qTLog.logNode, qTLog.logHeader,
-                        qTInterface.id.as("interfaceId"), qTInterface.interfaceName, qTInterface.interfaceUrl,
-                        qTSysPublish.id.as("publishId"), qTSysPublish.publishName,
-                        qTSys.id.as("publishSysId"), qTSys.sysName.as("publishSysName")))
-                .from(qTLog)
-                .leftJoin(qTBusinessInterface).on(qTLog.businessInterfaceId.eq(qTBusinessInterface.id))
-                .leftJoin(qTInterface).on(qTBusinessInterface.requestInterfaceId.eq(qTInterface.id))
-                .leftJoin(qTSysPublish).on(qTLog.publishId.eq(qTSysPublish.id))
+        if(tBusinessInterface!=null){
+            tLog.setInterfaceId(tBusinessInterface.getRequestInterfaceId());
+            tLog.setInterfaceName(tBusinessInterface.getInterfaceName());
+            tLog.setInterfaceUrl(tBusinessInterface.getInterfaceUrl());
+            tLog.setRequestInterfaceId(tBusinessInterface.getRequestInterfaceId());
+        }
+
+        TSysPublish tSysPublish = sqlQueryFactory.select(Projections.bean(TSysPublish.class, qTSysPublish.id,
+                        qTSysPublish.publishName,
+                        qTSys.id.as("sysId"), qTSys.sysName))
+                .from(qTSysPublish)
                 .leftJoin(qTSys).on(qTSysPublish.sysId.eq(qTSys.id))
-                .where(qTLog.id.eq(Long.valueOf(id)).and(qTLog.createdTime.eq(new Date())))
+                .where(qTSysPublish.id.eq(tLog.getPublishId()))
                 .fetchFirst();
+
+        if(tSysPublish!=null){
+            tLog.setPublishId(tSysPublish.getId());
+            tLog.setPublishName(tSysPublish.getPublishName());
+            tLog.setPublishSysId(tSysPublish.getSysId());
+            tLog.setPublishSysName(tSysPublish.getSysName());
+        }
 
         // 解密，脱敏处理数据
         String businessRep = decryptAndFilterSensitive(tLog.getBusinessRep());
@@ -370,21 +382,26 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 
     @ApiOperation(value = "下载详细日志")
     @GetMapping(path = "/downloadLogInfo/{id}")
-    public void downloadLogInfo(@PathVariable String id, HttpServletRequest request, HttpServletResponse response) {
-        // 校验是否获取到登录用户
-//		String loginUserName = UserLoginIntercept.LOGIN_USER.UserName();
-//		if (StringUtils.isBlank(loginUserName)) {
-//			return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "没有获取到登录用户!", "没有获取到登录用户!");
-//		}
+    public void downloadLogInfo(@PathVariable String id, HttpServletRequest request, HttpServletResponse response,
+                                @RequestParam(required = true) String createdTime) {
+        Date createTime=null;
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            createTime = sdf.parse(createdTime);
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
         if (StringUtils.isEmpty(id)) {
             throw new RuntimeException("下载日志详细，id必传!");
         }
         String dateStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         String fileName = "log_info_detail" + dateStr + ".txt";
         // 查询详情
-        TLog tLog = sqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status,
+        TLog tLog = shardingSqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status,
                 qTLog.venderRepTime, qTLog.businessRepTime, qTLog.visitAddr, qTLog.businessReq, qTLog.venderReq,
-                qTLog.businessRep, qTLog.venderRep)).from(qTLog).where(qTLog.id.eq(Long.valueOf(id))).fetchFirst();
+                qTLog.businessRep, qTLog.venderRep)).from(qTLog).where(qTLog.id.eq(Long.valueOf(id)).and(qTLog.createdTime.eq(createTime))).fetchFirst();
         // 解密，脱敏处理数据
         String businessRep = decryptAndFilterSensitive(tLog.getBusinessRep());
         tLog.setBusinessRep(businessRep);
@@ -414,27 +431,42 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 
 
     @ApiOperation(value = "接口调试重放")
-    @PostMapping("/interfaceDebugRedo/{authFlag}")
-    public ResultDto<String> interfaceDebugRedo(@PathVariable("authFlag") String authFlag,
-                                                @ApiParam(value = "接口转换配置ids") @RequestParam(value = "ids", required = true) String ids) {
-
-        if (StringUtils.isBlank(ids)) {
+    @PostMapping("/interfaceDebugRedo")
+    public ResultDto<String> interfaceDebugRedo(@RequestBody DebugDto dto) {
+        if (CollectionUtils.isEmpty(dto.getIds())) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "接口转换配置ids必传");
         }
+
+        if (CollectionUtils.isEmpty(dto.getCreatedTimeList())) {
+            return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "接口转换配置createdTimeList必传");
+        }
+        List<Date> createTimeList=new ArrayList<>();
+        try {
+            for (String date : dto.getCreatedTimeList()) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                createTimeList.add(sdf.parse(date));
+            }
+
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
         Map<String, String> headerMap = new HashMap<>();
         String loginUrlPrefix = niFiRequestUtil.getInterfaceDebugWithAuth();
-        if ("1".equals(authFlag)) {
+        if ("1".equals(dto.getAuthFlag())) {
             headerMap.putAll(niFiRequestUtil.interfaceAuthLogin(loginUrlPrefix, false));
         }
 
-		String[] idArrays = ids.split(",");
+		String[] idArrays = dto.getIds().toArray(new String[0]);
 		if(idArrays != null && idArrays.length > 0) {
 			try {
 				Long[] realIds = new Long[idArrays.length];
 				for(int i = 0 ; i < idArrays.length ; i++) {
 					realIds[i] = Long.valueOf(idArrays[i]);
 				}
-				List<TLog> logs = sqlQueryFactory.select(qTLog).from(qTLog).where(qTLog.id.in(realIds)).fetch();
+				List<TLog> logs = shardingSqlQueryFactory.select(qTLog).from(qTLog).where(qTLog.id.in(realIds)
+                        .and(qTLog.createdTime.in(createTimeList))).fetch();
 				for(TLog tlog: logs) {
 					if(tlog.getDebugreplayFlag() == 0 || tlog.getDebugreplayFlag() == 2) {
 						headerMap.put("Debugreplay-Flag", "2");
@@ -465,7 +497,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
                         PlatformUtil.invokeWsServiceWithOrigin(wsdlUrl, methodName, format, lastMap, readTimeout);
                         continue;
                     }
-                    niFiRequestUtil.interfaceDebug(format, lastMap, "1".equals(authFlag));
+                    niFiRequestUtil.interfaceDebug(format, lastMap, "1".equals(dto.getAuthFlag()));
                 }
             } catch (Exception e) {
                 logger.error("获取接口调试显示数据失败! MSG:{}", ExceptionUtil.dealException(e));
