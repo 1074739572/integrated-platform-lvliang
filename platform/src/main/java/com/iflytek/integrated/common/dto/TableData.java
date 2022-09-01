@@ -18,7 +18,7 @@ public class TableData<T> {
             name = "total",
             value = "页数"
     )
-    private long total;
+    private int total;
 
     @ApiModelProperty(
             name = "rows",
@@ -27,7 +27,7 @@ public class TableData<T> {
     private List<T> rows;
 
     public TableData(long total, List<T> rows) {
-        this.total = total;
+        this.total = new Long(total).intValue();
         this.rows = rows;
     }
 

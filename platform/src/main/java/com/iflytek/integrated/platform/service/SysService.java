@@ -175,10 +175,9 @@ public class SysService extends BaseService<TSys, String, StringPath> {
         if (Constant.Operation.ADD.equals(addOrUpdate)) {
             return saveSys(dto, loginUserName);
         }
-        //删除缓存
+
         List<String> list = new ArrayList<>();
         if (Constant.Operation.UPDATE.equals(addOrUpdate)) {
-            cacheDelete(dto.getId());
             return updateSys(dto, loginUserName);
         }
 
@@ -225,7 +224,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
                 sysDriveLinkService.post(tvdl);
             }
         }
-
+        cacheDelete(dto.getId());
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "新增系统成功", null);
     }
 
@@ -282,6 +281,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
 				sysDriveLinkService.post(tvdl);
 			}
 		}
+        cacheDelete(dto.getId());
 		return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "修改系统成功", null);
 	}
 

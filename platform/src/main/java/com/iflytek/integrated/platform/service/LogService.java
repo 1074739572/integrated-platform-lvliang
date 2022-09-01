@@ -52,6 +52,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -164,9 +165,6 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
             list.add(Expressions.stringTemplate(tplStr, qTLog.venderRep)
                     .like(PlatformUtil.createFuzzyText(venderRep)));
         }
-
-        String q = "sys";
-        QTSys qtSysAlias = new QTSys(q);
 
         //先分页查询日志表
         List<TLog> tLogList = shardingSqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.businessInterfaceId, qTLog.createdTime, qTLog.status, qTLog.venderRepTime,
@@ -407,20 +405,20 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
             headerMap.putAll(niFiRequestUtil.interfaceAuthLogin(loginUrlPrefix, false));
         }
 
-        String[] idArrays = ids.split(",");
-        if (idArrays != null && idArrays.length > 0) {
-            try {
-                Long[] realIds = new Long[idArrays.length];
-                for (int i = 0; i < idArrays.length; i++) {
-                    realIds[i] = Long.valueOf(idArrays[i]);
-                }
-                List<TLog> logs = sqlQueryFactory.select(qTLog).from(qTLog).where(qTLog.id.in(realIds)).fetch();
-                for (TLog tlog : logs) {
-                    if (tlog.getDebugreplayFlag() == 0) {
-                        headerMap.put("Debugreplay-Flag", "2");
-                    } else {
-                        headerMap.put("Debugreplay-Flag", "3");
-                    }
+		String[] idArrays = ids.split(",");
+		if(idArrays != null && idArrays.length > 0) {
+			try {
+				Long[] realIds = new Long[idArrays.length];
+				for(int i = 0 ; i < idArrays.length ; i++) {
+					realIds[i] = Long.valueOf(idArrays[i]);
+				}
+				List<TLog> logs = sqlQueryFactory.select(qTLog).from(qTLog).where(qTLog.id.in(realIds)).fetch();
+				for(TLog tlog: logs) {
+					if(tlog.getDebugreplayFlag() == 0 || tlog.getDebugreplayFlag() == 2) {
+						headerMap.put("Debugreplay-Flag", "2");
+					}else {
+						headerMap.put("Debugreplay-Flag", "3");
+					}
 
                     //lastMap用来代替headerMap
                     Map lastMap = new HashMap();

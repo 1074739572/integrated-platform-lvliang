@@ -224,10 +224,18 @@ public class RedisService {
     }
 
     public void delCacheByKeyList(List<String> keys) {
-        if(CollectionUtils.isNotEmpty(keys)) {
-            niFiRequestUtil.metacacheClean(keys);
-        }
-        logger.info("删除缓存{}条", keys.size());
+        //开启新线程执行删除
+        THREAD_POOL_CLEAR_REDIS.execute(() -> {
+                    try {
+                        if (CollectionUtils.isNotEmpty(keys)) {
+                            niFiRequestUtil.metacacheClean(keys);
+                        }
+                        logger.info("删除缓存{}条", keys.size());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+        );
     }
 
     public void delWsDriverRedisKey(List<RedisKeyDto> list) {

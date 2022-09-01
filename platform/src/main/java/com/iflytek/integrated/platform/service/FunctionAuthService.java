@@ -125,9 +125,9 @@ public class FunctionAuthService extends BaseService<TFunctionAuth, String, Stri
             if (l < 1) {
                 throw new RuntimeException("功能权限编辑失败!");
             }
-            //删除缓存
-            cacheDelete(id);
         }
+        //删除缓存
+        cacheDelete(id);
         Map<String, String> data = new HashMap<String, String>();
         data.put("id", id);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存功能权限信息成功!", JSON.toJSONString(data));
