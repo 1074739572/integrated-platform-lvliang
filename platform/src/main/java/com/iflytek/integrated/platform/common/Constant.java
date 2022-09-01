@@ -159,6 +159,12 @@ public class Constant {
 		 */
 		public static String COMMON = "IntegratedPlatform:Configs:";
 		public static Integer COMMON_TYPE = 5;
+
+		/**
+		 * mq
+		 */
+		public static String MQ = "IntegratedPlatform:Configs:asyncresponse:";
+		public static Integer MQ_TYPE = 6;
 	}
 
 	/**
