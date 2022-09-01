@@ -381,8 +381,8 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 
 
     @ApiOperation(value = "下载详细日志")
-    @GetMapping(path = "/downloadLogInfo/{id}")
-    public void downloadLogInfo(@PathVariable String id, HttpServletRequest request, HttpServletResponse response,
+    @GetMapping(path = "/downloadLogInfo")
+    public void downloadLogInfo(String id, HttpServletRequest request, HttpServletResponse response,
                                 @RequestParam(required = true) String createdTime) {
         Date createTime=null;
         try {
