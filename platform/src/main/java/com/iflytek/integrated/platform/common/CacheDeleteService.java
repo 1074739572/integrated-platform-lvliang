@@ -41,7 +41,9 @@ public class CacheDeleteService {
                 if (dto.getCacheTypeList().contains(Constant.CACHE_KEY_PREFIX.DRIVERS_TYPE)) {
                     //得到IntegratedPlatform:Configs:WS:drivers:_productcode 的缓存key
                     list.add(Constant.CACHE_KEY_PREFIX.DRIVERS + "_" + code);
-                } else if (dto.getCacheTypeList().contains(Constant.CACHE_KEY_PREFIX.AUTHENTICATION_TYPE)) {
+                }
+
+                if (dto.getCacheTypeList().contains(Constant.CACHE_KEY_PREFIX.AUTHENTICATION_TYPE)) {
                     //得到IntegratedPlatform:Configs:authentication:_productcode 的缓存key
                     list.add(Constant.CACHE_KEY_PREFIX.AUTHENTICATION + "_" + code);
                 }
@@ -109,7 +111,8 @@ public class CacheDeleteService {
                     if (dto.getCacheTypeList().contains(Constant.CACHE_KEY_PREFIX.SCHEMA_TYPE)) {
                         //得到IntegratedPlatform:Configs:WS:schema:_funcode_productcode 的缓存key
                         list.add(Constant.CACHE_KEY_PREFIX.SCHEMA + "_" + funcCode + "_" + productCode);
-                    } else if (dto.getCacheTypeList().contains(Constant.CACHE_KEY_PREFIX.COMMON_TYPE)) {
+                    }
+                    if (dto.getCacheTypeList().contains(Constant.CACHE_KEY_PREFIX.COMMON_TYPE)) {
                         //得到IntegratedPlatform:Configs:_productcode_funcode 的缓存key
                         list.add(Constant.CACHE_KEY_PREFIX.COMMON + "_" + productCode + "_" + funcCode);
                     }
