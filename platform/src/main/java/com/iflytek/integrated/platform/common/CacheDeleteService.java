@@ -140,7 +140,9 @@ public class CacheDeleteService {
         List<String> list = new ArrayList<>();
         List<Integer> cacheTypeList = dto.getCacheTypeList();
         //如果是生成只含系统编码的
-        if (cacheTypeList.contains(Constant.CACHE_KEY_PREFIX.DRIVERS_TYPE) || cacheTypeList.contains(Constant.CACHE_KEY_PREFIX.AUTHENTICATION_TYPE)
+        if (cacheTypeList.contains(Constant.CACHE_KEY_PREFIX.DRIVERS_TYPE)
+                || cacheTypeList.contains(Constant.CACHE_KEY_PREFIX.AUTHENTICATION_TYPE)
+                || cacheTypeList.contains(Constant.CACHE_KEY_PREFIX.MQ_TYPE)
         ) {
             list.addAll(sysKey(dto));
         }
@@ -153,9 +155,6 @@ public class CacheDeleteService {
             list.addAll(alertKey());
         }
 
-        if (cacheTypeList.contains(Constant.CACHE_KEY_PREFIX.MQ_TYPE)) {
-            list.addAll(sysKey(dto));
-        }
         //删除缓存
         redisService.delCacheByKeyList(list);
     }

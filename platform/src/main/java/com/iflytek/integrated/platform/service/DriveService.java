@@ -292,7 +292,8 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
         //需要生成两种类型的key
         sysKeyDto.setCacheTypeList(Arrays.asList(
                 Constant.CACHE_KEY_PREFIX.DRIVERS_TYPE,
-                Constant.CACHE_KEY_PREFIX.COMMON_TYPE));
+                Constant.CACHE_KEY_PREFIX.COMMON_TYPE,
+                Constant.CACHE_KEY_PREFIX.MQ_TYPE));
 
         //获得到系统编码的缓存键集合
         cacheDeleteService.cacheKeyDelete(sysKeyDto);
