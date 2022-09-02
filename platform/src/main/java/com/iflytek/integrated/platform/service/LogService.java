@@ -148,13 +148,16 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
         if (StringUtils.isNotBlank(visitAddr)) {
             list.add(qTLog.visitAddr.like(PlatformUtil.createFuzzyText(visitAddr)));
         }
+
         String tplStr = "AES_DECRYPT(from_base64({0}),'w5xv7[Nmc0Z/3U^X')";
-        if ("postgresql".equals(dbType)) {
+        String emptyEvaluteStr = "COALESCE({0},'')";
+        if("postgresql".equals(dbType)) {
             tplStr = "CONVERT_FROM(decrypt(decode({0},'base64') ,'w5xv7[Nmc0Z/3U^X' ,'aes-ecb/pad:pkcs'),'UTF-8')";
         }
         if (StringUtils.isNotBlank(businessReq)) {
             list.add(Expressions.stringTemplate(tplStr, qTLog.businessReq)
                     .like(PlatformUtil.createFuzzyText(businessReq)));
+            list.add(Expressions.stringTemplate(emptyEvaluteStr,qTLog.businessReq).ne(""));
         }
         if (StringUtils.isNotBlank(businessRep)) {
             list.add(Expressions.stringTemplate(tplStr, qTLog.businessRep)
@@ -163,7 +166,9 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
         if (StringUtils.isNotBlank(venderReq)) {
             list.add(Expressions.stringTemplate(tplStr, qTLog.venderReq)
                     .like(PlatformUtil.createFuzzyText(venderReq)));
+            list.add(Expressions.stringTemplate(emptyEvaluteStr,qTLog.venderReq).ne(""));
         }
+
         if (StringUtils.isNotBlank(venderRep)) {
             list.add(Expressions.stringTemplate(tplStr, qTLog.venderRep)
                     .like(PlatformUtil.createFuzzyText(venderRep)));
