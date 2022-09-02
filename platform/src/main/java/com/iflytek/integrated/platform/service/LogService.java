@@ -433,7 +433,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
     @ApiOperation(value = "接口调试重放")
     @PostMapping("/interfaceDebugRedo")
     public ResultDto<String> interfaceDebugRedo(@RequestBody DebugDto dto) {
-        if (CollectionUtils.isEmpty(dto.getIds())) {
+        if (StringUtils.isEmpty(dto.getIds())) {
             return new ResultDto<>(Constant.ResultCode.ERROR_CODE, "接口转换配置ids必传");
         }
 
@@ -458,7 +458,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
             headerMap.putAll(niFiRequestUtil.interfaceAuthLogin(loginUrlPrefix, false));
         }
 
-		String[] idArrays = dto.getIds().toArray(new String[0]);
+		String[] idArrays = dto.getIds().split(",");
 		if(idArrays != null && idArrays.length > 0) {
 			try {
 				Long[] realIds = new Long[idArrays.length];
