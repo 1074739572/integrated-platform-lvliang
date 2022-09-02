@@ -1,10 +1,7 @@
 package com.iflytek.integrated.platform.service;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.iflytek.integrated.common.dto.ResultDto;
 import com.iflytek.integrated.common.dto.TableData;
-import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import com.iflytek.integrated.common.utils.ExceptionUtil;
 import com.iflytek.integrated.common.validator.ValidationResult;
 import com.iflytek.integrated.common.validator.ValidatorHelper;
@@ -15,12 +12,10 @@ import com.iflytek.integrated.platform.common.RedisService;
 import com.iflytek.integrated.platform.dto.CacheDeleteDto;
 import com.iflytek.integrated.platform.dto.DriveDto;
 import com.iflytek.integrated.platform.dto.GroovyValidateDto;
-import com.iflytek.integrated.platform.dto.RedisDto;
-import com.iflytek.integrated.platform.dto.RedisKeyDto;
+import com.iflytek.integrated.platform.entity.TBusinessInterface;
 import com.iflytek.integrated.platform.entity.TDrive;
-import com.iflytek.integrated.platform.entity.TInterface;
-import com.iflytek.integrated.platform.entity.TSys;
 import com.iflytek.integrated.platform.entity.TSysDriveLink;
+import com.iflytek.integrated.platform.entity.TSysPublish;
 import com.iflytek.integrated.platform.entity.TType;
 import com.iflytek.integrated.platform.utils.NiFiRequestUtil;
 import com.iflytek.integrated.platform.utils.PlatformUtil;
@@ -40,9 +35,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.iflytek.integrated.platform.entity.QTDrive.qTDrive;
@@ -74,18 +80,15 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
     private ValidatorHelper validatorHelper;
     @Autowired
     private NiFiRequestUtil niFiRequestUtil;
-    @Autowired
-    private RedisService redisService;
+
     @Autowired
     private HistoryService historyService;
     @Autowired
     private TypeService typeService;
     @Autowired
-    private SysService sysService;
-
+    private BusinessInterfaceService businessInterfaceService;
     @Autowired
-    private InterfaceService interfaceService;
-
+    private SysPublishService sysPublishService;
     @Autowired
     private CacheDeleteService cacheDeleteService;
 
@@ -262,13 +265,31 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
             return;
         }
 
-        CacheDeleteDto sysKeyDto = new CacheDeleteDto();
-        List<String> sysIdList = beans.stream().filter(e -> StringUtils.isNotEmpty(e.getSysId()))
+        List<String> sysIdList = new ArrayList<>();
+        List<String> funIdList = new ArrayList<>();
+        //驱动还应该关注集成配置的被请求方
+        //根据被请求方系统查询集成配置 如存在 去获取集成配置的服务  并且将服务发布系统全部加入
+        sysIdList = beans.stream().filter(e -> StringUtils.isNotEmpty(e.getSysId()))
                 .map(TSysDriveLink::getSysId)
                 .collect(Collectors.toList());
-        sysKeyDto.setSysIds(sysIdList);
 
-        //需要生成两种类型的key 因为驱动无法获取到funcode所以获取所有的funcode
+        //根据系统找到注册方  由注册放找到集成配置
+        List<TBusinessInterface> businessInterfaces = businessInterfaceService.getListByRegSysIdList(sysIdList);
+        if (CollectionUtils.isNotEmpty(businessInterfaces)) {
+            //将服务id加入
+            funIdList = businessInterfaces.stream().map(TBusinessInterface::getRequestInterfaceId).collect(Collectors.toList());
+            //将服务发布的系统全部加入
+            List<TSysPublish> all = sysPublishService.getAll();
+            if (CollectionUtils.isNotEmpty(all)) {
+                sysIdList.addAll(all.stream().map(TSysPublish::getSysId).collect(Collectors.toList()));
+            }
+        }
+
+        CacheDeleteDto sysKeyDto = new CacheDeleteDto();
+        sysKeyDto.setSysIds(sysIdList);
+        sysKeyDto.setInterfaceIds(funIdList);
+
+        //需要生成两种类型的key
         sysKeyDto.setCacheTypeList(Arrays.asList(
                 Constant.CACHE_KEY_PREFIX.DRIVERS_TYPE,
                 Constant.CACHE_KEY_PREFIX.COMMON_TYPE));

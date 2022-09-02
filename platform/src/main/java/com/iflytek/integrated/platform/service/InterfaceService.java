@@ -472,6 +472,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         }
         // 新增标准服务
         this.post(ti);
+        cacheDelete(ti.getId());
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准服务新增成功!", null);
     }
 
@@ -1499,7 +1500,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         keyDto.setInterfaceCodes(Arrays.asList(tInterface.getInterfaceUrl()));
         //需要删除下面两种缓存key
         keyDto.setCacheTypeList(Arrays.asList(
-                Constant.CACHE_KEY_PREFIX.DRIVERS_TYPE,
+                Constant.CACHE_KEY_PREFIX.SCHEMA_TYPE,
                 Constant.CACHE_KEY_PREFIX.COMMON_TYPE
         ));
 

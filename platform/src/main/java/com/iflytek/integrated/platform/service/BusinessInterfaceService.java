@@ -173,6 +173,17 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
                 .where(qTBusinessInterface.sysRegistryId.eq(sysRegistryId)).fetch();
     }
 
+    public List<TBusinessInterface> getListBySysRegistryId(List<String> sysRegistryIds) {
+        return sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
+                .where(qTBusinessInterface.sysRegistryId.in(sysRegistryIds)).fetch();
+    }
+
+    public List<TBusinessInterface> getListByRegSysIdList(List<String> sysIds) {
+        return sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface)
+                .leftJoin(qTSysRegistry).on(qTBusinessInterface.sysRegistryId.eq(qTSysRegistry.id))
+                .where(qTSysRegistry.sysId.in(sysIds)).fetch();
+    }
+
     /**
      * 根据请求方系统接口ID获取接口配置信息
      *

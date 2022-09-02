@@ -308,4 +308,11 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
         cacheDeleteService.cacheKeyDelete(sysKeyDto);
     }
 
+    public List<TSysPublish> getAll(){
+        return sqlQueryFactory
+                .select(Projections.bean(TSysPublish.class, qTSysPublish.id, qTSysPublish.sysId, qTSysPublish.publishName))
+                .from(qTSysPublish)
+                .fetch();
+    }
+
 }
