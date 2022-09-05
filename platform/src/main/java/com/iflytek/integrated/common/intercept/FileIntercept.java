@@ -1,11 +1,7 @@
 package com.iflytek.integrated.common.intercept;
 
-import com.iflytek.integrated.common.dto.UserDto;
-import com.iflytek.integrated.platform.utils.JwtTokenUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -44,7 +40,7 @@ public class FileIntercept extends HandlerInterceptorAdapter {
                 String filename=multipartfile.getOriginalFilename();
                 //判断是否为限制文件类型
                 if (! checkfile(filename)) {
-                    throw new Exception("不支持的文件类型");
+                    throw new Exception("不支持的文件类型,请上传jpg,gif,png,ico,bmp,jpeg类型文件!");
                 }
             }
         }
