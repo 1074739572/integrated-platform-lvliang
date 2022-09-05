@@ -53,7 +53,7 @@ public class WebInterceptConfig extends WebMvcConfigurationSupport {
     public void addInterceptors(InterceptorRegistry registry){
         //文件拦截器
         InterceptorRegistration file = registry.addInterceptor(fileIntercept);
-        file.addPathPatterns("/*/pt/file/upload");
+        file.addPathPatterns("/*/pt/vendor/addOrMod");
         //用户登录拦截器
 //        InterceptorRegistration rationUserLogin = registry.addInterceptor(userLoginIntercept);
 //        rationUserLogin.addPathPatterns("/*/pt/**").excludePathPatterns("/**/loginManage/**");
