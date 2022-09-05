@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.iflytek.integrated.common.intercept.AfterCompletionIntercept;
+import com.iflytek.integrated.common.intercept.FileIntercept;
 import com.iflytek.integrated.common.intercept.UserLoginIntercept;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.boot.system.ApplicationHome;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
@@ -38,6 +40,9 @@ public class WebInterceptConfig extends WebMvcConfigurationSupport {
     private UserLoginIntercept userLoginIntercept;
 
     @Autowired
+    private FileIntercept fileIntercept;
+
+    @Autowired
     private AfterCompletionIntercept afterCompletionIntercept;
 
     /**
@@ -46,6 +51,9 @@ public class WebInterceptConfig extends WebMvcConfigurationSupport {
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry){
+        //文件拦截器
+        InterceptorRegistration file = registry.addInterceptor(fileIntercept);
+        file.addPathPatterns("/*/pt/file/upload");
         //用户登录拦截器
 //        InterceptorRegistration rationUserLogin = registry.addInterceptor(userLoginIntercept);
 //        rationUserLogin.addPathPatterns("/*/pt/**").excludePathPatterns("/**/loginManage/**");

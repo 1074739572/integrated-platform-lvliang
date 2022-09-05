@@ -158,7 +158,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
             //将明文保存进redis  时效1分钟
             String key=id+"::"+loginUserName;
             redisUtil.set(key,publish.getSignKey(),60000L);
-            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取签名密钥成功!", publish.getSignKey());
+            return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "获取签名密钥成功!", null);
         } catch (BeansException e) {
             logger.error("获取签名密钥失败! MSG:{}", ExceptionUtil.dealException(e));
             e.printStackTrace();
@@ -316,3 +316,8 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
     }
 
 }
+//empirical research 实证研究
+//empirical formula 经验公式
+//thesis 论文  论题 论点
+//there is no empirical evidence to support his thesis
+//do me a favour
