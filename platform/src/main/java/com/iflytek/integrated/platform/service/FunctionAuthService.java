@@ -43,6 +43,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.iflytek.integrated.platform.entity.QTFunctionAuth.qtFunctionAuth;
 import static com.iflytek.integrated.platform.entity.QTSysPublish.qTSysPublish;
@@ -127,7 +128,7 @@ public class FunctionAuthService extends BaseService<TFunctionAuth, String, Stri
             }
         }
         //删除缓存
-        cacheDelete(id);
+        cacheDelete(dto.getInterfaceId());
         Map<String, String> data = new HashMap<String, String>();
         data.put("id", id);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存功能权限信息成功!", JSON.toJSONString(data));
@@ -158,8 +159,9 @@ public class FunctionAuthService extends BaseService<TFunctionAuth, String, Stri
     @GetMapping("/delById/{id}")
     public ResultDto<String> delById(
             @ApiParam(value = "功能权限id") @PathVariable(value = "id", required = true) String id) {
+        TFunctionAuth one = this.getOne(id);
         //删除缓存
-        cacheDelete(id);
+        cacheDelete(one.getInterfaceId());
         // 删除接口
         long l = this.delete(id);
         if (l < 1) {
@@ -178,19 +180,32 @@ public class FunctionAuthService extends BaseService<TFunctionAuth, String, Stri
                 .fetch();
     }
 
-    private void cacheDelete(String id) {
-        //根据功能权限id找到对应的服务和发布系统
-        TFunctionAuth functionAuth = this.getOne(id);
-        if (functionAuth == null) {
+    private void cacheDelete(String interfaceId) {
+        //根据服务id查询功能
+        List<TFunctionAuth> auths = sqlQueryFactory
+                .select(Projections
+                        .bean(TFunctionAuth.class, qtFunctionAuth.id, qtFunctionAuth.publishId))
+                .from(qtFunctionAuth)
+                .where(qtFunctionAuth.interfaceId.eq(interfaceId))
+                .fetch();
+
+        //删除所有服务发布对应系统的key
+        if (CollectionUtils.isEmpty(auths)) {
             return;
         }
 
+        List<String> publishList = auths.stream().map(TFunctionAuth::getPublishId).collect(Collectors.toList());
+
         //找到服务的系统
-        TSysPublish sysPublish = sysPublishService.getOne(functionAuth.getPublishId());
+        List<TSysPublish> sysPublish = sysPublishService.getByIdList(publishList);
+
+        if (CollectionUtils.isEmpty(sysPublish)) {
+            return;
+        }
 
         CacheDeleteDto keyDto = new CacheDeleteDto();
-        keyDto.setInterfaceIds(Arrays.asList(functionAuth.getInterfaceId()));
-        keyDto.setSysIds(Arrays.asList(sysPublish.getSysId()));
+        keyDto.setInterfaceIds(Arrays.asList(interfaceId));
+        keyDto.setSysIds(sysPublish.stream().map(TSysPublish::getSysId).collect(Collectors.toList()));
         //需要删除下面两种缓存key
         keyDto.setCacheTypeList(Arrays.asList(
                 Constant.CACHE_KEY_PREFIX.COMMON_TYPE
