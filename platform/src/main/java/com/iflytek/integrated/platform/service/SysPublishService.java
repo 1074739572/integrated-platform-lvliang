@@ -315,9 +315,13 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
                 .fetch();
     }
 
+    public List<TSysPublish> getByIdList(List<String> ids){
+        return sqlQueryFactory
+                .select(Projections.bean(TSysPublish.class, qTSysPublish.id, qTSysPublish.sysId, qTSysPublish.publishName))
+                .from(qTSysPublish)
+                .where(qTSysPublish.id.in(ids))
+                .fetch();
+    }
+
+
 }
-//empirical research 实证研究
-//empirical formula 经验公式
-//thesis 论文  论题 论点
-//there is no empirical evidence to support his thesis
-//do me a favour
