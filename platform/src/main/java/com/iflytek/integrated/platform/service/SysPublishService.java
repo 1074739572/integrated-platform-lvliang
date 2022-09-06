@@ -189,7 +189,11 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
             dto.setCreatedTime(new Date());
             dto.setCreatedBy(loginUserName);
             this.post(dto);
+            //删除缓存
+            cacheDelete(pubId);
         } else {
+            //删除缓存
+            cacheDelete(pubId);
             //重新查询下签名密码防止传过来密文覆盖数据库明文
             dto.setSignKey(getOne(pubId).getSignKey());
             dto.setUpdatedTime(new Date());
@@ -199,8 +203,7 @@ public class SysPublishService extends BaseService<TSysPublish, String, StringPa
                 throw new RuntimeException("服务发布编辑失败!");
             }
         }
-        //删除缓存
-        cacheDelete(pubId);
+
         Map<String, String> data = new HashMap<String, String>();
         data.put("id", pubId);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存服务发布信息成功!", JSON.toJSONString(data));

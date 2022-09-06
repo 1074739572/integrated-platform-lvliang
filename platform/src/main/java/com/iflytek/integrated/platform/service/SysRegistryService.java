@@ -181,7 +181,11 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
             dto.setCreatedTime(new Date());
             dto.setCreatedBy(loginUserName);
             this.post(dto);
+            //删除缓存
+            cacheDelete(registryId);
         } else {
+            //删除缓存
+            cacheDelete(registryId);
             //修改
             dto.setUpdatedTime(new Date());
             dto.setUpdatedBy(loginUserName);
@@ -190,8 +194,7 @@ public class SysRegistryService extends BaseService<TSysRegistry, String, String
                 throw new RuntimeException("服务注册编辑失败!");
             }
         }
-        //删除缓存
-        cacheDelete(registryId);
+
         Map<String, String> data = new HashMap<String, String>();
         data.put("id", registryId);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "保存服务注册信息成功!", JSON.toJSONString(data));
