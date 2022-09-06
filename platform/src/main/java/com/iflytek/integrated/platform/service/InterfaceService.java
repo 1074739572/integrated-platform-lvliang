@@ -481,7 +481,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
      */
     public ResultDto updateInterface(InterfaceDto dto, String loginUserName, boolean saveHis) {
         String id = dto.getId();
-        //删除缓存
+        //先删除更新之前的删除缓存
         cacheDelete(id);
 
         TInterface tf = this.getOne(id);
@@ -601,6 +601,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             }
         }
 
+        //再删除更新之后的删除缓存
+        cacheDelete(id);
 
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "标准服务修改成功!", null);
     }
@@ -936,7 +938,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             historyService.insertHis(list, 1, loginUserName, lastRecordId, lastRecordId, hisShow);
         }
 
-        // redis缓存删除
+        // 先删除更新之前缓存删除
         cacheDeleteIntegration(dto.getId());
 
         List<String> rtnId = new ArrayList<>();
@@ -980,7 +982,8 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
                 rtnId.add(tbi.getId());
             }
         }
-
+        // 再删除更新之后缓存删除
+        cacheDeleteIntegration(dto.getId());
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "编辑集成配置成功", null);
     }
 
