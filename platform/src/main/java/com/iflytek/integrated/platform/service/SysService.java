@@ -65,13 +65,13 @@ public class SysService extends BaseService<TSys, String, StringPath> {
     @Autowired
     private BatchUidService batchUidService;
     @Autowired
-    private RedisService redisService;
-    @Autowired
     private CacheDeleteService cacheDeleteService;
     @Autowired
     private SysPublishService sysPublishService;
     @Autowired
     private SysRegistryService sysRegistryService;
+    @Autowired
+    private BusinessInterfaceService businessInterfaceService;
 
     @ApiOperation(value = "系统列表")
     @GetMapping("/getSysList")
@@ -322,9 +322,23 @@ public class SysService extends BaseService<TSys, String, StringPath> {
     }
 
     private void cacheDelete(String sysId) {
-        TSys sys = this.getOne(sysId);
+        List<String> sysIdList = new ArrayList<>();
+        List<String> funIdList = new ArrayList<>();
+        sysIdList.add(sysId);
+        //需要关注被请求方系统找到集成配置
+        List<TBusinessInterface> businessInterfaces = businessInterfaceService.getListByRegSysIdList(sysIdList);
+        if (CollectionUtils.isNotEmpty(businessInterfaces)) {
+            //将服务id加入
+            funIdList = businessInterfaces.stream().map(TBusinessInterface::getRequestInterfaceId).collect(Collectors.toList());
+            //将服务发布的系统全部加入
+            List<TSysPublish> all = sysPublishService.getAll();
+            if (CollectionUtils.isNotEmpty(all)) {
+                sysIdList.addAll(all.stream().map(TSysPublish::getSysId).collect(Collectors.toList()));
+            }
+        }
         CacheDeleteDto sysKeyDto = new CacheDeleteDto();
-        sysKeyDto.setSysCodes(Arrays.asList(sys.getSysCode()));
+        sysKeyDto.setSysIds(sysIdList);
+        sysKeyDto.setInterfaceIds(funIdList);
         //需要获取四种类型的key  但是系统没有绑定funcode需要查询所有的
         sysKeyDto.setCacheTypeList(Arrays.asList(
                 Constant.CACHE_KEY_PREFIX.DRIVERS_TYPE,
