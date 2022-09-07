@@ -847,7 +847,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
             }
         }
         // redis缓存删除
-        cacheDeleteIntegration(dto.getId());
+        cacheDeleteIntegration(returnId);
         Map<String, String> data = new HashMap<String, String>();
         data.put("id", returnId);
         return new ResultDto<String>(Constant.ResultCode.SUCCESS_CODE, "新增集成配置成功", JSON.toJSONString(data));
