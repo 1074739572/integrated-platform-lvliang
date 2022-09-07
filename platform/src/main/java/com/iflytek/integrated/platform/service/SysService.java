@@ -224,7 +224,7 @@ public class SysService extends BaseService<TSys, String, StringPath> {
                 sysDriveLinkService.post(tvdl);
             }
         }
-        cacheDelete(dto.getId());
+        cacheDelete(tp.getId());
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "新增系统成功", null);
     }
 
