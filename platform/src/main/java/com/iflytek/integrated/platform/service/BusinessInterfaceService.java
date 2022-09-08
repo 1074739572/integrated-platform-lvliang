@@ -109,6 +109,7 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
         if (idList.size() != size) {
             throw new RuntimeException("启停用状态编辑失败!");
         }
+        cacheDelete(id);
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "更改接口配置状态成功!", new RedisDto(redisKeyDtoList).toString());
     }
 
