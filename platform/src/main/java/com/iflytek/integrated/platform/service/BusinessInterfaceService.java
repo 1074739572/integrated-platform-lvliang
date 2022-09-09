@@ -99,7 +99,7 @@ import static com.iflytek.integrated.platform.entity.QTType.qTType;
  * @date 2020/12/13 20:40
  */
 @Service
-@Api(tags = "系统服务管理")
+@Api(tags = "集成配置管理")
 @RestController
 @RequestMapping("/{version}/pt/bussInterfaceManage")
 public class BusinessInterfaceService extends BaseService<TBusinessInterface, String, StringPath> {
