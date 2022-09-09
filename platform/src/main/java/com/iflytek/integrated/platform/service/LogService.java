@@ -332,7 +332,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
         TLog tLog = shardingSqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status,
                         qTLog.venderRepTime, qTLog.businessRepTime, qTLog.visitAddr, qTLog.businessReq, qTLog.venderReq,
                         qTLog.businessRep, qTLog.venderRep, qTLog.debugreplayFlag,qTLog.businessInterfaceId,qTLog.publishId,
-                        qTLog.logType, qTLog.logNode, qTLog.logHeader))
+                        qTLog.logType, qTLog.logNode, qTLog.logHeader,qTLog.ipAddress))
                 .from(qTLog)
                 .where(qTLog.id.eq(Long.valueOf(id)).and(qTLog.createdTime.eq(createTime)))
                 .fetchFirst();
