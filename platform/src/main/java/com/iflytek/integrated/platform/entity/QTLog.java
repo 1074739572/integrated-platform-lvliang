@@ -69,6 +69,8 @@ public class QTLog extends com.querydsl.sql.RelationalPathBase<TLog> {
 
     public final StringPath ipAddress = createString("ipAddress");
 
+    public final StringPath groupName = createString("groupName");
+
     public final com.querydsl.sql.PrimaryKey<TLog> primary = createPrimaryKey(id);
 
     public QTLog(String variable) {
@@ -119,6 +121,7 @@ public class QTLog extends com.querydsl.sql.RelationalPathBase<TLog> {
         addMetadata(logNode, ColumnMetadata.named("log_node").withIndex(22).ofType(Types.VARCHAR).withSize(100));
         addMetadata(logHeader, ColumnMetadata.named("log_header").withIndex(23).ofType(Types.VARCHAR).withSize(255));
         addMetadata(ipAddress, ColumnMetadata.named("ip_address").withIndex(24).ofType(Types.VARCHAR).withSize(100));
+        addMetadata(groupName, ColumnMetadata.named("group_name").withIndex(24).ofType(Types.VARCHAR).withSize(255));
 
         addMetadata(id, ColumnMetadata.named("ID").withIndex(1).ofType(Types.BIGINT).withSize(19).notNull());
     }

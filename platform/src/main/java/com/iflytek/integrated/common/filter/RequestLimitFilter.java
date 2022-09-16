@@ -23,7 +23,7 @@ public class RequestLimitFilter implements Filter {
 
     private static Integer PAGE_NUMBER_MIN = 1;
 
-    private static Integer PAGE_NUMBER_MAX = 100;
+    private static Integer PAGE_NUMBER_MAX = 1000;
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
