@@ -332,7 +332,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
         TLog tLog = shardingSqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.createdTime, qTLog.status,
                         qTLog.venderRepTime, qTLog.businessRepTime, qTLog.visitAddr, qTLog.businessReq, qTLog.venderReq,
                         qTLog.businessRep, qTLog.venderRep, qTLog.debugreplayFlag,qTLog.businessInterfaceId,qTLog.publishId,
-                        qTLog.logType, qTLog.logNode, qTLog.logHeader,qTLog.ipAddress))
+                        qTLog.logType, qTLog.logNode, qTLog.logHeader,qTLog.ipAddress,qTLog.groupName))
                 .from(qTLog)
                 .where(qTLog.id.eq(Long.valueOf(id)).and(qTLog.createdTime.eq(createTime)))
                 .fetchFirst();
@@ -381,6 +381,9 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 
         tLog.setBusinessReq(decryptAndFilterSensitive(tLog.getBusinessReq()));
         tLog.setVenderReq(decryptAndFilterSensitive(tLog.getVenderReq()));
+        if(StringUtils.isNotEmpty(tLog.getGroupName())) {
+            tLog.setIpAddress(tLog.getIpAddress()+"/"+tLog.getGroupName());
+        }
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志详细获取成功!", tLog);
     }
 
