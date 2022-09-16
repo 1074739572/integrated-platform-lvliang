@@ -107,8 +107,9 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
                                                   @ApiParam(value = "请求方响应") @RequestParam(value = "businessRep", required = false) String businessRep,
                                                   @ApiParam(value = "被请求方请求") @RequestParam(value = "venderReq", required = false) String venderReq,
                                                   @ApiParam(value = "被请求方响应") @RequestParam(value = "venderRep", required = false) String venderRep,
-                                                  @RequestParam(defaultValue = "1") Integer pageNo,
-                                                  @RequestParam(defaultValue = "10") Integer pageSize) {
+                                                  @ApiParam(value = "是否下一页 1 下一页 0上一页") @RequestParam(defaultValue = "1") Integer isNext,
+                                                  @ApiParam(value = "日志id") @RequestParam(required = true) String id,
+                                                  @RequestParam(defaultValue = "1") Integer pageSize) {
 
         // 查询条件
         ArrayList<Predicate> list = new ArrayList<>();
@@ -174,17 +175,26 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
                     .like(PlatformUtil.createFuzzyText(venderRep)));
         }
 
+        TLog count = shardingSqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id.count().as("count"))).from(qTLog)
+                .where(list.toArray(new Predicate[list.size()])).fetchOne();
+
+        //不支持跳页
+        if(isNext==1){
+            list.add(qTLog.id.gt(Long.valueOf(id)));
+        }else{
+            list.add(qTLog.id.lt(Long.valueOf(id)));
+        }
+
         //先分页查询日志表
         List<TLog> tLogList = shardingSqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.businessInterfaceId, qTLog.createdTime, qTLog.status, qTLog.venderRepTime,
                         qTLog.businessRepTime, qTLog.visitAddr, qTLog.debugreplayFlag,
                         qTLog.logType, qTLog.logNode, qTLog.logHeader,qTLog.publishId)).from(qTLog)
-                .where(list.toArray(new Predicate[list.size()])).limit(pageSize).offset((pageNo - 1) * pageSize)
-                .orderBy(qTLog.createdTime.desc(), qTLog.requestIdentifier.desc()).fetch();
+                .where(list.toArray(new Predicate[list.size()]))
+                .orderBy(qTLog.createdTime.desc(), qTLog.requestIdentifier.desc()).limit(pageSize).fetch();
 
-        TLog count = shardingSqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id.count().as("count"))).from(qTLog)
-                .where(list.toArray(new Predicate[list.size()])).fetchOne();
 
-        QueryResults<TLog> tLogQueryResults=new QueryResults<TLog>(tLogList,new Long(pageSize),new Long((pageNo - 1) * pageSize),count.getCount());
+
+        QueryResults<TLog> tLogQueryResults=new QueryResults<TLog>(tLogList,new Long(pageSize),null,count.getCount());
         if (tLogQueryResults == null && tLogQueryResults.isEmpty()) {
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志详细列表获取成功!", new TableData<>());
         }
