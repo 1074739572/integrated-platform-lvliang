@@ -247,8 +247,6 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
         String versionId = "";
         Integer interfaceSlowFlag = null;
         Integer replayFlag = null;
-        String QIId = null;
-        Integer QIFlag = null;
         String requestInterfaceName = "";
         String typeId = "";
         String requestSysId = "";
@@ -297,13 +295,14 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
         businessInterfaceService.delObjByCondition(hisReqInterfaceId);
         for (Object obj : jsonArray) {
             TBusinessInterface jObj = JSON.parseObject(obj.toString(),TBusinessInterface.class);
-            TBusinessInterface tbi = new TBusinessInterface();
             jObj.setId(batchUidService.getUid(qTBusinessInterface.getTableName()) + "");
             jObj.setCreatedBy(loginUserName);
             // 获取schema
             niFiRequestUtil.generateSchemaToInterface(jObj);
             businessInterfaceService.post(jObj);
         }
+        //缓存清除
+        businessInterfaceService.cacheDelete(hisReqInterfaceId);
 
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "回滚历史版本成功!", null);
     }
@@ -325,6 +324,8 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
             InterfaceDto tInterface=JSONObject.parseObject(ti.getHisContent(),InterfaceDto.class);
             interfaceService.updateInterface(tInterface,loginUserName,false);
 
+            //删除缓存
+            interfaceService.cacheDelete(id);
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "回滚成功!", null);
         } catch (Exception e) {
             logger.error("回滚失败! MSG:{}", ExceptionUtil.dealException(e));

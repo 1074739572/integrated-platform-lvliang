@@ -1250,7 +1250,7 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
         return sqlQueryFactory.select(qTBusinessInterface).from(qTBusinessInterface).where(qTBusinessInterface.pluginId.eq(pluginId)).fetch();
     }
 
-    private void cacheDelete(String id) {
+    public void cacheDelete(String id) {
         TBusinessInterface businessInterface = this.getOne(id);
         CacheDeleteDto keyDto = new CacheDeleteDto();
         keyDto.setInterfaceIds(Arrays.asList(businessInterface.getRequestInterfaceId()));
