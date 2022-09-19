@@ -108,7 +108,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
                                                   @ApiParam(value = "被请求方请求") @RequestParam(value = "venderReq", required = false) String venderReq,
                                                   @ApiParam(value = "被请求方响应") @RequestParam(value = "venderRep", required = false) String venderRep,
                                                   @ApiParam(value = "是否下一页 1 下一页 0上一页") @RequestParam(defaultValue = "1") Integer isNext,
-                                                  @ApiParam(value = "日志id") @RequestParam(required = true) String id,
+                                                  @ApiParam(value = "日志id") @RequestParam(defaultValue = "0") String id,
                                                   @RequestParam(defaultValue = "1") Integer pageSize) {
 
         // 查询条件
