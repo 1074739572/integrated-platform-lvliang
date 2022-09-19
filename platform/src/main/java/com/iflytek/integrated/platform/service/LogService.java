@@ -107,7 +107,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
                                                   @ApiParam(value = "请求方响应") @RequestParam(value = "businessRep", required = false) String businessRep,
                                                   @ApiParam(value = "被请求方请求") @RequestParam(value = "venderReq", required = false) String venderReq,
                                                   @ApiParam(value = "被请求方响应") @RequestParam(value = "venderRep", required = false) String venderRep,
-                                                  @ApiParam(value = "是否下一页 1 下一页 0上一页") @RequestParam(defaultValue = "1") Integer isNext,
+                                                  @ApiParam(value = "是否下一页 1 下一页 0上一页") @RequestParam(defaultValue = "0") Integer isNext,
                                                   @ApiParam(value = "日志id") @RequestParam(defaultValue = "0") String id,
                                                   @RequestParam(defaultValue = "1") Integer pageSize) {
 
@@ -180,9 +180,9 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
 
         //不支持跳页
         if(isNext==1){
-            list.add(qTLog.id.gt(Long.valueOf(id)));
-        }else{
             list.add(qTLog.id.lt(Long.valueOf(id)));
+        }else{
+            list.add(qTLog.id.gt(Long.valueOf(id)));
         }
 
         //先分页查询日志表
