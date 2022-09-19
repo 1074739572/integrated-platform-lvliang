@@ -298,7 +298,7 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
         businessInterfaceService.delObjByCondition(hisReqInterfaceId);
         for (Object obj : jsonArray) {
             TBusinessInterface jObj = JSON.parseObject(obj.toString(),TBusinessInterface.class);
-            jObj.setId(batchUidService.getUid(qTBusinessInterface.getTableName()) + "");
+//            jObj.setId(batchUidService.getUid(qTBusinessInterface.getTableName()) + "");
             jObj.setCreatedBy(loginUserName);
             // 获取schema
             niFiRequestUtil.generateSchemaToInterface(jObj);
