@@ -298,7 +298,7 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
                         qTLog.businessRepTime, qTLog.visitAddr, qTLog.debugreplayFlag,
                         qTLog.logType, qTLog.logNode, qTLog.logHeader,qTLog.publishId)).from(qTLog)
                 .where(list.toArray(new Predicate[list.size()]))
-                .orderBy(orderList.toArray(new OrderSpecifier[list.size()])).limit(pageSize).fetch();
+                .orderBy(orderList.toArray(new OrderSpecifier[orderList.size()])).limit(pageSize).fetch();
 
         //如果是上一页 需要再做一次手动升序排序
         if(CollectionUtils.isNotEmpty(tLogList) && isNext==0 && !StringUtils.equals("0",id)){
