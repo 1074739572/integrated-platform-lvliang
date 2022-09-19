@@ -661,7 +661,7 @@ public class InterfaceService extends BaseService<TInterface, String, StringPath
         return sqlQueryFactory.select(qTInterface).from(qTInterface).where(qTInterface.id.in(idList)).fetch();
     }
 
-    private void cacheDelete(String id) {
+    public void cacheDelete(String id) {
         TInterface tInterface = this.getOne(id);
         if (StringUtils.isEmpty((tInterface.getInterfaceUrl()))) {
             return;

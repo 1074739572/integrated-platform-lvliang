@@ -16,6 +16,7 @@ import com.iflytek.integrated.platform.utils.PlatformUtil;
 import com.querydsl.core.QueryFlag;
 import com.querydsl.core.QueryFlag.Position;
 import com.querydsl.core.QueryResults;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
@@ -49,6 +50,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -178,20 +180,9 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
         TLog count = shardingSqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id.count().as("count"))).from(qTLog)
                 .where(list.toArray(new Predicate[list.size()])).fetchOne();
 
-        //不支持跳页
-        if(isNext==1){
-            list.add(qTLog.id.lt(Long.valueOf(id)));
-        }else{
-            list.add(qTLog.id.gt(Long.valueOf(id)));
-        }
+        //SHARDING分页查询
 
-        //先分页查询日志表
-        List<TLog> tLogList = shardingSqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.businessInterfaceId, qTLog.createdTime, qTLog.status, qTLog.venderRepTime,
-                        qTLog.businessRepTime, qTLog.visitAddr, qTLog.debugreplayFlag,
-                        qTLog.logType, qTLog.logNode, qTLog.logHeader,qTLog.publishId)).from(qTLog)
-                .where(list.toArray(new Predicate[list.size()]))
-                .orderBy(qTLog.createdTime.desc(), qTLog.requestIdentifier.desc()).limit(pageSize).fetch();
-
+        List<TLog> tLogList = pageLogs(isNext, id, pageSize, list);
 
 
         QueryResults<TLog> tLogQueryResults=new QueryResults<TLog>(tLogList,new Long(pageSize),null,count.getCount());
@@ -278,6 +269,44 @@ public class LogService extends BaseService<TLog, Long, NumberPath<Long>> {
         // 分页
         TableData<TLog> tableData = new TableData<>(tLogQueryResults.getTotal(), tLogQueryResults.getResults());
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "日志详细列表获取成功!", tableData);
+    }
+
+    private List<TLog> pageLogs(Integer isNext, String id, Integer pageSize, ArrayList<Predicate> list) {
+        List<OrderSpecifier> orderList=new ArrayList<>();
+        //不支持跳页
+        if(isNext ==1){
+            list.add(qTLog.id.lt(Long.valueOf(id)));
+            orderList.add(qTLog.createdTime.desc());
+            orderList.add(qTLog.requestIdentifier.desc());
+        }else{
+            list.add(qTLog.id.gt(Long.valueOf(id)));
+            if(StringUtils.equals("0",id)) {
+                //如果是0 代表取第一页数据  id>0  且降序
+                orderList.add(qTLog.createdTime.desc());
+                orderList.add(qTLog.requestIdentifier.desc());
+            }else{
+                //如果是上一页需要在当前也最小的id
+                //小于当前页最小最小id的升序排序 取前N条
+                //然后再做升序
+                orderList.add(qTLog.createdTime.asc());
+                orderList.add(qTLog.requestIdentifier.asc());
+            }
+        }
+
+        //先分页查询日志表
+        List<TLog> tLogList = shardingSqlQueryFactory.select(Projections.bean(TLog.class, qTLog.id, qTLog.businessInterfaceId, qTLog.createdTime, qTLog.status, qTLog.venderRepTime,
+                        qTLog.businessRepTime, qTLog.visitAddr, qTLog.debugreplayFlag,
+                        qTLog.logType, qTLog.logNode, qTLog.logHeader,qTLog.publishId)).from(qTLog)
+                .where(list.toArray(new Predicate[list.size()]))
+                .orderBy(orderList.toArray(new OrderSpecifier[list.size()])).limit(pageSize).fetch();
+
+        //如果是上一页 需要再做一次手动升序排序
+        if(CollectionUtils.isNotEmpty(tLogList) && isNext==0 && !StringUtils.equals("0",id)){
+            tLogList=tLogList.stream().sorted(Comparator.comparing(TLog::getId).reversed())
+                    .collect(Collectors.toList());
+        }
+
+        return tLogList;
     }
 
     private void combineResult(QueryResults<TLog> tLogQueryResults, List<TBusinessInterface> btResults, List<TSysPublish> pubResults) {
