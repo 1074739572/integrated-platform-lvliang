@@ -291,6 +291,9 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
         String hisShow = JSON.toJSONString(map);
         this.insertHis(list, 1, loginUserName, lastRecordId, lastRecordId, hisShow);
 
+        //缓存清除
+        businessInterfaceService.cacheDelete(list.get(0).getId());
+
         //删除
         businessInterfaceService.delObjByCondition(hisReqInterfaceId);
         for (Object obj : jsonArray) {
@@ -301,8 +304,6 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
             niFiRequestUtil.generateSchemaToInterface(jObj);
             businessInterfaceService.post(jObj);
         }
-        //缓存清除
-        businessInterfaceService.cacheDelete(hisReqInterfaceId);
 
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "回滚历史版本成功!", null);
     }
@@ -320,12 +321,13 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
             //先查询出当前的服务存入历史
             interfaceService.write2His(ti.getRecordId(),loginUserName);
 
+            //删除缓存
+            interfaceService.cacheDelete(ti.getRecordId());
+
             //再替换当前服务为历史服务
             InterfaceDto tInterface=JSONObject.parseObject(ti.getHisContent(),InterfaceDto.class);
             interfaceService.updateInterface(tInterface,loginUserName,false);
 
-            //删除缓存
-            interfaceService.cacheDelete(id);
             return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "回滚成功!", null);
         } catch (Exception e) {
             logger.error("回滚失败! MSG:{}", ExceptionUtil.dealException(e));
