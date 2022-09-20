@@ -285,7 +285,7 @@ public class PluginService extends BaseService<TPlugin, String, StringPath> {
         return rtnMap;
     }
 
-    private void cacheDelete(String id) {
+    public void cacheDelete(String id) {
         //根据插件查找集成配置
         List<TBusinessInterface> businessInterfaces = businessInterfaceService.getByPlugin(id);
         if(CollectionUtils.isEmpty(businessInterfaces)){
