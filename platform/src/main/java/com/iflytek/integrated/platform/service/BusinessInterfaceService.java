@@ -769,7 +769,6 @@ public class BusinessInterfaceService extends BaseService<TBusinessInterface, St
         }
     }
 
-
     @PostMapping("/interfaceDebug/{authFlag}")
     @ApiOperation(value = "请求方服务调试", notes = "请求方服务调试")
     public ResultDto<String> interfaceDebug(@RequestBody InterfaceDebugDto degubDto, @PathVariable("authFlag") String authFlag) {

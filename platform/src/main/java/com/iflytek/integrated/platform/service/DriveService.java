@@ -258,7 +258,7 @@ public class DriveService extends BaseService<TDrive, String, StringPath> {
         return new ResultDto<>(Constant.ResultCode.SUCCESS_CODE, "驱动编辑成功!", null);
     }
 
-    private void cacheDelete(String driveId) {
+    public void cacheDelete(String driveId) {
         //根据驱动id查询系统
         List<TSysDriveLink> beans = sysDriveLinkService.getSysDriveLinkByDriveId(driveId);
         if (CollectionUtils.isEmpty(beans)) {

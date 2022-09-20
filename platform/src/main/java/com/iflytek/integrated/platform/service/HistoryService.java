@@ -170,6 +170,7 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
                 tDrive.setUpdatedBy(loginUserName);
                 tDrive.setUpdatedTime(new Date());
                 driveService.put(tDrive.getId(), tDrive);
+                driveService.cacheDelete(tDrive.getId());
                 break;
             case "3":   //当前插件
                 TPlugin tPlugin = pluginService.getOne(tHistory.getRecordId());
@@ -188,6 +189,8 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
                 tPlugin.setPluginContent(jsonObject.getString("pluginContent"));
                 tPlugin.setDependentPath(jsonObject.getString("dependentPath"));
                 pluginService.put(tPlugin.getId(), tPlugin);
+                //删除缓存
+                pluginService.cacheDelete(tPlugin.getId());
                 break;
             default:
                 throw new RuntimeException("历史版本类型错误！");
