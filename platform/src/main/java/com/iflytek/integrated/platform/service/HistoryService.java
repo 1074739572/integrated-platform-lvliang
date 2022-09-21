@@ -188,7 +188,7 @@ public class HistoryService extends BaseService<THistory, String, StringPath> {
                 tPlugin.setPluginInstruction(jsonObject.getString("pluginInstruction"));
                 tPlugin.setPluginContent(jsonObject.getString("pluginContent"));
                 tPlugin.setDependentPath(jsonObject.getString("dependentPath"));
-                tDrive.setUpdatedBy(loginUserName);
+                tPlugin.setUpdatedBy(loginUserName);
                 tPlugin.setUpdatedTime(new Date());
                 pluginService.put(tPlugin.getId(), tPlugin);
                 //删除缓存
