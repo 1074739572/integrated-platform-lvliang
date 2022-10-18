@@ -71,7 +71,7 @@ public class ShardingDataSourceConfig {
         for (String name : dbNames.split(",")) {
             HikariDataSource ds = new HikariDataSource();
             ds.setDriverClassName(env.getProperty("spring.shardingsphere.dataSource."+name+".driver-class-name"));
-            ds.setJdbcUrl(env.getProperty("spring.shardingsphere.dataSource."+name+".jdbc-url"));
+            ds.setJdbcUrl(env.getProperty("spring.shardingsphere.dataSource."+name+".url"));
             ds.setUsername(env.getProperty("spring.shardingsphere.dataSource."+name+".username"));
             ds.setPassword(env.getProperty("spring.shardingsphere.dataSource."+name+".password"));
             dataSourceMap.put(name, ds);
